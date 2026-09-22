@@ -1,0 +1,30 @@
+node_modules
+dist
+dist-ssr
+*.local
+*.tsbuildinfo
+
+# client business documents (not part of the app) — kept local only
+*.pdf
+*.docx
+*.pptx
+*.xlsx
+Alfon AI_Hotel Admin Screens/
+Alfon AI_Hotel Admin Screens.zip
+ALFON_AI_DESIGN_SYSTEM.md
+alfon_super_admin_ui_screen_prompts.md
+
+# editor
+.vscode/*
+!.vscode/extensions.json
+.idea
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# os
+.DS_Store
+Thumbs.db
