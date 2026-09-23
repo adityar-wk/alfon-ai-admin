@@ -7,7 +7,7 @@ import { DEPARTMENTS } from "../data/departments";
 import { DEPTS, METRICS, COMPLAINT_DETAIL } from "../pages/Analytics";
 import { Donut } from "../components/Donut";
 import { BarChart } from "../components/BarChart";
-import { SEED_TASKS, STAFF, PRESENCE_DOT, GUEST_STAYS, PRE_ARRIVAL_GUESTS, ROOMS, type MTask, type Presence, type Staffer, type HkRoom, type RoomStatus, type EscType } from "./data";
+import { SEED_TASKS, SEED_REQUESTS, STAFF, PRESENCE_DOT, GUEST_STAYS, PRE_ARRIVAL_GUESTS, ROOMS, type MTask, type Presence, type Staffer, type HkRoom, type RoomStatus, type EscType } from "./data";
 import {
   PhoneFrame, ScreenHeader, SectionTitle, TaskCard, StatCard, Avatar, Chips, Segmented, FloatingNav, PrimaryButton, GhostButton, SelectField, TextField, Label, Sheet,
   useNav, useToast, CARD_SHADOW, TextHeader, PriorityPill, SlaCountdown, fmtMins, type Priority,
@@ -921,12 +921,12 @@ export function ManagerPrototype() {
           <p className="mt-1.5 text-[14px] leading-relaxed text-ink">{task.note}</p>
         </div>
 
-        {task.escReason && (
-          <div className="rounded-2xl border border-red-100 bg-red-50/70 p-4">
-            <div className="flex items-center gap-2 text-[12px] font-semibold text-red-700"><AlertTriangle className="h-4 w-4" /> Note from {task.escBy ?? "a staff member"}</div>
-            <p className="mt-1.5 text-[13px] leading-snug text-ink">{task.escReason}</p>
+        {SEED_REQUESTS.filter((r) => r.taskId === task.id).map((r) => (
+          <div key={r.id} className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
+            <div className="flex items-center gap-2 text-[12px] font-semibold text-amber-800"><AlertTriangle className="h-4 w-4" /> Note from {r.staff} · {r.reason}</div>
+            <p className="mt-1.5 text-[13px] leading-snug text-ink">{r.note}</p>
           </div>
-        )}
+        ))}
 
         <div className={`rounded-2xl bg-white p-4 ${CARD_SHADOW}`}>
           <div className="text-[11px] font-semibold text-ink-secondary">Timeline</div>
