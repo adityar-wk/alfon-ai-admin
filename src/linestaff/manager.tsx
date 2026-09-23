@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import {
-  Bell, Home as HomeIcon, Plus, Users, UserCog, UserPlus, ArrowUpRight, MessageCircle, Send, Filter, Sparkles, ChevronRight, ChevronLeft, Search,
-  Menu as MenuIcon, ListChecks, BarChart3, Calendar, AlertTriangle, User, BedDouble, DoorClosed, Lightbulb, Check,
+  Bell, Home as HomeIcon, Plus, Users, UserCog, UserPlus, ArrowUpRight, MessageCircle, Send, Filter, ChevronRight, ChevronLeft, Search,
+  Menu as MenuIcon, ListChecks, BarChart3, AlertTriangle, User, BedDouble, DoorClosed, Lightbulb, Check, Building2,
 } from "lucide-react";
 import { DEPARTMENTS } from "../data/departments";
 import { DEPTS, METRICS, COMPLAINT_DETAIL } from "../pages/Analytics";
@@ -58,6 +58,14 @@ const KvRow = ({ label, children }: { label: string; children: React.ReactNode }
   <div className="flex items-center justify-between gap-3 border-b border-line/70 py-2.5 text-[13px] last:border-0">
     <span className="text-ink-secondary">{label}</span>
     <span className="text-right text-ink">{children}</span>
+  </div>
+);
+
+const DetailRow = ({ icon: Icon, label, children }: { icon: React.ComponentType<{ className?: string }>; label: string; children: React.ReactNode }) => (
+  <div className="flex items-center gap-3 py-3.5">
+    <Icon className="h-4 w-4 shrink-0 text-ink-tertiary" />
+    <span className="w-24 shrink-0 text-[13px] text-ink-tertiary">{label}</span>
+    <span className="min-w-0 flex-1 text-[14px] font-semibold text-ink">{children}</span>
   </div>
 );
 
@@ -344,8 +352,6 @@ export function ManagerPrototype() {
   const staffShift = SHIFTS[staffIndex % SHIFTS.length];
   const staffDayOff = staffIndex % 7;
   const staffTasks = staffEntry ? tasks.filter((t) => t.owner === staffEntry.name || t.support.includes(staffEntry.name)) : [];
-
-  const taskGuestEntry = task ? guestMap.get(task.guest) : undefined;
 
   const guestName = cur.name === "guestDetail" || cur.name === "guestProfile" ? cur.id : undefined;
   const guestEntry = guestName ? guestMap.get(guestName) : undefined;
@@ -878,55 +884,47 @@ export function ManagerPrototype() {
 
   const Detail = task ? (
     <div className="relative flex h-full flex-col">
-      <ScreenHeader onBack={nav.back} title="Task details" />
-      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 pb-6 no-scrollbar">
-        <div className={`rounded-2xl bg-white p-4 ${CARD_SHADOW}`}>
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex flex-wrap items-center gap-2">
+      <div className="flex shrink-0 items-center gap-3 border-b border-line px-6 pb-3 pt-4">
+        <button onClick={nav.back} aria-label="Back" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-ink shadow-sm">
+          <ChevronLeft className="h-5 w-5" />
+        </button>
+        <span className="text-[13px] font-semibold text-ink-secondary">Task detail</span>
+        {task.status !== "completed" && <div className="ml-auto"><SlaCountdown left={task.slaLeft} total={task.slaTotal} /></div>}
+      </div>
+      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 pb-6 pt-4 no-scrollbar">
+        <div className="flex items-start gap-3">
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-tint text-brand"><BedDouble className="h-6 w-6" /></span>
+          <div className="min-w-0">
+            <h2 className="text-[18px] font-bold leading-snug text-ink">{task.title}</h2>
+            <div className="mt-1 flex flex-wrap items-center gap-1.5">
               <PriorityPill p={task.priority} />
               <StatusTag s={task.status} />
               {task.vip && <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-bold text-amber-700">VIP</span>}
             </div>
-            {task.status !== "completed" && <SlaCountdown left={task.slaLeft} total={task.slaTotal} />}
           </div>
+        </div>
 
-          <div className="mt-3 text-[16px] font-bold leading-snug text-ink">{task.title}</div>
-          <p className="mt-1 text-[14px] leading-relaxed text-ink-secondary">{task.note}</p>
+        <div className="divide-y divide-line rounded-2xl border border-line bg-white px-4">
+          <DetailRow icon={User} label="Guest">
+            <button onClick={() => nav.push({ name: "guestProfile", id: task.guest })} className="flex items-center gap-1 text-left font-semibold text-brand">
+              {task.guest} <ChevronRight className="h-4 w-4" />
+            </button>
+          </DetailRow>
+          <DetailRow icon={BedDouble} label="Room">{task.room}</DetailRow>
+          <DetailRow icon={Building2} label="Department">Housekeeping</DetailRow>
+          <DetailRow icon={UserCog} label="Assigned to">{task.owner ?? <span className="text-red-600">Unassigned</span>}</DetailRow>
+          {task.support.length > 0 && <DetailRow icon={UserPlus} label="Support">{task.support.join(", ")}</DetailRow>}
+        </div>
 
-          <div className="mt-4 grid grid-cols-2 gap-3 border-t border-line pt-3 text-[12px]">
-            <div><div className="text-ink-tertiary">Room</div><div className="mt-0.5 text-[13px] font-semibold text-ink">{task.room}</div></div>
-            <div><div className="text-ink-tertiary">Owner</div><div className="mt-0.5 flex items-center gap-1.5 text-[13px] font-semibold text-ink"><User className="h-3.5 w-3.5 text-ink-tertiary" />{task.owner ?? <span className="text-red-600">Unassigned</span>}</div></div>
-            <div className="col-span-2"><div className="text-ink-tertiary">Support</div><div className="mt-0.5 text-[13px] font-semibold text-ink">{task.support.length ? task.support.join(", ") : "—"}</div></div>
-          </div>
+        <div className="rounded-2xl bg-[#F6F6F8] p-4">
+          <div className="text-[12px] font-semibold text-ink-tertiary">Notes</div>
+          <p className="mt-1.5 text-[14px] leading-relaxed text-ink">{task.note}</p>
         </div>
 
         {task.escReason && (
           <div className="rounded-2xl border border-red-100 bg-red-50/70 p-4">
             <div className="flex items-center gap-2 text-[12px] font-semibold text-red-700"><AlertTriangle className="h-4 w-4" /> Note from {task.escBy ?? "a staff member"}</div>
             <p className="mt-1.5 text-[13px] leading-snug text-ink">{task.escReason}</p>
-          </div>
-        )}
-
-        {taskGuestEntry && (
-          <div className={`rounded-2xl bg-white p-4 ${CARD_SHADOW}`}>
-            <div className="flex items-center gap-2 text-[11px] font-semibold text-ink-secondary"><Sparkles className="h-3.5 w-3.5 text-violet-500" /> Guest overview</div>
-            {taskGuestEntry.checkIn && (
-              <div className="mt-2 flex items-center gap-1.5 text-[12px] font-medium text-ink-secondary">
-                <Calendar className="h-3.5 w-3.5" /> Staying {taskGuestEntry.checkIn} – {taskGuestEntry.checkOut}
-              </div>
-            )}
-            <p className="mt-2 text-[13px] leading-relaxed text-ink">{taskGuestEntry.summary}</p>
-            {taskGuestEntry.complaint && (
-              <div className="mt-3 flex flex-wrap gap-2">
-                <span className="rounded-full bg-red-50 px-2.5 py-1 text-[12px] font-semibold text-red-600">Sentiment: {taskGuestEntry.sentiment}</span>
-                <span className="rounded-full bg-orange-50 px-2.5 py-1 text-[12px] font-semibold text-orange-700">Risk: {taskGuestEntry.risk}</span>
-              </div>
-            )}
-            {taskGuestEntry.prefs.length > 0 && (
-              <div className="mt-3 flex flex-wrap gap-1.5">
-                {taskGuestEntry.prefs.map((p) => <span key={p} className="rounded-full bg-[#F1F1F3] px-2.5 py-1 text-[12px] text-ink-secondary">{p}</span>)}
-              </div>
-            )}
           </div>
         )}
 
