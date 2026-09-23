@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import {
   Bell, Home as HomeIcon, Plus, Users, UserCog, UserPlus, ArrowUpRight, MessageCircle, Send, Filter, Sparkles, ChevronRight, ChevronLeft, Search,
-  Menu as MenuIcon, ListChecks, BarChart3, Calendar, AlertTriangle, User, BedDouble, DoorClosed,
+  Menu as MenuIcon, ListChecks, BarChart3, Calendar, AlertTriangle, User, BedDouble, DoorClosed, Lightbulb, Check,
 } from "lucide-react";
 import { DEPARTMENTS } from "../data/departments";
 import { DEPTS, METRICS, COMPLAINT_DETAIL } from "../pages/Analytics";
@@ -15,7 +15,7 @@ import {
 import { StaffPicker, ReasonSheet, StatusTag, activeCount, atRiskCount, overdueCount, isOpen, isAtRisk, isOverdue } from "./parts";
 
 type Screen = {
-  name: "home" | "tasks" | "team" | "staffDetail" | "housekeeping" | "guests" | "guestDetail" | "guestProfile" | "detail" | "notifications" | "create" | "menu" | "analytics" | "guestsRoster";
+  name: "home" | "tasks" | "team" | "staffDetail" | "housekeeping" | "guests" | "guestDetail" | "guestProfile" | "preArrivalProfile" | "detail" | "notifications" | "create" | "menu" | "analytics" | "guestsRoster";
   id?: string;
 };
 type SheetState = { k: "needHelp" | "assign" | "support" | "gm"; taskId: string } | null;
@@ -59,6 +59,38 @@ const KvRow = ({ label, children }: { label: string; children: React.ReactNode }
     <span className="text-ink-secondary">{label}</span>
     <span className="text-right text-ink">{children}</span>
   </div>
+);
+
+const PROFILE_SECTION_TONE = {
+  blue: { border: "border-blue-400", icon: "text-blue-600", label: "text-blue-700" },
+  amber: { border: "border-amber-400", icon: "text-amber-600", label: "text-amber-700" },
+  red: { border: "border-red-400", icon: "text-red-600", label: "text-red-700" },
+} as const;
+const ProfileSection = ({
+  icon: Icon, label, tone, children,
+}: {
+  icon: React.ComponentType<{ className?: string }>; label: string; tone: keyof typeof PROFILE_SECTION_TONE; children: React.ReactNode;
+}) => {
+  const t = PROFILE_SECTION_TONE[tone];
+  return (
+    <div className={`rounded-2xl border-l-4 ${t.border} bg-white p-4 ${CARD_SHADOW}`}>
+      <div className={`flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide ${t.label}`}>
+        <Icon className={`h-3.5 w-3.5 ${t.icon}`} /> {label}
+      </div>
+      <div className="mt-2">{children}</div>
+    </div>
+  );
+};
+const ActionRow = ({ n, text, dept, done, onClick }: { n: number; text: string; dept: string; done: boolean; onClick?: () => void }) => (
+  <button onClick={onClick} className="flex w-full items-start gap-3 border-b border-line/70 py-2.5 text-left last:border-0">
+    <span className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-bold ${done ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-600"}`}>
+      {done ? <Check className="h-3.5 w-3.5" /> : n}
+    </span>
+    <span className={`min-w-0 flex-1 text-[13px] leading-snug ${done ? "text-ink-tertiary line-through" : "text-ink"}`}>{text}</span>
+    <span className="flex shrink-0 items-center gap-1.5 rounded-full bg-[#F1F1F3] px-2 py-1 text-[10px] font-semibold text-ink-secondary">
+      {dept} <span className={`h-1.5 w-1.5 rounded-full ${done ? "bg-emerald-500" : "bg-amber-500"}`} />
+    </span>
+  </button>
 );
 const MENU_ITEMS = [
   { key: "team" as const, label: "Team Management", icon: Users },
@@ -132,6 +164,7 @@ export function ManagerPrototype() {
   const [rooms, setRooms] = useState<HkRoom[]>(ROOMS);
   const [roomFilter, setRoomFilter] = useState<RoomStatusFilter>("All");
   const [roomSheet, setRoomSheet] = useState<string | null>(null);
+  const [preArrivalDone, setPreArrivalDone] = useState<Record<string, number[]>>({});
   const [sheet, setSheet] = useState<SheetState>(null);
   const [needHelpReason, setNeedHelpReason] = useState("");
   const [chat, setChat] = useState<Record<string, { from: "guest" | "ai" | "me"; text: string }[]>>({});
@@ -296,6 +329,14 @@ export function ManagerPrototype() {
   const roomsFiltered = rooms.filter((r) => roomFilter === "All" || r.status === roomFilter);
   const roomChipCounts = Object.fromEntries(ROOM_STATUS_FILTERS.map((f) => [f, f === "All" ? rooms.length : rooms.filter((r) => r.status === f).length])) as Record<RoomStatusFilter, number>;
   const roomEntry = roomSheet ? rooms.find((r) => r.number === roomSheet) : undefined;
+
+  const preArrivalName = cur.name === "preArrivalProfile" ? cur.id : undefined;
+  const preArrivalEntry = preArrivalName ? PRE_ARRIVAL_GUESTS.find((g) => g.name === preArrivalName) : undefined;
+  const toggleAction = (name: string, idx: number) =>
+    setPreArrivalDone((m) => {
+      const done = m[name] ?? [];
+      return { ...m, [name]: done.includes(idx) ? done.filter((x) => x !== idx) : [...done, idx] };
+    });
 
   const staffName = cur.name === "staffDetail" ? cur.id : undefined;
   const staffEntry = staffName ? STAFF.find((s) => s.name === staffName) : undefined;
@@ -712,41 +753,122 @@ export function ManagerPrototype() {
 
   const GuestProfile = guestEntry && (
     <div className="flex h-full flex-col">
-      <ScreenHeader onBack={nav.back} title={guestEntry.name} sub={`${guestEntry.room}${guestEntry.vip ? " · VIP" : ""}`} />
+      <ScreenHeader
+        onBack={nav.back}
+        title={guestEntry.name}
+        sub={`${guestEntry.room}${guestEntry.vip ? " · VIP" : ""}`}
+        right={
+          guestEntry.complaint ? (
+            <span className="rounded-full bg-red-50 px-2.5 py-1 text-[11px] font-bold text-red-600">Complaint</span>
+          ) : guestEntry.vip ? (
+            <span className="rounded-full bg-amber-100 px-2.5 py-1 text-[11px] font-bold text-amber-700">VIP</span>
+          ) : undefined
+        }
+      />
       <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 pb-6 no-scrollbar">
-        <div className={`rounded-2xl bg-white p-4 ${CARD_SHADOW}`}>
-          <div className="flex items-center gap-2 text-[11px] font-semibold text-ink-secondary"><Sparkles className="h-3.5 w-3.5 text-violet-500" /> Guest overview</div>
-          {guestEntry.checkIn && (
-            <div className="mt-2 flex items-center gap-1.5 text-[12px] font-medium text-ink-secondary">
-              <Calendar className="h-3.5 w-3.5" /> Staying {guestEntry.checkIn} – {guestEntry.checkOut}
+        {guestEntry.checkIn && (
+          <div className={`rounded-2xl bg-white p-4 ${CARD_SHADOW}`}>
+            <div className="flex items-center gap-3">
+              <Avatar name={guestEntry.name} size={48} tone={guestEntry.complaint ? "bg-red-50 text-red-600" : undefined} />
+              <div className="text-[13px] font-medium text-ink-secondary">In-house guest</div>
             </div>
-          )}
-          <p className="mt-2 text-[13px] leading-relaxed text-ink">{guestEntry.summary}</p>
-          {guestEntry.complaint && (
-            <div className="mt-3 flex flex-wrap gap-2">
-              <span className="rounded-full bg-red-50 px-2.5 py-1 text-[12px] font-semibold text-red-600">Sentiment: {guestEntry.sentiment}</span>
-              <span className="rounded-full bg-orange-50 px-2.5 py-1 text-[12px] font-semibold text-orange-700">Risk: {guestEntry.risk}</span>
+            <div className="mt-3 grid grid-cols-2 gap-3 border-t border-line pt-3 text-[12px]">
+              <div><div className="text-ink-tertiary">Check-in</div><div className="mt-0.5 text-[13px] font-bold text-ink">{guestEntry.checkIn}</div></div>
+              <div><div className="text-ink-tertiary">Check-out</div><div className="mt-0.5 text-[13px] font-bold text-ink">{guestEntry.checkOut}</div></div>
             </div>
-          )}
-          {guestEntry.prefs.length > 0 && (
-            <div className="mt-3 flex flex-wrap gap-1.5">
+          </div>
+        )}
+
+        <ProfileSection icon={User} label="Guest profile" tone="blue">
+          <p className="text-[13px] leading-relaxed text-ink">{guestEntry.summary}</p>
+        </ProfileSection>
+
+        {(guestEntry.complaint || guestEntry.vip) && (
+          <ProfileSection icon={Lightbulb} label="Anticipated needs" tone="amber">
+            <p className="text-[13px] leading-relaxed text-ink">
+              {guestEntry.complaint
+                ? `Sentiment: ${guestEntry.sentiment} · Risk: ${guestEntry.risk}. Prioritize a fast, empathetic resolution.`
+                : "VIP guest — anticipate extra attention and proactive service."}
+            </p>
+          </ProfileSection>
+        )}
+
+        <ProfileSection icon={Bell} label="Actions" tone="red">
+          <div className="-mb-2.5">
+            {guestEntry.items.map((t, i) => (
+              <ActionRow key={t.id} n={i + 1} text={t.title} dept="Housekeeping" done={t.status === "completed"} onClick={() => open(t.id)} />
+            ))}
+            {!guestEntry.items.length && <p className="py-3 text-center text-[12px] text-ink-tertiary">No requests yet.</p>}
+          </div>
+        </ProfileSection>
+
+        {guestEntry.prefs.length > 0 && (
+          <div className={`rounded-2xl bg-white p-4 ${CARD_SHADOW}`}>
+            <div className="text-[11px] font-semibold text-ink-secondary">Preferences</div>
+            <div className="mt-2 flex flex-wrap gap-1.5">
               {guestEntry.prefs.map((p) => <span key={p} className="rounded-full bg-[#F1F1F3] px-2.5 py-1 text-[12px] text-ink-secondary">{p}</span>)}
             </div>
-          )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  const PreArrivalProfile = preArrivalEntry && (
+    <div className="flex h-full flex-col">
+      <ScreenHeader
+        onBack={nav.back}
+        title={preArrivalEntry.name}
+        sub={`${preArrivalEntry.room} · ${preArrivalEntry.roomType}`}
+        right={<span className="rounded-full bg-amber-100 px-2.5 py-1 text-[11px] font-bold text-amber-700">Pre-Arrival</span>}
+      />
+      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 pb-6 no-scrollbar">
+        <div className={`rounded-2xl bg-white p-4 ${CARD_SHADOW}`}>
+          <div className="flex items-center gap-3">
+            <Avatar name={preArrivalEntry.name} size={48} tone={preArrivalEntry.vip ? "bg-amber-100 text-amber-700" : undefined} />
+            <div className="leading-tight">
+              <div className="text-[13px] font-medium text-ink-secondary">{preArrivalEntry.flag} {preArrivalEntry.country}</div>
+              {preArrivalEntry.vip && <span className="mt-0.5 inline-block rounded-full bg-amber-100 px-2 py-0.5 text-[9px] font-bold text-amber-700">VIP</span>}
+            </div>
+          </div>
+          <div className="mt-3 grid grid-cols-2 gap-3 border-t border-line pt-3 text-[12px]">
+            <div><div className="text-ink-tertiary">Check-in</div><div className="mt-0.5 text-[13px] font-bold text-ink">{preArrivalEntry.checkIn}</div></div>
+            <div><div className="text-ink-tertiary">Check-out</div><div className="mt-0.5 text-[13px] font-bold text-ink">{preArrivalEntry.checkOut}</div></div>
+          </div>
+          <div className="mt-1 text-[12px] text-ink-tertiary">{preArrivalEntry.nights} night{preArrivalEntry.nights === 1 ? "" : "s"}</div>
         </div>
 
+        <ProfileSection icon={User} label="Guest profile" tone="blue">
+          <p className="text-[13px] leading-relaxed text-ink">{preArrivalEntry.profile}</p>
+        </ProfileSection>
+
+        <ProfileSection icon={Lightbulb} label="Anticipated needs" tone="amber">
+          <p className="text-[13px] leading-relaxed text-ink">{preArrivalEntry.anticipatedNeeds}</p>
+        </ProfileSection>
+
+        <ProfileSection icon={Bell} label="Actions" tone="red">
+          <div className="-mb-2.5">
+            {preArrivalEntry.actions.map((a, i) => (
+              <ActionRow
+                key={i}
+                n={i + 1}
+                text={a.text}
+                dept={a.dept}
+                done={(preArrivalDone[preArrivalEntry.name] ?? []).includes(i)}
+                onClick={() => toggleAction(preArrivalEntry.name, i)}
+              />
+            ))}
+          </div>
+        </ProfileSection>
+
         <div className={`rounded-2xl bg-white p-4 ${CARD_SHADOW}`}>
-          <div className="text-[11px] font-semibold text-ink-secondary">Recent requests</div>
-          <div className="mt-1 divide-y divide-line">
-            {guestEntry.items.map((t) => (
-              <button key={t.id} onClick={() => open(t.id)} className="flex w-full items-center gap-2 py-2.5 text-left">
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-[13px] font-medium text-ink">{t.title}</div>
-                  <div className="text-[11px] text-ink-tertiary">{t.room}</div>
-                </div>
-                <StatusTag s={t.status} />
-                <ChevronRight className="h-4 w-4 shrink-0 text-ink-tertiary" />
-              </button>
+          <div className="text-[11px] font-semibold text-ink-secondary">Preferences</div>
+          <div className="mt-2 divide-y divide-line/70">
+            {preArrivalEntry.prefs.map((p) => (
+              <div key={p.label} className="flex items-start justify-between gap-3 py-2 text-[13px]">
+                <span className="text-ink-tertiary">{p.label}</span>
+                <span className="text-right font-medium text-ink">{p.value}</span>
+              </div>
             ))}
           </div>
         </div>
@@ -1031,16 +1153,17 @@ export function ManagerPrototype() {
               <ChevronRight className="h-4 w-4 shrink-0 text-ink-tertiary" />
             </button>
           ) : (
-            <div key={row.g.name} className={`rounded-2xl bg-white p-3.5 ${CARD_SHADOW}`}>
+            <button key={row.g.name} onClick={() => nav.push({ name: "preArrivalProfile", id: row.g.name })} className={`w-full rounded-2xl bg-white p-3.5 text-left ${CARD_SHADOW}`}>
               <div className="flex items-center gap-2">
                 <span className="text-[14px] font-semibold text-ink">{row.g.name}</span>
                 <span className="shrink-0 rounded-full bg-blue-50 px-1.5 py-0.5 text-[9px] font-bold text-blue-700">Upcoming</span>
                 {row.g.vip && <span className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[9px] font-bold text-amber-700">VIP</span>}
+                <ChevronRight className="ml-auto h-4 w-4 shrink-0 text-ink-tertiary" />
               </div>
               <div className="mt-0.5 text-[12px] text-ink-tertiary">{row.g.room}</div>
               <div className="mt-1 text-[12px] font-semibold text-brand">Arriving {row.g.eta}</div>
               <p className="mt-1.5 text-[12px] leading-snug text-ink-secondary">{row.g.notes}</p>
-            </div>
+            </button>
           ),
         )}
         {!rosterFiltered.length && <p className="rounded-2xl bg-white p-6 text-center text-[13px] text-ink-tertiary">No guests match.</p>}
@@ -1049,7 +1172,8 @@ export function ManagerPrototype() {
   );
 
   const VIEWS: Record<Screen["name"], React.ReactNode> = {
-    home: Home, tasks: Tasks, team: Team, staffDetail: StaffDetail, housekeeping: Housekeeping, guests: Guests, guestDetail: GuestDetail, guestProfile: GuestProfile, detail: Detail, notifications: Notifications, create: Create,
+    home: Home, tasks: Tasks, team: Team, staffDetail: StaffDetail, housekeeping: Housekeeping, guests: Guests, guestDetail: GuestDetail, guestProfile: GuestProfile,
+    preArrivalProfile: PreArrivalProfile, detail: Detail, notifications: Notifications, create: Create,
     menu: Menu, analytics: Analytics, guestsRoster: GuestsRoster,
   };
 
@@ -1168,7 +1292,7 @@ export function ManagerPrototype() {
           onClick={() => {
             nav.reset(); setTasks(SEED_TASKS); setRooms(ROOMS); setSheet(null); setNeedHelpReason(""); setChat({}); setManual({});
             setFilter("All"); setRoleFilter("All"); setAvailFilter("All"); setGuestFilter("All"); setGuestQuery("");
-            setTaskFilter("All"); setTaskQuery(""); setStageFilter("All"); setRosterFilter("All"); setStaffTab("Overview"); setRoomFilter("All"); setRoomSheet(null);
+            setTaskFilter("All"); setTaskQuery(""); setStageFilter("All"); setRosterFilter("All"); setStaffTab("Overview"); setRoomFilter("All"); setRoomSheet(null); setPreArrivalDone({});
           }}
         >
           Reset

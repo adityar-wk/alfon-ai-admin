@@ -164,12 +164,83 @@ export const GUEST_STAYS: Record<string, { checkIn: string; checkOut: string }> 
   "Isabella Rossi": { checkIn: "Sep 23", checkOut: "Sep 25" },
 };
 
-export type PreArrivalGuest = { name: string; room: string; eta: string; vip: boolean; notes: string };
+export type PreArrivalGuest = {
+  name: string;
+  room: string;
+  roomType: string;
+  eta: string;
+  vip: boolean;
+  notes: string;
+  country: string;
+  flag: string;
+  checkIn: string;
+  checkOut: string;
+  nights: number;
+  profile: string;
+  anticipatedNeeds: string;
+  actions: { text: string; dept: string }[];
+  prefs: { label: string; value: string }[];
+};
 export const PRE_ARRIVAL_GUESTS: PreArrivalGuest[] = [
-  { name: "James Whitfield", room: "Room 615", eta: "Today, Sep 23 · 11:30 AM", vip: false, notes: "Requested early check-in — room to be ready by 11 AM." },
-  { name: "Priya Nair", room: "Room 902", eta: "Today, Sep 23 · 1:00 PM", vip: true, notes: "VIP arrival — welcome amenities and turndown setup requested." },
-  { name: "Marco Bellini", room: "Room 340", eta: "Tomorrow, Sep 24 · 3:15 PM", vip: false, notes: "Connecting rooms for a family of four — rollaway bed needed." },
-  { name: "Olivia Turner", room: "Room 1108", eta: "Tomorrow, Sep 24 · 4:45 PM", vip: false, notes: "Hypoallergenic bedding requested ahead of arrival." },
+  {
+    name: "James Whitfield", room: "Room 615", roomType: "Executive Room", eta: "Today, Sep 23 · 11:30 AM", vip: false,
+    notes: "Requested early check-in — room to be ready by 11 AM.",
+    country: "United Kingdom", flag: "🇬🇧", checkIn: "Sep 23, 2026", checkOut: "Sep 26, 2026", nights: 3,
+    profile: "James is a returning guest travelling alone on a business trip. He has stayed with us twice before and prefers a quiet, work-friendly room.",
+    anticipatedNeeds: "Have the room ready ahead of his 11:30 AM early check-in request. A quiet, high-floor room away from the elevator is preferred.",
+    actions: [
+      { text: "Prepare the room for an 11 AM early check-in.", dept: "Housekeeping" },
+      { text: "Confirm a high-floor, quiet room assignment.", dept: "Front Desk" },
+    ],
+    prefs: [
+      { label: "Room", value: "High floor, quiet, work desk" },
+      { label: "Beverage", value: "Black coffee on arrival" },
+    ],
+  },
+  {
+    name: "Priya Nair", room: "Room 902", roomType: "Junior Suite", eta: "Today, Sep 23 · 1:00 PM", vip: true,
+    notes: "VIP arrival — welcome amenities and turndown setup requested.",
+    country: "India", flag: "🇮🇳", checkIn: "Sep 23, 2026", checkOut: "Sep 27, 2026", nights: 4,
+    profile: "Priya is a VIP loyalty member celebrating her anniversary. She has requested a quiet, romantic setup and has stayed at the property before.",
+    anticipatedNeeds: "VIP welcome amenities and a turndown setup should be ready before arrival. Consider a small anniversary gesture.",
+    actions: [
+      { text: "Set up VIP welcome amenities and turndown service.", dept: "Housekeeping" },
+      { text: "Arrange an anniversary card and small gift for the room.", dept: "Guest Services" },
+    ],
+    prefs: [
+      { label: "Room", value: "High floor, king bed, city view" },
+      { label: "Occasion", value: "Anniversary — champagne on arrival" },
+    ],
+  },
+  {
+    name: "Marco Bellini", room: "Room 340", roomType: "Connecting Family Rooms", eta: "Tomorrow, Sep 24 · 3:15 PM", vip: false,
+    notes: "Connecting rooms for a family of four — rollaway bed needed.",
+    country: "Italy", flag: "🇮🇹", checkIn: "Sep 24, 2026", checkOut: "Sep 28, 2026", nights: 4,
+    profile: "Marco is travelling with his wife and two young children. The family has booked connecting rooms and needs a child-friendly setup.",
+    anticipatedNeeds: "Connecting rooms with a rollaway bed and child-safety measures should be prepared. Family-friendly amenities can be offered on arrival.",
+    actions: [
+      { text: "Set up a rollaway bed and connecting-room access.", dept: "Housekeeping" },
+      { text: "Add child-safety covers and a welcome kit for kids.", dept: "Guest Services" },
+    ],
+    prefs: [
+      { label: "Room", value: "Connecting rooms, rollaway bed" },
+      { label: "Family", value: "Two children — crib not required" },
+    ],
+  },
+  {
+    name: "Olivia Turner", room: "Room 1108", roomType: "Deluxe Room", eta: "Tomorrow, Sep 24 · 4:45 PM", vip: false,
+    notes: "Hypoallergenic bedding requested ahead of arrival.",
+    country: "United States", flag: "🇺🇸", checkIn: "Sep 24, 2026", checkOut: "Sep 25, 2026", nights: 1,
+    profile: "Olivia is on a short business stopover and has a known allergy to synthetic bedding.",
+    anticipatedNeeds: "Hypoallergenic bedding must be set up ahead of arrival to avoid a reaction.",
+    actions: [
+      { text: "Replace bedding with hypoallergenic linens.", dept: "Housekeeping" },
+    ],
+    prefs: [
+      { label: "Room", value: "Hypoallergenic bedding" },
+      { label: "Stay", value: "Short business stopover" },
+    ],
+  },
 ];
 
 export type RoomStatus = "Clean" | "In Progress" | "Dirty" | "Out of Service";
