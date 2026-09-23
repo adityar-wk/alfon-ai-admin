@@ -1,20 +1,17 @@
 import { useMemo, useState } from "react";
 import {
-  Bell, Home as HomeIcon, Plus, Users, UserCog, UserPlus, Repeat, Ban, CheckCircle2, StickyNote, Undo2, Hand, ArrowUpRight, Split, MessageCircle, Phone, Send, Filter, Sparkles, ChevronRight,
+  Bell, Home as HomeIcon, Plus, Users, UserCog, UserPlus, Repeat, Ban, CheckCircle2, StickyNote, Undo2, Hand, ArrowUpRight, Split, MessageCircle, Send, Filter, Sparkles, ChevronRight, Search,
 } from "lucide-react";
 import { DEPARTMENTS } from "../data/departments";
-import { SEED_TASKS, STAFF, PRESENCE_DOT, HELP_REASONS, type MTask, type Presence, type Staffer, type EscType } from "./data";
+import { SEED_TASKS, STAFF, PRESENCE_DOT, HELP_REASONS, type MTask, type Presence, type EscType } from "./data";
 import {
   PhoneFrame, ScreenHeader, SectionTitle, TaskCard, StatCard, Avatar, Chips, Segmented, FloatingNav, PrimaryButton, GhostButton, SelectField, TextField, Label, Sheet,
   useNav, useToast, CARD_SHADOW, TextHeader, type Priority,
 } from "./mobile";
-import { DetailBody, ActionGrid, StaffPicker, ReasonSheet, ContactSheet, StatusTag, activeCount, atRiskCount, overdueCount, isOpen, isAtRisk, isOverdue } from "./parts";
+import { DetailBody, ActionGrid, StaffPicker, ReasonSheet, StatusTag, activeCount, atRiskCount, overdueCount, isOpen, isAtRisk, isOverdue } from "./parts";
 
 type Screen = { name: "home" | "team" | "guests" | "guestDetail" | "detail" | "notifications" | "create"; id?: string };
-type SheetState =
-  | { k: "assign" | "support" | "status" | "unable" | "close" | "note" | "sendBack" | "gm" | "route"; taskId: string }
-  | { k: "contact"; staff: Staffer }
-  | null;
+type SheetState = { k: "assign" | "support" | "status" | "unable" | "close" | "note" | "sendBack" | "gm" | "route"; taskId: string } | null;
 
 const ME = "Daniel Reyes";
 const ESC_FILTERS = ["All", "SLA breach", "SLA at risk", "Guest complaint", "Unable to complete", "Staffing issue", "Supervisor escalation", "High priority"] as const;
@@ -28,6 +25,8 @@ const ROLE_FILTERS = ["All", "Supervisor", "Line Staff"] as const;
 type RoleFilter = (typeof ROLE_FILTERS)[number];
 const AVAIL_FILTERS = ["All", "Available", "Busy", "On Break", "Off work"] as const;
 type AvailFilter = (typeof AVAIL_FILTERS)[number];
+const GUEST_FILTERS = ["All", "Complaints", "VIP", "Open requests"] as const;
+type GuestFilter = (typeof GUEST_FILTERS)[number];
 
 const NOTIFS = [
   { icon: "🚨", text: "Supervisor escalation — Room 1204 deep clean (staffing risk)", time: "10:20 AM", to: "t5" },
@@ -64,6 +63,9 @@ export function ManagerPrototype() {
   const [roleFilter, setRoleFilter] = useState<RoleFilter>("All");
   const [availFilter, setAvailFilter] = useState<AvailFilter>("All");
   const [teamFilterOpen, setTeamFilterOpen] = useState(false);
+  const [guestQuery, setGuestQuery] = useState("");
+  const [guestFilter, setGuestFilter] = useState<GuestFilter>("All");
+  const [guestFilterOpen, setGuestFilterOpen] = useState(false);
   const [sheet, setSheet] = useState<SheetState>(null);
   const [chat, setChat] = useState<Record<string, { from: "guest" | "ai" | "me"; text: string }[]>>({});
   const [manual, setManual] = useState<Record<string, boolean>>({});
@@ -161,6 +163,16 @@ export function ManagerPrototype() {
       ),
     [guestMap],
   );
+  const guestsFiltered = useMemo(() => {
+    const q = guestQuery.trim().toLowerCase();
+    return guestsSorted.filter((g) => {
+      if (guestFilter === "Complaints" && !g.complaint) return false;
+      if (guestFilter === "VIP" && !g.vip) return false;
+      if (guestFilter === "Open requests" && !g.items.some(isOpen)) return false;
+      return !q || `${g.name} ${g.room}`.toLowerCase().includes(q);
+    });
+  }, [guestsSorted, guestFilter, guestQuery]);
+  const guestActiveFilters = guestFilter !== "All" ? 1 : 0;
 
   const guestName = cur.name === "guestDetail" ? cur.id : undefined;
   const guestEntry = guestName ? guestMap.get(guestName) : undefined;
@@ -194,8 +206,6 @@ export function ManagerPrototype() {
     </div>
   );
 
-  const supervisors = STAFF.filter((s) => s.role === "Supervisor");
-
   const Home = shell("home", (
     <>
       <div className="flex items-center justify-between px-6 py-2">
@@ -226,23 +236,6 @@ export function ManagerPrototype() {
       <div className="mt-3 space-y-3 px-6">
         {filtered.map(card)}
         {!filtered.length && <p className="rounded-2xl bg-white p-6 text-center text-[13px] text-ink-tertiary">Nothing escalated in this view.</p>}
-      </div>
-
-      <div className="mt-7"><SectionTitle tone="bg-violet-500">Supervisor attention</SectionTitle></div>
-      <div className="mt-3 space-y-3 px-6">
-        {supervisors.map((s) => {
-          const esc = escalated.filter((t) => t.escBy === s.name).length;
-          return (
-            <div key={s.name} className={`flex items-center gap-3 rounded-2xl bg-white p-3.5 ${CARD_SHADOW}`}>
-              <Avatar name={s.name} tone="bg-violet-50 text-violet-600" />
-              <div className="min-w-0 flex-1 leading-tight">
-                <div className="text-[14px] font-semibold text-ink">{s.name}</div>
-                <div className="mt-0.5 flex items-center gap-1.5 text-[12px] text-ink-secondary"><span className={`h-2 w-2 rounded-full ${PRESENCE_DOT[s.status]}`} />{s.status} · {esc} escalation{esc === 1 ? "" : "s"}</div>
-              </div>
-              <button onClick={() => setSheet({ k: "contact", staff: s })} aria-label={`Contact ${s.name}`} className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50 text-emerald-600"><Phone className="h-4 w-4" /></button>
-            </div>
-          );
-        })}
       </div>
     </>
   ));
@@ -317,8 +310,29 @@ export function ManagerPrototype() {
   const Guests = shell("guests", (
     <>
       <ScreenHeader title="Guest Communication" sub="Chat with guests and review their context" />
-      <div className="mt-2 space-y-3 px-6">
-        {guestsSorted.map((g) => (
+      <div className="flex items-center gap-2 px-6">
+        <div className="relative flex-1">
+          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-tertiary" />
+          <input
+            value={guestQuery}
+            onChange={(e) => setGuestQuery(e.target.value)}
+            placeholder="Search guest or room"
+            className="h-11 w-full rounded-2xl bg-white pl-10 pr-3 text-[14px] shadow-sm outline-none placeholder:text-ink-tertiary focus:ring-2 focus:ring-brand/30"
+          />
+        </div>
+        <button
+          onClick={() => setGuestFilterOpen(true)}
+          aria-label="Filter"
+          className={`relative flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${guestActiveFilters ? "bg-brand text-white" : "bg-white text-ink shadow-sm"}`}
+        >
+          <Filter className="h-[18px] w-[18px]" />
+          {guestActiveFilters > 0 && (
+            <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white">{guestActiveFilters}</span>
+          )}
+        </button>
+      </div>
+      <div className="mt-3 space-y-3 px-6">
+        {guestsFiltered.map((g) => (
           <button key={g.name} onClick={() => nav.push({ name: "guestDetail", id: g.name })} className={`flex w-full items-center gap-3 rounded-2xl bg-white p-3.5 text-left ${CARD_SHADOW}`}>
             <Avatar name={g.name} tone={g.complaint ? "bg-red-50 text-red-600" : undefined} />
             <div className="min-w-0 flex-1 leading-tight">
@@ -333,7 +347,7 @@ export function ManagerPrototype() {
             <ChevronRight className="h-4 w-4 shrink-0 text-ink-tertiary" />
           </button>
         ))}
-        {!guestsSorted.length && <p className="rounded-2xl bg-white p-6 text-center text-[13px] text-ink-tertiary">No guests yet.</p>}
+        {!guestsFiltered.length && <p className="rounded-2xl bg-white p-6 text-center text-[13px] text-ink-tertiary">No guests match.</p>}
       </div>
     </>
   ));
@@ -553,7 +567,6 @@ export function ManagerPrototype() {
         <ReasonSheet title="Escalate to High Management" reasons={["Critical guest complaint", "Repeated SLA breach", "Unresolved operational issue", "VIP / high-risk situation", "Serious service recovery"]} requireNote placeholder="Context for the General Manager…" cta="Escalate to GM" tone="bg-red-600" onClose={() => setSheet(null)}
           onSubmit={(reason, note) => { patch(t0.id, { escType: (t0.escType ?? "Supervisor escalation") as EscType, notes: [{ by: ME, t: "Just now", text: `Escalated to GM — ${reason}: ${note}` }, ...t0.notes] }, `${ME} escalated to General Manager`); setSheet(null); flash("Escalated to the General Manager"); }} />
       )}
-      {sheet.k === "contact" && <ContactSheet name={sheet.staff.name} phone={sheet.staff.phone} onClose={() => setSheet(null)} onDone={(m) => { setSheet(null); flash(m); }} />}
     </>
   );
 
@@ -571,16 +584,26 @@ export function ManagerPrototype() {
     </Sheet>
   );
 
+  const GuestFilterSheet = guestFilterOpen && (
+    <Sheet title="Filter guests" onClose={() => setGuestFilterOpen(false)}>
+      <Label>Show</Label>
+      <Chips items={GUEST_FILTERS} active={guestFilter} onChange={setGuestFilter} />
+      <PrimaryButton className="mt-6 w-full" onClick={() => setGuestFilterOpen(false)}>Done</PrimaryButton>
+      {guestActiveFilters > 0 && <GhostButton className="mt-2 w-full" onClick={() => setGuestFilter("All")}>Clear filter</GhostButton>}
+    </Sheet>
+  );
+
   return (
     <div className="flex flex-col items-center gap-4">
       <PhoneFrame>
         {VIEWS[cur.name]}
         {sheetNode}
         {TeamFilterSheet}
+        {GuestFilterSheet}
         {toast}
       </PhoneFrame>
       <div className="flex flex-wrap items-center justify-center gap-2">
-        <button className="rounded-lg border border-line bg-white px-3 py-1.5 text-[12px] font-medium text-ink-secondary" onClick={() => { nav.reset(); setTasks(SEED_TASKS); setSheet(null); setChat({}); setManual({}); setFilter("All"); setRoleFilter("All"); setAvailFilter("All"); }}>Reset</button>
+        <button className="rounded-lg border border-line bg-white px-3 py-1.5 text-[12px] font-medium text-ink-secondary" onClick={() => { nav.reset(); setTasks(SEED_TASKS); setSheet(null); setChat({}); setManual({}); setFilter("All"); setRoleFilter("All"); setAvailFilter("All"); setGuestFilter("All"); setGuestQuery(""); }}>Reset</button>
       </div>
       <p className="text-center text-[12px] text-ink-tertiary">Current screen: <span className="font-medium text-ink-secondary">{cur.name}</span> · open Guests to chat with a guest, or Room 1103 to see full task context.</p>
     </div>
