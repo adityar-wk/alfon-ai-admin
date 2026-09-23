@@ -1,16 +1,20 @@
 import { useMemo, useState } from "react";
 import {
   Bell, Home as HomeIcon, Plus, Users, UserCog, UserPlus, Repeat, Ban, CheckCircle2, StickyNote, Undo2, Hand, ArrowUpRight, Split, MessageCircle, Send, Filter, Sparkles, ChevronRight, Search,
+  Menu as MenuIcon, ListChecks, BarChart3, FileText, Settings as SettingsIcon, Calendar,
 } from "lucide-react";
 import { DEPARTMENTS } from "../data/departments";
-import { SEED_TASKS, STAFF, PRESENCE_DOT, HELP_REASONS, type MTask, type Presence, type EscType } from "./data";
+import { SEED_TASKS, STAFF, PRESENCE_DOT, HELP_REASONS, GUEST_STAYS, type MTask, type Presence, type EscType } from "./data";
 import {
   PhoneFrame, ScreenHeader, SectionTitle, TaskCard, StatCard, Avatar, Chips, Segmented, FloatingNav, PrimaryButton, GhostButton, SelectField, TextField, Label, Sheet,
   useNav, useToast, CARD_SHADOW, TextHeader, type Priority,
 } from "./mobile";
 import { DetailBody, ActionGrid, StaffPicker, ReasonSheet, StatusTag, activeCount, atRiskCount, overdueCount, isOpen, isAtRisk, isOverdue } from "./parts";
 
-type Screen = { name: "home" | "team" | "guests" | "guestDetail" | "detail" | "notifications" | "create"; id?: string };
+type Screen = {
+  name: "home" | "tasks" | "team" | "guests" | "guestDetail" | "detail" | "notifications" | "create" | "menu" | "analytics" | "reports" | "settings";
+  id?: string;
+};
 type SheetState = { k: "assign" | "support" | "status" | "unable" | "close" | "note" | "sendBack" | "gm" | "route"; taskId: string } | null;
 
 const ME = "Daniel Reyes";
@@ -27,6 +31,14 @@ const AVAIL_FILTERS = ["All", "Available", "Busy", "On Break", "Off work"] as co
 type AvailFilter = (typeof AVAIL_FILTERS)[number];
 const GUEST_FILTERS = ["All", "Complaints", "VIP", "Open requests"] as const;
 type GuestFilter = (typeof GUEST_FILTERS)[number];
+const TASK_FILTERS = ["All", "Unassigned", "In Progress", "At Risk", "Overdue", "Completed"] as const;
+type TaskFilter = (typeof TASK_FILTERS)[number];
+const MENU_ITEMS = [
+  { key: "team" as const, label: "Team & Workload", desc: "Staff availability, workload, unassigned tasks", icon: Users },
+  { key: "analytics" as const, label: "Analytics", desc: "Department performance at a glance", icon: BarChart3 },
+  { key: "reports" as const, label: "Reports", desc: "Generate and download department reports", icon: FileText },
+  { key: "settings" as const, label: "Department Settings", desc: "SLA tiers and active services", icon: SettingsIcon },
+];
 
 const NOTIFS = [
   { icon: "🚨", text: "Supervisor escalation — Room 1204 deep clean (staffing risk)", time: "10:20 AM", to: "t5" },
@@ -53,6 +65,8 @@ type GuestEntry = {
   summary: string;
   summaryIsComplaint: boolean;
   items: MTask[];
+  checkIn?: string;
+  checkOut?: string;
 };
 
 export function ManagerPrototype() {
@@ -66,6 +80,8 @@ export function ManagerPrototype() {
   const [guestQuery, setGuestQuery] = useState("");
   const [guestFilter, setGuestFilter] = useState<GuestFilter>("All");
   const [guestFilterOpen, setGuestFilterOpen] = useState(false);
+  const [taskFilter, setTaskFilter] = useState<TaskFilter>("All");
+  const [taskQuery, setTaskQuery] = useState("");
   const [sheet, setSheet] = useState<SheetState>(null);
   const [chat, setChat] = useState<Record<string, { from: "guest" | "ai" | "me"; text: string }[]>>({});
   const [manual, setManual] = useState<Record<string, boolean>>({});
@@ -132,12 +148,49 @@ export function ManagerPrototype() {
   const stuckAt = (t: MTask) =>
     t.status === "unassigned" ? "Not picked up — no owner" : t.status === "assigned" ? `Awaiting acceptance by ${t.owner}` : t.status === "unable" ? `Blocked — ${t.resolution ?? "unable to complete"}` : `In progress with ${t.owner}`;
 
+  const services = DEPARTMENTS.find((d) => d.name === "Housekeeping")?.services.filter((sv) => sv.active).map((sv) => sv.name) ?? [];
+
+  /* ---------- all tasks, filterable ---------- */
+  const taskFilterFn: Record<TaskFilter, (t: MTask) => boolean> = {
+    All: () => true,
+    Unassigned: (t) => t.status === "unassigned",
+    "In Progress": (t) => t.status === "progress" || t.status === "assigned",
+    "At Risk": isAtRisk,
+    Overdue: isOverdue,
+    Completed: (t) => t.status === "completed",
+  };
+  const tasksFiltered = useMemo(() => {
+    const s = taskQuery.trim().toLowerCase();
+    return tasks
+      .filter(taskFilterFn[taskFilter])
+      .filter((t) => !s || `${t.room} ${t.guest} ${t.title}`.toLowerCase().includes(s))
+      .sort((a, b) => a.slaLeft - b.slaLeft);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tasks, taskFilter, taskQuery]);
+  const taskChipCounts = Object.fromEntries(TASK_FILTERS.map((f) => [f, tasks.filter(taskFilterFn[f]).length])) as Record<TaskFilter, number>;
+  const genericCard = (t: MTask) => (
+    <TaskCard
+      key={t.id}
+      room={t.room}
+      note={t.title}
+      priority={t.priority}
+      left={t.status === "completed" ? undefined : t.slaLeft}
+      total={t.slaTotal}
+      done={t.status === "completed"}
+      tag={<StatusTag s={t.status} />}
+      meta={t.owner ? `Owner · ${t.owner}${t.support.length ? ` +${t.support.length}` : ""}` : "No owner yet"}
+      onClick={() => open(t.id)}
+    />
+  );
+
   /* ---------- guests derived from the department's tasks ---------- */
   const guestMap = useMemo(() => {
     const map = new Map<string, GuestEntry>();
     for (const t of tasks) {
+      const stay = GUEST_STAYS[t.guest];
       const cur = map.get(t.guest) ?? {
         name: t.guest, room: t.room, vip: false, complaint: false, prefs: [], convo: "—", summary: "", summaryIsComplaint: false, items: [],
+        checkIn: stay?.checkIn, checkOut: stay?.checkOut,
       };
       cur.room = t.room;
       cur.vip = cur.vip || !!t.vip;
@@ -190,7 +243,7 @@ export function ManagerPrototype() {
     setService(""); setSev("Medium"); setRoom(""); setDetails("");
     nav.push({ name: "create" });
   };
-  const shell = (key: "home" | "team" | "guests", body: React.ReactNode) => (
+  const shell = (key: "home" | "tasks" | "guests", body: React.ReactNode) => (
     <div className="relative h-full">
       <div className="h-full overflow-y-auto pb-32 no-scrollbar">{body}</div>
       <FloatingNav
@@ -198,7 +251,7 @@ export function ManagerPrototype() {
         onChange={(k) => nav.go({ name: k })}
         items={[
           { key: "home", label: "Home", icon: HomeIcon },
-          { key: "team", label: "Team", icon: Users },
+          { key: "tasks", label: "Tasks", icon: ListChecks },
           { key: "guests", label: "Guests", icon: MessageCircle },
         ]}
         fab={{ icon: Plus, label: "Create task", onClick: openCreate }}
@@ -210,7 +263,9 @@ export function ManagerPrototype() {
     <>
       <div className="flex items-center justify-between px-6 py-2">
         <div className="flex items-center gap-3">
-          <Avatar name={ME} size={42} tone="bg-ink text-white" />
+          <button onClick={() => nav.push({ name: "menu" })} aria-label="Menu" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white shadow-sm">
+            <MenuIcon className="h-[18px] w-[18px]" />
+          </button>
           <div className="leading-tight">
             <div className="text-[15px] font-semibold text-ink">{ME}</div>
             <div className="text-[12px] text-ink-secondary">Housekeeping · Department Head</div>
@@ -240,15 +295,39 @@ export function ManagerPrototype() {
     </>
   ));
 
+  /* ---------- tasks ---------- */
+  const Tasks = shell("tasks", (
+    <>
+      <ScreenHeader title="Tasks" sub="All Housekeeping tasks" />
+      <div className="px-6">
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-tertiary" />
+          <input
+            value={taskQuery}
+            onChange={(e) => setTaskQuery(e.target.value)}
+            placeholder="Search room, guest or task"
+            className="h-11 w-full rounded-2xl bg-white pl-10 pr-3 text-[14px] shadow-sm outline-none placeholder:text-ink-tertiary focus:ring-2 focus:ring-brand/30"
+          />
+        </div>
+      </div>
+      <div className="mt-3"><Chips items={TASK_FILTERS} active={taskFilter} onChange={setTaskFilter} counts={taskChipCounts} /></div>
+      <div className="mt-3 space-y-3 px-6">
+        {tasksFiltered.map(genericCard)}
+        {!tasksFiltered.length && <p className="rounded-2xl bg-white p-6 text-center text-[13px] text-ink-tertiary">No tasks match.</p>}
+      </div>
+    </>
+  ));
+
   /* ---------- team ---------- */
   const teamActiveFilters = (roleFilter !== "All" ? 1 : 0) + (availFilter !== "All" ? 1 : 0);
   const filteredTeam = STAFF.filter((s) => (roleFilter === "All" || s.role === roleFilter) && (availFilter === "All" || s.status === availFilter)).sort(
     (a, b) => AVAIL_ORDER.indexOf(a.status) - AVAIL_ORDER.indexOf(b.status),
   );
 
-  const Team = shell("team", (
-    <>
+  const Team = (
+    <div className="flex h-full flex-col">
       <ScreenHeader
+        onBack={nav.back}
         title="Team"
         sub="Housekeeping workload"
         right={
@@ -264,6 +343,7 @@ export function ManagerPrototype() {
           </button>
         }
       />
+      <div className="min-h-0 flex-1 overflow-y-auto pb-6 no-scrollbar">
       <div className="grid grid-cols-4 gap-2 px-6">
         {AVAIL_ORDER.map((s) => (
           <div key={s} className={`rounded-2xl bg-white p-2.5 text-center ${CARD_SHADOW}`}>
@@ -303,8 +383,9 @@ export function ManagerPrototype() {
         {tasks.filter((t) => t.status === "unassigned").map(card)}
         {!tasks.some((t) => t.status === "unassigned") && <p className="rounded-2xl bg-white p-4 text-center text-[13px] text-ink-tertiary">Everything is assigned.</p>}
       </div>
-    </>
-  ));
+      </div>
+    </div>
+  );
 
   /* ---------- guest communication ---------- */
   const Guests = shell("guests", (
@@ -358,6 +439,11 @@ export function ManagerPrototype() {
       <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 pb-4 no-scrollbar">
         <div className={`rounded-2xl bg-white p-4 ${CARD_SHADOW}`}>
           <div className="flex items-center gap-2 text-[11px] font-semibold text-ink-secondary"><Sparkles className="h-3.5 w-3.5 text-violet-500" /> Guest overview</div>
+          {guestEntry.checkIn && (
+            <div className="mt-2 flex items-center gap-1.5 text-[12px] font-medium text-ink-secondary">
+              <Calendar className="h-3.5 w-3.5" /> Staying {guestEntry.checkIn} – {guestEntry.checkOut}
+            </div>
+          )}
           <p className="mt-2 text-[13px] leading-relaxed text-ink">{guestEntry.summary}</p>
           {guestEntry.complaint && (
             <div className="mt-3 flex flex-wrap gap-2">
@@ -471,7 +557,7 @@ export function ManagerPrototype() {
       <ScreenHeader title="Notifications" onBack={nav.back} />
       <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-6 pt-2 no-scrollbar">
         {NOTIFS.map((n, i) => (
-          <button key={i} onClick={() => (n.to === "team" ? nav.go({ name: "team" }) : open(n.to))} className="relative flex w-full gap-3 border-b border-dashed border-ink/20 py-4 pr-14 text-left last:border-0">
+          <button key={i} onClick={() => (n.to === "team" ? nav.push({ name: "team" }) : open(n.to))} className="relative flex w-full gap-3 border-b border-dashed border-ink/20 py-4 pr-14 text-left last:border-0">
             <span className="text-[18px]">{n.icon}</span>
             <p className="text-[14px] leading-snug text-ink">{n.text}</p>
             <span className="absolute bottom-4 right-0 text-[11px] text-ink-tertiary">{n.time}</span>
@@ -481,7 +567,6 @@ export function ManagerPrototype() {
     </div>
   );
 
-  const services = DEPARTMENTS.find((d) => d.name === "Housekeeping")?.services.filter((sv) => sv.active).map((sv) => sv.name) ?? [];
   const Create = (
     <div className="flex h-full flex-col">
       <TextHeader title="Create Manual Task" onBack={nav.back} />
@@ -517,7 +602,88 @@ export function ManagerPrototype() {
     </div>
   );
 
-  const VIEWS: Record<Screen["name"], React.ReactNode> = { home: Home, team: Team, guests: Guests, guestDetail: GuestDetail, detail: Detail, notifications: Notifications, create: Create };
+  const Menu = (
+    <div className="flex h-full flex-col">
+      <ScreenHeader title="More" onBack={nav.back} />
+      <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-6 pb-6 pt-2 no-scrollbar">
+        {MENU_ITEMS.map((m) => (
+          <button
+            key={m.key}
+            onClick={() => nav.push({ name: m.key })}
+            className={`flex w-full items-center gap-3 rounded-2xl bg-white p-4 text-left ${CARD_SHADOW}`}
+          >
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-tint text-brand"><m.icon className="h-[18px] w-[18px]" /></div>
+            <div className="min-w-0 flex-1">
+              <div className="text-[14px] font-semibold text-ink">{m.label}</div>
+              <div className="text-[12px] text-ink-secondary">{m.desc}</div>
+            </div>
+            <ChevronRight className="h-4 w-4 shrink-0 text-ink-tertiary" />
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+
+  const Analytics = (
+    <div className="flex h-full flex-col">
+      <ScreenHeader title="Analytics" sub="Housekeeping · today" onBack={nav.back} />
+      <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-6 pt-2 no-scrollbar">
+        <div className="grid grid-cols-2 gap-3">
+          <StatCard label="Completed today" value={tasks.filter((t) => t.status === "completed").length} />
+          <StatCard label="Open tasks" value={counts.open} />
+          <StatCard label="SLA at risk" value={counts.risk} tone="text-amber-600" />
+          <StatCard label="Overdue" value={counts.over} tone="text-red-600" />
+        </div>
+        <p className="mt-5 rounded-2xl bg-white p-4 text-center text-[12px] text-ink-tertiary">Full trend charts and staff performance breakdowns are available on desktop.</p>
+      </div>
+    </div>
+  );
+
+  const REPORT_NAMES = ["Daily operations summary", "SLA compliance report", "Escalations log"];
+  const Reports = (
+    <div className="flex h-full flex-col">
+      <ScreenHeader title="Reports" sub="Housekeeping" onBack={nav.back} />
+      <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-6 pb-6 pt-2 no-scrollbar">
+        {REPORT_NAMES.map((r) => (
+          <div key={r} className={`flex items-center justify-between rounded-2xl bg-white p-4 ${CARD_SHADOW}`}>
+            <span className="text-[13px] font-medium text-ink">{r}</span>
+            <GhostButton onClick={() => flash(`${r} generated`)}>Generate</GhostButton>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  const Settings = (
+    <div className="flex h-full flex-col">
+      <ScreenHeader title="Department Settings" sub="Housekeeping" onBack={nav.back} />
+      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 pb-6 pt-2 no-scrollbar">
+        <div className={`rounded-2xl bg-white p-4 ${CARD_SHADOW}`}>
+          <div className="text-[12px] font-semibold text-ink-secondary">SLA tiers</div>
+          <div className="mt-2 space-y-1.5">
+            {SEVS.map((s) => (
+              <div key={s} className="flex items-center justify-between text-[13px]">
+                <span className="flex items-center gap-2 text-ink"><span className={`h-2 w-2 rounded-full ${SEV_COLOR[s]}`} />{s}</span>
+                <span className="text-ink-secondary">{SEV_SLA[s]} min</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className={`rounded-2xl bg-white p-4 ${CARD_SHADOW}`}>
+          <div className="text-[12px] font-semibold text-ink-secondary">Active services ({services.length})</div>
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {services.map((s) => <span key={s} className="rounded-full bg-[#F1F1F3] px-2.5 py-1 text-[12px] text-ink-secondary">{s}</span>)}
+          </div>
+        </div>
+        <p className="rounded-2xl bg-white p-4 text-center text-[12px] text-ink-tertiary">Editing SLA tiers, roles and services is done on desktop.</p>
+      </div>
+    </div>
+  );
+
+  const VIEWS: Record<Screen["name"], React.ReactNode> = {
+    home: Home, tasks: Tasks, team: Team, guests: Guests, guestDetail: GuestDetail, detail: Detail, notifications: Notifications, create: Create,
+    menu: Menu, analytics: Analytics, reports: Reports, settings: Settings,
+  };
 
   /* ---------- sheets ---------- */
   const t0 = sheet && "taskId" in sheet ? tasks.find((t) => t.id === sheet.taskId) : undefined;
@@ -603,7 +769,7 @@ export function ManagerPrototype() {
         {toast}
       </PhoneFrame>
       <div className="flex flex-wrap items-center justify-center gap-2">
-        <button className="rounded-lg border border-line bg-white px-3 py-1.5 text-[12px] font-medium text-ink-secondary" onClick={() => { nav.reset(); setTasks(SEED_TASKS); setSheet(null); setChat({}); setManual({}); setFilter("All"); setRoleFilter("All"); setAvailFilter("All"); setGuestFilter("All"); setGuestQuery(""); }}>Reset</button>
+        <button className="rounded-lg border border-line bg-white px-3 py-1.5 text-[12px] font-medium text-ink-secondary" onClick={() => { nav.reset(); setTasks(SEED_TASKS); setSheet(null); setChat({}); setManual({}); setFilter("All"); setRoleFilter("All"); setAvailFilter("All"); setGuestFilter("All"); setGuestQuery(""); setTaskFilter("All"); setTaskQuery(""); }}>Reset</button>
       </div>
       <p className="text-center text-[12px] text-ink-tertiary">Current screen: <span className="font-medium text-ink-secondary">{cur.name}</span> · open Guests to chat with a guest, or Room 1103 to see full task context.</p>
     </div>

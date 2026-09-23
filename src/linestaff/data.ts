@@ -151,6 +151,19 @@ export const SEED_REQUESTS: HelpReq[] = [
   { id: "h3", staff: "Aanya Khan", taskId: "t10", reason: "Wrong assignment", note: "I'm on floor 5 — this is a floor 9 request.", kind: "reassign", time: "9 min ago" },
 ];
 
+export const GUEST_STAYS: Record<string, { checkIn: string; checkOut: string }> = {
+  "Emma Davis": { checkIn: "Sep 22", checkOut: "Sep 26" },
+  "Liam Anderson": { checkIn: "Sep 21", checkOut: "Sep 24" },
+  "Ananya Kapoor": { checkIn: "Sep 23", checkOut: "Sep 27" },
+  "Sarah Chen": { checkIn: "Sep 20", checkOut: "Sep 25" },
+  "Rohan Sharma": { checkIn: "Sep 23", checkOut: "Sep 24" },
+  "Michael Johnson": { checkIn: "Sep 22", checkOut: "Sep 29" },
+  "Ethan Ross": { checkIn: "Sep 19", checkOut: "Sep 23" },
+  "Grace Kim": { checkIn: "Sep 21", checkOut: "Sep 23" },
+  "David Williams": { checkIn: "Sep 23", checkOut: "Sep 26" },
+  "Isabella Rossi": { checkIn: "Sep 23", checkOut: "Sep 25" },
+};
+
 export const STATUS_ORDER = ["Available", "Busy", "On Break", "Off work"] as const;
 export const PRESENCE_DOT: Record<Presence, string> = { Available: "bg-emerald-500", Busy: "bg-blue-500", "On Break": "bg-amber-400", "Off work": "bg-gray-300" };
 
