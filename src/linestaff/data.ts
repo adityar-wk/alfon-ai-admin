@@ -122,7 +122,7 @@ export const SEED_TASKS: MTask[] = [
   {
     id: "t10", room: "Room 908", guest: "Ananya Kapoor", title: "Extra pillows", note: "Two extra pillows requested. Guest is waiting in the room.", priority: "Low", status: "progress",
     owner: "Aanya Khan", support: [], slaTotal: 30, slaLeft: -8, createdAt: "9:55 AM", pickup: "Accepted in 6 min · late",
-    escalated: true, escType: "SLA breach", escBy: "System", escReason: "Task passed its resolution SLA with no update from the assignee.",
+    escalated: true, escType: "SLA breach", escBy: "Sarah Ali", escReason: "This task passed its resolution SLA with no update from the assignee.",
     summary: "Simple item request that has gone past its SLA. Pillows are in the floor pantry.", prefs: ["Extra pillows"], convo: "Guest followed up once asking for an update.",
     timeline: [{ t: "9:55", text: "Created" }, { t: "10:01", text: "Accepted (late)" }, { t: "10:25", text: "SLA breached" }], notes: [],
   },
@@ -170,6 +170,23 @@ export const PRE_ARRIVAL_GUESTS: PreArrivalGuest[] = [
   { name: "Priya Nair", room: "Room 902", eta: "Today, Sep 23 · 1:00 PM", vip: true, notes: "VIP arrival — welcome amenities and turndown setup requested." },
   { name: "Marco Bellini", room: "Room 340", eta: "Tomorrow, Sep 24 · 3:15 PM", vip: false, notes: "Connecting rooms for a family of four — rollaway bed needed." },
   { name: "Olivia Turner", room: "Room 1108", eta: "Tomorrow, Sep 24 · 4:45 PM", vip: false, notes: "Hypoallergenic bedding requested ahead of arrival." },
+];
+
+export type RoomStatus = "Clean" | "In Progress" | "Dirty" | "Out of Service";
+export type HkRoom = { number: string; floor: number; status: RoomStatus; assignee: string | null };
+export const ROOMS: HkRoom[] = [
+  { number: "Room 305", floor: 3, status: "In Progress", assignee: "Maria Santos" },
+  { number: "Room 410", floor: 4, status: "Clean", assignee: null },
+  { number: "Room 501", floor: 5, status: "In Progress", assignee: "Aanya Khan" },
+  { number: "Room 623", floor: 6, status: "Dirty", assignee: null },
+  { number: "Room 704", floor: 7, status: "Dirty", assignee: null },
+  { number: "Room 812", floor: 8, status: "Dirty", assignee: null },
+  { number: "Room 908", floor: 9, status: "In Progress", assignee: "Aanya Khan" },
+  { number: "Room 1103", floor: 11, status: "Out of Service", assignee: null },
+  { number: "Room 1204", floor: 12, status: "In Progress", assignee: "Fatima Khan" },
+  { number: "Room 1501", floor: 15, status: "Out of Service", assignee: null },
+  { number: "Room 2104", floor: 21, status: "Clean", assignee: null },
+  { number: "Room 227", floor: 2, status: "Clean", assignee: null },
 ];
 
 export const STATUS_ORDER = ["Available", "Busy", "On Break", "Off work"] as const;
