@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Bell, Send, Check, Plus, BedDouble, User, StickyNote, Sparkles } from "lucide-react";
+import { Bell, Send, Check, Plus, BedDouble, User, Building2, ChevronLeft } from "lucide-react";
 import { DEPARTMENTS } from "../data/departments";
 import {
   PhoneFrame,
@@ -49,6 +49,7 @@ type Task = {
   source: string;
   created: string;
   staffNote?: string;
+  dept?: string;
 };
 
 const INITIAL: Task[] = [
@@ -129,12 +130,10 @@ function LsCard({ t, onOpen, onAccept }: { t: Task; onOpen?: () => void; onAccep
 
 function Row({ icon: Icon, label, children }: { icon: React.ComponentType<{ className?: string }>; label: string; children: React.ReactNode }) {
   return (
-    <div className="flex items-start gap-3 py-2.5">
-      <Icon className="mt-0.5 h-4 w-4 shrink-0 text-ink-tertiary" />
-      <div className="min-w-0 flex-1">
-        <div className="text-[11px] text-ink-tertiary">{label}</div>
-        <div className="mt-0.5 text-[13px] font-medium text-ink">{children}</div>
-      </div>
+    <div className="flex items-center gap-3 py-3.5">
+      <Icon className="h-4 w-4 shrink-0 text-ink-tertiary" />
+      <span className="w-24 shrink-0 text-[13px] text-ink-tertiary">{label}</span>
+      <span className="min-w-0 flex-1 text-[14px] font-semibold text-ink">{children}</span>
     </div>
   );
 }
@@ -178,7 +177,7 @@ export function LineStaffPrototype() {
     setTasks((ts) => [
       {
         id, title: service, room: r, note: details.trim() || service, status: "progress", left: SEV_SLA[sev], total: SEV_SLA[sev],
-        guest: "—", roomType: "—", floor: 0, stay: "—", prefs: [], source: "Created by you", created: "Just now",
+        guest: "—", roomType: "—", floor: 0, stay: "—", prefs: [], source: "Created by you", created: "Just now", dept,
       },
       ...ts,
     ]);
@@ -247,49 +246,35 @@ export function LineStaffPrototype() {
 
   const TaskDetail = (
     <div className="flex h-full flex-col">
-      <ScreenHeader title="Task details" onBack={nav.back} />
-      <div className="min-h-0 flex-1 space-y-3.5 overflow-y-auto px-6 pb-4 pt-1 no-scrollbar">
-        {/* task */}
-        <div className={`rounded-2xl bg-white p-4 ${CARD_SHADOW}`}>
-          <div className="flex items-center justify-between gap-3">
-            <div className="text-[11px] font-semibold text-ink-secondary">Task details</div>
-            {active.status !== "completed" && <SlaCountdown left={active.left} total={active.total} />}
-          </div>
-          <div className="mt-2 text-[16px] font-bold leading-snug text-ink">{active.title}</div>
-          <p className="mt-1 text-[13px] leading-relaxed text-ink-secondary">{active.note}</p>
-        </div>
-
-        {/* room */}
-        <div className={`rounded-2xl bg-white p-4 ${CARD_SHADOW}`}>
-          <div className="text-[11px] font-semibold text-ink-secondary">Room</div>
-          <div className="mt-2">
-            <Row icon={BedDouble} label="Room">{active.room}{active.roomType !== "—" && ` · ${active.roomType}`}{active.floor > 0 && ` · Floor ${active.floor}`}</Row>
+      <div className="flex shrink-0 items-center gap-3 border-b border-line px-6 pb-3 pt-4">
+        <button onClick={nav.back} aria-label="Back" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-ink shadow-sm">
+          <ChevronLeft className="h-5 w-5" />
+        </button>
+        <span className="text-[13px] font-semibold text-ink-secondary">Task detail</span>
+        {active.status !== "completed" && <div className="ml-auto"><SlaCountdown left={active.left} total={active.total} /></div>}
+      </div>
+      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 pb-4 pt-4 no-scrollbar">
+        <div className="flex items-start gap-3">
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-tint text-brand"><BedDouble className="h-6 w-6" /></span>
+          <div className="min-w-0">
+            <h2 className="text-[18px] font-bold leading-snug text-ink">{active.title}</h2>
+            <span className={`mt-1 inline-block rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${active.status === "completed" ? "bg-emerald-50 text-emerald-600" : active.status === "progress" ? "bg-blue-50 text-blue-600" : "bg-amber-50 text-amber-700"}`}>
+              {active.status === "completed" ? "Completed" : active.status === "progress" ? "In progress" : "Pending"}
+            </span>
           </div>
         </div>
 
-        {/* guest overview */}
-        {active.guest !== "—" && (
-          <div className={`rounded-2xl bg-white p-4 ${CARD_SHADOW}`}>
-            <div className="flex items-center gap-2 text-[11px] font-semibold text-ink-secondary"><Sparkles className="h-3.5 w-3.5 text-violet-500" /> Guest overview</div>
-            <div className="mt-2 flex items-center gap-2 text-[14px] font-semibold text-ink"><User className="h-3.5 w-3.5 text-ink-tertiary" />{active.guest}</div>
-            <div className="mt-0.5 text-[12px] text-ink-secondary">{active.stay}</div>
-            {active.prefs.length > 0 && (
-              <div className="mt-3 flex flex-wrap gap-1.5">
-                {active.prefs.map((p) => <span key={p} className="rounded-full bg-[#F1F1F3] px-2.5 py-1 text-[12px] text-ink-secondary">{p}</span>)}
-              </div>
-            )}
-          </div>
-        )}
+        <div className="divide-y divide-line rounded-2xl border border-line bg-white px-4">
+          {active.guest !== "—" && <Row icon={User} label="Guest">{active.guest}</Row>}
+          <Row icon={BedDouble} label="Room">{active.room}</Row>
+          <Row icon={Building2} label="Department">{active.dept ?? "Housekeeping"}</Row>
+        </div>
 
-        {active.staffNote && (
-          <div className="flex gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4">
-            <StickyNote className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" />
-            <div>
-              <div className="text-[12px] font-semibold text-amber-800">Staff notes</div>
-              <p className="mt-1 text-[13px] leading-snug text-amber-800/90">{active.staffNote}</p>
-            </div>
-          </div>
-        )}
+        <div className="rounded-2xl bg-[#F6F6F8] p-4">
+          <div className="text-[12px] font-semibold text-ink-tertiary">Notes</div>
+          <p className="mt-1.5 text-[14px] leading-relaxed text-ink">{active.note}</p>
+          {active.staffNote && <p className="mt-2 text-[14px] leading-relaxed text-ink">{active.staffNote}</p>}
+        </div>
       </div>
 
       <div className="flex shrink-0 gap-3 px-6 pb-6 pt-3">
