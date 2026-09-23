@@ -202,7 +202,7 @@ export function TaskCard({
     <div
       onClick={onClick}
       role={onClick ? "button" : undefined}
-      className={`relative rounded-2xl bg-white p-4 ${CARD_SHADOW} ${onClick ? "cursor-pointer active:scale-[0.99]" : ""}`}
+      className={`relative rounded-2xl bg-white p-4 ${CARD_SHADOW} ${onClick ? "cursor-pointer active:scale-[0.99]" : ""} ${done ? "opacity-55 grayscale-[0.5]" : ""}`}
     >
       <div className="flex items-start gap-3">
         <div className="min-w-0 flex-1">
@@ -214,13 +214,9 @@ export function TaskCard({
           <p className="mt-1.5 text-[14px] leading-snug text-ink-secondary">{note}</p>
           {meta && <div className="mt-2 text-[12px] text-ink-tertiary">{meta}</div>}
         </div>
-        {done ? (
-          <span className="flex h-[54px] w-[54px] shrink-0 items-center justify-center rounded-full bg-emerald-50 text-[20px] text-emerald-600">✓</span>
-        ) : left !== undefined && total !== undefined ? (
-          <SlaRing left={left} total={total} />
-        ) : null}
+        {!done && left !== undefined && total !== undefined && <SlaRing left={left} total={total} />}
       </div>
-      {onClick && !done && <ChevronRight className="absolute bottom-3.5 right-4 h-4 w-4 text-ink-tertiary" />}
+      {onClick && <ChevronRight className="absolute bottom-3.5 right-4 h-4 w-4 text-ink-tertiary" />}
     </div>
   );
 }

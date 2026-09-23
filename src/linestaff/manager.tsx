@@ -1,23 +1,24 @@
 import { useMemo, useState } from "react";
 import {
-  Bell, Home as HomeIcon, Plus, Users, UserCog, UserPlus, Undo2, Hand, ArrowUpRight, Split, MessageCircle, Send, Filter, Sparkles, ChevronRight, Search,
+  Bell, Home as HomeIcon, Plus, Users, UserCog, UserPlus, ArrowUpRight, MessageCircle, Send, Filter, Sparkles, ChevronRight, Search,
   Menu as MenuIcon, ListChecks, BarChart3, Calendar, AlertTriangle, User, BedDouble,
 } from "lucide-react";
 import { DEPARTMENTS } from "../data/departments";
 import { DEPTS, METRICS, COMPLAINT_DETAIL } from "../pages/Analytics";
 import { Donut } from "../components/Donut";
-import { SEED_TASKS, STAFF, PRESENCE_DOT, GUEST_STAYS, PRE_ARRIVAL_GUESTS, type MTask, type Presence, type EscType } from "./data";
+import { BarChart } from "../components/BarChart";
+import { SEED_TASKS, STAFF, PRESENCE_DOT, GUEST_STAYS, PRE_ARRIVAL_GUESTS, type MTask, type Presence, type Staffer, type EscType } from "./data";
 import {
   PhoneFrame, ScreenHeader, SectionTitle, TaskCard, StatCard, Avatar, Chips, Segmented, FloatingNav, PrimaryButton, GhostButton, SelectField, TextField, Label, Sheet,
   useNav, useToast, CARD_SHADOW, TextHeader, PriorityPill, SlaCountdown, fmtMins, type Priority,
 } from "./mobile";
-import { ActionGrid, StaffPicker, ReasonSheet, StatusTag, activeCount, atRiskCount, overdueCount, isOpen, isAtRisk, isOverdue } from "./parts";
+import { StaffPicker, ReasonSheet, StatusTag, activeCount, atRiskCount, overdueCount, isOpen, isAtRisk, isOverdue } from "./parts";
 
 type Screen = {
-  name: "home" | "tasks" | "team" | "guests" | "guestDetail" | "detail" | "notifications" | "create" | "menu" | "analytics" | "guestsRoster";
+  name: "home" | "tasks" | "team" | "staffDetail" | "guests" | "guestDetail" | "guestProfile" | "detail" | "notifications" | "create" | "menu" | "analytics" | "guestsRoster";
   id?: string;
 };
-type SheetState = { k: "needHelp" | "assign" | "support" | "sendBack" | "gm" | "route"; taskId: string } | null;
+type SheetState = { k: "needHelp" | "assign" | "support" | "gm"; taskId: string } | null;
 
 const ME = "Daniel Reyes";
 const ESC_FILTERS = ["All", "SLA breach", "SLA at risk", "Guest complaint", "Unable to complete", "Staffing issue", "Supervisor escalation", "High priority"] as const;
@@ -32,8 +33,24 @@ const AVAIL_FILTERS = ["All", "Available", "Busy", "On Break", "Off work"] as co
 type AvailFilter = (typeof AVAIL_FILTERS)[number];
 const GUEST_FILTERS = ["All", "Complaints", "VIP", "Open requests"] as const;
 type GuestFilter = (typeof GUEST_FILTERS)[number];
+const PRE_ARRIVAL_FILTERS = ["All", "VIP"] as const;
+type PreArrivalFilter = (typeof PRE_ARRIVAL_FILTERS)[number];
 const TASK_FILTERS = ["All", "Unassigned", "In Progress", "At Risk", "Overdue", "Completed"] as const;
 type TaskFilter = (typeof TASK_FILTERS)[number];
+const STAFF_TABS = ["Overview", "Schedule", "Performance"] as const;
+type StaffTab = (typeof STAFF_TABS)[number];
+const STAFF_DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const SHIFTS = ["Morning · 6:00 AM – 2:00 PM", "Afternoon · 2:00 PM – 10:00 PM", "Night · 10:00 PM – 6:00 AM"];
+const SKILLS_BY_ROLE: Record<Staffer["role"], string[]> = {
+  "Line Staff": ["Room turnover", "Linen handling", "Guest courtesy"],
+  Supervisor: ["Team coordination", "Quality checks", "Escalation handling"],
+};
+const KvRow = ({ label, children }: { label: string; children: React.ReactNode }) => (
+  <div className="flex items-center justify-between gap-3 border-b border-line/70 py-2.5 text-[13px] last:border-0">
+    <span className="text-ink-secondary">{label}</span>
+    <span className="text-right text-ink">{children}</span>
+  </div>
+);
 const MENU_ITEMS = [
   { key: "team" as const, label: "Team & Workload", icon: Users },
   { key: "analytics" as const, label: "Analytics", icon: BarChart3 },
@@ -100,7 +117,9 @@ export function ManagerPrototype() {
   const [taskQuery, setTaskQuery] = useState("");
   const [rosterTab, setRosterTab] = useState<"In-house" | "Pre-arrival">("In-house");
   const [rosterFilter, setRosterFilter] = useState<GuestFilter>("All");
+  const [preArrivalFilter, setPreArrivalFilter] = useState<PreArrivalFilter>("All");
   const [rosterFilterOpen, setRosterFilterOpen] = useState(false);
+  const [staffTab, setStaffTab] = useState<StaffTab>("Overview");
   const [sheet, setSheet] = useState<SheetState>(null);
   const [needHelpReason, setNeedHelpReason] = useState("");
   const [chat, setChat] = useState<Record<string, { from: "guest" | "ai" | "me"; text: string }[]>>({});
@@ -256,9 +275,20 @@ export function ManagerPrototype() {
       }),
     [guestsSorted, rosterFilter],
   );
-  const rosterActiveFilters = rosterFilter !== "All" ? 1 : 0;
+  const preArrivalFiltered = useMemo(
+    () => PRE_ARRIVAL_GUESTS.filter((g) => preArrivalFilter !== "VIP" || g.vip),
+    [preArrivalFilter],
+  );
+  const rosterActiveFilters = rosterTab === "In-house" ? (rosterFilter !== "All" ? 1 : 0) : (preArrivalFilter !== "All" ? 1 : 0);
 
-  const guestName = cur.name === "guestDetail" ? cur.id : undefined;
+  const staffName = cur.name === "staffDetail" ? cur.id : undefined;
+  const staffEntry = staffName ? STAFF.find((s) => s.name === staffName) : undefined;
+  const staffIndex = staffEntry ? STAFF.findIndex((s) => s.name === staffEntry.name) : 0;
+  const staffShift = SHIFTS[staffIndex % SHIFTS.length];
+  const staffDayOff = staffIndex % 7;
+  const staffTasks = staffEntry ? tasks.filter((t) => t.owner === staffEntry.name || t.support.includes(staffEntry.name)) : [];
+
+  const guestName = cur.name === "guestDetail" || cur.name === "guestProfile" ? cur.id : undefined;
   const guestEntry = guestName ? guestMap.get(guestName) : undefined;
   const seedGuestChat = (g?: GuestEntry) => (g && g.convo !== "—" ? [{ from: "guest" as const, text: g.convo }, { from: "ai" as const, text: "Thanks for letting us know — I've flagged this to the team." }] : []);
   const guestThread = guestName ? chat[guestName] ?? seedGuestChat(guestEntry) : [];
@@ -389,7 +419,7 @@ export function ManagerPrototype() {
           const n = activeCount(tasks, s.name), r = atRiskCount(tasks, s.name), o = overdueCount(tasks, s.name);
           const over = n >= 2 && (r > 0 || o > 0);
           return (
-            <div key={s.name} className={`flex items-center gap-3 rounded-2xl bg-white p-3.5 ${CARD_SHADOW}`}>
+            <button key={s.name} onClick={() => nav.push({ name: "staffDetail", id: s.name })} className={`flex w-full items-center gap-3 rounded-2xl bg-white p-3.5 text-left ${CARD_SHADOW}`}>
               <Avatar name={s.name} tone={s.role === "Supervisor" ? "bg-violet-50 text-violet-600" : undefined} />
               <div className="min-w-0 flex-1 leading-tight">
                 <div className="flex items-center gap-2 text-[14px] font-semibold text-ink">
@@ -403,17 +433,94 @@ export function ManagerPrototype() {
                   {s.role === "Line Staff" && ` · ${n} active${o ? ` · ${o} overdue` : ""}`}
                 </div>
               </div>
-            </div>
+              <ChevronRight className="h-4 w-4 shrink-0 text-ink-tertiary" />
+            </button>
           );
         })}
         {!filteredTeam.length && <p className="rounded-2xl bg-white p-4 text-center text-[13px] text-ink-tertiary">No one matches these filters.</p>}
       </div>
-
-      <div className="mt-7"><SectionTitle tone="bg-red-500">Unassigned tasks</SectionTitle></div>
-      <div className="mt-3 space-y-3 px-6">
-        {tasks.filter((t) => t.status === "unassigned").map(card)}
-        {!tasks.some((t) => t.status === "unassigned") && <p className="rounded-2xl bg-white p-4 text-center text-[13px] text-ink-tertiary">Everything is assigned.</p>}
       </div>
+    </div>
+  );
+
+  const StaffDetail = staffEntry && (
+    <div className="flex h-full flex-col">
+      <ScreenHeader onBack={nav.back} />
+      <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-6 no-scrollbar">
+        <div className="flex items-center gap-3">
+          <Avatar name={staffEntry.name} size={56} tone={staffEntry.role === "Supervisor" ? "bg-violet-50 text-violet-600" : undefined} />
+          <div className="leading-tight">
+            <div className="text-[17px] font-bold text-ink">{staffEntry.name}</div>
+            <div className="mt-0.5 flex items-center gap-1.5 text-[12px] text-ink-secondary">
+              <span className={`h-2 w-2 rounded-full ${PRESENCE_DOT[staffEntry.status]}`} />{staffEntry.status} · {staffEntry.role}
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-4"><Segmented items={STAFF_TABS} active={staffTab} onChange={setStaffTab} /></div>
+
+        {staffTab === "Overview" && (
+          <div className={`mt-4 rounded-2xl bg-white p-4 ${CARD_SHADOW}`}>
+            <KvRow label="Phone">{staffEntry.phone}</KvRow>
+            <KvRow label="Department">Housekeeping</KvRow>
+            <KvRow label="Role">{staffEntry.role}</KvRow>
+            <KvRow label="Shift">{staffShift}</KvRow>
+            <div className="py-2.5">
+              <div className="mb-1.5 text-ink-secondary text-[13px]">Skills</div>
+              <div className="flex flex-wrap gap-1.5">
+                {SKILLS_BY_ROLE[staffEntry.role].map((k) => (
+                  <span key={k} className="rounded-full bg-[#F1F1F3] px-2.5 py-1 text-[12px] text-ink-secondary">{k}</span>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {staffTab === "Schedule" && (
+          <div className={`mt-4 rounded-2xl bg-white p-4 ${CARD_SHADOW}`}>
+            {STAFF_DAYS.map((d, i) => (
+              <div key={d} className="flex items-center justify-between border-b border-line/70 py-2.5 text-[13px] last:border-0">
+                <span className="w-10 font-semibold text-ink">{d}</span>
+                <span className={i === staffDayOff ? "text-ink-tertiary" : "text-ink-secondary"}>{i === staffDayOff ? "Off" : staffShift}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {staffTab === "Performance" && (
+          <div className="mt-4">
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                ["Tasks completed", `${18 + staffIndex * 3}`],
+                ["Avg completion", `${16 + staffIndex * 2} min`],
+                ["Guest rating", "4.8/5"],
+                ["Performance", `${86 + staffIndex}%`],
+              ].map(([l, v]) => (
+                <div key={l} className={`rounded-2xl bg-white p-3 ${CARD_SHADOW}`}>
+                  <div className="text-[11px] text-ink-secondary">{l}</div>
+                  <div className="mt-1 text-[16px] font-bold text-ink">{v}</div>
+                </div>
+              ))}
+            </div>
+            <div className="mb-2 mt-5 text-[11px] font-semibold uppercase tracking-wide text-ink-tertiary">This week</div>
+            <div className={`rounded-2xl bg-white p-3 ${CARD_SHADOW}`}>
+              <BarChart data={STAFF_DAYS.map((d, i) => ({ label: d, value: 4 + ((staffIndex + i * 3) % 10) }))} />
+            </div>
+            <div className="mb-1 mt-5 flex items-center justify-between">
+              <span className="text-[11px] font-semibold uppercase tracking-wide text-ink-tertiary">Active tasks</span>
+              <span className="text-[12px] text-ink-tertiary">{staffTasks.length}</span>
+            </div>
+            <div className="space-y-2">
+              {staffTasks.map((t) => (
+                <button key={t.id} onClick={() => open(t.id)} className={`flex w-full items-center justify-between gap-2 rounded-2xl bg-white p-3 text-left ${CARD_SHADOW}`}>
+                  <span className="min-w-0 flex-1 truncate text-[13px] text-ink">{t.title}</span>
+                  <StatusTag s={t.status} />
+                </button>
+              ))}
+              {!staffTasks.length && <p className={`rounded-2xl bg-white p-4 text-center text-[12px] text-ink-tertiary ${CARD_SHADOW}`}>No active tasks.</p>}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -466,8 +573,60 @@ export function ManagerPrototype() {
 
   const GuestDetail = guestEntry && (
     <div className="flex h-full flex-col">
+      <ScreenHeader
+        onBack={nav.back}
+        title={guestEntry.name}
+        sub={`${guestEntry.room}${guestEntry.vip ? " · VIP" : ""}`}
+        right={
+          <button onClick={() => nav.push({ name: "guestProfile", id: guestName })} aria-label="Guest profile" className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-sm">
+            <Avatar name={guestEntry.name} size={30} tone={guestEntry.complaint ? "bg-red-50 text-red-600" : undefined} />
+          </button>
+        }
+      />
+      <div className="min-h-0 flex-1 px-6 pb-6 pt-2">
+        <div className={`flex h-full flex-col overflow-hidden rounded-2xl bg-white ${CARD_SHADOW}`}>
+          <div className={`flex shrink-0 items-center justify-between gap-3 px-4 py-2.5 text-[12px] ${guestManual ? "bg-brand-tint/50 text-brand" : "bg-violet-50 text-violet-700"}`}>
+            <span>{guestManual ? "You're replying — AI is paused" : "ALFON AI is replying automatically"}</span>
+            <button
+              onClick={() => { setManual((m) => ({ ...m, [guestName!]: !guestManual })); flash(guestManual ? "Handed back to AI" : "AI paused — you're now replying"); }}
+              className="font-semibold underline"
+            >
+              {guestManual ? "Hand back to AI" : "Take over"}
+            </button>
+          </div>
+          <div className="min-h-0 flex-1 space-y-2.5 overflow-y-auto p-4">
+            {!guestThread.length && <p className="py-6 text-center text-[12px] text-ink-tertiary">No messages yet.</p>}
+            {guestThread.map((m, i) => (
+              <div key={i} className={`flex ${m.from === "guest" ? "justify-start" : "justify-end"}`}>
+                <div className={`max-w-[82%] rounded-2xl px-3.5 py-2.5 text-[13px] leading-snug ${m.from === "guest" ? "bg-[#F1F1F3] text-ink" : m.from === "ai" ? "bg-violet-50 text-ink" : "bg-brand-tint text-ink"}`}>
+                  {m.text}
+                  <div className="mt-1 text-[10px] font-semibold text-ink-tertiary">{m.from === "ai" ? "ALFON AI" : m.from === "me" ? "You" : "Guest"}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="flex shrink-0 items-center gap-2 border-t border-line p-3">
+            <input
+              value={draft}
+              disabled={!guestManual}
+              onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && sendGuestChat()}
+              placeholder={guestManual ? "Reply as hotel staff…" : "Take over to reply"}
+              className="h-11 flex-1 rounded-2xl border border-line px-4 text-[14px] outline-none focus:border-brand disabled:bg-[#F6F6F8]"
+            />
+            <button onClick={sendGuestChat} disabled={!guestManual || !draft.trim()} aria-label="Send" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-brand text-white disabled:opacity-40">
+              <Send className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const GuestProfile = guestEntry && (
+    <div className="flex h-full flex-col">
       <ScreenHeader onBack={nav.back} title={guestEntry.name} sub={`${guestEntry.room}${guestEntry.vip ? " · VIP" : ""}`} />
-      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 pb-4 no-scrollbar">
+      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 pb-6 no-scrollbar">
         <div className={`rounded-2xl bg-white p-4 ${CARD_SHADOW}`}>
           <div className="flex items-center gap-2 text-[11px] font-semibold text-ink-secondary"><Sparkles className="h-3.5 w-3.5 text-violet-500" /> Guest overview</div>
           {guestEntry.checkIn && (
@@ -504,45 +663,6 @@ export function ManagerPrototype() {
             ))}
           </div>
         </div>
-
-        <div>
-          <div className="mb-2 px-1 text-[13px] font-semibold text-ink-secondary">Conversation</div>
-          <div className={`overflow-hidden rounded-2xl bg-white ${CARD_SHADOW}`}>
-            <div className={`flex items-center justify-between gap-3 px-4 py-2.5 text-[12px] ${guestManual ? "bg-brand-tint/50 text-brand" : "bg-violet-50 text-violet-700"}`}>
-              <span>{guestManual ? "You're replying — AI is paused" : "ALFON AI is replying automatically"}</span>
-              <button
-                onClick={() => { setManual((m) => ({ ...m, [guestName!]: !guestManual })); flash(guestManual ? "Handed back to AI" : "AI paused — you're now replying"); }}
-                className="font-semibold underline"
-              >
-                {guestManual ? "Hand back to AI" : "Take over"}
-              </button>
-            </div>
-            <div className="max-h-[240px] space-y-2.5 overflow-y-auto p-4">
-              {!guestThread.length && <p className="py-6 text-center text-[12px] text-ink-tertiary">No messages yet.</p>}
-              {guestThread.map((m, i) => (
-                <div key={i} className={`flex ${m.from === "guest" ? "justify-start" : "justify-end"}`}>
-                  <div className={`max-w-[82%] rounded-2xl px-3.5 py-2.5 text-[13px] leading-snug ${m.from === "guest" ? "bg-[#F1F1F3] text-ink" : m.from === "ai" ? "bg-violet-50 text-ink" : "bg-brand-tint text-ink"}`}>
-                    {m.text}
-                    <div className="mt-1 text-[10px] font-semibold text-ink-tertiary">{m.from === "ai" ? "ALFON AI" : m.from === "me" ? "You" : "Guest"}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-      <div className="flex shrink-0 items-center gap-2 px-6 pb-6 pt-3">
-        <input
-          value={draft}
-          disabled={!guestManual}
-          onChange={(e) => setDraft(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && sendGuestChat()}
-          placeholder={guestManual ? "Reply as hotel staff…" : "Take over to reply"}
-          className="h-12 flex-1 rounded-2xl border border-line px-4 text-[14px] outline-none focus:border-brand disabled:bg-[#F6F6F8]"
-        />
-        <button onClick={sendGuestChat} disabled={!guestManual || !draft.trim()} aria-label="Send" className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand text-white disabled:opacity-40">
-          <Send className="h-4 w-4" />
-        </button>
       </div>
     </div>
   );
@@ -578,18 +698,6 @@ export function ManagerPrototype() {
             <p className="mt-1.5 text-[13px] leading-snug text-ink">{task.escReason}</p>
           </div>
         )}
-
-        <div>
-          <div className="mb-2 px-1 text-[13px] font-semibold text-ink-secondary">Escalation review</div>
-          <ActionGrid
-            actions={[
-              { label: "Send back", icon: Undo2, onClick: () => setSheet({ k: "sendBack", taskId: task.id }), tone: "bg-blue-50 text-blue-600", disabled: !task.escBy || task.escBy === "System" },
-              { label: "Take ownership", icon: Hand, onClick: () => { patch(task.id, { owner: ME, status: "progress" }, `${ME} took ownership`); flash("You now own this task"); } },
-              { label: "Route to dept", icon: Split, onClick: () => setSheet({ k: "route", taskId: task.id }), tone: "bg-slate-100 text-slate-600" },
-              { label: "Escalate to GM", icon: ArrowUpRight, onClick: () => setSheet({ k: "gm", taskId: task.id }), tone: "bg-red-50 text-red-600" },
-            ]}
-          />
-        </div>
       </div>
 
       <button
@@ -773,18 +881,16 @@ export function ManagerPrototype() {
         sub="Housekeeping"
         onBack={nav.back}
         right={
-          rosterTab === "In-house" ? (
-            <button
-              onClick={() => setRosterFilterOpen(true)}
-              aria-label="Filter"
-              className={`relative flex h-10 w-10 items-center justify-center rounded-full ${rosterActiveFilters ? "bg-brand text-white" : "bg-white text-ink shadow-sm"}`}
-            >
-              <Filter className="h-[18px] w-[18px]" />
-              {rosterActiveFilters > 0 && (
-                <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white">{rosterActiveFilters}</span>
-              )}
-            </button>
-          ) : undefined
+          <button
+            onClick={() => setRosterFilterOpen(true)}
+            aria-label="Filter"
+            className={`relative flex h-10 w-10 items-center justify-center rounded-full ${rosterActiveFilters ? "bg-brand text-white" : "bg-white text-ink shadow-sm"}`}
+          >
+            <Filter className="h-[18px] w-[18px]" />
+            {rosterActiveFilters > 0 && (
+              <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white">{rosterActiveFilters}</span>
+            )}
+          </button>
         }
       />
       <div className="px-6"><Segmented items={["In-house", "Pre-arrival"] as const} active={rosterTab} onChange={setRosterTab} /></div>
@@ -807,24 +913,27 @@ export function ManagerPrototype() {
             {!rosterFiltered.length && <p className="rounded-2xl bg-white p-6 text-center text-[13px] text-ink-tertiary">No guests match.</p>}
           </>
         ) : (
-          PRE_ARRIVAL_GUESTS.map((g) => (
-            <div key={g.name} className={`rounded-2xl bg-white p-3.5 ${CARD_SHADOW}`}>
-              <div className="flex items-center gap-2">
-                <span className="text-[14px] font-semibold text-ink">{g.name}</span>
-                {g.vip && <span className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[9px] font-bold text-amber-700">VIP</span>}
+          <>
+            {preArrivalFiltered.map((g) => (
+              <div key={g.name} className={`rounded-2xl bg-white p-3.5 ${CARD_SHADOW}`}>
+                <div className="flex items-center gap-2">
+                  <span className="text-[14px] font-semibold text-ink">{g.name}</span>
+                  {g.vip && <span className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[9px] font-bold text-amber-700">VIP</span>}
+                </div>
+                <div className="mt-0.5 text-[12px] text-ink-tertiary">{g.room}</div>
+                <div className="mt-1 text-[12px] font-semibold text-brand">Arriving {g.eta}</div>
+                <p className="mt-1.5 text-[12px] leading-snug text-ink-secondary">{g.notes}</p>
               </div>
-              <div className="mt-0.5 text-[12px] text-ink-tertiary">{g.room}</div>
-              <div className="mt-1 text-[12px] font-semibold text-brand">Arriving {g.eta}</div>
-              <p className="mt-1.5 text-[12px] leading-snug text-ink-secondary">{g.notes}</p>
-            </div>
-          ))
+            ))}
+            {!preArrivalFiltered.length && <p className="rounded-2xl bg-white p-6 text-center text-[13px] text-ink-tertiary">No guests match.</p>}
+          </>
         )}
       </div>
     </div>
   );
 
   const VIEWS: Record<Screen["name"], React.ReactNode> = {
-    home: Home, tasks: Tasks, team: Team, guests: Guests, guestDetail: GuestDetail, detail: Detail, notifications: Notifications, create: Create,
+    home: Home, tasks: Tasks, team: Team, staffDetail: StaffDetail, guests: Guests, guestDetail: GuestDetail, guestProfile: GuestProfile, detail: Detail, notifications: Notifications, create: Create,
     menu: Menu, analytics: Analytics, guestsRoster: GuestsRoster,
   };
 
@@ -873,14 +982,6 @@ export function ManagerPrototype() {
           </div>
         </Sheet>
       )}
-      {sheet.k === "sendBack" && t0 && (
-        <ReasonSheet title={`Send back to ${t0.escBy?.split(" ")[0]}`} requireNote placeholder="Your instruction to the supervisor…" cta="Send back" onClose={() => setSheet(null)}
-          onSubmit={(_, note) => { patch(t0.id, { escalated: false, escType: undefined, notes: [{ by: ME, t: "Just now", text: `Instruction: ${note}` }, ...t0.notes] }, `${ME} sent back with instruction`); setSheet(null); flash("Sent back with instruction"); nav.back(); }} />
-      )}
-      {sheet.k === "route" && t0 && (
-        <ReasonSheet title="Route to another department" reasons={DEPARTMENTS.map((d) => d.name).filter((d) => d !== "Housekeeping")} reasonLabel="Department" requireNote placeholder="Why does it belong there?" cta="Route" onClose={() => setSheet(null)}
-          onSubmit={(dept, note) => { patch(t0.id, { escalated: false, escType: undefined, resolution: `Routed to ${dept}: ${note}` }, `${ME} routed to ${dept}`); setSheet(null); flash(`Routed to ${dept}`); nav.back(); }} />
-      )}
       {sheet.k === "gm" && t0 && (
         <ReasonSheet title="Escalate to High Management" reasons={["Critical guest complaint", "Repeated SLA breach", "Unresolved operational issue", "VIP / high-risk situation", "Serious service recovery"]} requireNote placeholder="Context for the General Manager…" cta="Escalate to GM" tone="bg-red-600" onClose={() => setSheet(null)}
           onSubmit={(reason, note) => { patch(t0.id, { escType: (t0.escType ?? "Supervisor escalation") as EscType, notes: [{ by: ME, t: "Just now", text: `Escalated to GM — ${reason}: ${note}` }, ...t0.notes] }, `${ME} escalated to General Manager`); setSheet(null); flash("Escalated to the General Manager"); }} />
@@ -914,9 +1015,15 @@ export function ManagerPrototype() {
   const RosterFilterSheet = rosterFilterOpen && (
     <Sheet title="Filter guests" onClose={() => setRosterFilterOpen(false)}>
       <Label>Show</Label>
-      <Chips items={GUEST_FILTERS} active={rosterFilter} onChange={setRosterFilter} />
+      {rosterTab === "In-house" ? (
+        <Chips items={GUEST_FILTERS} active={rosterFilter} onChange={setRosterFilter} />
+      ) : (
+        <Chips items={PRE_ARRIVAL_FILTERS} active={preArrivalFilter} onChange={setPreArrivalFilter} />
+      )}
       <PrimaryButton className="mt-6 w-full" onClick={() => setRosterFilterOpen(false)}>Done</PrimaryButton>
-      {rosterActiveFilters > 0 && <GhostButton className="mt-2 w-full" onClick={() => setRosterFilter("All")}>Clear filter</GhostButton>}
+      {rosterActiveFilters > 0 && (
+        <GhostButton className="mt-2 w-full" onClick={() => (rosterTab === "In-house" ? setRosterFilter("All") : setPreArrivalFilter("All"))}>Clear filter</GhostButton>
+      )}
     </Sheet>
   );
 
@@ -931,7 +1038,7 @@ export function ManagerPrototype() {
         {toast}
       </PhoneFrame>
       <div className="flex flex-wrap items-center justify-center gap-2">
-        <button className="rounded-lg border border-line bg-white px-3 py-1.5 text-[12px] font-medium text-ink-secondary" onClick={() => { nav.reset(); setTasks(SEED_TASKS); setSheet(null); setNeedHelpReason(""); setChat({}); setManual({}); setFilter("All"); setRoleFilter("All"); setAvailFilter("All"); setGuestFilter("All"); setGuestQuery(""); setTaskFilter("All"); setTaskQuery(""); setRosterTab("In-house"); setRosterFilter("All"); }}>Reset</button>
+        <button className="rounded-lg border border-line bg-white px-3 py-1.5 text-[12px] font-medium text-ink-secondary" onClick={() => { nav.reset(); setTasks(SEED_TASKS); setSheet(null); setNeedHelpReason(""); setChat({}); setManual({}); setFilter("All"); setRoleFilter("All"); setAvailFilter("All"); setGuestFilter("All"); setGuestQuery(""); setTaskFilter("All"); setTaskQuery(""); setRosterTab("In-house"); setRosterFilter("All"); setPreArrivalFilter("All"); setStaffTab("Overview"); }}>Reset</button>
       </div>
       <p className="text-center text-[12px] text-ink-tertiary">Current screen: <span className="font-medium text-ink-secondary">{cur.name}</span> · open Guests to chat with a guest, or Room 1103 to see full task context.</p>
     </div>
