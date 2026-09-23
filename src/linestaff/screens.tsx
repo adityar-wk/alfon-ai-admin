@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Bell, Building2, Send, Check, Plus, BedDouble, Layers, User, Clock, StickyNote } from "lucide-react";
+import { Bell, Send, Check, Plus, BedDouble, Layers, User, Clock, StickyNote } from "lucide-react";
 import { DEPARTMENTS } from "../data/departments";
 import {
   PhoneFrame,
@@ -8,6 +8,7 @@ import {
   SectionTitle,
   SlaRing,
   Fab,
+  Sheet,
   PrimaryButton,
   GhostButton,
   SelectField,
@@ -22,7 +23,14 @@ import {
   type Priority,
 } from "./mobile";
 
-type Screen = { name: "home" | "notifications" | "taskDetail" | "needHelp" | "create"; id?: string };
+type Screen = { name: "home" | "notifications" | "taskDetail" | "create"; id?: string };
+
+type HelpKind = "escalate" | "support" | "reassign";
+const HELP_OPTIONS: { key: HelpKind; label: string; sub: string; cta: string; placeholder: string }[] = [
+  { key: "escalate", label: "Escalate this task", sub: "Send it up to your supervisor", cta: "Escalate", placeholder: "Tell your supervisor what's blocking you…" },
+  { key: "support", label: "Request support", sub: "Ask a colleague to help you with this task", cta: "Request support", placeholder: "What kind of help do you need…" },
+  { key: "reassign", label: "Reassign to a colleague", sub: "Hand this task to someone else", cta: "Send request", placeholder: "Why does this need to be reassigned…" },
+];
 type Status = "pending" | "progress" | "completed";
 type Task = {
   id: string;
@@ -139,6 +147,8 @@ export function LineStaffPrototype() {
   const [tasks, setTasks] = useState<Task[]>(INITIAL);
   const [available, setAvailable] = useState(true);
   const [incoming, setIncoming] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
+  const [helpKind, setHelpKind] = useState<HelpKind>("escalate");
   const [helpNote, setHelpNote] = useState("");
 
   // create manual task
@@ -295,7 +305,7 @@ export function LineStaffPrototype() {
           </>
         ) : (
           <>
-            <GhostButton className="flex-1" disabled={active.status === "completed"} onClick={() => nav.push({ name: "needHelp", id: active.id })}>Need help</GhostButton>
+            <GhostButton className="flex-1" disabled={active.status === "completed"} onClick={() => { setHelpKind("escalate"); setHelpNote(""); setHelpOpen(true); }}>Need help</GhostButton>
             <PrimaryButton
               className="flex-[1.3]"
               disabled={active.status === "completed"}
@@ -309,25 +319,43 @@ export function LineStaffPrototype() {
     </div>
   );
 
-  const NeedHelp = (
-    <div className="flex h-full flex-col">
-      <ScreenHeader title="Need help?" onBack={nav.back} />
-      <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-6 pb-4 pt-2 no-scrollbar">
-        <div className={`flex items-center gap-3 rounded-2xl border border-brand/40 bg-brand-tint/50 p-4`}>
-          <span className="flex h-11 w-11 items-center justify-center rounded-full bg-brand text-white"><Building2 className="h-5 w-5" /></span>
-          <div className="flex-1">
-            <div className="text-[14px] font-semibold text-ink">Escalate this task</div>
-            <div className="text-[12px] text-ink-secondary">{active.title} · {active.room}</div>
-            <div className="mt-0.5 text-[12px] text-ink-secondary">Your supervisor will be notified right away.</div>
-          </div>
-        </div>
-        <Label>Add details (optional)</Label>
-        <TextField rows={4} value={helpNote} onChange={setHelpNote} placeholder="Tell your supervisor what's blocking you…" />
+  const helpSubmit = () => {
+    const msg =
+      helpKind === "escalate" ? "Escalated to your supervisor" : helpKind === "support" ? "Support request sent" : "Reassignment request sent to your supervisor";
+    flash(msg);
+    setHelpOpen(false);
+    setHelpNote("");
+  };
+
+  const HelpSheet = helpOpen && (
+    <Sheet title="Need help?" onClose={() => setHelpOpen(false)}>
+      <p className="mb-3 text-[13px] text-ink-secondary">{active.title} · {active.room}</p>
+      <div className="space-y-2.5">
+        {HELP_OPTIONS.map((o) => {
+          const on = helpKind === o.key;
+          return (
+            <button
+              key={o.key}
+              onClick={() => setHelpKind(o.key)}
+              className={`flex w-full items-start gap-3 rounded-2xl border p-3.5 text-left ${on ? "border-brand bg-brand-tint/40" : "border-line bg-white"}`}
+            >
+              <span className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${on ? "border-brand" : "border-line"}`}>
+                {on && <span className="h-2.5 w-2.5 rounded-full bg-brand" />}
+              </span>
+              <span className="min-w-0">
+                <span className="block text-[14px] font-semibold text-ink">{o.label}</span>
+                <span className="block text-[12px] text-ink-secondary">{o.sub}</span>
+              </span>
+            </button>
+          );
+        })}
       </div>
-      <div className="shrink-0 px-6 pb-6">
-        <PrimaryButton className="w-full" onClick={() => { flash("Escalated to your supervisor"); setHelpNote(""); nav.back(); }}><Send className="h-4 w-4" /> Escalate</PrimaryButton>
-      </div>
-    </div>
+      <Label>Add details (optional)</Label>
+      <TextField rows={4} value={helpNote} onChange={setHelpNote} placeholder={HELP_OPTIONS.find((o) => o.key === helpKind)!.placeholder} />
+      <PrimaryButton className="mt-5 w-full" onClick={helpSubmit}>
+        <Send className="h-4 w-4" /> {HELP_OPTIONS.find((o) => o.key === helpKind)!.cta}
+      </PrimaryButton>
+    </Sheet>
   );
 
   const Create = (
@@ -355,12 +383,13 @@ export function LineStaffPrototype() {
     </div>
   );
 
-  const VIEWS: Record<Screen["name"], JSX.Element> = { home: Home, notifications: Notifications, taskDetail: TaskDetail, needHelp: NeedHelp, create: Create };
+  const VIEWS: Record<Screen["name"], JSX.Element> = { home: Home, notifications: Notifications, taskDetail: TaskDetail, create: Create };
 
   return (
     <div className="flex flex-col items-center gap-4">
       <PhoneFrame>
         {VIEWS[cur.name]}
+        {HelpSheet}
 
         {incoming && (
           <div className="absolute inset-0 z-40">
