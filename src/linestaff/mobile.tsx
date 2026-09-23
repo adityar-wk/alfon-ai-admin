@@ -144,9 +144,8 @@ export function SlaRing({ left, total, size = 54 }: { left: number; total: numbe
         <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#E7E7EA" strokeWidth="5" />
         <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={tone.color} strokeWidth="5" strokeLinecap="round" strokeDasharray={`${frac * c} ${c}`} />
       </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center leading-none">
-        <span className="text-[11px] font-bold text-ink">{fmtMins(left)}</span>
-        <span className="mt-0.5 text-[8px] font-medium" style={{ color: tone.color }}>{tone.label}</span>
+      <div className="absolute inset-0 flex items-center justify-center">
+        <span className="text-[12px] font-bold text-ink">{fmtMins(left)}</span>
       </div>
     </div>
   );
