@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Bell, Send, Check, Plus, BedDouble, Layers, User, Clock, StickyNote } from "lucide-react";
+import { Bell, Send, Check, Plus, BedDouble, User, StickyNote, Sparkles } from "lucide-react";
 import { DEPARTMENTS } from "../data/departments";
 import {
   PhoneFrame,
@@ -7,6 +7,7 @@ import {
   TextHeader,
   SectionTitle,
   SlaRing,
+  SlaCountdown,
   Fab,
   Sheet,
   PrimaryButton,
@@ -18,8 +19,6 @@ import {
   useNav,
   useToast,
   CARD_SHADOW,
-  slaTone,
-  fmtMins,
   type Priority,
 } from "./mobile";
 
@@ -104,7 +103,7 @@ const SEV_COLOR: Record<(typeof SEVERITIES)[number], string> = { Low: "bg-slate-
 const SEV_SLA: Record<Priority, number> = { Low: 60, Medium: 40, High: 20, Critical: 10 };
 
 /** task card: task name first, room second, SLA timer on the right, actions inside the card */
-function LsCard({ t, onOpen, onAccept, onReject }: { t: Task; onOpen?: () => void; onAccept?: () => void; onReject?: () => void }) {
+function LsCard({ t, onOpen, onAccept }: { t: Task; onOpen?: () => void; onAccept?: () => void }) {
   const done = t.status === "completed";
   return (
     <div className={`rounded-2xl bg-white p-4 ${CARD_SHADOW}`}>
@@ -117,10 +116,9 @@ function LsCard({ t, onOpen, onAccept, onReject }: { t: Task; onOpen?: () => voi
         </div>
         {!done && <SlaRing left={t.left} total={t.total} size={50} />}
       </div>
-      {onAccept && onReject && (
-        <div className="mt-3.5 flex gap-2.5 border-t border-line pt-3.5">
-          <button onClick={onReject} className="flex h-10 flex-1 items-center justify-center rounded-xl border border-red-200 bg-red-50 text-[13px] font-semibold text-red-600">Void</button>
-          <button onClick={onAccept} className="flex h-10 flex-1 items-center justify-center rounded-xl bg-brand text-[13px] font-semibold text-white shadow-[0_2px_6px_rgba(241,90,36,0.16)]">
+      {onAccept && (
+        <div className="mt-3.5 border-t border-line pt-3.5">
+          <button onClick={onAccept} className="flex h-10 w-full items-center justify-center rounded-xl bg-brand text-[13px] font-semibold text-white shadow-[0_2px_6px_rgba(241,90,36,0.16)]">
             Accept
           </button>
         </div>
@@ -162,7 +160,6 @@ export function LineStaffPrototype() {
   const setStatus = (id: string, status: Status, time?: string) => setTasks((ts) => ts.map((t) => (t.id === id ? { ...t, status, time } : t)));
   const openTask = (id: string) => nav.push({ name: "taskDetail", id });
   const accept = (id: string) => { setStatus(id, "progress"); flash("Task accepted"); };
-  const reject = (id: string) => { setTasks((ts) => ts.filter((t) => t.id !== id)); flash("Task rejected"); if (cur.name === "taskDetail") nav.back(); };
 
   const pending = tasks.filter((t) => t.status === "pending");
   const inProgress = tasks.filter((t) => t.status === "progress");
@@ -220,7 +217,7 @@ export function LineStaffPrototype() {
 
         <div className="mt-6"><SectionTitle dot={false} small action={<span className="text-[12px] text-ink-tertiary">{pending.length}</span>}>Pending</SectionTitle></div>
         <div className="mt-2.5 space-y-3 px-6">
-          {pending.map((t) => <LsCard key={t.id} t={t} onOpen={() => openTask(t.id)} onAccept={() => accept(t.id)} onReject={() => reject(t.id)} />)}
+          {pending.map((t) => <LsCard key={t.id} t={t} onOpen={() => openTask(t.id)} onAccept={() => accept(t.id)} />)}
           {!pending.length && <p className="rounded-2xl bg-white p-4 text-center text-[12px] text-ink-tertiary">You&apos;re all caught up.</p>}
         </div>
 
@@ -254,37 +251,35 @@ export function LineStaffPrototype() {
       <div className="min-h-0 flex-1 space-y-3.5 overflow-y-auto px-6 pb-4 pt-1 no-scrollbar">
         {/* task */}
         <div className={`rounded-2xl bg-white p-4 ${CARD_SHADOW}`}>
-          <div className="text-[11px] font-semibold text-ink-secondary">Task</div>
-          <div className="mt-2 flex items-start gap-3">
-            <div className="min-w-0 flex-1">
-              <div className="text-[16px] font-semibold leading-snug text-ink">{active.title}</div>
-              <p className="mt-1.5 text-[13px] leading-snug text-ink-secondary">{active.note}</p>
-            </div>
-            {active.status !== "completed" && <SlaRing left={active.left} total={active.total} size={62} />}
+          <div className="flex items-center justify-between gap-3">
+            <div className="text-[11px] font-semibold text-ink-secondary">Task details</div>
+            {active.status !== "completed" && <SlaCountdown left={active.left} total={active.total} />}
           </div>
-          <div className="mt-2 divide-y divide-line border-t border-line">
-            <Row icon={Clock} label="Resolution SLA">
-              {active.status === "completed" ? "Completed" : <span className={slaTone(active.left, active.total).text}>{active.left < 0 ? `Overdue by ${fmtMins(-active.left)}` : `${fmtMins(active.left)} left of ${active.total}m`}</span>}
-            </Row>
-            <Row icon={Layers} label="Status & source">
-              {active.status === "completed" ? "Completed" : active.status === "progress" ? "In progress" : "Pending"} · {active.source} · {active.created}
-            </Row>
-          </div>
+          <div className="mt-2 text-[16px] font-bold leading-snug text-ink">{active.title}</div>
+          <p className="mt-1 text-[13px] leading-relaxed text-ink-secondary">{active.note}</p>
         </div>
 
         {/* room */}
         <div className={`rounded-2xl bg-white p-4 ${CARD_SHADOW}`}>
           <div className="text-[11px] font-semibold text-ink-secondary">Room</div>
-          <div className="mt-2 divide-y divide-line">
+          <div className="mt-2">
             <Row icon={BedDouble} label="Room">{active.room}{active.roomType !== "—" && ` · ${active.roomType}`}{active.floor > 0 && ` · Floor ${active.floor}`}</Row>
-            <Row icon={User} label="Guest">{active.guest}<div className="mt-0.5 text-[12px] font-normal text-ink-secondary">{active.stay}</div></Row>
           </div>
-          {active.prefs.length > 0 && (
-            <div className="mt-2 flex flex-wrap gap-1.5 border-t border-line pt-3">
-              {active.prefs.map((p) => <span key={p} className="rounded-full bg-[#F1F1F3] px-2.5 py-1 text-[12px] text-ink-secondary">{p}</span>)}
-            </div>
-          )}
         </div>
+
+        {/* guest overview */}
+        {active.guest !== "—" && (
+          <div className={`rounded-2xl bg-white p-4 ${CARD_SHADOW}`}>
+            <div className="flex items-center gap-2 text-[11px] font-semibold text-ink-secondary"><Sparkles className="h-3.5 w-3.5 text-violet-500" /> Guest overview</div>
+            <div className="mt-2 flex items-center gap-2 text-[14px] font-semibold text-ink"><User className="h-3.5 w-3.5 text-ink-tertiary" />{active.guest}</div>
+            <div className="mt-0.5 text-[12px] text-ink-secondary">{active.stay}</div>
+            {active.prefs.length > 0 && (
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {active.prefs.map((p) => <span key={p} className="rounded-full bg-[#F1F1F3] px-2.5 py-1 text-[12px] text-ink-secondary">{p}</span>)}
+              </div>
+            )}
+          </div>
+        )}
 
         {active.staffNote && (
           <div className="flex gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4">
@@ -299,10 +294,7 @@ export function LineStaffPrototype() {
 
       <div className="flex shrink-0 gap-3 px-6 pb-6 pt-3">
         {active.status === "pending" ? (
-          <>
-            <GhostButton className="flex-1" onClick={() => reject(active.id)}>Void</GhostButton>
-            <PrimaryButton className="flex-[1.3]" onClick={() => accept(active.id)}>Accept</PrimaryButton>
-          </>
+          <PrimaryButton className="w-full" onClick={() => accept(active.id)}>Accept</PrimaryButton>
         ) : (
           <>
             <GhostButton className="flex-1" disabled={active.status === "completed"} onClick={() => { setHelpKind("escalate"); setHelpNote(""); setHelpOpen(true); }}>Need help</GhostButton>
