@@ -260,7 +260,7 @@ export function Segmented<T extends string>({ items, active, onChange, colors }:
 
 export function PrimaryButton({ children, onClick, disabled, tone = "bg-brand", className = "" }: { children: ReactNode; onClick?: () => void; disabled?: boolean; tone?: string; className?: string }) {
   return (
-    <button onClick={onClick} disabled={disabled} className={`flex h-12 items-center justify-center gap-2 rounded-2xl text-[15px] font-semibold text-white shadow-[0_4px_14px_rgba(241,90,36,0.28)] disabled:opacity-40 disabled:shadow-none ${tone} ${className}`}>
+    <button onClick={onClick} disabled={disabled} className={`flex h-12 items-center justify-center gap-2 rounded-2xl text-[15px] font-semibold text-white shadow-[0_2px_6px_rgba(241,90,36,0.16)] disabled:opacity-40 disabled:shadow-none ${tone} ${className}`}>
       {children}
     </button>
   );
@@ -364,7 +364,7 @@ export function FloatingNav<K extends string>({
         <button
           onClick={fab.onClick}
           aria-label={fab.label}
-          className="pointer-events-auto flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-brand text-white shadow-[0_8px_24px_rgba(241,90,36,0.45)] active:scale-95"
+          className="pointer-events-auto flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-brand text-white shadow-[0_3px_10px_rgba(241,90,36,0.22)] active:scale-95"
         >
           <fab.icon className="h-7 w-7" />
         </button>
@@ -379,7 +379,7 @@ export function Fab({ onClick, label, icon: Icon }: { onClick: () => void; label
     <button
       onClick={onClick}
       aria-label={label}
-      className="absolute bottom-5 right-5 z-20 flex h-16 w-16 items-center justify-center rounded-full bg-brand text-white shadow-[0_8px_24px_rgba(241,90,36,0.45)] active:scale-95"
+      className="absolute bottom-5 right-5 z-20 flex h-16 w-16 items-center justify-center rounded-full bg-brand text-white shadow-[0_3px_10px_rgba(241,90,36,0.22)] active:scale-95"
     >
       <Icon className="h-7 w-7" />
     </button>
