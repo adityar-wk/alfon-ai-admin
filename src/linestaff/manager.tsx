@@ -1,21 +1,23 @@
 import { useMemo, useState } from "react";
 import {
-  Bell, Home as HomeIcon, Plus, Users, UserCog, UserPlus, Repeat, Ban, CheckCircle2, StickyNote, Undo2, Hand, ArrowUpRight, Split, MessageCircle, Send, Filter, Sparkles, ChevronRight, Search,
-  Menu as MenuIcon, ListChecks, BarChart3, FileText, Settings as SettingsIcon, Calendar,
+  Bell, Home as HomeIcon, Plus, Users, UserCog, UserPlus, Repeat, Undo2, Hand, ArrowUpRight, Split, MessageCircle, Send, Filter, Sparkles, ChevronRight, Search,
+  Menu as MenuIcon, ListChecks, BarChart3, FileText, Settings as SettingsIcon, Calendar, AlertTriangle, User, LifeBuoy, BedDouble,
 } from "lucide-react";
 import { DEPARTMENTS } from "../data/departments";
-import { SEED_TASKS, STAFF, PRESENCE_DOT, HELP_REASONS, GUEST_STAYS, type MTask, type Presence, type EscType } from "./data";
+import { DEPTS, METRICS, COMPLAINT_DETAIL } from "../pages/Analytics";
+import { Donut } from "../components/Donut";
+import { SEED_TASKS, STAFF, PRESENCE_DOT, GUEST_STAYS, PRE_ARRIVAL_GUESTS, type MTask, type Presence, type EscType } from "./data";
 import {
   PhoneFrame, ScreenHeader, SectionTitle, TaskCard, StatCard, Avatar, Chips, Segmented, FloatingNav, PrimaryButton, GhostButton, SelectField, TextField, Label, Sheet,
-  useNav, useToast, CARD_SHADOW, TextHeader, type Priority,
+  useNav, useToast, CARD_SHADOW, TextHeader, PriorityPill, SlaCountdown, type Priority,
 } from "./mobile";
-import { DetailBody, ActionGrid, StaffPicker, ReasonSheet, StatusTag, activeCount, atRiskCount, overdueCount, isOpen, isAtRisk, isOverdue } from "./parts";
+import { ActionGrid, StaffPicker, ReasonSheet, StatusTag, activeCount, atRiskCount, overdueCount, isOpen, isAtRisk, isOverdue } from "./parts";
 
 type Screen = {
-  name: "home" | "tasks" | "team" | "guests" | "guestDetail" | "detail" | "notifications" | "create" | "menu" | "analytics" | "reports" | "settings";
+  name: "home" | "tasks" | "team" | "guests" | "guestDetail" | "detail" | "notifications" | "create" | "menu" | "analytics" | "reports" | "settings" | "guestsRoster";
   id?: string;
 };
-type SheetState = { k: "assign" | "support" | "status" | "unable" | "close" | "note" | "sendBack" | "gm" | "route"; taskId: string } | null;
+type SheetState = { k: "needHelp" | "assign" | "support" | "status" | "sendBack" | "gm" | "route"; taskId: string } | null;
 
 const ME = "Daniel Reyes";
 const ESC_FILTERS = ["All", "SLA breach", "SLA at risk", "Guest complaint", "Unable to complete", "Staffing issue", "Supervisor escalation", "High priority"] as const;
@@ -23,7 +25,7 @@ const SEVS = ["Low", "Medium", "High", "Critical"] as const;
 const SEV_COLOR: Record<(typeof SEVS)[number], string> = { Low: "bg-slate-500", Medium: "bg-amber-500", High: "bg-orange-500", Critical: "bg-red-500" };
 const SEV_SLA: Record<Priority, number> = { Low: 60, Medium: 40, High: 20, Critical: 10 };
 type EscFilter = (typeof ESC_FILTERS)[number];
-const STATUS_CHOICES = ["In progress", "Awaiting acceptance", "Unassigned"] as const;
+const STATUS_CHOICES = ["In progress", "Awaiting acceptance", "Unassigned", "Unable to complete", "Completed"] as const;
 const AVAIL_ORDER: Presence[] = ["Available", "Busy", "On Break", "Off work"];
 const ROLE_FILTERS = ["All", "Supervisor", "Line Staff"] as const;
 type RoleFilter = (typeof ROLE_FILTERS)[number];
@@ -35,10 +37,27 @@ const TASK_FILTERS = ["All", "Unassigned", "In Progress", "At Risk", "Overdue", 
 type TaskFilter = (typeof TASK_FILTERS)[number];
 const MENU_ITEMS = [
   { key: "team" as const, label: "Team & Workload", desc: "Staff availability, workload, unassigned tasks", icon: Users },
-  { key: "analytics" as const, label: "Analytics", desc: "Department performance at a glance", icon: BarChart3 },
+  { key: "analytics" as const, label: "Analytics", desc: "Department performance, trends and complaints", icon: BarChart3 },
+  { key: "guestsRoster" as const, label: "Guests", desc: "In-house roster and pre-arrival guests", icon: BedDouble },
   { key: "reports" as const, label: "Reports", desc: "Generate and download department reports", icon: FileText },
   { key: "settings" as const, label: "Department Settings", desc: "SLA tiers and active services", icon: SettingsIcon },
 ];
+
+/* ---------- Housekeeping analytics, sourced from the desktop Analytics page ---------- */
+const HK_DEPT = DEPTS.find((d) => d.name === "Housekeeping")!;
+const HK_METRICS = METRICS["Housekeeping"];
+const HK_COMPLAINTS = Object.entries(COMPLAINT_DETAIL)
+  .map(([name, c]) => ({ name, v: c.by.filter(([d]) => d === "Housekeeping").reduce((a, [, x]) => a + x, 0), delta: c.delta }))
+  .filter((x) => x.v > 0)
+  .sort((a, b) => b.v - a.v);
+const HK_TOP_REQUESTS = [...HK_DEPT.items].filter(([l]) => l !== "Other").sort((a, b) => b[1] - a[1]).slice(0, 5);
+const rampColors = (n: number) =>
+  Array.from({ length: n }, (_, i) => {
+    const t = n === 1 ? 0 : i / (n - 1);
+    const from = [241, 90, 36], to = [253, 226, 212];
+    return `rgb(${from.map((f, k) => Math.round(f + (to[k] - f) * t)).join(",")})`;
+  });
+const HK_DONUT_COLORS = rampColors(HK_DEPT.items.length);
 
 const NOTIFS = [
   { icon: "🚨", text: "Supervisor escalation — Room 1204 deep clean (staffing risk)", time: "10:20 AM", to: "t5" },
@@ -82,7 +101,9 @@ export function ManagerPrototype() {
   const [guestFilterOpen, setGuestFilterOpen] = useState(false);
   const [taskFilter, setTaskFilter] = useState<TaskFilter>("All");
   const [taskQuery, setTaskQuery] = useState("");
+  const [rosterTab, setRosterTab] = useState<"In-house" | "Pre-arrival">("In-house");
   const [sheet, setSheet] = useState<SheetState>(null);
+  const [needHelpReason, setNeedHelpReason] = useState("");
   const [chat, setChat] = useState<Record<string, { from: "guest" | "ai" | "me"; text: string }[]>>({});
   const [manual, setManual] = useState<Record<string, boolean>>({});
   const [draft, setDraft] = useState("");
@@ -517,25 +538,59 @@ export function ManagerPrototype() {
   );
 
   const Detail = task ? (
-    <div className="flex h-full flex-col">
-      <ScreenHeader onBack={nav.back} />
-      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 pb-8 no-scrollbar">
-        <PrimaryButton className="w-full" tone="bg-violet-600" onClick={() => nav.push({ name: "guestDetail", id: task.guest })}>
-          <MessageCircle className="h-4 w-4" /> Message guest
-        </PrimaryButton>
+    <div className="relative flex h-full flex-col">
+      <ScreenHeader onBack={nav.back} title="Task details" />
+      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 pb-28 no-scrollbar">
+        <div className={`rounded-2xl bg-white p-4 ${CARD_SHADOW}`}>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <PriorityPill p={task.priority} />
+              <StatusTag s={task.status} />
+              {task.vip && <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-bold text-amber-700">VIP</span>}
+            </div>
+            {task.status !== "completed" && <SlaCountdown left={task.slaLeft} />}
+          </div>
+
+          <div className="mt-4 text-[11px] font-semibold text-ink-secondary">Task details</div>
+          <p className="mt-1 text-[14px] leading-relaxed text-ink">{task.note}</p>
+
+          <div className="mt-4 grid grid-cols-2 gap-3 border-t border-line pt-3 text-[12px]">
+            <div><div className="text-ink-tertiary">Room</div><div className="mt-0.5 text-[13px] font-semibold text-ink">{task.room}</div></div>
+            <div><div className="text-ink-tertiary">Task</div><div className="mt-0.5 text-[13px] font-semibold text-ink">{task.title}</div></div>
+            <div><div className="text-ink-tertiary">Owner</div><div className="mt-0.5 flex items-center gap-1.5 text-[13px] font-semibold text-ink"><User className="h-3.5 w-3.5 text-ink-tertiary" />{task.owner ?? <span className="text-red-600">Unassigned</span>}</div></div>
+            <div><div className="text-ink-tertiary">Support</div><div className="mt-0.5 text-[13px] font-semibold text-ink">{task.support.length ? task.support.join(", ") : "—"}</div></div>
+          </div>
+        </div>
+
+        {task.escReason && (
+          <div className="rounded-2xl border border-red-100 bg-red-50/70 p-4">
+            <div className="flex items-center gap-2 text-[12px] font-semibold text-red-700"><AlertTriangle className="h-4 w-4" /> Escalated by {task.escBy ?? "system"}</div>
+            <p className="mt-1.5 text-[13px] leading-snug text-ink">{task.escReason}</p>
+          </div>
+        )}
+
         <div>
           <div className="mb-2 px-1 text-[13px] font-semibold text-ink-secondary">Intervene</div>
-          <ActionGrid
-            actions={[
-              { label: "Reassign", icon: UserCog, onClick: () => setSheet({ k: "assign", taskId: task.id }), disabled: !isOpen(task) && task.status !== "unable" },
-              { label: "Add support", icon: UserPlus, onClick: () => setSheet({ k: "support", taskId: task.id }), disabled: !task.owner },
-              { label: "Change status", icon: Repeat, onClick: () => setSheet({ k: "status", taskId: task.id }), tone: "bg-blue-50 text-blue-600", disabled: !isOpen(task) },
-              { label: "Unable to complete", icon: Ban, onClick: () => setSheet({ k: "unable", taskId: task.id }), tone: "bg-slate-100 text-slate-600", disabled: !isOpen(task) },
-              { label: "Close / override", icon: CheckCircle2, onClick: () => setSheet({ k: "close", taskId: task.id }), tone: "bg-emerald-50 text-emerald-600", disabled: !isOpen(task) && task.status !== "unable" },
-              { label: "Add note", icon: StickyNote, onClick: () => setSheet({ k: "note", taskId: task.id }), tone: "bg-amber-50 text-amber-600" },
-            ]}
-          />
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              onClick={() => setSheet({ k: "status", taskId: task.id })}
+              disabled={task.status === "completed"}
+              className={`flex flex-col items-center gap-1.5 rounded-2xl bg-white px-1 py-4 text-center text-[13px] font-semibold text-ink ${CARD_SHADOW} disabled:opacity-40`}
+            >
+              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 text-blue-600"><Repeat className="h-[18px] w-[18px]" /></span>
+              Change status
+            </button>
+            <button
+              onClick={() => setSheet({ k: "needHelp", taskId: task.id })}
+              disabled={task.status === "completed"}
+              className={`flex flex-col items-center gap-1.5 rounded-2xl bg-white px-1 py-4 text-center text-[13px] font-semibold text-ink ${CARD_SHADOW} disabled:opacity-40`}
+            >
+              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-tint text-brand"><LifeBuoy className="h-[18px] w-[18px]" /></span>
+              Need help
+            </button>
+          </div>
         </div>
+
         <div>
           <div className="mb-2 px-1 text-[13px] font-semibold text-ink-secondary">Escalation review</div>
           <ActionGrid
@@ -547,8 +602,14 @@ export function ManagerPrototype() {
             ]}
           />
         </div>
-        <DetailBody task={task} viewer="manager" />
       </div>
+      <button
+        onClick={() => nav.push({ name: "guestDetail", id: task.guest })}
+        aria-label="Message guest"
+        className="absolute bottom-5 right-5 z-10 flex h-14 w-14 items-center justify-center rounded-full bg-violet-600 text-white shadow-[0_6px_18px_rgba(124,58,237,0.4)]"
+      >
+        <MessageCircle className="h-6 w-6" />
+      </button>
     </div>
   ) : null;
 
@@ -626,15 +687,103 @@ export function ManagerPrototype() {
 
   const Analytics = (
     <div className="flex h-full flex-col">
-      <ScreenHeader title="Analytics" sub="Housekeeping · today" onBack={nav.back} />
-      <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-6 pt-2 no-scrollbar">
+      <ScreenHeader title="Analytics" sub="Housekeeping · this period" onBack={nav.back} />
+      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 pb-6 pt-2 no-scrollbar">
         <div className="grid grid-cols-2 gap-3">
-          <StatCard label="Completed today" value={tasks.filter((t) => t.status === "completed").length} />
-          <StatCard label="Open tasks" value={counts.open} />
-          <StatCard label="SLA at risk" value={counts.risk} tone="text-amber-600" />
-          <StatCard label="Overdue" value={counts.over} tone="text-red-600" />
+          <StatCard label="Total tasks" value={HK_DEPT.tasks.toLocaleString()} />
+          <StatCard label="Completed" value={`${HK_METRICS.done}%`} tone="text-emerald-600" />
+          <StatCard label="Overdue" value={HK_METRICS.overdue} tone="text-red-600" />
+          <StatCard label="Avg response" value={HK_METRICS.resp} />
         </div>
-        <p className="mt-5 rounded-2xl bg-white p-4 text-center text-[12px] text-ink-tertiary">Full trend charts and staff performance breakdowns are available on desktop.</p>
+
+        <div className={`rounded-2xl bg-white p-4 ${CARD_SHADOW}`}>
+          <div className="text-[13px] font-semibold text-ink">Task breakdown</div>
+          <div className="mt-4 flex justify-center">
+            <div className="relative">
+              <Donut size={150} thickness={24} segments={HK_DEPT.items.map(([l, v], i) => ({ label: l, value: v, color: HK_DONUT_COLORS[i] }))} />
+              <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+                <span className="text-[18px] font-bold text-ink">{HK_DEPT.tasks.toLocaleString()}</span>
+                <span className="text-[10px] text-ink-tertiary">tasks</span>
+              </div>
+            </div>
+          </div>
+          <div className="mt-3 space-y-1.5">
+            {HK_DEPT.items.map(([l, v], i) => (
+              <div key={l} className="flex items-center gap-2 text-[12px]">
+                <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: HK_DONUT_COLORS[i] }} />
+                <span className="flex-1 truncate text-ink-secondary">{l}</span>
+                <span className="font-semibold text-ink">{v.toLocaleString()}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className={`rounded-2xl bg-white p-4 ${CARD_SHADOW}`}>
+          <div className="text-[13px] font-semibold text-ink">Recurring complaints</div>
+          <div className="mt-2 divide-y divide-line">
+            {HK_COMPLAINTS.map((c) => (
+              <div key={c.name} className="flex items-center justify-between py-2 text-[12px]">
+                <span className="text-ink">{c.name}</span>
+                <span className="font-semibold text-ink">{c.v}</span>
+              </div>
+            ))}
+            {!HK_COMPLAINTS.length && <p className="py-3 text-center text-[12px] text-ink-tertiary">No recurring complaints.</p>}
+          </div>
+        </div>
+
+        <div className={`rounded-2xl bg-white p-4 ${CARD_SHADOW}`}>
+          <div className="text-[13px] font-semibold text-ink">Top requests</div>
+          <div className="mt-2 divide-y divide-line">
+            {HK_TOP_REQUESTS.map(([l, v], i) => (
+              <div key={l} className="flex items-center gap-2 py-2 text-[12px]">
+                <span className="text-ink-tertiary">{i + 1}</span>
+                <span className="flex-1 truncate text-ink">{l}</span>
+                <span className="font-semibold text-ink">{v.toLocaleString()}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const GuestsRoster = (
+    <div className="flex h-full flex-col">
+      <ScreenHeader title="Guests" sub="Housekeeping" onBack={nav.back} />
+      <div className="px-6"><Segmented items={["In-house", "Pre-arrival"] as const} active={rosterTab} onChange={setRosterTab} /></div>
+      <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-6 pb-6 pt-3 no-scrollbar">
+        {rosterTab === "In-house" ? (
+          <>
+            {guestsSorted.map((g) => (
+              <button key={g.name} onClick={() => nav.push({ name: "guestDetail", id: g.name })} className={`flex w-full items-center gap-3 rounded-2xl bg-white p-3.5 text-left ${CARD_SHADOW}`}>
+                <Avatar name={g.name} tone={g.complaint ? "bg-red-50 text-red-600" : undefined} />
+                <div className="min-w-0 flex-1 leading-tight">
+                  <div className="flex items-center gap-2">
+                    <span className="truncate text-[14px] font-semibold text-ink">{g.name}</span>
+                    {g.vip && <span className="shrink-0 rounded-full bg-amber-100 px-1.5 py-0.5 text-[9px] font-bold text-amber-700">VIP</span>}
+                  </div>
+                  <div className="text-[12px] text-ink-tertiary">{g.room}{g.checkIn ? ` · ${g.checkIn} – ${g.checkOut}` : ""}</div>
+                </div>
+                <ChevronRight className="h-4 w-4 shrink-0 text-ink-tertiary" />
+              </button>
+            ))}
+            {!guestsSorted.length && <p className="rounded-2xl bg-white p-6 text-center text-[13px] text-ink-tertiary">No in-house guests yet.</p>}
+          </>
+        ) : (
+          PRE_ARRIVAL_GUESTS.map((g) => (
+            <div key={g.name} className={`rounded-2xl bg-white p-3.5 ${CARD_SHADOW}`}>
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-[14px] font-semibold text-ink">{g.name}</span>
+                  {g.vip && <span className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[9px] font-bold text-amber-700">VIP</span>}
+                </div>
+                <span className="text-[12px] font-semibold text-brand">ETA {g.eta}</span>
+              </div>
+              <div className="mt-0.5 text-[12px] text-ink-tertiary">{g.room}</div>
+              <p className="mt-1.5 text-[12px] leading-snug text-ink-secondary">{g.notes}</p>
+            </div>
+          ))
+        )}
       </div>
     </div>
   );
@@ -682,44 +831,61 @@ export function ManagerPrototype() {
 
   const VIEWS: Record<Screen["name"], React.ReactNode> = {
     home: Home, tasks: Tasks, team: Team, guests: Guests, guestDetail: GuestDetail, detail: Detail, notifications: Notifications, create: Create,
-    menu: Menu, analytics: Analytics, reports: Reports, settings: Settings,
+    menu: Menu, analytics: Analytics, reports: Reports, settings: Settings, guestsRoster: GuestsRoster,
   };
 
   /* ---------- sheets ---------- */
   const t0 = sheet && "taskId" in sheet ? tasks.find((t) => t.id === sheet.taskId) : undefined;
 
+  const closeHelpSheet = () => { setSheet(null); setNeedHelpReason(""); };
+
   const sheetNode = !sheet ? null : (
     <>
+      {sheet.k === "needHelp" && t0 && (
+        <Sheet title="Need help?" onClose={() => setSheet(null)}>
+          <p className="mb-3 text-[13px] text-ink-secondary">{t0.room} · {t0.title}</p>
+          <div className="space-y-2.5">
+            <button onClick={() => setSheet({ k: "assign", taskId: t0.id })} className="flex w-full items-center gap-3 rounded-2xl border border-line p-3.5 text-left active:bg-brand-tint/40">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-tint text-brand"><UserCog className="h-[18px] w-[18px]" /></span>
+              <span className="min-w-0"><span className="block text-[14px] font-semibold text-ink">Reassign task</span><span className="block text-[12px] text-ink-secondary">Hand this task to someone else</span></span>
+            </button>
+            <button onClick={() => setSheet({ k: "support", taskId: t0.id })} disabled={!t0.owner} className="flex w-full items-center gap-3 rounded-2xl border border-line p-3.5 text-left active:bg-brand-tint/40 disabled:opacity-40">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-600"><UserPlus className="h-[18px] w-[18px]" /></span>
+              <span className="min-w-0"><span className="block text-[14px] font-semibold text-ink">Add support</span><span className="block text-[12px] text-ink-secondary">Bring in another staff member — owner stays the same</span></span>
+            </button>
+            <button onClick={() => setSheet({ k: "gm", taskId: t0.id })} className="flex w-full items-center gap-3 rounded-2xl border border-line p-3.5 text-left active:bg-brand-tint/40">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-red-50 text-red-600"><ArrowUpRight className="h-[18px] w-[18px]" /></span>
+              <span className="min-w-0"><span className="block text-[14px] font-semibold text-ink">Escalate to GM</span><span className="block text-[12px] text-ink-secondary">Send this to the General Manager</span></span>
+            </button>
+          </div>
+        </Sheet>
+      )}
       {sheet.k === "assign" && t0 && (
-        <Sheet title={t0.owner ? "Change owner" : "Assign task"} onClose={() => setSheet(null)}>
+        <Sheet title={t0.owner ? "Change owner" : "Assign task"} onClose={closeHelpSheet}>
           <p className="mb-3 text-[13px] text-ink-secondary">Within Housekeeping only · {t0.room}</p>
-          <StaffPicker tasks={tasks} exclude={t0.owner ? [t0.owner] : []} onPick={(s) => { patch(t0.id, { owner: s.name, status: "assigned" }, `${ME} assigned to ${s.name}`); setSheet(null); flash(`Assigned to ${s.name}`); }} cta="Assign" />
+          <Label>Reason</Label>
+          <TextField rows={2} value={needHelpReason} onChange={setNeedHelpReason} placeholder="Why does this need to be reassigned?" />
+          <div className={`mt-4 ${needHelpReason.trim() ? "" : "pointer-events-none opacity-40"}`}>
+            <StaffPicker tasks={tasks} exclude={t0.owner ? [t0.owner] : []} onPick={(s) => { patch(t0.id, { owner: s.name, status: "assigned" }, `${ME} assigned to ${s.name} — ${needHelpReason.trim()}`); closeHelpSheet(); flash(`Assigned to ${s.name}`); }} cta="Assign" />
+          </div>
         </Sheet>
       )}
       {sheet.k === "support" && t0 && (
-        <Sheet title="Add support staff" onClose={() => setSheet(null)}>
-          <StaffPicker tasks={tasks} exclude={[t0.owner ?? "", ...t0.support]} onPick={(s) => { patch(t0.id, { support: [...t0.support, s.name] }, `${s.name} added as support`); setSheet(null); flash(`${s.name} notified`); }} cta="Add" />
+        <Sheet title="Add support staff" onClose={closeHelpSheet}>
+          <Label>Reason</Label>
+          <TextField rows={2} value={needHelpReason} onChange={setNeedHelpReason} placeholder="Why do you need extra support?" />
+          <div className={`mt-4 ${needHelpReason.trim() ? "" : "pointer-events-none opacity-40"}`}>
+            <StaffPicker tasks={tasks} exclude={[t0.owner ?? "", ...t0.support]} onPick={(s) => { patch(t0.id, { support: [...t0.support, s.name] }, `${s.name} added as support — ${needHelpReason.trim()}`); closeHelpSheet(); flash(`${s.name} notified`); }} cta="Add" />
+          </div>
         </Sheet>
       )}
       {sheet.k === "status" && t0 && (
         <ReasonSheet title="Change status" reasons={STATUS_CHOICES} reasonLabel="New status" placeholder="Optional note" cta="Update status" onClose={() => setSheet(null)}
           onSubmit={(st) => {
-            const map = { "In progress": "progress", "Awaiting acceptance": "assigned", Unassigned: "unassigned" } as const;
-            patch(t0.id, { status: map[st as keyof typeof map], owner: st === "Unassigned" ? null : t0.owner }, `${ME} set status to ${st}`);
+            const map = { "In progress": "progress", "Awaiting acceptance": "assigned", Unassigned: "unassigned", "Unable to complete": "unable", Completed: "completed" } as const;
+            patch(t0.id, { status: map[st as keyof typeof map], owner: st === "Unassigned" ? null : t0.owner, escalated: st === "Completed" ? false : t0.escalated }, `${ME} set status to ${st}`);
             setSheet(null); flash(`Status set to ${st}`);
           }} />
-      )}
-      {sheet.k === "unable" && t0 && (
-        <ReasonSheet title="Unable to complete" reasons={HELP_REASONS} placeholder="Add a note" cta="Mark unable to complete" tone="bg-slate-700" onClose={() => setSheet(null)}
-          onSubmit={(reason, note) => { patch(t0.id, { status: "unable", resolution: `${reason}${note ? ` — ${note}` : ""}` }, `${ME} marked unable: ${reason}`); setSheet(null); flash("Marked unable to complete"); }} />
-      )}
-      {sheet.k === "close" && t0 && (
-        <ReasonSheet title="Close / override" requireNote placeholder="Reason for closing or overriding (recorded)" cta="Close task" tone="bg-emerald-600" onClose={() => setSheet(null)}
-          onSubmit={(_, note) => { patch(t0.id, { status: "completed", escalated: false, resolution: note }, `${ME} closed with override: ${note}`); setSheet(null); flash("Task closed — reason recorded"); }} />
-      )}
-      {sheet.k === "note" && t0 && (
-        <ReasonSheet title="Management note" requireNote placeholder="Service-recovery or management note…" cta="Save note" onClose={() => setSheet(null)}
-          onSubmit={(_, note) => { setTasks((ts) => ts.map((t) => (t.id === t0.id ? { ...t, notes: [{ by: ME, t: "Just now", text: note }, ...t.notes] } : t))); setSheet(null); flash("Note added"); }} />
       )}
       {sheet.k === "sendBack" && t0 && (
         <ReasonSheet title={`Send back to ${t0.escBy?.split(" ")[0]}`} requireNote placeholder="Your instruction to the supervisor…" cta="Send back" onClose={() => setSheet(null)}
@@ -769,7 +935,7 @@ export function ManagerPrototype() {
         {toast}
       </PhoneFrame>
       <div className="flex flex-wrap items-center justify-center gap-2">
-        <button className="rounded-lg border border-line bg-white px-3 py-1.5 text-[12px] font-medium text-ink-secondary" onClick={() => { nav.reset(); setTasks(SEED_TASKS); setSheet(null); setChat({}); setManual({}); setFilter("All"); setRoleFilter("All"); setAvailFilter("All"); setGuestFilter("All"); setGuestQuery(""); setTaskFilter("All"); setTaskQuery(""); }}>Reset</button>
+        <button className="rounded-lg border border-line bg-white px-3 py-1.5 text-[12px] font-medium text-ink-secondary" onClick={() => { nav.reset(); setTasks(SEED_TASKS); setSheet(null); setNeedHelpReason(""); setChat({}); setManual({}); setFilter("All"); setRoleFilter("All"); setAvailFilter("All"); setGuestFilter("All"); setGuestQuery(""); setTaskFilter("All"); setTaskQuery(""); setRosterTab("In-house"); }}>Reset</button>
       </div>
       <p className="text-center text-[12px] text-ink-tertiary">Current screen: <span className="font-medium text-ink-secondary">{cur.name}</span> · open Guests to chat with a guest, or Room 1103 to see full task context.</p>
     </div>

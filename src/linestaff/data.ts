@@ -164,6 +164,14 @@ export const GUEST_STAYS: Record<string, { checkIn: string; checkOut: string }> 
   "Isabella Rossi": { checkIn: "Sep 23", checkOut: "Sep 25" },
 };
 
+export type PreArrivalGuest = { name: string; room: string; eta: string; vip: boolean; notes: string };
+export const PRE_ARRIVAL_GUESTS: PreArrivalGuest[] = [
+  { name: "James Whitfield", room: "Room 615", eta: "11:30 AM", vip: false, notes: "Requested early check-in — room to be ready by 11 AM." },
+  { name: "Priya Nair", room: "Room 902", eta: "1:00 PM", vip: true, notes: "VIP arrival — welcome amenities and turndown setup requested." },
+  { name: "Marco Bellini", room: "Room 340", eta: "3:15 PM", vip: false, notes: "Connecting rooms for a family of four — rollaway bed needed." },
+  { name: "Olivia Turner", room: "Room 1108", eta: "4:45 PM", vip: false, notes: "Hypoallergenic bedding requested ahead of arrival." },
+];
+
 export const STATUS_ORDER = ["Available", "Busy", "On Break", "Off work"] as const;
 export const PRESENCE_DOT: Record<Presence, string> = { Available: "bg-emerald-500", Busy: "bg-blue-500", "On Break": "bg-amber-400", "Off work": "bg-gray-300" };
 
