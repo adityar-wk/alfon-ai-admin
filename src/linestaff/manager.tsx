@@ -1,13 +1,13 @@
 import { useMemo, useState } from "react";
 import {
   Bell, Home as HomeIcon, Plus, Users, UserCog, UserPlus, ArrowUpRight, MessageCircle, Send, Filter, ChevronRight, ChevronLeft, Search,
-  Menu as MenuIcon, ListChecks, BarChart3, AlertTriangle, User, BedDouble, DoorClosed, Lightbulb, Check, Building2, FileText, Download, Lock,
+  Menu as MenuIcon, ListChecks, BarChart3, AlertTriangle, User, BedDouble, DoorClosed, Building2, FileText, Download, Lock, UtensilsCrossed, Languages, Thermometer, AlarmClock, Wine, Phone, Mail,
 } from "lucide-react";
 import { DEPARTMENTS } from "../data/departments";
 import { DEPTS, METRICS, COMPLAINT_DETAIL } from "../pages/Analytics";
 import { Donut } from "../components/Donut";
 import { BarChart } from "../components/BarChart";
-import { SEED_TASKS, SEED_REQUESTS, STAFF, PRESENCE_DOT, GUEST_STAYS, PRE_ARRIVAL_GUESTS, CHECKED_OUT_GUESTS, ROOMS, type MTask, type Presence, type Staffer, type HkRoom, type RoomStatus, type EscType } from "./data";
+import { SEED_TASKS, SEED_REQUESTS, STAFF, PRESENCE_DOT, GUEST_STAYS, PRE_ARRIVAL_GUESTS, CHECKED_OUT_GUESTS, GUEST_PROFILES, ROOMS, type MTask, type Presence, type Staffer, type HkRoom, type RoomStatus, type EscType } from "./data";
 import {
   PhoneFrame, ScreenHeader, SectionTitle, TaskCard, StatCard, Avatar, Chips, Segmented, FloatingNav, PrimaryButton, GhostButton, SelectField, TextField, Label, Sheet,
   useNav, useToast, CARD_SHADOW, TextHeader, PriorityPill, SlaCountdown, fmtMins, type Priority,
@@ -15,7 +15,7 @@ import {
 import { StaffPicker, ReasonSheet, StatusTag, activeCount, atRiskCount, overdueCount, isOpen, isAtRisk, isOverdue } from "./parts";
 
 type Screen = {
-  name: "home" | "tasks" | "team" | "staffDetail" | "housekeeping" | "guests" | "guestDetail" | "guestProfile" | "preArrivalProfile" | "detail" | "notifications" | "create" | "menu" | "analytics" | "reports" | "guestsRoster";
+  name: "home" | "tasks" | "team" | "staffDetail" | "housekeeping" | "guests" | "guestDetail" | "guestProfile" | "detail" | "notifications" | "create" | "menu" | "analytics" | "reports" | "guestsRoster";
   id?: string;
 };
 type SheetState = { k: "needHelp" | "assign" | "support" | "gm"; taskId: string } | null;
@@ -90,17 +90,6 @@ const ProfileSection = ({
     </div>
   );
 };
-const ActionRow = ({ n, text, dept, done, onClick }: { n: number; text: string; dept: string; done: boolean; onClick?: () => void }) => (
-  <button onClick={onClick} className="flex w-full items-start gap-3 border-b border-line/70 py-2.5 text-left last:border-0">
-    <span className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-bold ${done ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-600"}`}>
-      {done ? <Check className="h-3.5 w-3.5" /> : n}
-    </span>
-    <span className={`min-w-0 flex-1 text-[13px] leading-snug ${done ? "text-ink-tertiary line-through" : "text-ink"}`}>{text}</span>
-    <span className="flex shrink-0 items-center gap-1.5 rounded-full bg-[#F1F1F3] px-2 py-1 text-[10px] font-semibold text-ink-secondary">
-      {dept} <span className={`h-1.5 w-1.5 rounded-full ${done ? "bg-emerald-500" : "bg-amber-500"}`} />
-    </span>
-  </button>
-);
 const MENU_ITEMS = [
   { key: "team" as const, label: "Team Management", icon: Users },
   { key: "housekeeping" as const, label: "Housekeeping", icon: DoorClosed },
@@ -198,7 +187,6 @@ export function ManagerPrototype() {
   const [rooms, setRooms] = useState<HkRoom[]>(ROOMS);
   const [roomFilter, setRoomFilter] = useState<RoomStatusFilter>("All");
   const [roomSheet, setRoomSheet] = useState<string | null>(null);
-  const [preArrivalDone, setPreArrivalDone] = useState<Record<string, number[]>>({});
   const [sheet, setSheet] = useState<SheetState>(null);
   const [needHelpReason, setNeedHelpReason] = useState("");
   const [chat, setChat] = useState<Record<string, { from: "guest" | "ai" | "me"; text: string }[]>>({});
@@ -355,14 +343,6 @@ export function ManagerPrototype() {
   const roomsFiltered = rooms.filter((r) => roomFilter === "All" || r.status === roomFilter);
   const roomChipCounts = Object.fromEntries(ROOM_STATUS_FILTERS.map((f) => [f, f === "All" ? rooms.length : rooms.filter((r) => r.status === f).length])) as Record<RoomStatusFilter, number>;
   const roomEntry = roomSheet ? rooms.find((r) => r.number === roomSheet) : undefined;
-
-  const preArrivalName = cur.name === "preArrivalProfile" ? cur.id : undefined;
-  const preArrivalEntry = preArrivalName ? PRE_ARRIVAL_GUESTS.find((g) => g.name === preArrivalName) : undefined;
-  const toggleAction = (name: string, idx: number) =>
-    setPreArrivalDone((m) => {
-      const done = m[name] ?? [];
-      return { ...m, [name]: done.includes(idx) ? done.filter((x) => x !== idx) : [...done, idx] };
-    });
 
   const staffName = cur.name === "staffDetail" ? cur.id : undefined;
   const staffEntry = staffName ? STAFF.find((s) => s.name === staffName) : undefined;
@@ -776,124 +756,58 @@ export function ManagerPrototype() {
     </div>
   );
 
-  const GuestProfile = guestEntry && (
+  const profileName = cur.name === "guestProfile" ? cur.id : undefined;
+  const profileInfo = profileName ? GUEST_PROFILES[profileName] : undefined;
+  const profileStage = !profileName ? "" : PRE_ARRIVAL_GUESTS.some((g) => g.name === profileName) ? "Pre-arrival" : CHECKED_OUT_GUESTS.some((g) => g.name === profileName) ? "Checked out" : "In-house";
+  const profileTone = profileStage === "Pre-arrival" ? "bg-blue-50 text-blue-700" : profileStage === "Checked out" ? "bg-slate-100 text-slate-600" : "bg-emerald-50 text-emerald-700";
+
+  const GuestProfile = profileName && (
     <div className="flex h-full flex-col">
       <ScreenHeader
         onBack={nav.back}
-        title={guestEntry.name}
-        sub={guestEntry.room}
-        right={
-          guestEntry.complaint ? (
-            <span className="rounded-full bg-red-50 px-2.5 py-1 text-[11px] font-bold text-red-600">Complaint</span>
-          ) : undefined
-        }
+        title={profileName}
+        sub={profileInfo ? `${profileInfo.room} · ${profileInfo.roomType}` : undefined}
+        right={<span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${profileTone}`}>{profileStage}</span>}
       />
       <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 pb-6 no-scrollbar">
-        {guestEntry.checkIn && (
-          <div className={`rounded-2xl bg-white p-4 ${CARD_SHADOW}`}>
-            <div className="flex items-center gap-3">
-              <Avatar name={guestEntry.name} size={48} tone={guestEntry.complaint ? "bg-red-50 text-red-600" : undefined} />
-              <div className="text-[13px] font-medium text-ink-secondary">In-house guest</div>
-            </div>
-            <div className="mt-3 grid grid-cols-2 gap-3 border-t border-line pt-3 text-[12px]">
-              <div><div className="text-ink-tertiary">Check-in</div><div className="mt-0.5 text-[13px] font-bold text-ink">{guestEntry.checkIn}</div></div>
-              <div><div className="text-ink-tertiary">Check-out</div><div className="mt-0.5 text-[13px] font-bold text-ink">{guestEntry.checkOut}</div></div>
-            </div>
-          </div>
-        )}
-
-        <ProfileSection icon={User} label="Guest profile" tone="blue">
-          <p className="text-[13px] leading-relaxed text-ink">{guestEntry.summary}</p>
-        </ProfileSection>
-
-        {guestEntry.complaint && (
-          <ProfileSection icon={Lightbulb} label="Anticipated needs" tone="amber">
-            <p className="text-[13px] leading-relaxed text-ink">
-              {guestEntry.complaint
-                ? `Sentiment: ${guestEntry.sentiment} · Risk: ${guestEntry.risk}. Prioritize a fast, empathetic resolution.`
-                : "Anticipate extra attention and proactive service."}
-            </p>
-          </ProfileSection>
-        )}
-
-        <ProfileSection icon={Bell} label="Actions" tone="red">
-          <div className="-mb-2.5">
-            {guestEntry.items.map((t, i) => (
-              <ActionRow key={t.id} n={i + 1} text={t.title} dept="Housekeeping" done={t.status === "completed"} onClick={() => open(t.id)} />
-            ))}
-            {!guestEntry.items.length && <p className="py-3 text-center text-[12px] text-ink-tertiary">No requests yet.</p>}
-          </div>
-        </ProfileSection>
-
-        {guestEntry.prefs.length > 0 && (
-          <div className={`rounded-2xl bg-white p-4 ${CARD_SHADOW}`}>
-            <div className="text-[11px] font-semibold text-ink-secondary">Preferences</div>
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              {guestEntry.prefs.map((p) => <span key={p} className="rounded-full bg-[#F1F1F3] px-2.5 py-1 text-[12px] text-ink-secondary">{p}</span>)}
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-
-  const PreArrivalProfile = preArrivalEntry && (
-    <div className="flex h-full flex-col">
-      <ScreenHeader
-        onBack={nav.back}
-        title={preArrivalEntry.name}
-        sub={`${preArrivalEntry.room} · ${preArrivalEntry.roomType}`}
-        right={<span className="rounded-full bg-amber-100 px-2.5 py-1 text-[11px] font-bold text-amber-700">Pre-Arrival</span>}
-      />
-      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 pb-6 no-scrollbar">
-        <div className={`rounded-2xl bg-white p-4 ${CARD_SHADOW}`}>
-          <div className="flex items-center gap-3">
-            <Avatar name={preArrivalEntry.name} size={48} />
-            <div className="leading-tight">
-              <div className="text-[13px] font-medium text-ink-secondary">{preArrivalEntry.flag} {preArrivalEntry.country}</div>
-            </div>
-          </div>
-          <div className="mt-3 grid grid-cols-2 gap-3 border-t border-line pt-3 text-[12px]">
-            <div><div className="text-ink-tertiary">Check-in</div><div className="mt-0.5 text-[13px] font-bold text-ink">{preArrivalEntry.checkIn}</div></div>
-            <div><div className="text-ink-tertiary">Check-out</div><div className="mt-0.5 text-[13px] font-bold text-ink">{preArrivalEntry.checkOut}</div></div>
-          </div>
-          <div className="mt-1 text-[12px] text-ink-tertiary">{preArrivalEntry.nights} night{preArrivalEntry.nights === 1 ? "" : "s"}</div>
-        </div>
-
-        <ProfileSection icon={User} label="Guest profile" tone="blue">
-          <p className="text-[13px] leading-relaxed text-ink">{preArrivalEntry.profile}</p>
-        </ProfileSection>
-
-        <ProfileSection icon={Lightbulb} label="Anticipated needs" tone="amber">
-          <p className="text-[13px] leading-relaxed text-ink">{preArrivalEntry.anticipatedNeeds}</p>
-        </ProfileSection>
-
-        <ProfileSection icon={Bell} label="Actions" tone="red">
-          <div className="-mb-2.5">
-            {preArrivalEntry.actions.map((a, i) => (
-              <ActionRow
-                key={i}
-                n={i + 1}
-                text={a.text}
-                dept={a.dept}
-                done={(preArrivalDone[preArrivalEntry.name] ?? []).includes(i)}
-                onClick={() => toggleAction(preArrivalEntry.name, i)}
-              />
-            ))}
-          </div>
-        </ProfileSection>
-
-        <div className={`rounded-2xl bg-white p-4 ${CARD_SHADOW}`}>
-          <div className="text-[11px] font-semibold text-ink-secondary">Preferences</div>
-          <div className="mt-2 divide-y divide-line/70">
-            {preArrivalEntry.prefs.map((p) => (
-              <div key={p.label} className="flex items-start justify-between gap-3 py-2 text-[13px]">
-                <span className="text-ink-tertiary">{p.label}</span>
-                <span className="text-right font-medium text-ink">{p.value}</span>
+        {!profileInfo && <p className="rounded-2xl bg-white p-6 text-center text-[13px] text-ink-tertiary">No profile details available.</p>}
+        {profileInfo && (
+          <>
+            <div className="flex items-center gap-4">
+              <Avatar name={profileName} size={64} />
+              <div className="leading-snug">
+                <div className="text-[12px] text-ink-secondary">{profileInfo.flag} {profileInfo.country}</div>
+                <div className="mt-0.5 text-[13px] text-ink-secondary">Check-in: <b className="text-ink">{profileInfo.checkIn}</b></div>
+                <div className="text-[13px] text-ink-secondary">Check-out: <b className="text-ink">{profileInfo.checkOut}</b></div>
+                <div className="text-[12px] text-ink-tertiary">{profileInfo.nights} night{profileInfo.nights === 1 ? "" : "s"}</div>
               </div>
-            ))}
-          </div>
-        </div>
+            </div>
+
+            <ProfileSection icon={User} label="Guest profile" tone="blue">
+              <p className="text-[13px] leading-relaxed text-ink">{profileInfo.profile}</p>
+            </ProfileSection>
+
+            <div className="rounded-2xl border border-line bg-white">
+              <div className="border-b border-line px-4 py-3 text-[12px] font-semibold text-ink-tertiary">Preferences</div>
+              <div className="divide-y divide-line px-4">
+                <DetailRow icon={BedDouble} label="Room">{profileInfo.prefs.room}</DetailRow>
+                <DetailRow icon={UtensilsCrossed} label="Dietary">{profileInfo.prefs.dietary}</DetailRow>
+                <DetailRow icon={Languages} label="Language">{profileInfo.prefs.language}</DetailRow>
+                <DetailRow icon={Thermometer} label="Temperature">{profileInfo.prefs.temperature}</DetailRow>
+                <DetailRow icon={AlarmClock} label="Wake up">{profileInfo.prefs.wakeUp}</DetailRow>
+                <DetailRow icon={Wine} label="Minibar">{profileInfo.prefs.minibar}</DetailRow>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-line bg-white">
+              <div className="border-b border-line px-4 py-3 text-[12px] font-semibold text-ink-tertiary">Contact</div>
+              <div className="divide-y divide-line px-4">
+                <div className="flex items-center gap-3 py-3.5 text-[14px] font-medium text-ink"><Phone className="h-4 w-4 shrink-0 text-ink-tertiary" />{profileInfo.phone}</div>
+                <div className="flex items-center gap-3 py-3.5 text-[14px] font-medium text-ink"><Mail className="h-4 w-4 shrink-0 text-ink-tertiary" /><span className="min-w-0 break-all">{profileInfo.email}</span></div>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
@@ -1187,7 +1101,7 @@ export function ManagerPrototype() {
               <ChevronRight className="h-4 w-4 shrink-0 text-ink-tertiary" />
             </button>
           ) : row.stage === "Upcoming" ? (
-            <button key={row.g.name} onClick={() => nav.push({ name: "preArrivalProfile", id: row.g.name })} className={`w-full rounded-2xl bg-white p-3.5 text-left ${CARD_SHADOW}`}>
+            <button key={row.g.name} onClick={() => nav.push({ name: "guestProfile", id: row.g.name })} className={`w-full rounded-2xl bg-white p-3.5 text-left ${CARD_SHADOW}`}>
               <div className="flex items-center gap-2">
                 <span className="text-[14px] font-semibold text-ink">{row.g.name}</span>
                 <span className="shrink-0 rounded-full bg-blue-50 px-1.5 py-0.5 text-[9px] font-bold text-blue-700">Pre-arrival</span>
@@ -1198,7 +1112,7 @@ export function ManagerPrototype() {
               <p className="mt-1.5 text-[12px] leading-snug text-ink-secondary">{row.g.notes}</p>
             </button>
           ) : (
-            <div key={row.g.name} className={`flex items-center gap-3 rounded-2xl bg-white p-3.5 opacity-70 ${CARD_SHADOW}`}>
+            <button key={row.g.name} onClick={() => nav.push({ name: "guestProfile", id: row.g.name })} className={`flex w-full items-center gap-3 rounded-2xl bg-white p-3.5 text-left opacity-70 ${CARD_SHADOW}`}>
               <Avatar name={row.g.name} />
               <div className="min-w-0 flex-1 leading-tight">
                 <div className="flex items-center gap-2">
@@ -1207,7 +1121,8 @@ export function ManagerPrototype() {
                 </div>
                 <div className="text-[12px] text-ink-tertiary">{row.g.room} · {row.g.checkIn} – {row.g.checkOut}</div>
               </div>
-            </div>
+              <ChevronRight className="h-4 w-4 shrink-0 text-ink-tertiary" />
+            </button>
           ),
         )}
         {!rosterFiltered.length && <p className="rounded-2xl bg-white p-6 text-center text-[13px] text-ink-tertiary">No guests match.</p>}
@@ -1217,7 +1132,7 @@ export function ManagerPrototype() {
 
   const VIEWS: Record<Screen["name"], React.ReactNode> = {
     home: Home, tasks: Tasks, team: Team, staffDetail: StaffDetail, housekeeping: Housekeeping, guests: Guests, guestDetail: GuestDetail, guestProfile: GuestProfile,
-    preArrivalProfile: PreArrivalProfile, detail: Detail, notifications: Notifications, create: Create,
+    detail: Detail, notifications: Notifications, create: Create,
     menu: Menu, analytics: Analytics, reports: Reports, guestsRoster: GuestsRoster,
   };
 
@@ -1330,7 +1245,7 @@ export function ManagerPrototype() {
           onClick={() => {
             nav.reset(); setTasks(SEED_TASKS); setRooms(ROOMS); setSheet(null); setNeedHelpReason(""); setChat({}); setManual({});
             setFilter("All"); setRoleFilter("All"); setAvailFilter("All"); setGuestFilter("All"); setGuestQuery("");
-            setTaskFilter("All"); setTaskQuery(""); setStageFilter("All"); setRosterQuery(""); setTeamQuery(""); setStaffTab("Overview"); setRoomFilter("All"); setRoomSheet(null); setPreArrivalDone({});
+            setTaskFilter("All"); setTaskQuery(""); setStageFilter("All"); setRosterQuery(""); setTeamQuery(""); setStaffTab("Overview"); setRoomFilter("All"); setRoomSheet(null);
           }}
         >
           Reset

@@ -250,6 +250,37 @@ export const CHECKED_OUT_GUESTS: CheckedOutGuest[] = [
   { name: "Omar Haddad", room: "Room 1012", checkIn: "Sep 19", checkOut: "Sep 21" },
 ];
 
+
+export type GuestProfileInfo = {
+  room: string; roomType: string; country: string; flag: string; checkIn: string; checkOut: string; nights: number; profile: string;
+  prefs: { room: string; dietary: string; language: string; temperature: string; wakeUp: string; minibar: string };
+  phone: string; email: string;
+};
+const gp = (
+  room: string, roomType: string, country: string, flag: string, checkIn: string, checkOut: string, nights: number, profile: string,
+  p: [string, string, string, string, string, string], phone: string, email: string,
+): GuestProfileInfo => ({ room, roomType, country, flag, checkIn, checkOut, nights, profile, prefs: { room: p[0], dietary: p[1], language: p[2], temperature: p[3], wakeUp: p[4], minibar: p[5] }, phone, email });
+
+export const GUEST_PROFILES: Record<string, GuestProfileInfo> = {
+  "Michael Johnson": gp("Room 1103", "Deluxe King", "United States", "🇺🇸", "Sep 22, 2026", "Sep 29, 2026", 7, "Michael is a loyal repeat guest who expects a five-star experience. He values quiet, attentive service and a personal apology when things go wrong.", ["Firm pillow, quiet room", "None", "English", "Standard (22°C)", "7:00 AM", "Sparkling water only"], "+1 (555) 210-4411", "michael.johnson@email.com"),
+  "Ananya Kapoor": gp("Room 908", "Executive King", "India", "🇮🇳", "Sep 23, 2026", "Sep 27, 2026", 4, "Ananya is travelling with family and appreciates prompt, friendly service. She often asks for small comfort items.", ["High floor, extra pillows", "Vegetarian", "English, Hindi", "Cool (21°C)", "7:30 AM", "Standard inventory"], "+91 98200 44112", "ananya.kapoor@email.com"),
+  "Emma Davis": gp("Room 501", "Deluxe King", "United Kingdom", "🇬🇧", "Sep 22, 2026", "Sep 26, 2026", 4, "Emma has a linen allergy and prefers hypoallergenic bedding. She is easygoing and values a quiet room.", ["Hypoallergenic bedding, firm pillow", "None", "English", "Standard (22°C)", "8:00 AM", "Standard inventory"], "+44 7700 900123", "emma.davis@email.com"),
+  "Isabella Rossi": gp("Room 2104", "Junior Suite", "Italy", "🇮🇹", "Sep 23, 2026", "Sep 25, 2026", 2, "Isabella is visiting with friends and prefers to communicate in Italian. She likes a well-stocked room.", ["High floor, extra towels", "None", "Italian, English", "Standard (22°C)", "9:00 AM", "Wine and snacks"], "+39 340 555 0192", "isabella.rossi@email.com"),
+  "Liam Anderson": gp("Room 623", "Deluxe Twin", "Australia", "🇦🇺", "Sep 21, 2026", "Sep 24, 2026", 3, "Liam is a relaxed business traveller who prefers a non-smoking room and minimal interruption.", ["Non-smoking, twin beds", "None", "English", "Standard (22°C)", "6:30 AM", "Standard inventory"], "+61 412 555 018", "liam.anderson@email.com"),
+  "Rohan Sharma": gp("Room 1204", "Executive Suite", "India", "🇮🇳", "Sep 23, 2026", "Sep 24, 2026", 1, "Rohan is a loyalty member arriving for a short stay. He appreciates a personalised greeting and a late turndown.", ["High floor, late turndown", "Vegetarian", "English, Hindi", "Cool (21°C)", "8:00 AM", "Soft drinks only"], "+91 99100 55231", "rohan.sharma@email.com"),
+  "Sarah Chen": gp("Room 704", "Deluxe King", "Singapore", "🇸🇬", "Sep 20, 2026", "Sep 25, 2026", 5, "Sarah is travelling with an infant and needs a baby cot and a quiet room. She prefers sparkling water and no alcohol.", ["Baby cot, quiet room", "No alcohol", "English, Mandarin", "Warm (23°C)", "7:30 AM", "Sparkling water, no alcohol"], "+65 8123 4567", "sarah.chen@email.com"),
+  "David Williams": gp("Room 1501", "Accessible Suite", "Canada", "🇨🇦", "Sep 23, 2026", "Sep 26, 2026", 3, "David has reduced mobility and needs an accessible room setup, including a shower chair and bath mat.", ["Accessible room, bath mat", "None", "English", "Standard (22°C)", "8:00 AM", "Standard inventory"], "+1 (555) 678-2204", "david.williams@email.com"),
+  "Ethan Ross": gp("Room 410", "Deluxe King", "United States", "🇺🇸", "Sep 19, 2026", "Sep 23, 2026", 4, "Ethan is a low-maintenance guest checking out today. He requested a fresh linen change during his stay.", ["Standard", "None", "English", "Standard (22°C)", "7:00 AM", "Standard inventory"], "+1 (555) 340-9981", "ethan.ross@email.com"),
+  "Grace Kim": gp("Room 227", "Standard Twin", "South Korea", "🇰🇷", "Sep 21, 2026", "Sep 23, 2026", 2, "Grace is a quiet guest who appreciates prompt restocking of towels and amenities.", ["Twin beds", "None", "Korean, English", "Standard (22°C)", "8:30 AM", "Standard inventory"], "+82 10 5555 0142", "grace.kim@email.com"),
+  "James Whitfield": gp("Room 615", "Executive Room", "United Kingdom", "🇬🇧", "Sep 23, 2026", "Sep 26, 2026", 3, "James is a returning guest travelling alone on business. He prefers a quiet, work-friendly room and an early check-in.", ["High floor, quiet, work desk", "None", "English", "Cool (21°C)", "6:30 AM", "Standard inventory"], "+44 7700 900456", "james.whitfield@email.com"),
+  "Priya Nair": gp("Room 902", "Junior Suite", "India", "🇮🇳", "Sep 23, 2026", "Sep 27, 2026", 4, "Priya is celebrating her anniversary and has requested a quiet, romantic setup. She has stayed at the property before.", ["High floor, king bed, city view", "Vegetarian", "English, Malayalam", "Standard (22°C)", "8:30 AM", "Champagne on arrival"], "+91 98450 22118", "priya.nair@email.com"),
+  "Marco Bellini": gp("Room 340", "Connecting Family Rooms", "Italy", "🇮🇹", "Sep 24, 2026", "Sep 28, 2026", 4, "Marco is travelling with his wife and two young children. The family needs connecting rooms and a child-friendly setup.", ["Connecting rooms, rollaway bed", "None", "Italian, English", "Standard (22°C)", "7:30 AM", "Juice and snacks for kids"], "+39 347 555 0177", "marco.bellini@email.com"),
+  "Olivia Turner": gp("Room 1108", "Deluxe Room", "United States", "🇺🇸", "Sep 24, 2026", "Sep 25, 2026", 1, "Olivia is on a short business stopover and has an allergy to synthetic bedding.", ["Hypoallergenic bedding", "Gluten-free", "English", "Standard (22°C)", "6:45 AM", "Standard inventory"], "+1 (555) 902-3345", "olivia.turner@email.com"),
+  "Noah Martinez": gp("Room 118", "Deluxe King", "Spain", "🇪🇸", "Sep 18, 2026", "Sep 22, 2026", 4, "Noah enjoyed his stay and appreciated the attentive turndown service and extra water bottles.", ["Standard", "None", "Spanish, English", "Standard (22°C)", "8:00 AM", "Standard inventory"], "+34 612 555 019", "noah.martinez@email.com"),
+  "Hannah Lee": gp("Room 520", "Junior Suite", "Singapore", "🇸🇬", "Sep 17, 2026", "Sep 22, 2026", 5, "Hannah expressed genuine satisfaction with her room and overall experience. She is a content and relaxed guest who appreciates warm and attentive service.", ["Standard", "None", "English", "Standard (22°C)", "8:00 AM", "Standard inventory"], "+65 9123 4501", "hannah.lee@email.com"),
+  "Omar Haddad": gp("Room 1012", "Deluxe King", "United Arab Emirates", "🇦🇪", "Sep 19, 2026", "Sep 21, 2026", 2, "Omar stayed for a short business trip and preferred Arabic-language communication.", ["High floor, king bed", "Halal only", "Arabic, English", "Cool (21°C)", "6:00 AM", "Standard inventory"], "+971 50 555 0166", "omar.haddad@email.com"),
+};
+
 export type RoomStatus = "Clean" | "In Progress" | "Dirty" | "Out of Service";
 export type HkRoom = { number: string; floor: number; status: RoomStatus; assignee: string | null };
 export const ROOMS: HkRoom[] = [
