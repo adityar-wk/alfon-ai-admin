@@ -166,10 +166,10 @@ export const GUEST_STAYS: Record<string, { checkIn: string; checkOut: string }> 
 
 export type PreArrivalGuest = { name: string; room: string; eta: string; vip: boolean; notes: string };
 export const PRE_ARRIVAL_GUESTS: PreArrivalGuest[] = [
-  { name: "James Whitfield", room: "Room 615", eta: "11:30 AM", vip: false, notes: "Requested early check-in — room to be ready by 11 AM." },
-  { name: "Priya Nair", room: "Room 902", eta: "1:00 PM", vip: true, notes: "VIP arrival — welcome amenities and turndown setup requested." },
-  { name: "Marco Bellini", room: "Room 340", eta: "3:15 PM", vip: false, notes: "Connecting rooms for a family of four — rollaway bed needed." },
-  { name: "Olivia Turner", room: "Room 1108", eta: "4:45 PM", vip: false, notes: "Hypoallergenic bedding requested ahead of arrival." },
+  { name: "James Whitfield", room: "Room 615", eta: "Today, Sep 23 · 11:30 AM", vip: false, notes: "Requested early check-in — room to be ready by 11 AM." },
+  { name: "Priya Nair", room: "Room 902", eta: "Today, Sep 23 · 1:00 PM", vip: true, notes: "VIP arrival — welcome amenities and turndown setup requested." },
+  { name: "Marco Bellini", room: "Room 340", eta: "Tomorrow, Sep 24 · 3:15 PM", vip: false, notes: "Connecting rooms for a family of four — rollaway bed needed." },
+  { name: "Olivia Turner", room: "Room 1108", eta: "Tomorrow, Sep 24 · 4:45 PM", vip: false, notes: "Hypoallergenic bedding requested ahead of arrival." },
 ];
 
 export const STATUS_ORDER = ["Available", "Busy", "On Break", "Off work"] as const;

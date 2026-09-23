@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import {
-  Bell, Home as HomeIcon, Plus, Users, UserCog, UserPlus, Repeat, Undo2, Hand, ArrowUpRight, Split, MessageCircle, Send, Filter, Sparkles, ChevronRight, Search,
-  Menu as MenuIcon, ListChecks, BarChart3, FileText, Settings as SettingsIcon, Calendar, AlertTriangle, User, LifeBuoy, BedDouble,
+  Bell, Home as HomeIcon, Plus, Users, UserCog, UserPlus, Undo2, Hand, ArrowUpRight, Split, MessageCircle, Send, Filter, Sparkles, ChevronRight, Search,
+  Menu as MenuIcon, ListChecks, BarChart3, Calendar, AlertTriangle, User, BedDouble,
 } from "lucide-react";
 import { DEPARTMENTS } from "../data/departments";
 import { DEPTS, METRICS, COMPLAINT_DETAIL } from "../pages/Analytics";
@@ -9,15 +9,15 @@ import { Donut } from "../components/Donut";
 import { SEED_TASKS, STAFF, PRESENCE_DOT, GUEST_STAYS, PRE_ARRIVAL_GUESTS, type MTask, type Presence, type EscType } from "./data";
 import {
   PhoneFrame, ScreenHeader, SectionTitle, TaskCard, StatCard, Avatar, Chips, Segmented, FloatingNav, PrimaryButton, GhostButton, SelectField, TextField, Label, Sheet,
-  useNav, useToast, CARD_SHADOW, TextHeader, PriorityPill, SlaCountdown, type Priority,
+  useNav, useToast, CARD_SHADOW, TextHeader, PriorityPill, SlaCountdown, fmtMins, type Priority,
 } from "./mobile";
 import { ActionGrid, StaffPicker, ReasonSheet, StatusTag, activeCount, atRiskCount, overdueCount, isOpen, isAtRisk, isOverdue } from "./parts";
 
 type Screen = {
-  name: "home" | "tasks" | "team" | "guests" | "guestDetail" | "detail" | "notifications" | "create" | "menu" | "analytics" | "reports" | "settings" | "guestsRoster";
+  name: "home" | "tasks" | "team" | "guests" | "guestDetail" | "detail" | "notifications" | "create" | "menu" | "analytics" | "guestsRoster";
   id?: string;
 };
-type SheetState = { k: "needHelp" | "assign" | "support" | "status" | "sendBack" | "gm" | "route"; taskId: string } | null;
+type SheetState = { k: "needHelp" | "assign" | "support" | "sendBack" | "gm" | "route"; taskId: string } | null;
 
 const ME = "Daniel Reyes";
 const ESC_FILTERS = ["All", "SLA breach", "SLA at risk", "Guest complaint", "Unable to complete", "Staffing issue", "Supervisor escalation", "High priority"] as const;
@@ -25,7 +25,6 @@ const SEVS = ["Low", "Medium", "High", "Critical"] as const;
 const SEV_COLOR: Record<(typeof SEVS)[number], string> = { Low: "bg-slate-500", Medium: "bg-amber-500", High: "bg-orange-500", Critical: "bg-red-500" };
 const SEV_SLA: Record<Priority, number> = { Low: 60, Medium: 40, High: 20, Critical: 10 };
 type EscFilter = (typeof ESC_FILTERS)[number];
-const STATUS_CHOICES = ["In progress", "Awaiting acceptance", "Unassigned", "Unable to complete", "Completed"] as const;
 const AVAIL_ORDER: Presence[] = ["Available", "Busy", "On Break", "Off work"];
 const ROLE_FILTERS = ["All", "Supervisor", "Line Staff"] as const;
 type RoleFilter = (typeof ROLE_FILTERS)[number];
@@ -36,11 +35,9 @@ type GuestFilter = (typeof GUEST_FILTERS)[number];
 const TASK_FILTERS = ["All", "Unassigned", "In Progress", "At Risk", "Overdue", "Completed"] as const;
 type TaskFilter = (typeof TASK_FILTERS)[number];
 const MENU_ITEMS = [
-  { key: "team" as const, label: "Team & Workload", desc: "Staff availability, workload, unassigned tasks", icon: Users },
-  { key: "analytics" as const, label: "Analytics", desc: "Department performance, trends and complaints", icon: BarChart3 },
-  { key: "guestsRoster" as const, label: "Guests", desc: "In-house roster and pre-arrival guests", icon: BedDouble },
-  { key: "reports" as const, label: "Reports", desc: "Generate and download department reports", icon: FileText },
-  { key: "settings" as const, label: "Department Settings", desc: "SLA tiers and active services", icon: SettingsIcon },
+  { key: "team" as const, label: "Team & Workload", icon: Users },
+  { key: "analytics" as const, label: "Analytics", icon: BarChart3 },
+  { key: "guestsRoster" as const, label: "Guests", icon: BedDouble },
 ];
 
 /* ---------- Housekeeping analytics, sourced from the desktop Analytics page ---------- */
@@ -60,13 +57,13 @@ const rampColors = (n: number) =>
 const HK_DONUT_COLORS = rampColors(HK_DEPT.items.length);
 
 const NOTIFS = [
-  { icon: "🚨", text: "Supervisor escalation — Room 1204 deep clean (staffing risk)", time: "10:20 AM", to: "t5" },
-  { icon: "⏱️", text: "Critical SLA breach — Room 1103 stained bedding, 14 min over", time: "10:10 AM", to: "t6" },
-  { icon: "😠", text: "High-priority complaint — Michael Johnson (VIP), negative sentiment", time: "10:15 AM", to: "t6" },
-  { icon: "🔁", text: "Repeated unresolved task — Room 908 extra pillows, breached twice today", time: "10:25 AM", to: "t10" },
-  { icon: "📉", text: "Workload issue — Aanya Khan has 2 tasks, 1 overdue", time: "10:28 AM", to: "team" },
-  { icon: "❗", text: "Unassigned critical request — Room 2104 extra towels (High)", time: "10:31 AM", to: "t12" },
-  { icon: "🤖", text: "AI escalated a guest conversation — Room 1103", time: "10:14 AM", to: "t6" },
+  { text: "Supervisor escalation — Room 1204 deep clean (staffing risk)", time: "10:20 AM", to: "t5" },
+  { text: "Critical SLA breach — Room 1103 stained bedding, 14 min over", time: "10:10 AM", to: "t6" },
+  { text: "High-priority complaint — Michael Johnson (VIP), negative sentiment", time: "10:15 AM", to: "t6" },
+  { text: "Repeated unresolved task — Room 908 extra pillows, breached twice today", time: "10:25 AM", to: "t10" },
+  { text: "Workload issue — Aanya Khan has 2 tasks, 1 overdue", time: "10:28 AM", to: "team" },
+  { text: "Unassigned critical request — Room 2104 extra towels (High)", time: "10:31 AM", to: "t12" },
+  { text: "AI escalated a guest conversation — Room 1103", time: "10:14 AM", to: "t6" },
 ];
 
 const escSort = (a: MTask, b: MTask) => a.slaLeft - b.slaLeft;
@@ -102,6 +99,8 @@ export function ManagerPrototype() {
   const [taskFilter, setTaskFilter] = useState<TaskFilter>("All");
   const [taskQuery, setTaskQuery] = useState("");
   const [rosterTab, setRosterTab] = useState<"In-house" | "Pre-arrival">("In-house");
+  const [rosterFilter, setRosterFilter] = useState<GuestFilter>("All");
+  const [rosterFilterOpen, setRosterFilterOpen] = useState(false);
   const [sheet, setSheet] = useState<SheetState>(null);
   const [needHelpReason, setNeedHelpReason] = useState("");
   const [chat, setChat] = useState<Record<string, { from: "guest" | "ai" | "me"; text: string }[]>>({});
@@ -247,6 +246,17 @@ export function ManagerPrototype() {
     });
   }, [guestsSorted, guestFilter, guestQuery]);
   const guestActiveFilters = guestFilter !== "All" ? 1 : 0;
+  const rosterFiltered = useMemo(
+    () =>
+      guestsSorted.filter((g) => {
+        if (rosterFilter === "Complaints" && !g.complaint) return false;
+        if (rosterFilter === "VIP" && !g.vip) return false;
+        if (rosterFilter === "Open requests" && !g.items.some(isOpen)) return false;
+        return true;
+      }),
+    [guestsSorted, rosterFilter],
+  );
+  const rosterActiveFilters = rosterFilter !== "All" ? 1 : 0;
 
   const guestName = cur.name === "guestDetail" ? cur.id : undefined;
   const guestEntry = guestName ? guestMap.get(guestName) : undefined;
@@ -540,7 +550,7 @@ export function ManagerPrototype() {
   const Detail = task ? (
     <div className="relative flex h-full flex-col">
       <ScreenHeader onBack={nav.back} title="Task details" />
-      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 pb-28 no-scrollbar">
+      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 pb-6 no-scrollbar">
         <div className={`rounded-2xl bg-white p-4 ${CARD_SHADOW}`}>
           <div className="flex items-center justify-between gap-3">
             <div className="flex flex-wrap items-center gap-2">
@@ -548,7 +558,7 @@ export function ManagerPrototype() {
               <StatusTag s={task.status} />
               {task.vip && <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-bold text-amber-700">VIP</span>}
             </div>
-            {task.status !== "completed" && <SlaCountdown left={task.slaLeft} />}
+            {task.status !== "completed" && <SlaCountdown left={task.slaLeft} total={task.slaTotal} />}
           </div>
 
           <div className="mt-4 text-[11px] font-semibold text-ink-secondary">Task details</div>
@@ -570,28 +580,6 @@ export function ManagerPrototype() {
         )}
 
         <div>
-          <div className="mb-2 px-1 text-[13px] font-semibold text-ink-secondary">Intervene</div>
-          <div className="grid grid-cols-2 gap-3">
-            <button
-              onClick={() => setSheet({ k: "status", taskId: task.id })}
-              disabled={task.status === "completed"}
-              className={`flex flex-col items-center gap-1.5 rounded-2xl bg-white px-1 py-4 text-center text-[13px] font-semibold text-ink ${CARD_SHADOW} disabled:opacity-40`}
-            >
-              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 text-blue-600"><Repeat className="h-[18px] w-[18px]" /></span>
-              Change status
-            </button>
-            <button
-              onClick={() => setSheet({ k: "needHelp", taskId: task.id })}
-              disabled={task.status === "completed"}
-              className={`flex flex-col items-center gap-1.5 rounded-2xl bg-white px-1 py-4 text-center text-[13px] font-semibold text-ink ${CARD_SHADOW} disabled:opacity-40`}
-            >
-              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-tint text-brand"><LifeBuoy className="h-[18px] w-[18px]" /></span>
-              Need help
-            </button>
-          </div>
-        </div>
-
-        <div>
           <div className="mb-2 px-1 text-[13px] font-semibold text-ink-secondary">Escalation review</div>
           <ActionGrid
             actions={[
@@ -603,13 +591,35 @@ export function ManagerPrototype() {
           />
         </div>
       </div>
+
       <button
         onClick={() => nav.push({ name: "guestDetail", id: task.guest })}
         aria-label="Message guest"
-        className="absolute bottom-5 right-5 z-10 flex h-14 w-14 items-center justify-center rounded-full bg-violet-600 text-white shadow-[0_6px_18px_rgba(124,58,237,0.4)]"
+        className="absolute bottom-24 right-5 z-10 flex h-14 w-14 items-center justify-center rounded-full bg-brand text-white shadow-[0_6px_18px_rgba(241,90,36,0.4)]"
       >
         <MessageCircle className="h-6 w-6" />
       </button>
+
+      {task.status !== "completed" && (
+        <div className="flex shrink-0 gap-3 px-6 pb-6 pt-3">
+          <GhostButton className="flex-1" onClick={() => setSheet({ k: "needHelp", taskId: task.id })}>Assist</GhostButton>
+          {task.owner === ME ? (
+            <PrimaryButton
+              className="flex-[1.3]"
+              onClick={() => { patch(task.id, { status: "completed", escalated: false }, `${ME} marked complete`); flash("Task marked complete"); nav.back(); }}
+            >
+              Complete
+            </PrimaryButton>
+          ) : (
+            <PrimaryButton
+              className="flex-[1.3]"
+              onClick={() => { patch(task.id, { owner: ME, status: "progress" }, `${ME} accepted the task`); flash("Task assigned to you"); }}
+            >
+              Accept
+            </PrimaryButton>
+          )}
+        </div>
+      )}
     </div>
   ) : null;
 
@@ -617,13 +627,25 @@ export function ManagerPrototype() {
     <div className="flex h-full flex-col">
       <ScreenHeader title="Notifications" onBack={nav.back} />
       <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-6 pt-2 no-scrollbar">
-        {NOTIFS.map((n, i) => (
-          <button key={i} onClick={() => (n.to === "team" ? nav.push({ name: "team" }) : open(n.to))} className="relative flex w-full gap-3 border-b border-dashed border-ink/20 py-4 pr-14 text-left last:border-0">
-            <span className="text-[18px]">{n.icon}</span>
-            <p className="text-[14px] leading-snug text-ink">{n.text}</p>
-            <span className="absolute bottom-4 right-0 text-[11px] text-ink-tertiary">{n.time}</span>
-          </button>
-        ))}
+        {NOTIFS.map((n, i) => {
+          const nt = n.to !== "team" ? tasks.find((x) => x.id === n.to) : undefined;
+          return (
+            <button key={i} onClick={() => (n.to === "team" ? nav.push({ name: "team" }) : open(n.to))} className="relative flex w-full flex-col border-b border-dashed border-ink/20 py-3.5 pr-14 text-left last:border-0">
+              <p className="text-[14px] leading-snug text-ink">{n.text}</p>
+              {nt && (
+                <div className="mt-1.5 flex items-center gap-2">
+                  <PriorityPill p={nt.priority} />
+                  {nt.status !== "completed" && (
+                    <span className={`text-[12px] font-semibold ${nt.slaLeft < 0 ? "text-red-600" : "text-ink-secondary"}`}>
+                      {fmtMins(nt.slaLeft)}{nt.slaLeft < 0 ? " over" : " left"}
+                    </span>
+                  )}
+                </div>
+              )}
+              <span className="absolute right-0 top-3.5 text-[11px] text-ink-tertiary">{n.time}</span>
+            </button>
+          );
+        })}
       </div>
     </div>
   );
@@ -674,10 +696,7 @@ export function ManagerPrototype() {
             className={`flex w-full items-center gap-3 rounded-2xl bg-white p-4 text-left ${CARD_SHADOW}`}
           >
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-tint text-brand"><m.icon className="h-[18px] w-[18px]" /></div>
-            <div className="min-w-0 flex-1">
-              <div className="text-[14px] font-semibold text-ink">{m.label}</div>
-              <div className="text-[12px] text-ink-secondary">{m.desc}</div>
-            </div>
+            <div className="min-w-0 flex-1 text-[14px] font-semibold text-ink">{m.label}</div>
             <ChevronRight className="h-4 w-4 shrink-0 text-ink-tertiary" />
           </button>
         ))}
@@ -749,12 +768,30 @@ export function ManagerPrototype() {
 
   const GuestsRoster = (
     <div className="flex h-full flex-col">
-      <ScreenHeader title="Guests" sub="Housekeeping" onBack={nav.back} />
+      <ScreenHeader
+        title="Guests"
+        sub="Housekeeping"
+        onBack={nav.back}
+        right={
+          rosterTab === "In-house" ? (
+            <button
+              onClick={() => setRosterFilterOpen(true)}
+              aria-label="Filter"
+              className={`relative flex h-10 w-10 items-center justify-center rounded-full ${rosterActiveFilters ? "bg-brand text-white" : "bg-white text-ink shadow-sm"}`}
+            >
+              <Filter className="h-[18px] w-[18px]" />
+              {rosterActiveFilters > 0 && (
+                <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white">{rosterActiveFilters}</span>
+              )}
+            </button>
+          ) : undefined
+        }
+      />
       <div className="px-6"><Segmented items={["In-house", "Pre-arrival"] as const} active={rosterTab} onChange={setRosterTab} /></div>
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-6 pb-6 pt-3 no-scrollbar">
         {rosterTab === "In-house" ? (
           <>
-            {guestsSorted.map((g) => (
+            {rosterFiltered.map((g) => (
               <button key={g.name} onClick={() => nav.push({ name: "guestDetail", id: g.name })} className={`flex w-full items-center gap-3 rounded-2xl bg-white p-3.5 text-left ${CARD_SHADOW}`}>
                 <Avatar name={g.name} tone={g.complaint ? "bg-red-50 text-red-600" : undefined} />
                 <div className="min-w-0 flex-1 leading-tight">
@@ -767,19 +804,17 @@ export function ManagerPrototype() {
                 <ChevronRight className="h-4 w-4 shrink-0 text-ink-tertiary" />
               </button>
             ))}
-            {!guestsSorted.length && <p className="rounded-2xl bg-white p-6 text-center text-[13px] text-ink-tertiary">No in-house guests yet.</p>}
+            {!rosterFiltered.length && <p className="rounded-2xl bg-white p-6 text-center text-[13px] text-ink-tertiary">No guests match.</p>}
           </>
         ) : (
           PRE_ARRIVAL_GUESTS.map((g) => (
             <div key={g.name} className={`rounded-2xl bg-white p-3.5 ${CARD_SHADOW}`}>
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <span className="text-[14px] font-semibold text-ink">{g.name}</span>
-                  {g.vip && <span className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[9px] font-bold text-amber-700">VIP</span>}
-                </div>
-                <span className="text-[12px] font-semibold text-brand">ETA {g.eta}</span>
+              <div className="flex items-center gap-2">
+                <span className="text-[14px] font-semibold text-ink">{g.name}</span>
+                {g.vip && <span className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[9px] font-bold text-amber-700">VIP</span>}
               </div>
               <div className="mt-0.5 text-[12px] text-ink-tertiary">{g.room}</div>
+              <div className="mt-1 text-[12px] font-semibold text-brand">Arriving {g.eta}</div>
               <p className="mt-1.5 text-[12px] leading-snug text-ink-secondary">{g.notes}</p>
             </div>
           ))
@@ -788,50 +823,9 @@ export function ManagerPrototype() {
     </div>
   );
 
-  const REPORT_NAMES = ["Daily operations summary", "SLA compliance report", "Escalations log"];
-  const Reports = (
-    <div className="flex h-full flex-col">
-      <ScreenHeader title="Reports" sub="Housekeeping" onBack={nav.back} />
-      <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-6 pb-6 pt-2 no-scrollbar">
-        {REPORT_NAMES.map((r) => (
-          <div key={r} className={`flex items-center justify-between rounded-2xl bg-white p-4 ${CARD_SHADOW}`}>
-            <span className="text-[13px] font-medium text-ink">{r}</span>
-            <GhostButton onClick={() => flash(`${r} generated`)}>Generate</GhostButton>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-
-  const Settings = (
-    <div className="flex h-full flex-col">
-      <ScreenHeader title="Department Settings" sub="Housekeeping" onBack={nav.back} />
-      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 pb-6 pt-2 no-scrollbar">
-        <div className={`rounded-2xl bg-white p-4 ${CARD_SHADOW}`}>
-          <div className="text-[12px] font-semibold text-ink-secondary">SLA tiers</div>
-          <div className="mt-2 space-y-1.5">
-            {SEVS.map((s) => (
-              <div key={s} className="flex items-center justify-between text-[13px]">
-                <span className="flex items-center gap-2 text-ink"><span className={`h-2 w-2 rounded-full ${SEV_COLOR[s]}`} />{s}</span>
-                <span className="text-ink-secondary">{SEV_SLA[s]} min</span>
-              </div>
-            ))}
-          </div>
-        </div>
-        <div className={`rounded-2xl bg-white p-4 ${CARD_SHADOW}`}>
-          <div className="text-[12px] font-semibold text-ink-secondary">Active services ({services.length})</div>
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            {services.map((s) => <span key={s} className="rounded-full bg-[#F1F1F3] px-2.5 py-1 text-[12px] text-ink-secondary">{s}</span>)}
-          </div>
-        </div>
-        <p className="rounded-2xl bg-white p-4 text-center text-[12px] text-ink-tertiary">Editing SLA tiers, roles and services is done on desktop.</p>
-      </div>
-    </div>
-  );
-
   const VIEWS: Record<Screen["name"], React.ReactNode> = {
     home: Home, tasks: Tasks, team: Team, guests: Guests, guestDetail: GuestDetail, detail: Detail, notifications: Notifications, create: Create,
-    menu: Menu, analytics: Analytics, reports: Reports, settings: Settings, guestsRoster: GuestsRoster,
+    menu: Menu, analytics: Analytics, guestsRoster: GuestsRoster,
   };
 
   /* ---------- sheets ---------- */
@@ -842,20 +836,20 @@ export function ManagerPrototype() {
   const sheetNode = !sheet ? null : (
     <>
       {sheet.k === "needHelp" && t0 && (
-        <Sheet title="Need help?" onClose={() => setSheet(null)}>
+        <Sheet title="Assist" onClose={() => setSheet(null)}>
           <p className="mb-3 text-[13px] text-ink-secondary">{t0.room} · {t0.title}</p>
           <div className="space-y-2.5">
             <button onClick={() => setSheet({ k: "assign", taskId: t0.id })} className="flex w-full items-center gap-3 rounded-2xl border border-line p-3.5 text-left active:bg-brand-tint/40">
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-tint text-brand"><UserCog className="h-[18px] w-[18px]" /></span>
-              <span className="min-w-0"><span className="block text-[14px] font-semibold text-ink">Reassign task</span><span className="block text-[12px] text-ink-secondary">Hand this task to someone else</span></span>
+              <span className="text-[14px] font-semibold text-ink">Reassign task</span>
             </button>
             <button onClick={() => setSheet({ k: "support", taskId: t0.id })} disabled={!t0.owner} className="flex w-full items-center gap-3 rounded-2xl border border-line p-3.5 text-left active:bg-brand-tint/40 disabled:opacity-40">
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-600"><UserPlus className="h-[18px] w-[18px]" /></span>
-              <span className="min-w-0"><span className="block text-[14px] font-semibold text-ink">Add support</span><span className="block text-[12px] text-ink-secondary">Bring in another staff member — owner stays the same</span></span>
+              <span className="text-[14px] font-semibold text-ink">Add support</span>
             </button>
             <button onClick={() => setSheet({ k: "gm", taskId: t0.id })} className="flex w-full items-center gap-3 rounded-2xl border border-line p-3.5 text-left active:bg-brand-tint/40">
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-red-50 text-red-600"><ArrowUpRight className="h-[18px] w-[18px]" /></span>
-              <span className="min-w-0"><span className="block text-[14px] font-semibold text-ink">Escalate to GM</span><span className="block text-[12px] text-ink-secondary">Send this to the General Manager</span></span>
+              <span className="text-[14px] font-semibold text-ink">Escalate to GM</span>
             </button>
           </div>
         </Sheet>
@@ -878,14 +872,6 @@ export function ManagerPrototype() {
             <StaffPicker tasks={tasks} exclude={[t0.owner ?? "", ...t0.support]} onPick={(s) => { patch(t0.id, { support: [...t0.support, s.name] }, `${s.name} added as support — ${needHelpReason.trim()}`); closeHelpSheet(); flash(`${s.name} notified`); }} cta="Add" />
           </div>
         </Sheet>
-      )}
-      {sheet.k === "status" && t0 && (
-        <ReasonSheet title="Change status" reasons={STATUS_CHOICES} reasonLabel="New status" placeholder="Optional note" cta="Update status" onClose={() => setSheet(null)}
-          onSubmit={(st) => {
-            const map = { "In progress": "progress", "Awaiting acceptance": "assigned", Unassigned: "unassigned", "Unable to complete": "unable", Completed: "completed" } as const;
-            patch(t0.id, { status: map[st as keyof typeof map], owner: st === "Unassigned" ? null : t0.owner, escalated: st === "Completed" ? false : t0.escalated }, `${ME} set status to ${st}`);
-            setSheet(null); flash(`Status set to ${st}`);
-          }} />
       )}
       {sheet.k === "sendBack" && t0 && (
         <ReasonSheet title={`Send back to ${t0.escBy?.split(" ")[0]}`} requireNote placeholder="Your instruction to the supervisor…" cta="Send back" onClose={() => setSheet(null)}
@@ -925,6 +911,15 @@ export function ManagerPrototype() {
     </Sheet>
   );
 
+  const RosterFilterSheet = rosterFilterOpen && (
+    <Sheet title="Filter guests" onClose={() => setRosterFilterOpen(false)}>
+      <Label>Show</Label>
+      <Chips items={GUEST_FILTERS} active={rosterFilter} onChange={setRosterFilter} />
+      <PrimaryButton className="mt-6 w-full" onClick={() => setRosterFilterOpen(false)}>Done</PrimaryButton>
+      {rosterActiveFilters > 0 && <GhostButton className="mt-2 w-full" onClick={() => setRosterFilter("All")}>Clear filter</GhostButton>}
+    </Sheet>
+  );
+
   return (
     <div className="flex flex-col items-center gap-4">
       <PhoneFrame>
@@ -932,10 +927,11 @@ export function ManagerPrototype() {
         {sheetNode}
         {TeamFilterSheet}
         {GuestFilterSheet}
+        {RosterFilterSheet}
         {toast}
       </PhoneFrame>
       <div className="flex flex-wrap items-center justify-center gap-2">
-        <button className="rounded-lg border border-line bg-white px-3 py-1.5 text-[12px] font-medium text-ink-secondary" onClick={() => { nav.reset(); setTasks(SEED_TASKS); setSheet(null); setNeedHelpReason(""); setChat({}); setManual({}); setFilter("All"); setRoleFilter("All"); setAvailFilter("All"); setGuestFilter("All"); setGuestQuery(""); setTaskFilter("All"); setTaskQuery(""); setRosterTab("In-house"); }}>Reset</button>
+        <button className="rounded-lg border border-line bg-white px-3 py-1.5 text-[12px] font-medium text-ink-secondary" onClick={() => { nav.reset(); setTasks(SEED_TASKS); setSheet(null); setNeedHelpReason(""); setChat({}); setManual({}); setFilter("All"); setRoleFilter("All"); setAvailFilter("All"); setGuestFilter("All"); setGuestQuery(""); setTaskFilter("All"); setTaskQuery(""); setRosterTab("In-house"); setRosterFilter("All"); }}>Reset</button>
       </div>
       <p className="text-center text-[12px] text-ink-tertiary">Current screen: <span className="font-medium text-ink-secondary">{cur.name}</span> · open Guests to chat with a guest, or Room 1103 to see full task context.</p>
     </div>

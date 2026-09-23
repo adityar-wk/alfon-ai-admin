@@ -151,18 +151,19 @@ export function SlaRing({ left, total, size = 54 }: { left: number; total: numbe
   );
 }
 
-export function SlaCountdown({ left }: { left: number }) {
+export function SlaCountdown({ left, total }: { left: number; total: number }) {
   const [secs, setSecs] = useState(() => Math.round(left * 60));
   useEffect(() => {
     const id = setInterval(() => setSecs((s) => s - 1), 1000);
     return () => clearInterval(id);
   }, []);
   const over = secs < 0;
+  const tone = slaTone(secs / 60, total);
   const abs = Math.abs(secs);
   const mm = Math.floor(abs / 60);
   const ss = abs % 60;
   return (
-    <div className={`flex items-center gap-1.5 text-[16px] font-bold tabular-nums ${over ? "text-red-600" : "text-ink"}`}>
+    <div className="flex items-center gap-1.5 text-[16px] font-bold tabular-nums" style={{ color: tone.color }}>
       <Clock className="h-4 w-4" />
       {over ? "-" : ""}{mm}:{String(ss).padStart(2, "0")}
       {over && <span className="text-[10px] font-bold uppercase tracking-wide">breached</span>}
