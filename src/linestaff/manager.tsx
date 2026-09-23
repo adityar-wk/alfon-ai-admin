@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import {
   Bell, Home as HomeIcon, Plus, Users, UserCog, UserPlus, ArrowUpRight, MessageCircle, Send, Filter, ChevronRight, ChevronLeft, Search,
-  Menu as MenuIcon, ListChecks, BarChart3, AlertTriangle, User, BedDouble, DoorClosed, Lightbulb, Check, Building2,
+  Menu as MenuIcon, ListChecks, BarChart3, AlertTriangle, User, BedDouble, DoorClosed, Lightbulb, Check, Building2, FileText, Download, Lock,
 } from "lucide-react";
 import { DEPARTMENTS } from "../data/departments";
 import { DEPTS, METRICS, COMPLAINT_DETAIL } from "../pages/Analytics";
@@ -15,7 +15,7 @@ import {
 import { StaffPicker, ReasonSheet, StatusTag, activeCount, atRiskCount, overdueCount, isOpen, isAtRisk, isOverdue } from "./parts";
 
 type Screen = {
-  name: "home" | "tasks" | "team" | "staffDetail" | "housekeeping" | "guests" | "guestDetail" | "guestProfile" | "preArrivalProfile" | "detail" | "notifications" | "create" | "menu" | "analytics" | "guestsRoster";
+  name: "home" | "tasks" | "team" | "staffDetail" | "housekeeping" | "guests" | "guestDetail" | "guestProfile" | "preArrivalProfile" | "detail" | "notifications" | "create" | "menu" | "analytics" | "reports" | "guestsRoster";
   id?: string;
 };
 type SheetState = { k: "needHelp" | "assign" | "support" | "gm"; taskId: string } | null;
@@ -106,7 +106,32 @@ const MENU_ITEMS = [
   { key: "housekeeping" as const, label: "Housekeeping", icon: DoorClosed },
   { key: "analytics" as const, label: "Analytics", icon: BarChart3 },
   { key: "guestsRoster" as const, label: "Guests", icon: BedDouble },
+  { key: "reports" as const, label: "Reports", icon: FileText },
 ];
+
+const REPORTS: { name: string; desc: string; locked?: boolean }[] = [
+  { name: "Manual Task Integrity Report", desc: "All manually created tasks, with automatic flagging of suspicious patterns for review.", locked: true },
+  { name: "SLA & Timing Adjustment Report", desc: "Every change made to SLA targets or task completion times, with full attribution.", locked: true },
+  { name: "Action Report", desc: "All proactive guest actions flagged by Alfon AI — department, assignee, and completion status." },
+  { name: "Pre-Arrival Preference Report", desc: "Amenity preparation guide per arriving guest — dietary, minibar, room setup, and special requests." },
+  { name: "Task Report", desc: "Breakdown of all tasks by department, status, and response time." },
+  { name: "Complaint Report", desc: "Guest complaints logged, their category, and resolution status." },
+  { name: "Team Performance Report", desc: "Tasks completed, on-time rate, and workload by team member." },
+  { name: "Guest Satisfaction Report", desc: "Satisfaction scores and trends across the selected period." },
+  { name: "SLA Breach Report", desc: "Tasks that missed their SLA escalation window, by department." },
+  { name: "Response Time Report", desc: "Average and peak response times across departments and channels." },
+  { name: "Audit Trail", desc: "Escalations, overrides, reassignments and other task changes with who did what and when." },
+];
+
+const csvCell = (v: string | number) => `"${String(v).replace(/"/g, '""')}"`;
+const downloadCsv = (name: string, rows: (string | number)[][]) => {
+  const blob = new Blob([rows.map((r) => r.map(csvCell).join(",")).join("\n")], { type: "text/csv" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `${name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}.csv`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+};
 
 /* ---------- Housekeeping analytics, sourced from the desktop Analytics page ---------- */
 const HK_DEPT = DEPTS.find((d) => d.name === "Housekeeping")!;
@@ -1106,6 +1131,43 @@ export function ManagerPrototype() {
     </div>
   );
 
+  const reportRows = (name: string): (string | number)[][] => {
+    const taskRow = (t: MTask) => [t.room, t.title, t.priority, t.status, t.owner ?? "Unassigned", t.slaLeft];
+    const taskHead = ["Room", "Task", "Priority", "Status", "Owner", "SLA left (min)"];
+    if (name === "Team Performance Report") return [["Name", "Role", "Status"], ...STAFF.map((x) => [x.name, x.role, teamStatus(x)])];
+    if (name === "Pre-Arrival Preference Report") return [["Guest", "Room", "Arrival", "Preferences"], ...PRE_ARRIVAL_GUESTS.map((g) => [g.name, g.room, g.eta, g.prefs.map((p) => `${p.label}: ${p.value}`).join("; ")])];
+    if (name === "Complaint Report") return [taskHead, ...tasks.filter((t) => t.complaint).map(taskRow)];
+    if (name === "SLA Breach Report") return [taskHead, ...tasks.filter(isOverdue).map(taskRow)];
+    if (name === "Audit Trail") return [["Room", "Time", "Event"], ...tasks.flatMap((t) => t.timeline.map((e) => [t.room, e.t, e.text]))];
+    return [taskHead, ...tasks.map(taskRow)];
+  };
+
+  const Reports = (
+    <div className="flex h-full flex-col">
+      <ScreenHeader title="Reports" onBack={nav.back} />
+      <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-6 pb-6 pt-2 no-scrollbar">
+        {REPORTS.map((r) => (
+          <div key={r.name} className={`flex items-center gap-3 rounded-2xl bg-white p-4 ${CARD_SHADOW} ${r.locked ? "opacity-55" : ""}`}>
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-tint text-brand"><FileText className="h-[18px] w-[18px]" /></span>
+            <div className="min-w-0 flex-1">
+              <div className="text-[14px] font-semibold text-ink">{r.name}</div>
+              {r.locked && <div className="mt-0.5 flex items-center gap-1 text-[11px] text-ink-tertiary"><Lock className="h-3 w-3" /> Restricted to General Manager</div>}
+            </div>
+            {!r.locked && (
+              <button
+                onClick={() => { downloadCsv(r.name, reportRows(r.name)); flash(`${r.name} downloaded`); }}
+                aria-label={`Download ${r.name}`}
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-tint text-brand"
+              >
+                <Download className="h-[18px] w-[18px]" />
+              </button>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
   const GuestsRoster = (
     <div className="flex h-full flex-col">
       <ScreenHeader title="Guests" sub="All hotel guests" onBack={nav.back} />
@@ -1156,7 +1218,7 @@ export function ManagerPrototype() {
   const VIEWS: Record<Screen["name"], React.ReactNode> = {
     home: Home, tasks: Tasks, team: Team, staffDetail: StaffDetail, housekeeping: Housekeeping, guests: Guests, guestDetail: GuestDetail, guestProfile: GuestProfile,
     preArrivalProfile: PreArrivalProfile, detail: Detail, notifications: Notifications, create: Create,
-    menu: Menu, analytics: Analytics, guestsRoster: GuestsRoster,
+    menu: Menu, analytics: Analytics, reports: Reports, guestsRoster: GuestsRoster,
   };
 
   /* ---------- sheets ---------- */
