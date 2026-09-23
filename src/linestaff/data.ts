@@ -243,6 +243,13 @@ export const PRE_ARRIVAL_GUESTS: PreArrivalGuest[] = [
   },
 ];
 
+export type CheckedOutGuest = { name: string; room: string; checkIn: string; checkOut: string };
+export const CHECKED_OUT_GUESTS: CheckedOutGuest[] = [
+  { name: "Noah Martinez", room: "Room 118", checkIn: "Sep 18", checkOut: "Sep 22" },
+  { name: "Hannah Lee", room: "Room 520", checkIn: "Sep 17", checkOut: "Sep 22" },
+  { name: "Omar Haddad", room: "Room 1012", checkIn: "Sep 19", checkOut: "Sep 21" },
+];
+
 export type RoomStatus = "Clean" | "In Progress" | "Dirty" | "Out of Service";
 export type HkRoom = { number: string; floor: number; status: RoomStatus; assignee: string | null };
 export const ROOMS: HkRoom[] = [

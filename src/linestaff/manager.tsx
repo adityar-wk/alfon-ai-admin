@@ -7,7 +7,7 @@ import { DEPARTMENTS } from "../data/departments";
 import { DEPTS, METRICS, COMPLAINT_DETAIL } from "../pages/Analytics";
 import { Donut } from "../components/Donut";
 import { BarChart } from "../components/BarChart";
-import { SEED_TASKS, SEED_REQUESTS, STAFF, PRESENCE_DOT, GUEST_STAYS, PRE_ARRIVAL_GUESTS, ROOMS, type MTask, type Presence, type Staffer, type HkRoom, type RoomStatus, type EscType } from "./data";
+import { SEED_TASKS, SEED_REQUESTS, STAFF, PRESENCE_DOT, GUEST_STAYS, PRE_ARRIVAL_GUESTS, CHECKED_OUT_GUESTS, ROOMS, type MTask, type Presence, type Staffer, type HkRoom, type RoomStatus, type EscType } from "./data";
 import {
   PhoneFrame, ScreenHeader, SectionTitle, TaskCard, StatCard, Avatar, Chips, Segmented, FloatingNav, PrimaryButton, GhostButton, SelectField, TextField, Label, Sheet,
   useNav, useToast, CARD_SHADOW, TextHeader, PriorityPill, SlaCountdown, fmtMins, type Priority,
@@ -26,14 +26,15 @@ const SEVS = ["Low", "Medium", "High", "Critical"] as const;
 const SEV_COLOR: Record<(typeof SEVS)[number], string> = { Low: "bg-slate-500", Medium: "bg-amber-500", High: "bg-orange-500", Critical: "bg-red-500" };
 const SEV_SLA: Record<Priority, number> = { Low: 60, Medium: 40, High: 20, Critical: 10 };
 type EscFilter = (typeof ESC_FILTERS)[number];
-const AVAIL_ORDER: Presence[] = ["Available", "Busy", "On Break", "Off work"];
+const AVAIL_ORDER: Presence[] = ["Available", "On Break", "Off work"];
+const teamStatus = (s: Staffer): Presence => (s.status === "Busy" ? "Available" : s.status);
 const ROLE_FILTERS = ["All", "Supervisor", "Line Staff"] as const;
 type RoleFilter = (typeof ROLE_FILTERS)[number];
-const AVAIL_FILTERS = ["All", "Available", "Busy", "On Break", "Off work"] as const;
+const AVAIL_FILTERS = ["All", "Available", "On Break", "Off work"] as const;
 type AvailFilter = (typeof AVAIL_FILTERS)[number];
-const GUEST_FILTERS = ["All", "Complaints", "VIP", "Open requests"] as const;
+const GUEST_FILTERS = ["All", "Complaints", "Open requests"] as const;
 type GuestFilter = (typeof GUEST_FILTERS)[number];
-const ROSTER_STAGE_FILTERS = ["All", "Current", "Upcoming"] as const;
+const ROSTER_STAGE_FILTERS = ["All", "In-house", "Pre-arrival", "Checked out"] as const;
 type RosterStage = (typeof ROSTER_STAGE_FILTERS)[number];
 const ROOM_STATUS_FILTERS = ["All", "In Progress", "Dirty", "Out of Service", "Clean"] as const;
 type RoomStatusFilter = (typeof ROOM_STATUS_FILTERS)[number];
@@ -126,7 +127,7 @@ const HK_DONUT_COLORS = rampColors(HK_DEPT.items.length);
 const NOTIFS = [
   { text: "Supervisor escalation — Room 1204 deep clean (staffing risk)", time: "10:20 AM", to: "t5" },
   { text: "Critical SLA breach — Room 1103 stained bedding, 14 min over", time: "10:10 AM", to: "t6" },
-  { text: "High-priority complaint — Michael Johnson (VIP), negative sentiment", time: "10:15 AM", to: "t6" },
+  { text: "High-priority complaint — Michael Johnson, negative sentiment", time: "10:15 AM", to: "t6" },
   { text: "Repeated unresolved task — Room 908 extra pillows, breached twice today", time: "10:25 AM", to: "t10" },
   { text: "Workload issue — Aanya Khan has 2 tasks, 1 overdue", time: "10:28 AM", to: "team" },
   { text: "Unassigned critical request — Room 2104 extra towels (High)", time: "10:31 AM", to: "t12" },
@@ -139,7 +140,6 @@ const isEsc = (t: MTask) => (isOpen(t) || t.status === "unable" ? !!t.escalated 
 type GuestEntry = {
   name: string;
   room: string;
-  vip: boolean;
   complaint: boolean;
   sentiment?: string;
   risk?: string;
@@ -166,7 +166,8 @@ export function ManagerPrototype() {
   const [taskFilter, setTaskFilter] = useState<TaskFilter>("All");
   const [taskQuery, setTaskQuery] = useState("");
   const [stageFilter, setStageFilter] = useState<RosterStage>("All");
-  const [rosterFilter, setRosterFilter] = useState<GuestFilter>("All");
+  const [rosterQuery, setRosterQuery] = useState("");
+  const [teamQuery, setTeamQuery] = useState("");
   const [rosterFilterOpen, setRosterFilterOpen] = useState(false);
   const [staffTab, setStaffTab] = useState<StaffTab>("Overview");
   const [rooms, setRooms] = useState<HkRoom[]>(ROOMS);
@@ -281,11 +282,10 @@ export function ManagerPrototype() {
     for (const t of tasks) {
       const stay = GUEST_STAYS[t.guest];
       const cur = map.get(t.guest) ?? {
-        name: t.guest, room: t.room, vip: false, complaint: false, prefs: [], convo: "—", summary: "", summaryIsComplaint: false, items: [],
+        name: t.guest, room: t.room, complaint: false, prefs: [], convo: "—", summary: "", summaryIsComplaint: false, items: [],
         checkIn: stay?.checkIn, checkOut: stay?.checkOut,
       };
       cur.room = t.room;
-      cur.vip = cur.vip || !!t.vip;
       cur.complaint = cur.complaint || !!t.complaint;
       if (t.sentiment) cur.sentiment = t.sentiment;
       if (t.risk) cur.risk = t.risk;
@@ -312,27 +312,20 @@ export function ManagerPrototype() {
     const q = guestQuery.trim().toLowerCase();
     return guestsSorted.filter((g) => {
       if (guestFilter === "Complaints" && !g.complaint) return false;
-      if (guestFilter === "VIP" && !g.vip) return false;
       if (guestFilter === "Open requests" && !g.items.some(isOpen)) return false;
       return !q || `${g.name} ${g.room}`.toLowerCase().includes(q);
     });
   }, [guestsSorted, guestFilter, guestQuery]);
   const guestActiveFilters = guestFilter !== "All" ? 1 : 0;
   const rosterFiltered = useMemo(() => {
-    const current = stageFilter === "Upcoming" ? [] : guestsSorted
-      .filter((g) => {
-        if (rosterFilter === "Complaints" && !g.complaint) return false;
-        if (rosterFilter === "VIP" && !g.vip) return false;
-        if (rosterFilter === "Open requests" && !g.items.some(isOpen)) return false;
-        return true;
-      })
-      .map((g) => ({ stage: "Current" as const, g }));
-    const upcoming = stageFilter === "Current" || rosterFilter === "Complaints" || rosterFilter === "Open requests" ? [] : PRE_ARRIVAL_GUESTS
-      .filter((g) => rosterFilter !== "VIP" || g.vip)
-      .map((g) => ({ stage: "Upcoming" as const, g }));
-    return [...current, ...upcoming];
-  }, [guestsSorted, stageFilter, rosterFilter]);
-  const rosterActiveFilters = (stageFilter !== "All" ? 1 : 0) + (rosterFilter !== "All" ? 1 : 0);
+    const q = rosterQuery.trim().toLowerCase();
+    const match = (n: string, r: string) => !q || `${n} ${r}`.toLowerCase().includes(q);
+    const current = stageFilter === "Pre-arrival" || stageFilter === "Checked out" ? [] : guestsSorted.filter((g) => match(g.name, g.room)).map((g) => ({ stage: "Current" as const, g }));
+    const upcoming = stageFilter === "In-house" || stageFilter === "Checked out" ? [] : PRE_ARRIVAL_GUESTS.filter((g) => match(g.name, g.room)).map((g) => ({ stage: "Upcoming" as const, g }));
+    const departed = stageFilter === "In-house" || stageFilter === "Pre-arrival" ? [] : CHECKED_OUT_GUESTS.filter((g) => match(g.name, g.room)).map((g) => ({ stage: "Departed" as const, g }));
+    return [...current, ...upcoming, ...departed];
+  }, [guestsSorted, stageFilter, rosterQuery]);
+  const rosterActiveFilters = stageFilter !== "All" ? 1 : 0;
 
   const roomsFiltered = rooms.filter((r) => roomFilter === "All" || r.status === roomFilter);
   const roomChipCounts = Object.fromEntries(ROOM_STATUS_FILTERS.map((f) => [f, f === "All" ? rooms.length : rooms.filter((r) => r.status === f).length])) as Record<RoomStatusFilter, number>;
@@ -460,64 +453,67 @@ export function ManagerPrototype() {
 
   /* ---------- team ---------- */
   const teamActiveFilters = (roleFilter !== "All" ? 1 : 0) + (availFilter !== "All" ? 1 : 0);
-  const filteredTeam = STAFF.filter((s) => (roleFilter === "All" || s.role === roleFilter) && (availFilter === "All" || s.status === availFilter)).sort(
-    (a, b) => AVAIL_ORDER.indexOf(a.status) - AVAIL_ORDER.indexOf(b.status),
+  const filteredTeam = STAFF.filter((s) => {
+    const q = teamQuery.trim().toLowerCase();
+    return (roleFilter === "All" || s.role === roleFilter) && (availFilter === "All" || teamStatus(s) === availFilter) && (!q || s.name.toLowerCase().includes(q));
+  }).sort((a, b) => AVAIL_ORDER.indexOf(teamStatus(a)) - AVAIL_ORDER.indexOf(teamStatus(b)));
+
+  const filterBtn = (active: number, onClick: () => void) => (
+    <button
+      onClick={onClick}
+      aria-label="Filter"
+      className={`relative flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${active ? "bg-brand text-white" : "bg-white text-ink shadow-sm"}`}
+    >
+      <Filter className="h-[18px] w-[18px]" />
+      {active > 0 && <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white">{active}</span>}
+    </button>
+  );
+  const searchRow = (value: string, onChange: (v: string) => void, placeholder: string, filter: React.ReactNode) => (
+    <div className="flex items-center gap-2 px-6">
+      <div className="relative flex-1">
+        <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-tertiary" />
+        <input
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          className="h-11 w-full rounded-2xl bg-white pl-10 pr-3 text-[14px] shadow-sm outline-none placeholder:text-ink-tertiary focus:ring-2 focus:ring-brand/30"
+        />
+      </div>
+      {filter}
+    </div>
   );
 
   const Team = (
     <div className="flex h-full flex-col">
-      <ScreenHeader
-        onBack={nav.back}
-        title="Team"
-        sub="Housekeeping workload"
-        right={
-          <button
-            onClick={() => setTeamFilterOpen(true)}
-            aria-label="Filter"
-            className={`relative flex h-10 w-10 items-center justify-center rounded-full ${teamActiveFilters ? "bg-brand text-white" : "bg-white text-ink shadow-sm"}`}
-          >
-            <Filter className="h-[18px] w-[18px]" />
-            {teamActiveFilters > 0 && (
-              <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white">{teamActiveFilters}</span>
-            )}
-          </button>
-        }
-      />
-      <div className="min-h-0 flex-1 overflow-y-auto pb-6 no-scrollbar">
-      <div className="grid grid-cols-4 gap-2 px-6">
-        {AVAIL_ORDER.map((s) => (
-          <div key={s} className={`rounded-2xl bg-white p-2.5 text-center ${CARD_SHADOW}`}>
-            <div className="text-[20px] font-bold text-ink">{STAFF.filter((x) => x.status === s).length}</div>
-            <div className="mt-0.5 flex items-center justify-center gap-1 text-[10px] font-medium text-ink-secondary"><span className={`h-1.5 w-1.5 rounded-full ${PRESENCE_DOT[s]}`} />{s}</div>
-          </div>
-        ))}
-      </div>
+      <ScreenHeader onBack={nav.back} title="Team" />
+      {searchRow(teamQuery, setTeamQuery, "Search team member", filterBtn(teamActiveFilters, () => setTeamFilterOpen(true)))}
+      <div className="min-h-0 flex-1 overflow-y-auto pb-6 pt-3 no-scrollbar">
+        <div className="grid grid-cols-3 gap-2 px-6">
+          {AVAIL_ORDER.map((s) => (
+            <div key={s} className={`rounded-2xl bg-white p-2.5 text-center ${CARD_SHADOW}`}>
+              <div className="text-[20px] font-bold text-ink">{STAFF.filter((x) => teamStatus(x) === s).length}</div>
+              <div className="mt-0.5 flex items-center justify-center gap-1 text-[10px] font-medium text-ink-secondary"><span className={`h-1.5 w-1.5 rounded-full ${PRESENCE_DOT[s]}`} />{s}</div>
+            </div>
+          ))}
+        </div>
 
-      <div className="mt-4 space-y-3 px-6">
-        {filteredTeam.map((s) => {
-          const n = activeCount(tasks, s.name), r = atRiskCount(tasks, s.name), o = overdueCount(tasks, s.name);
-          const over = n >= 2 && (r > 0 || o > 0);
-          return (
+        <div className="mt-4 space-y-3 px-6">
+          {filteredTeam.map((s) => (
             <button key={s.name} onClick={() => nav.push({ name: "staffDetail", id: s.name })} className={`flex w-full items-center gap-3 rounded-2xl bg-white p-3.5 text-left ${CARD_SHADOW}`}>
               <Avatar name={s.name} tone={s.role === "Supervisor" ? "bg-violet-50 text-violet-600" : undefined} />
               <div className="min-w-0 flex-1 leading-tight">
-                <div className="flex items-center gap-2 text-[14px] font-semibold text-ink">
-                  {s.name}
-                  {over && <span className="rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-bold text-red-600">Overloaded</span>}
-                </div>
+                <div className="text-[14px] font-semibold text-ink">{s.name}</div>
                 <div className="text-[12px] text-ink-secondary">{s.role}</div>
                 <div className="mt-0.5 flex items-center gap-1.5 text-[12px] text-ink-secondary">
-                  <span className={`h-2 w-2 rounded-full ${PRESENCE_DOT[s.status]}`} />
-                  {s.status}
-                  {s.role === "Line Staff" && ` · ${n} active${o ? ` · ${o} overdue` : ""}`}
+                  <span className={`h-2 w-2 rounded-full ${PRESENCE_DOT[teamStatus(s)]}`} />
+                  {teamStatus(s)}
                 </div>
               </div>
               <ChevronRight className="h-4 w-4 shrink-0 text-ink-tertiary" />
             </button>
-          );
-        })}
-        {!filteredTeam.length && <p className="rounded-2xl bg-white p-4 text-center text-[13px] text-ink-tertiary">No one matches these filters.</p>}
-      </div>
+          ))}
+          {!filteredTeam.length && <p className="rounded-2xl bg-white p-4 text-center text-[13px] text-ink-tertiary">No one matches these filters.</p>}
+        </div>
       </div>
     </div>
   );
@@ -531,7 +527,7 @@ export function ManagerPrototype() {
           <div className="leading-tight">
             <div className="text-[17px] font-bold text-ink">{staffEntry.name}</div>
             <div className="mt-0.5 flex items-center gap-1.5 text-[12px] text-ink-secondary">
-              <span className={`h-2 w-2 rounded-full ${PRESENCE_DOT[staffEntry.status]}`} />{staffEntry.status} · {staffEntry.role}
+              <span className={`h-2 w-2 rounded-full ${PRESENCE_DOT[teamStatus(staffEntry)]}`} />{teamStatus(staffEntry)} · {staffEntry.role}
             </div>
           </div>
         </div>
@@ -541,7 +537,6 @@ export function ManagerPrototype() {
         {staffTab === "Overview" && (
           <div className={`mt-4 rounded-2xl bg-white p-4 ${CARD_SHADOW}`}>
             <KvRow label="Phone">{staffEntry.phone}</KvRow>
-            <KvRow label="Department">Housekeeping</KvRow>
             <KvRow label="Role">{staffEntry.role}</KvRow>
             <KvRow label="Shift">{staffShift}</KvRow>
             <div className="py-2.5">
@@ -688,7 +683,6 @@ export function ManagerPrototype() {
             <div className="min-w-0 flex-1 leading-tight">
               <div className="flex items-center gap-2">
                 <span className="truncate text-[14px] font-semibold text-ink">{g.name}</span>
-                {g.vip && <span className="shrink-0 rounded-full bg-amber-100 px-1.5 py-0.5 text-[9px] font-bold text-amber-700">VIP</span>}
                 {g.complaint && <span className="shrink-0 rounded-full bg-red-50 px-1.5 py-0.5 text-[9px] font-bold text-red-600">Complaint</span>}
               </div>
               <div className="text-[12px] text-ink-tertiary">{g.room}</div>
@@ -712,7 +706,7 @@ export function ManagerPrototype() {
           <Avatar name={guestEntry.name} size={34} tone={guestEntry.complaint ? "bg-red-50 text-red-600" : undefined} />
           <div className="min-w-0 leading-tight">
             <div className="truncate text-[18px] font-bold text-ink">{guestEntry.name}</div>
-            <div className="text-[12px] text-ink-secondary">{guestEntry.room}{guestEntry.vip ? " · VIP" : ""}</div>
+            <div className="text-[12px] text-ink-secondary">{guestEntry.room}</div>
           </div>
         </button>
       </div>
@@ -762,12 +756,10 @@ export function ManagerPrototype() {
       <ScreenHeader
         onBack={nav.back}
         title={guestEntry.name}
-        sub={`${guestEntry.room}${guestEntry.vip ? " · VIP" : ""}`}
+        sub={guestEntry.room}
         right={
           guestEntry.complaint ? (
             <span className="rounded-full bg-red-50 px-2.5 py-1 text-[11px] font-bold text-red-600">Complaint</span>
-          ) : guestEntry.vip ? (
-            <span className="rounded-full bg-amber-100 px-2.5 py-1 text-[11px] font-bold text-amber-700">VIP</span>
           ) : undefined
         }
       />
@@ -789,12 +781,12 @@ export function ManagerPrototype() {
           <p className="text-[13px] leading-relaxed text-ink">{guestEntry.summary}</p>
         </ProfileSection>
 
-        {(guestEntry.complaint || guestEntry.vip) && (
+        {guestEntry.complaint && (
           <ProfileSection icon={Lightbulb} label="Anticipated needs" tone="amber">
             <p className="text-[13px] leading-relaxed text-ink">
               {guestEntry.complaint
                 ? `Sentiment: ${guestEntry.sentiment} · Risk: ${guestEntry.risk}. Prioritize a fast, empathetic resolution.`
-                : "VIP guest — anticipate extra attention and proactive service."}
+                : "Anticipate extra attention and proactive service."}
             </p>
           </ProfileSection>
         )}
@@ -831,10 +823,9 @@ export function ManagerPrototype() {
       <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 pb-6 no-scrollbar">
         <div className={`rounded-2xl bg-white p-4 ${CARD_SHADOW}`}>
           <div className="flex items-center gap-3">
-            <Avatar name={preArrivalEntry.name} size={48} tone={preArrivalEntry.vip ? "bg-amber-100 text-amber-700" : undefined} />
+            <Avatar name={preArrivalEntry.name} size={48} />
             <div className="leading-tight">
               <div className="text-[13px] font-medium text-ink-secondary">{preArrivalEntry.flag} {preArrivalEntry.country}</div>
-              {preArrivalEntry.vip && <span className="mt-0.5 inline-block rounded-full bg-amber-100 px-2 py-0.5 text-[9px] font-bold text-amber-700">VIP</span>}
             </div>
           </div>
           <div className="mt-3 grid grid-cols-2 gap-3 border-t border-line pt-3 text-[12px]">
@@ -899,7 +890,6 @@ export function ManagerPrototype() {
             <div className="mt-1 flex flex-wrap items-center gap-1.5">
               <PriorityPill p={task.priority} />
               <StatusTag s={task.status} />
-              {task.vip && <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-bold text-amber-700">VIP</span>}
             </div>
           </div>
         </div>
@@ -1118,24 +1108,9 @@ export function ManagerPrototype() {
 
   const GuestsRoster = (
     <div className="flex h-full flex-col">
-      <ScreenHeader
-        title="Guests"
-        sub="All hotel guests"
-        onBack={nav.back}
-        right={
-          <button
-            onClick={() => setRosterFilterOpen(true)}
-            aria-label="Filter"
-            className={`relative flex h-10 w-10 items-center justify-center rounded-full ${rosterActiveFilters ? "bg-brand text-white" : "bg-white text-ink shadow-sm"}`}
-          >
-            <Filter className="h-[18px] w-[18px]" />
-            {rosterActiveFilters > 0 && (
-              <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white">{rosterActiveFilters}</span>
-            )}
-          </button>
-        }
-      />
-      <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-6 pb-6 pt-1 no-scrollbar">
+      <ScreenHeader title="Guests" sub="All hotel guests" onBack={nav.back} />
+      {searchRow(rosterQuery, setRosterQuery, "Search guest or room", filterBtn(rosterActiveFilters, () => setRosterFilterOpen(true)))}
+      <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-6 pb-6 pt-3 no-scrollbar">
         {rosterFiltered.map((row) =>
           row.stage === "Current" ? (
             <button key={row.g.name} onClick={() => nav.push({ name: "guestDetail", id: row.g.name })} className={`flex w-full items-center gap-3 rounded-2xl bg-white p-3.5 text-left ${CARD_SHADOW}`}>
@@ -1144,24 +1119,33 @@ export function ManagerPrototype() {
                 <div className="flex items-center gap-2">
                   <span className="truncate text-[14px] font-semibold text-ink">{row.g.name}</span>
                   <span className="shrink-0 rounded-full bg-emerald-50 px-1.5 py-0.5 text-[9px] font-bold text-emerald-700">In-house</span>
-                  {row.g.vip && <span className="shrink-0 rounded-full bg-amber-100 px-1.5 py-0.5 text-[9px] font-bold text-amber-700">VIP</span>}
                 </div>
                 <div className="text-[12px] text-ink-tertiary">{row.g.room}{row.g.checkIn ? ` · ${row.g.checkIn} – ${row.g.checkOut}` : ""}</div>
               </div>
               <ChevronRight className="h-4 w-4 shrink-0 text-ink-tertiary" />
             </button>
-          ) : (
+          ) : row.stage === "Upcoming" ? (
             <button key={row.g.name} onClick={() => nav.push({ name: "preArrivalProfile", id: row.g.name })} className={`w-full rounded-2xl bg-white p-3.5 text-left ${CARD_SHADOW}`}>
               <div className="flex items-center gap-2">
                 <span className="text-[14px] font-semibold text-ink">{row.g.name}</span>
-                <span className="shrink-0 rounded-full bg-blue-50 px-1.5 py-0.5 text-[9px] font-bold text-blue-700">Upcoming</span>
-                {row.g.vip && <span className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[9px] font-bold text-amber-700">VIP</span>}
+                <span className="shrink-0 rounded-full bg-blue-50 px-1.5 py-0.5 text-[9px] font-bold text-blue-700">Pre-arrival</span>
                 <ChevronRight className="ml-auto h-4 w-4 shrink-0 text-ink-tertiary" />
               </div>
               <div className="mt-0.5 text-[12px] text-ink-tertiary">{row.g.room}</div>
               <div className="mt-1 text-[12px] font-semibold text-brand">Arriving {row.g.eta}</div>
               <p className="mt-1.5 text-[12px] leading-snug text-ink-secondary">{row.g.notes}</p>
             </button>
+          ) : (
+            <div key={row.g.name} className={`flex items-center gap-3 rounded-2xl bg-white p-3.5 opacity-70 ${CARD_SHADOW}`}>
+              <Avatar name={row.g.name} />
+              <div className="min-w-0 flex-1 leading-tight">
+                <div className="flex items-center gap-2">
+                  <span className="truncate text-[14px] font-semibold text-ink">{row.g.name}</span>
+                  <span className="shrink-0 rounded-full bg-slate-100 px-1.5 py-0.5 text-[9px] font-bold text-slate-600">Checked out</span>
+                </div>
+                <div className="text-[12px] text-ink-tertiary">{row.g.room} · {row.g.checkIn} – {row.g.checkOut}</div>
+              </div>
+            </div>
           ),
         )}
         {!rosterFiltered.length && <p className="rounded-2xl bg-white p-6 text-center text-[13px] text-ink-tertiary">No guests match.</p>}
@@ -1261,15 +1245,9 @@ export function ManagerPrototype() {
 
   const RosterFilterSheet = rosterFilterOpen && (
     <Sheet title="Filter guests" onClose={() => setRosterFilterOpen(false)}>
-      <Label>Stay status</Label>
       <Chips items={ROSTER_STAGE_FILTERS} active={stageFilter} onChange={setStageFilter} />
-      <div className="mt-5" />
-      <Label>Show</Label>
-      <Chips items={GUEST_FILTERS} active={rosterFilter} onChange={setRosterFilter} />
       <PrimaryButton className="mt-6 w-full" onClick={() => setRosterFilterOpen(false)}>Done</PrimaryButton>
-      {rosterActiveFilters > 0 && (
-        <GhostButton className="mt-2 w-full" onClick={() => { setStageFilter("All"); setRosterFilter("All"); }}>Clear filters</GhostButton>
-      )}
+      {rosterActiveFilters > 0 && <GhostButton className="mt-2 w-full" onClick={() => setStageFilter("All")}>Clear filter</GhostButton>}
     </Sheet>
   );
 
@@ -1290,7 +1268,7 @@ export function ManagerPrototype() {
           onClick={() => {
             nav.reset(); setTasks(SEED_TASKS); setRooms(ROOMS); setSheet(null); setNeedHelpReason(""); setChat({}); setManual({});
             setFilter("All"); setRoleFilter("All"); setAvailFilter("All"); setGuestFilter("All"); setGuestQuery("");
-            setTaskFilter("All"); setTaskQuery(""); setStageFilter("All"); setRosterFilter("All"); setStaffTab("Overview"); setRoomFilter("All"); setRoomSheet(null); setPreArrivalDone({});
+            setTaskFilter("All"); setTaskQuery(""); setStageFilter("All"); setRosterQuery(""); setTeamQuery(""); setStaffTab("Overview"); setRoomFilter("All"); setRoomSheet(null); setPreArrivalDone({});
           }}
         >
           Reset

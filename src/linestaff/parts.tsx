@@ -158,7 +158,6 @@ export function DetailBody({ task, viewer }: { task: MTask; viewer: "supervisor"
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-[18px] font-semibold text-ink">{task.room}</span>
               <PriorityPill p={task.priority} />
-              {task.vip && <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-bold text-amber-700">VIP</span>}
             </div>
             <div className="mt-1 text-[14px] font-medium text-ink">{task.title}</div>
             <div className="mt-1.5 flex flex-wrap items-center gap-2">
