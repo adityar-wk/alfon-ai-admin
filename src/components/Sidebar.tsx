@@ -16,6 +16,7 @@ import {
   LayoutDashboard,
   Check,
   ChevronsUpDown,
+  MessageSquare,
 } from "lucide-react";
 import { Logo } from "./Logo";
 import { PERSONAS, usePersona, type PersonaKey } from "../persona";
@@ -48,8 +49,11 @@ const GM_NAV: Item[] = [
 const MID_NAV: Item[] = [
   { label: "Dashboard", to: "/department", icon: LayoutDashboard },
   { label: "Tasks", to: "/tasks", icon: CheckSquare },
+  { label: "Pre-Arrival", to: "/pre-arrival", icon: Plane },
   { label: "Team", to: "/team", icon: Users },
   { label: "Housekeeping", to: "/housekeeping", icon: BedDouble },
+  { label: "Guests", to: "/guests", icon: UserRound },
+  { label: "Guest Communication", to: "/guest-communication", icon: MessageSquare },
   { label: "Analytics", to: "/analytics", icon: BarChart3 },
   { label: "Reports", to: "/reports", icon: FileText },
 ];

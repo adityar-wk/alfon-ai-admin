@@ -49,7 +49,7 @@ export const PERSONAS: Record<PersonaKey, Persona> = {
 };
 
 /** Routes a Mid Manager does not have (setup, configuration, hotel-wide directories, other personas). */
-export const MID_BLOCKED = ["/onboarding", "/departments", "/settings", "/pre-arrival", "/line-staff", "/guests", "/team/roles", "/home"];
+export const MID_BLOCKED = ["/onboarding", "/departments", "/settings", "/line-staff", "/team/roles", "/home"];
 
 /** Normalise the different spellings of a department used across the mock data. */
 export const canonDept = (d: string) => (d === "F&B" || d === "Food and Beverage" ? "Food & Beverage" : d);
