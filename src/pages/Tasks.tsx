@@ -596,7 +596,7 @@ const APPROVERS = ["Sophia Carter (General Manager)", "Duty Manager", "Daniel Re
 
 
 const STATUS_PILL: Record<Status, string> = {
-  "Yet to be picked": "bg-amber-50 text-amber-700",
+  "Yet to Assign": "bg-amber-50 text-amber-700",
   "In Progress": "bg-blue-50 text-blue-600",
   Escalated: "bg-red-50 text-red-600",
   Completed: "bg-emerald-50 text-emerald-600",
@@ -702,7 +702,7 @@ function ManagerTaskWindow({
 
   // timeline derived from the task
   const t0 = 9 * 60 + 30 + ((task.id * 7) % 40);
-  const started = task.status !== "Yet to be picked" || false;
+  const started = task.status !== "Yet to Assign" || false;
   const steps: { done: boolean; title: string; sub?: string }[] = [
     { done: true, title: `Task Created — ${clockText(t0)}`, sub: task.source === "Guest Chat" ? "Generated from guest WhatsApp request" : task.source === "PMS" ? "Synced from PMS" : "Created by staff" },
     task.owner
@@ -923,7 +923,7 @@ function ManagerTaskWindow({
           onOk={() => {
             const [owner, ...others] = assignSel;
             onApply(
-              { owner, support: others, status: task.status === "Yet to be picked" ? "In Progress" : task.status },
+              { owner, support: others, status: task.status === "Yet to Assign" ? "In Progress" : task.status },
               task.owner ? "Reassigned" : "Assigned",
               `${task.owner ?? "Unassigned"} → ${assignSel.join(", ")} (${task.dept})`,
               `Assigned to ${assignSel.join(", ")}`,
@@ -955,7 +955,7 @@ function ManagerTaskWindow({
           </div>
           {task.owner && (
             <button
-              onClick={() => { onApply({ owner: null, support: [], status: "Yet to be picked" }, "Reopened", "Reopened for anyone to pick up", "Task reopened for others to pick up"); settleHelp(); setAssignOpen(false); }}
+              onClick={() => { onApply({ owner: null, support: [], status: "Yet to Assign" }, "Reopened", "Reopened for anyone to pick up", "Task reopened for others to pick up"); settleHelp(); setAssignOpen(false); }}
               className="mt-3 text-[12px] font-medium text-ink-secondary hover:text-ink"
             >
               Make it an open task instead
@@ -1018,7 +1018,7 @@ function ManagerTaskWindow({
             </div>
             <div className="mt-4">
               <button
-                onClick={() => { onApply({ owner: null, status: "Yet to be picked" }, "Reopened", "Reopened for anyone to pick up", "Task reopened for others to pick up"); settleHelp(); setPanel(null); }}
+                onClick={() => { onApply({ owner: null, status: "Yet to Assign" }, "Reopened", "Reopened for anyone to pick up", "Task reopened for others to pick up"); settleHelp(); setPanel(null); }}
                 className="w-full rounded-xl border border-line px-4 py-3 text-left hover:border-brand hover:bg-brand-tint/30"
               >
                 <span className="block text-[14px] font-semibold text-ink">Make it an open task</span>
@@ -1247,7 +1247,7 @@ function NewTask({
       owner: owner || STAFF[dept][0],
       priority: "Medium",
       sla: { kind: "left", text: "40 min left" },
-      status: "Yet to be picked",
+      status: "Yet to Assign",
       source: "Staff",
       details: details.trim() || undefined,
     });
