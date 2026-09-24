@@ -53,7 +53,7 @@ export function GuestChat({
     <div className={`flex min-h-0 flex-col ${className}`}>
       <div
         className={`flex items-center justify-between gap-3 px-4 py-2 text-[12px] ${
-          mode === "auto" ? "bg-brand-tint text-brand" : "bg-[#FBDCCB]/60 text-brand"
+          mode === "auto" ? "bg-subtle/70 text-ink-secondary" : "bg-brand-tint/60 text-brand"
         }`}
       >
         <span>
@@ -62,13 +62,13 @@ export function GuestChat({
             : "You're replying manually. ALFON is paused for this guest."}
         </span>
         {mode === "auto" && (
-          <button onClick={() => setMode("manual")} className="font-semibold hover:underline">
+          <button onClick={() => setMode("manual")} className="font-semibold text-brand hover:underline">
             Take over
           </button>
         )}
       </div>
 
-      <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-4 py-4">
+      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 py-5">
         {msgs.length === 0 && <p className="pt-12 text-center text-[13px] text-ink-tertiary">{emptyText}</p>}
         {msgs.map((m, i) => {
           const mine = m.from !== "guest";
@@ -76,12 +76,12 @@ export function GuestChat({
             <div key={i} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
               <div
                 className={`max-w-[80%] rounded-2xl px-3.5 py-2.5 text-[13px] leading-relaxed text-ink ${
-                  m.from === "guest" ? "bg-subtle" : m.from === "ai" ? "bg-brand-tint" : "bg-[#FBDCCB]"
+                  m.from === "guest" ? "bg-subtle" : m.from === "ai" ? "border border-brand/10 bg-[#FFF8F4]" : "bg-brand-tint"
                 }`}
               >
                 {m.text}
                 <div className="mt-1 flex items-center gap-2 text-[10px] text-ink-tertiary">
-                  {m.from === "ai" && <span className="font-semibold text-brand">ALFON AI</span>}
+                  {m.from === "ai" && <span className="font-semibold text-ink-secondary">ALFON AI</span>}
                   {m.from === "staff" && <span className="font-semibold text-brand">You</span>}
                   {m.time}
                 </div>
