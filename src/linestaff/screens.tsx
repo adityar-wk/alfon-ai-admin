@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Bell, Send, Plus, BedDouble, User, Building2, ChevronLeft, ChevronRight, ArrowUpRight, ListChecks, MessageCircle, Search } from "lucide-react";
 import { DEPARTMENTS } from "../data/departments";
 import {
@@ -56,7 +56,14 @@ type Task = {
   dept?: string;
   compensation?: { type: string; reason: string; by: string }[];
   escalatedTo?: "Supervisor" | "Mid Manager";
+  assignedBy?: string;
 };
+
+const ASSIGNED_SAMPLES = [
+  { title: "Duvet & pillow set replacement", room: "Room 907", note: "Replace the duvet and add a hypoallergenic pillow set.", total: 30, by: "Sarah Ali · Supervisor", guest: "Marco Bianchi", roomType: "Deluxe King", floor: 9, stay: "Arriving today · 3 nights", prefs: ["Hypoallergenic bedding"] },
+  { title: "Minibar restock", room: "Room 1410", note: "Restock the minibar before the guest returns from dinner.", total: 45, by: "Daniel Reyes · Mid Manager", guest: "Olivia Turner", roomType: "Deluxe Room", floor: 14, stay: "In house · 2 nights", prefs: ["Sparkling water"] },
+  { title: "Turndown service", room: "Room 1206", note: "Evening turndown with extra water bottles.", total: 25, by: "Sarah Ali · Supervisor", guest: "James Whitfield", roomType: "Executive Room", floor: 12, stay: "In house · 3 nights", prefs: ["Late turndown"] },
+];
 
 const INITIAL: Task[] = [
   {
@@ -117,6 +124,7 @@ function LsCard({ t, onOpen, onAccept }: { t: Task; onOpen?: () => void; onAccep
           <div className="text-[14px] font-semibold leading-snug text-ink">{t.title}</div>
           <div className="mt-0.5 text-[12px] font-medium text-ink-secondary">{t.room}</div>
           <p className="mt-1.5 line-clamp-2 text-[12px] leading-snug text-ink-tertiary">{t.note}</p>
+          {t.assignedBy && !done && <span className="mt-1.5 mr-1.5 inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-semibold text-blue-600">Assigned by {t.assignedBy.split(" · ")[1]}</span>}
           {t.escalatedTo && !done && <span className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-semibold text-red-600"><ArrowUpRight className="h-3 w-3" /> Escalated to {t.escalatedTo}</span>}
           {done && t.time && <div className="mt-1.5 text-[11px] font-medium text-emerald-600">✓ {t.time}</div>}
         </div>
@@ -148,7 +156,9 @@ export function LineStaffPrototype() {
   const { flash, node: toast } = useToast();
   const [tasks, setTasks] = useState<Task[]>(INITIAL);
   const [available, setAvailable] = useState(true);
-  const [incoming, setIncoming] = useState(false);
+  const [incoming, setIncoming] = useState<{ id: string; title: string; room: string; total: number; by: string } | null>(null);
+  const [bannerIn, setBannerIn] = useState(false);
+  const [assignCount, setAssignCount] = useState(0);
   const [helpOpen, setHelpOpen] = useState(false);
   const [helpKind, setHelpKind] = useState<HelpKind>("escalate");
   const [helpNote, setHelpNote] = useState("");
@@ -208,6 +218,23 @@ export function LineStaffPrototype() {
     flash("Task complete — review the reply to your guest");
     nav.push({ name: "guestChat", id: t.guest });
   };
+
+  // a task pushed to this staff member by a supervisor / mid manager: already assigned, so it lands in progress
+  const simulateAssigned = () => {
+    const s = ASSIGNED_SAMPLES[assignCount % ASSIGNED_SAMPLES.length];
+    const id = "n" + Date.now();
+    setTasks((ts) => [{ id, title: s.title, room: s.room, note: s.note, status: "progress", left: s.total, total: s.total, guest: s.guest, roomType: s.roomType, floor: s.floor, stay: s.stay, prefs: s.prefs, source: s.by, created: "Just now", assignedBy: s.by }, ...ts]);
+    setAssignCount((n) => n + 1);
+    setBannerIn(false);
+    setIncoming({ id, title: s.title, room: s.room, total: s.total, by: s.by });
+  };
+
+  useEffect(() => {
+    if (!incoming) return;
+    const show = setTimeout(() => setBannerIn(true), 30);
+    const hide = setTimeout(() => setIncoming(null), 7000);
+    return () => { clearTimeout(show); clearTimeout(hide); };
+  }, [incoming]);
 
   const openCreate = () => {
     setDept(""); setService(""); setRoom(""); setDetails("");
@@ -526,42 +553,38 @@ export function LineStaffPrototype() {
         )}
 
         {incoming && (
-          <div className="absolute inset-0 z-40">
-            <button className="absolute inset-0 bg-black/45" onClick={() => setIncoming(false)} aria-label="Dismiss" />
-            <div className="absolute inset-x-0 bottom-0 rounded-t-[28px] bg-white p-6 shadow-2xl">
-              <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-[#DADADA]" />
+          <div className="absolute inset-x-3 top-3 z-50">
+            <button
+              onClick={() => { openTask(incoming.id); setIncoming(null); }}
+              aria-label="New task assigned"
+              className={`block w-full rounded-2xl bg-white p-3.5 text-left shadow-[0_10px_30px_rgba(0,0,0,0.25)] ring-1 ring-black/5 transition-all duration-300 ${bannerIn ? "translate-y-0 opacity-100" : "-translate-y-6 opacity-0"}`}
+            >
               <div className="flex items-center gap-3">
-                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-brand-tint text-brand"><Bell className="h-5 w-5" /></span>
-                <div>
-                  <div className="text-[15px] font-semibold text-ink">New task assigned</div>
-                  <div className="text-[12px] text-ink-secondary">by your supervisor</div>
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-tint text-brand"><Bell className="h-[18px] w-[18px]" /></span>
+                <div className="min-w-0 flex-1 leading-tight">
+                  <div className="text-[13px] font-semibold text-ink">New task assigned to you</div>
+                  <div className="text-[11px] text-ink-tertiary">by {incoming.by}</div>
+                </div>
+                <span className="shrink-0 text-[11px] text-ink-tertiary">now</span>
+              </div>
+              <div className="mt-2.5 rounded-xl bg-[#F6F6F8] px-3 py-2.5">
+                <div className="truncate text-[14px] font-semibold text-ink">{incoming.title}</div>
+                <div className="mt-0.5 flex items-center justify-between text-[12px] text-ink-secondary">
+                  <span>{incoming.room}</span>
+                  <span className="font-semibold text-brand">SLA {incoming.total} min</span>
                 </div>
               </div>
-              <div className="mt-4">
-                <LsCard t={{ id: "x", title: "Duvet & pillow set replacement", room: "Room 907", note: "Replace the duvet and add a hypoallergenic pillow set.", status: "pending", left: 20, total: 30, guest: "", roomType: "", floor: 0, stay: "", prefs: [], source: "", created: "" }} />
-              </div>
-              <PrimaryButton
-                className="mt-4 w-full"
-                onClick={() => {
-                  const id = "n" + Date.now();
-                  setTasks((ts) => [{ id, title: "Duvet & pillow set replacement", room: "Room 907", note: "Replace the duvet and add a hypoallergenic pillow set.", status: "progress", left: 20, total: 30, guest: "Marco Bianchi", roomType: "Deluxe King", floor: 9, stay: "Arriving today · 3 nights", prefs: ["Hypoallergenic bedding"], source: "Supervisor", created: "Just now" }, ...ts]);
-                  setIncoming(false);
-                  openTask(id);
-                }}
-              >
-                Accept
-              </PrimaryButton>
-            </div>
+            </button>
           </div>
         )}
         {toast}
       </PhoneFrame>
 
       <div className="flex flex-wrap items-center justify-center gap-2">
-        <button className="rounded-lg bg-brand px-3 py-1.5 text-[12px] font-semibold text-white" onClick={() => setIncoming(true)}>Simulate new task assignment</button>
+        <button className="rounded-lg bg-brand px-3 py-1.5 text-[12px] font-semibold text-white" onClick={simulateAssigned}>Simulate assigned task</button>
         <button
           className="rounded-lg border border-line bg-white px-3 py-1.5 text-[12px] font-medium text-ink-secondary"
-          onClick={() => { nav.reset(); setIncoming(false); setTasks(INITIAL); setAvailable(true); setChat({}); setManual({}); setAiDrafts({}); }}
+          onClick={() => { nav.reset(); setIncoming(null); setAssignCount(0); setTasks(INITIAL); setAvailable(true); setChat({}); setManual({}); setAiDrafts({}); }}
         >
           Reset
         </button>

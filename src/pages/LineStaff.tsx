@@ -17,6 +17,7 @@ const INFO: Record<Tab, { title: string; blurb: string; flows: string[]; include
     blurb: "On-the-floor app for housekeeping and other line staff — do the next task, ask for help, create a manual task.",
     flows: [
       "Bottom nav: Tasks and Chats",
+      "Assigned by a supervisor or mid manager: a drop-down banner shows the task and its SLA (no Accept needed — it is already yours)",
       "Tasks: In progress, Pending and Completed tasks in one list",
       "Each card shows the task name first, the room second and the SLA timer",
       "Pending cards have ✕ Reject and Accept inside the card",
