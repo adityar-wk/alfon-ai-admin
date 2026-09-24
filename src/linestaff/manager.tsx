@@ -382,6 +382,12 @@ export function ManagerPrototype() {
     </button>
   );
 
+  const bellBtn = (
+    <button onClick={() => nav.push({ name: "notifications" })} aria-label="Notifications" className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white shadow-sm">
+      <Bell className="h-[18px] w-[18px]" /><span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500" />
+    </button>
+  );
+
   const Home = shell("home", (
     <>
       <div className="flex items-center justify-between px-6 py-2">
@@ -392,9 +398,7 @@ export function ManagerPrototype() {
             <div className="text-[12px] text-ink-secondary">Housekeeping · Department Head</div>
           </div>
         </div>
-        <button onClick={() => nav.push({ name: "notifications" })} aria-label="Notifications" className="relative flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-sm">
-          <Bell className="h-[18px] w-[18px]" /><span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500" />
-        </button>
+        {bellBtn}
       </div>
 
       <div className="mt-5"><SectionTitle tone="bg-brand">Department operations</SectionTitle></div>
@@ -427,9 +431,12 @@ export function ManagerPrototype() {
             <div className="text-[12px] text-ink-secondary">All Housekeeping tasks</div>
           </div>
         </div>
-        <button onClick={openCreate} className="flex h-9 items-center gap-1.5 rounded-2xl bg-brand px-3.5 text-[13px] font-semibold text-white shadow-sm">
-          <Plus className="h-4 w-4" /> Create
-        </button>
+        <div className="flex items-center gap-2">
+          {bellBtn}
+          <button onClick={openCreate} className="flex h-10 items-center gap-1.5 rounded-2xl bg-brand px-3.5 text-[13px] font-semibold text-white shadow-sm">
+            <Plus className="h-4 w-4" /> Create
+          </button>
+        </div>
       </div>
       <div className="mt-3 px-6">
         <div className="relative">
@@ -668,6 +675,7 @@ export function ManagerPrototype() {
             <div className="text-[12px] text-ink-secondary">Chat with guests</div>
           </div>
         </div>
+        {bellBtn}
       </div>
       <div className="mt-3 flex items-center gap-2 px-6">
         <div className="relative flex-1">
