@@ -979,7 +979,7 @@ export function ManagerPrototype() {
     <div className="flex h-full flex-col">
       <ScreenHeader title="More" onBack={nav.back} />
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-6 pb-6 pt-2 no-scrollbar">
-        <div className="rounded-2xl bg-brand-tint p-4">
+        <div className={`rounded-2xl bg-white p-4 ${CARD_SHADOW}`}>
           <div className="flex items-center gap-3.5">
             <Avatar name={ME} size={56} tone="bg-brand text-white" />
             <div className="min-w-0 leading-tight">
@@ -988,7 +988,7 @@ export function ManagerPrototype() {
               <div className="text-[12px] text-ink-secondary">Housekeeping · Department Head</div>
             </div>
           </div>
-          <div className="mt-3.5 flex items-center justify-between rounded-xl bg-white px-3.5 py-2.5">
+          <div className="mt-3.5 flex items-center justify-between rounded-xl bg-[#F6F6F8] px-3.5 py-2.5">
             <div className="leading-tight">
               <div className="text-[13px] font-semibold text-ink">Availability</div>
               <div className={`text-[11px] ${available ? "text-emerald-600" : "text-ink-tertiary"}`}>{available ? "Available" : "Off work"}</div>

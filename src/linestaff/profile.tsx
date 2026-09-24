@@ -18,7 +18,7 @@ export function ProfileScreen({
     <div className="flex h-full flex-col">
       <ScreenHeader title="Profile" onBack={onBack} />
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-6 pb-6 pt-2 no-scrollbar">
-        <div className="flex items-center gap-3.5 rounded-2xl bg-brand-tint p-4">
+        <div className={`flex items-center gap-3.5 rounded-2xl bg-white p-4 ${CARD_SHADOW}`}>
           <Avatar name={name} size={56} tone="bg-brand text-white" />
           <div className="min-w-0 leading-tight">
             <div className="truncate text-[17px] font-bold text-ink">{name}</div>
