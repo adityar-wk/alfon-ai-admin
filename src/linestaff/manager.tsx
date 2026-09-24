@@ -1003,6 +1003,14 @@ export function ManagerPrototype() {
             </button>
           </div>
         </div>
+        <button onClick={() => nav.push({ name: "notifSettings" })} className={`flex w-full items-center gap-3 rounded-2xl bg-white p-4 text-left ${CARD_SHADOW}`}>
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#F1F1F3] text-ink-secondary"><SlidersHorizontal className="h-[18px] w-[18px]" /></div>
+          <div className="min-w-0 flex-1 leading-tight">
+            <div className="text-[14px] font-semibold text-ink">Notification settings</div>
+            <div className="text-[12px] text-ink-tertiary">Choose which alerts you get</div>
+          </div>
+          <ChevronRight className="h-4 w-4 shrink-0 text-ink-tertiary" />
+        </button>
         {MENU_ITEMS.map((m) => (
           <button
             key={m.key}
