@@ -23,7 +23,7 @@ import {
 import { Topbar } from "../components/Topbar";
 import { GuestChat, type ChatMsg, type ChatMode } from "../components/GuestChat";
 import { Page, Card, Button, Field, Input, Select, Textarea } from "../components/ui";
-import { TASKS, logAudit, type Task, type Priority, type Status } from "../data/tasks";
+import { TASKS, logAudit, pendingHelpFor, resolveHelp, type Task, type Priority, type Status } from "../data/tasks";
 import { GUESTS } from "../data/guests";
 import { usePersona } from "../persona";
 import { ScopePicker } from "../components/ScopePicker";
@@ -580,8 +580,47 @@ function TaskWindow({
 type Panel = null | "reassign" | "support" | "note" | "escalate" | "unable" | "override";
 
 
+const SLA_TARGET: Record<Priority, number> = { Critical: 10, High: 20, Medium: 40, Low: 60 };
+const slaMinutes = (text: string) => {
+  const h = text.match(/(\d+)\s*hr/);
+  const m = text.match(/(\d+)\s*min/);
+  return (h ? Number(h[1]) * 60 : 0) + (m ? Number(m[1]) : 0);
+};
+
+function SlaTimer({ task }: { task: Task }) {
+  const target = SLA_TARGET[task.priority];
+  const met = task.sla.kind === "met" || task.status === "Completed";
+  const start = task.sla.kind === "overdue" ? -slaMinutes(task.sla.text) * 60 : slaMinutes(task.sla.text) * 60;
+  const [secs, setSecs] = useState(start);
+  useEffect(() => {
+    if (met) return;
+    const id = window.setInterval(() => setSecs((x) => x - 1), 1000);
+    return () => window.clearInterval(id);
+  }, [met]);
+  const total = Math.max(target, Math.ceil(Math.abs(start) / 60)) * 60;
+  const over = !met && secs < 0;
+  const frac = met ? 1 : over ? 1 : Math.max(0.03, Math.min(1, secs / total));
+  const tone = met ? "text-emerald-600" : over ? "text-red-600" : frac < 0.25 ? "text-brand" : "text-emerald-600";
+  const bar = met ? "bg-emerald-500" : over ? "bg-red-500" : frac < 0.25 ? "bg-brand" : "bg-emerald-500";
+  const abs = Math.abs(secs);
+  const clock = `${over ? "-" : ""}${String(Math.floor(abs / 60)).padStart(2, "0")}:${String(abs % 60).padStart(2, "0")}`;
+  return (
+    <div className="rounded-2xl border border-line bg-white p-4 shadow-sm">
+      <div className="text-[11px] font-semibold uppercase tracking-wide text-ink-tertiary">SLA target: {target} minutes</div>
+      <div className={`mt-1 font-mono text-[34px] font-bold leading-tight ${tone}`}>{met ? "Met" : clock}</div>
+      <div className="mt-2 h-2 overflow-hidden rounded-full bg-subtle"><div className={`h-full rounded-full ${bar}`} style={{ width: `${frac * 100}%` }} /></div>
+    </div>
+  );
+}
+
+const clockText = (mins: number) => {
+  const m = ((mins % 1440) + 1440) % 1440;
+  const h = Math.floor(m / 60);
+  return `${String(h % 12 === 0 ? 12 : h % 12).padStart(2, "0")}:${String(m % 60).padStart(2, "0")} ${h < 12 ? "AM" : "PM"}`;
+};
+
 function ManagerTaskWindow({
-  task, allTasks, msgs, onSend, onClose, onApply,
+  task, onClose, onApply,
 }: {
   task: Task;
   allTasks: Task[];
@@ -591,35 +630,63 @@ function ManagerTaskWindow({
   onApply: (patch: Partial<Task>, action: string, detail: string, msg: string, close?: boolean) => void;
 }) {
   const [panel, setPanel] = useState<Panel>(null);
-  const [mode, setMode] = useState<ChatMode>("auto");
-  const { me: mgr, inScope } = usePersona();
+  const [, force] = useState(0);
+  const { me: mgr } = usePersona();
   const [person, setPerson] = useState("");
   const [support, setSupport] = useState<string[]>(task.support ?? []);
   const [text, setText] = useState("");
 
-  const guest = GUESTS.find((g) => g.name === task.guest);
-  const prefs = PREFS[task.guest];
-  const previous = allTasks.filter((t) => t.guest === task.guest && t.id !== task.id && inScope(t.dept));
-  const thread = msgs ?? seedThread(task);
-  const closed = task.status === "Completed" || task.status === "Unable to Complete";
-  const summary =
-    task.summary ??
-    `${task.guest} (Room ${task.room}) asked for “${task.title.toLowerCase()}” via ${task.source.toLowerCase()}. It's ${task.status.toLowerCase()} with ${task.dept}${task.owner ? `, owned by ${task.owner}` : " and has no owner yet"}.`;
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", h);
+    return () => window.removeEventListener("keydown", h);
+  }, [onClose]);
 
+  const closed = task.status === "Completed" || task.status === "Unable to Complete";
+  const help = pendingHelpFor(task.id);
+  const me = `${mgr.name} (${mgr.role})`;
+  const teamMates = (STAFF[task.dept] ?? []).filter((s) => s !== task.owner);
   const open = (p: Panel) => {
     setPanel((cur) => (cur === p ? null : p));
     setText("");
     setPerson("");
   };
-  const me = `${mgr.name} (${mgr.role})`;
-  const teamMates = (STAFF[task.dept] ?? []).filter((s) => s !== task.owner);
 
-  const btn = (p: Exclude<Panel, null>, label: string) => (
+  // timeline derived from the task
+  const t0 = 9 * 60 + 30 + ((task.id * 7) % 40);
+  const started = task.status !== "Pending" || false;
+  const steps: { done: boolean; title: string; sub?: string }[] = [
+    { done: true, title: `Task Created — ${clockText(t0)}`, sub: task.source === "Guest Chat" ? "Generated from guest WhatsApp request" : task.source === "PMS" ? "Synced from PMS" : "Created by staff" },
+    task.owner
+      ? { done: true, title: `Task Assigned — ${clockText(t0 + 1)}`, sub: `Assigned to ${task.owner} (${task.dept})` }
+      : { done: false, title: "Task Assigned — Pending", sub: "Waiting for an owner" },
+    task.owner && started
+      ? { done: true, title: `Task Accepted — ${clockText(t0 + 4)}`, sub: `${task.owner} confirmed receipt` }
+      : { done: false, title: "Task Accepted — Pending" },
+    ...(task.status === "Escalated"
+      ? [{ done: true, title: `Task Escalated — ${clockText(t0 + 20)}`, sub: `Escalated to ${task.escalatedTo ?? "Department Head"}` }]
+      : []),
+    task.status === "Completed"
+      ? { done: true, title: `Task Completed — ${clockText(t0 + 30)}`, sub: task.resolution }
+      : task.status === "Unable to Complete"
+        ? { done: true, title: "Marked Unable to Complete", sub: task.resolution }
+        : { done: false, title: "Task Completed — Pending" },
+  ];
+
+  const notes = [
+    ...(task.escalation ? [{ author: "Escalation", text: task.escalation, time: "" }] : []),
+    ...(task.notes ?? []),
+  ];
+  const description =
+    task.details ?? task.summary ?? `${task.guest} (Room ${task.room}) asked for “${task.title.toLowerCase()}” via ${task.source.toLowerCase()}.`;
+  const initials = (n: string) => n.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
+
+  const smallBtn = (p: Exclude<Panel, null>, label: string) => (
     <button
       onClick={() => open(p)}
       disabled={closed}
-      className={`rounded-lg border px-3 py-1.5 text-[12px] font-semibold disabled:opacity-40 ${
-        panel === p ? "border-brand bg-brand-tint text-brand" : "border-line bg-white text-ink-secondary hover:bg-subtle"
+      className={`flex-1 rounded-lg border px-3 py-2.5 text-[13px] font-semibold disabled:opacity-40 ${
+        panel === p ? "border-brand bg-brand-tint text-brand" : "border-line bg-white text-ink hover:bg-subtle"
       }`}
     >
       {label}
@@ -627,87 +694,106 @@ function ManagerTaskWindow({
   );
 
   return (
-    <Overlay onClose={onClose} wide>
-      <div className="flex items-start gap-3 border-b border-line px-6 py-4">
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <h2 className="text-[17px] font-bold leading-tight text-ink">{task.title}</h2>
-            {task.vip && <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-700">VIP</span>}
-          </div>
-          <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-ink-secondary">
-            <span>{task.dept}</span>
-            <span>Room {task.room}</span>
-            <span>via {task.source}</span>
-            <StatusLabel s={task.status} />
-            {task.escalatedTo && <span className="font-medium text-red-600">Escalated to {task.escalatedTo}</span>}
-          </div>
+    <div className="fixed inset-0 z-50 bg-black/20" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+      <aside role="dialog" aria-label="Task details" className="absolute inset-y-0 right-0 flex w-[460px] max-w-full flex-col bg-white shadow-2xl">
+        <div className="flex items-center justify-between px-6 pb-3 pt-5">
+          <h2 className="text-[20px] font-bold text-ink">{task.title}</h2>
+          <button onClick={onClose} aria-label="Close" className="rounded-md p-1 text-ink-tertiary hover:bg-subtle hover:text-ink">
+            <X className="h-5 w-5" />
+          </button>
         </div>
-        <button onClick={onClose} aria-label="Close" className="rounded-md p-1 text-ink-tertiary hover:bg-subtle hover:text-ink">
-          <X className="h-4 w-4" />
-        </button>
-      </div>
 
-      <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-6 py-5">
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-          <div>
-            <div className="text-[11px] text-ink-tertiary">Assigned to</div>
-            <div className="mt-1 text-[13px] font-medium text-ink">
-              {task.owner ?? <span className="text-brand">Unassigned</span>}
-              {!!task.support?.length && <span className="ml-1 font-normal text-ink-secondary">+ {task.support.join(", ")}</span>}
-            </div>
+        <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-6 pb-5">
+          <div className="flex items-center justify-between">
+            <StatusLabel s={task.status} />
+            <span className="rounded bg-subtle px-1.5 py-0.5 font-mono text-[11px] text-ink-tertiary">#{String(task.id).padStart(3, "0")}</span>
           </div>
-          <div>
-            <div className="text-[11px] text-ink-tertiary">Priority</div>
-            <div className="mt-1"><PriorityLabel p={task.priority} /></div>
+
+          <SlaTimer key={task.id + task.sla.text} task={task} />
+
+          <div className="border-t border-line pt-5">
+            <div className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-ink-tertiary">Task timeline</div>
+            <ol>
+              {steps.map((st, i) => (
+                <li key={i} className="flex gap-3">
+                  <div className="flex flex-col items-center">
+                    <span className={`flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full border ${st.done ? "border-brand text-brand" : "border-line text-transparent"}`}>
+                      <Check className="h-3 w-3" />
+                    </span>
+                    {i < steps.length - 1 && <span className="my-1 w-px flex-1 bg-line" />}
+                  </div>
+                  <div className={`pb-4 ${i === steps.length - 1 ? "pb-0" : ""}`}>
+                    <div className={`text-[14px] ${st.done ? "font-medium text-ink" : "text-ink-tertiary"}`}>{st.title}</div>
+                    {st.sub && <div className="text-[12px] text-ink-secondary">{st.sub}</div>}
+                  </div>
+                </li>
+              ))}
+            </ol>
           </div>
-          <div>
-            <div className="text-[11px] text-ink-tertiary">SLA</div>
-            <div className="mt-1"><SlaText sla={task.sla} /></div>
-          </div>
-          <div>
-            <div className="text-[11px] text-ink-tertiary">Status</div>
-            <div className="mt-1">
-              {closed ? (
-                <StatusLabel s={task.status} />
+
+          <div className="divide-y divide-line/60 border-t border-line pt-1 text-[14px]">
+            <div className="flex items-center justify-between py-2.5"><span className="text-ink-secondary">Guest</span><span className="font-medium text-ink">{task.guest}</span></div>
+            <div className="flex items-center justify-between py-2.5"><span className="text-ink-secondary">Room</span><span className="font-medium text-ink">{task.room}</span></div>
+            <div className="flex items-center justify-between py-2.5"><span className="text-ink-secondary">Department</span><span className="font-medium text-ink">{task.dept}</span></div>
+            <div className="flex items-center justify-between py-2.5">
+              <span className="text-ink-secondary">Assigned To</span>
+              {task.owner ? (
+                <span className="flex items-center gap-2 font-medium text-ink">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-brand text-[10px] font-bold text-white">{initials(task.owner)}</span>
+                  {task.owner}
+                </span>
               ) : (
-                <select
-                  value={task.status}
-                  aria-label="Task status"
-                  onChange={(e) => {
-                    const st = e.target.value as Status;
-                    onApply({ status: st }, "Status changed", `${task.status} → ${st}`, `Status set to ${st}`);
-                  }}
-                  className="h-8 rounded-lg border border-line bg-white px-2 text-[13px] text-ink outline-none focus:border-brand"
-                >
-                  {(["Pending", "In Progress", "Escalated"] as Status[]).map((st) => <option key={st}>{st}</option>)}
-                </select>
+                <span className="font-medium text-brand">Unassigned</span>
               )}
             </div>
+            {!!task.support?.length && (
+              <div className="flex items-center justify-between py-2.5"><span className="text-ink-secondary">Support</span><span className="font-medium text-ink">{task.support.join(", ")}</span></div>
+            )}
           </div>
+
+          {help && (
+            <div className="rounded-xl border border-blue-100 bg-blue-50/50 p-4">
+              <div className="text-[13px] font-semibold text-ink">{help.type} request</div>
+              <p className="mt-1 text-[13px] leading-snug text-ink">{help.reason}</p>
+              <p className="mt-1 text-[11px] text-ink-tertiary">From {help.from}</p>
+              <div className="mt-3 flex gap-2">
+                <button
+                  onClick={() => { onApply({}, `${help.type} declined`, `Requested by ${help.from}`, "Request declined"); resolveHelp(help.id); force((n) => n + 1); }}
+                  className="flex flex-1 items-center justify-center gap-1 rounded-lg border border-line bg-white px-3 py-2 text-[13px] font-semibold text-ink-secondary hover:bg-subtle"
+                >
+                  <X className="h-3.5 w-3.5" /> Decline
+                </button>
+                <button
+                  onClick={() => { onApply({}, `${help.type} approved`, `Requested by ${help.from}`, `${help.type} approved`); resolveHelp(help.id); force((n) => n + 1); }}
+                  className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-brand px-3 py-2 text-[13px] font-semibold text-white hover:bg-brand-hover"
+                >
+                  <Check className="h-3.5 w-3.5" /> Approve
+                </button>
+              </div>
+            </div>
+          )}
+
+          <div className="border-t border-line pt-5">
+            <div className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-ink-tertiary">Notes</div>
+            <div className="rounded-lg border border-line px-3 py-2.5 text-[14px] leading-relaxed text-ink">{description}</div>
+          </div>
+
+          {!!notes.length && (
+            <div className="border-t border-line pt-5">
+              <div className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-ink-tertiary">Internal notes</div>
+              <div className="space-y-2">
+                {notes.map((n, i) => (
+                  <div key={i} className="rounded-lg bg-subtle px-3 py-2.5">
+                    <div className="text-[12px] text-ink-secondary">{[n.time, n.author].filter(Boolean).join(" — ")}</div>
+                    <p className="text-[14px] leading-snug text-ink">{n.text}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
-        {task.escalation && (
-          <div className="flex items-start gap-2.5 rounded-lg border border-red-100 bg-red-50/40 px-3.5 py-3">
-            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-red-500" />
-            <div className="text-[13px] leading-snug text-ink"><span className="font-semibold">Escalated · </span>{task.escalation}</div>
-          </div>
-        )}
-        {task.resolution && (
-          <div className="rounded-lg bg-subtle px-3.5 py-3 text-[13px] text-ink">
-            <span className="font-semibold">Closed by management · </span>{task.resolution}
-          </div>
-        )}
-
-        {/* intervention */}
-        <div>
-          <div className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-ink-secondary">Intervene</div>
-          <div className="flex flex-wrap gap-2">
-            {btn("reassign", "Reassign")}
-            {btn("support", "Add support")}
-            {btn("note", "Add note")}
-            {btn("escalate", "Escalate to GM")}
-          </div>
-
+        <div className="max-h-[52%] shrink-0 space-y-2 overflow-y-auto border-t border-line px-6 py-4">
           {panel === "reassign" && (
             <PanelBox title={`Reassign to another ${task.dept} team member`} ok="Reassign" disabled={!person} onCancel={() => setPanel(null)}
               onOk={() => {
@@ -720,31 +806,24 @@ function ManagerTaskWindow({
               </Select>
             </PanelBox>
           )}
-
           {panel === "support" && (
             <PanelBox title={`Add support from ${task.dept}`} ok="Add" disabled={support.length === (task.support ?? []).length && support.every((s) => task.support?.includes(s))} onCancel={() => setPanel(null)}
               onOk={() => {
                 onApply({ support }, "Support added", support.join(", "), "Support staff added");
                 setPanel(null);
               }}>
-              <div className="grid max-h-36 grid-cols-3 gap-x-3 gap-y-1.5 overflow-y-auto">
+              <div className="grid max-h-36 grid-cols-2 gap-x-3 gap-y-1.5 overflow-y-auto">
                 {teamMates.map((s) => (
                   <label key={s} className="flex items-center gap-2 text-[13px] text-ink">
-                    <input
-                      type="checkbox"
-                      className="h-4 w-4 accent-brand"
-                      checked={support.includes(s)}
-                      onChange={(e) => setSupport((cur) => (e.target.checked ? [...cur, s] : cur.filter((x) => x !== s)))}
-                    />
+                    <input type="checkbox" className="h-4 w-4 accent-brand" checked={support.includes(s)} onChange={(e) => setSupport((cur) => (e.target.checked ? [...cur, s] : cur.filter((x) => x !== s)))} />
                     {s}
                   </label>
                 ))}
               </div>
             </PanelBox>
           )}
-
           {panel === "note" && (
-            <PanelBox title="Management note" ok="Save note" disabled={!text.trim()} onCancel={() => setPanel(null)}
+            <PanelBox title="Add note" ok="Save note" disabled={!text.trim()} onCancel={() => setPanel(null)}
               onOk={() => {
                 onApply({ notes: [{ author: me, text: text.trim(), time: "Just now" }, ...(task.notes ?? [])] }, "Note added", text.trim(), "Note added");
                 setPanel(null);
@@ -752,7 +831,6 @@ function ManagerTaskWindow({
               <Textarea rows={2} autoFocus value={text} onChange={(e) => setText(e.target.value)} placeholder="Visible to managers only…" />
             </PanelBox>
           )}
-
           {panel === "escalate" && (
             <PanelBox title="Escalate to General Manager" ok="Escalate" disabled={!text.trim()} onCancel={() => setPanel(null)}
               onOk={() => {
@@ -762,7 +840,6 @@ function ManagerTaskWindow({
               <Textarea rows={2} autoFocus value={text} onChange={(e) => setText(e.target.value)} placeholder="Why does this need the General Manager?" />
             </PanelBox>
           )}
-
           {panel === "unable" && (
             <PanelBox title="Mark as unable to complete" ok="Mark unable" disabled={!text.trim()} onCancel={() => setPanel(null)}
               onOk={() => {
@@ -772,88 +849,25 @@ function ManagerTaskWindow({
             </PanelBox>
           )}
 
-          {panel === "override" && (
-            <PanelBox title="Close / override this task" ok="Close task" disabled={!text.trim()} onCancel={() => setPanel(null)}
-              onOk={() => {
-                onApply({ status: "Completed", sla: { kind: "met", text: "Overridden" }, resolution: text.trim() }, "Override closed", `Reason: ${text.trim()}`, "Task closed with override", true);
-              }}>
-              <Textarea rows={2} autoFocus value={text} onChange={(e) => setText(e.target.value)} placeholder="Reason (required) — recorded in the audit trail" />
-            </PanelBox>
-          )}
-        </div>
-
-        {/* guest context */}
-        <div>
-          <div className="mb-2 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-ink-secondary">
-            <Sparkles className="h-3.5 w-3.5 text-violet-500" /> Guest context — {task.guest}
+          <button
+            onClick={() => onApply({ status: "Completed", sla: { kind: "met", text: "Met" } }, "Marked complete", "Completed by manager", "Task marked complete", true)}
+            disabled={closed}
+            className="w-full rounded-lg bg-emerald-500 py-3 text-[14px] font-semibold text-white hover:bg-emerald-600 disabled:opacity-40"
+          >
+            {closed ? "Closed" : "Mark as Complete"}
+          </button>
+          <div className="flex gap-2">
+            {smallBtn("reassign", "Reassign Task")}
+            {smallBtn("note", "Add Note")}
           </div>
-          <p className="text-[13px] leading-relaxed text-ink">{summary}</p>
-
-          <div className="mt-3 grid grid-cols-2 gap-x-6 gap-y-2 rounded-xl border border-line p-3.5 text-[13px] sm:grid-cols-4">
-            <div><div className="text-[11px] text-ink-tertiary">Room</div><div className="font-medium text-ink">{task.room}{guest ? ` · ${guest.roomType}` : ""}</div></div>
-            <div><div className="text-[11px] text-ink-tertiary">Check-in</div><div className="font-medium text-ink">{guest ? guest.from : "—"}</div></div>
-            <div><div className="text-[11px] text-ink-tertiary">Check-out</div><div className="font-medium text-ink">{guest ? guest.to : "—"}</div></div>
-            <div><div className="text-[11px] text-ink-tertiary">Stay</div><div className="font-medium text-ink">{guest ? `${guest.nights} nights` : "—"}</div></div>
-            <div className="col-span-full text-[11px] text-ink-tertiary">Synced from PMS</div>
-          </div>
-
-          <div className="mt-3">
-            <div className="mb-1.5 text-[11px] text-ink-tertiary">Preferences</div>
-            {prefs ? (
-              <div className="flex flex-wrap gap-1.5">
-                {prefs.map((p) => <span key={p} className="rounded-md bg-subtle px-2.5 py-1 text-[12px] text-ink-secondary">{p}</span>)}
-              </div>
-            ) : (
-              <p className="text-[13px] text-ink-tertiary">No preferences on file.</p>
-            )}
-          </div>
-
-          <div className="mt-3">
-            <div className="mb-1.5 text-[11px] text-ink-tertiary">Previous tasks this stay</div>
-            {previous.length ? (
-              previous.map((t) => (
-                <div key={t.id} className="flex items-center justify-between border-b border-line/70 py-1.5 text-[13px] last:border-0">
-                  <span className="text-ink">{t.title}</span>
-                  <StatusLabel s={t.status} />
-                </div>
-              ))
-            ) : (
-              <p className="text-[13px] text-ink-tertiary">None.</p>
-            )}
+          <div className="flex gap-2">
+            {smallBtn("support", "Add Support")}
+            {smallBtn("escalate", "Escalate to GM")}
+            {smallBtn("unable", "Unable to Complete")}
           </div>
         </div>
-
-        {!!task.notes?.length && (
-          <div>
-            <div className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-ink-secondary">Management notes</div>
-            <div className="space-y-2">
-              {task.notes.map((n, i) => (
-                <div key={i} className="rounded-lg bg-subtle p-3">
-                  <p className="text-[13px] leading-snug text-ink">{n.text}</p>
-                  <p className="mt-1 text-[11px] text-ink-tertiary">{n.author} · {n.time}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {task.source === "Guest Chat" && (
-          <div>
-            <div className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-ink-secondary">Conversation</div>
-            <div className="overflow-hidden rounded-xl border border-line">
-              <GuestChat className="h-[300px]" name={task.guest} msgs={thread} mode={mode} setMode={setMode} onSend={onSend} emptyText="No messages yet." />
-            </div>
-          </div>
-        )}
-      </div>
-
-      <div className="flex items-center gap-2 border-t border-line px-6 py-3.5">
-        <Button variant="outline" onClick={() => open("unable")} disabled={closed}>Unable to complete</Button>
-        <Button className="ml-auto" onClick={() => open("override")} disabled={closed}>
-          <Check className="h-4 w-4" /> {closed ? "Closed" : "Close / override"}
-        </Button>
-      </div>
-    </Overlay>
+      </aside>
+    </div>
   );
 }
 

@@ -99,3 +99,21 @@ export function logAudit(who: string, action: string, task: string, detail: stri
   const time = now.toLocaleDateString("en-US", { month: "short", day: "numeric" }) + ", " + now.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
   AUDIT.unshift({ id: ++auditSeq, time, who, action, task, detail });
 }
+
+/* ---------- help & reassignment requests (raised against a task) ---------- */
+
+export type HelpRequest = { id: number; taskId: number; from: string; type: "Reassignment" | "Extra support"; reason: string; done?: boolean };
+
+export const HELP_REQUESTS: HelpRequest[] = [
+  { id: 1, taskId: 5, from: "Sarah Ali (Supervisor)", type: "Extra support", reason: "Floor 21 team is fully booked until 4 PM." },
+  { id: 2, taskId: 17, from: "Lisa Morgan", type: "Reassignment", reason: "Called away to a VIP turndown; needs someone to take over." },
+  { id: 3, taskId: 7, from: "Raj Patel (Supervisor)", type: "Extra support", reason: "Needs a second technician to isolate the water line." },
+  { id: 4, taskId: 1, from: "Mike Rogers", type: "Reassignment", reason: "Compressor part needed; cannot finish this shift." },
+  { id: 5, taskId: 8, from: "Noah Bennett (Supervisor)", type: "Extra support", reason: "Two group check-ins arriving at the same time." },
+];
+
+export const pendingHelpFor = (taskId: number) => HELP_REQUESTS.find((h) => h.taskId === taskId && !h.done);
+export function resolveHelp(id: number) {
+  const h = HELP_REQUESTS.find((x) => x.id === id);
+  if (h) h.done = true;
+}
