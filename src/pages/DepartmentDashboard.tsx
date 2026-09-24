@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Clock, ChevronRight, Check, X, Send } from "lucide-react";
+import { Clock, ChevronRight, Check, X } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { Page, Card } from "../components/ui";
 import { ScopePicker } from "../components/ScopePicker";
@@ -25,7 +25,6 @@ export default function DepartmentDashboard() {
   const { me, scopeDepts, inScope } = usePersona();
   const [helpDone, setHelpDone] = useState<Set<number>>(new Set());
   const [toast, setToast] = useState<string | null>(null);
-  const [nudged, setNudged] = useState<Set<number>>(new Set());
 
   const flash = (m: string) => {
     setToast(m);
@@ -39,13 +38,14 @@ export default function DepartmentDashboard() {
   const atRisk = open.filter((t) => t.sla.kind === "due");
   const help = HELP.filter((h) => inScope(h.dept) && !helpDone.has(h.id));
 
-  const rank = (t: (typeof TASKS)[number]) => (t.status === "Escalated" ? 0 : t.sla.kind === "overdue" ? 1 : t.sla.kind === "due" ? 2 : 3);
-  const attention = open
-    .filter((t) => t.status === "Escalated" || t.sla.kind === "overdue" || t.sla.kind === "due" || t.owner === null)
-    .sort((a, b) => rank(a) - rank(b))
-    .slice(0, 6);
+  const complaints = open.filter((t) => t.tag === "Complaint");
+  const unassignedCritical = open.filter((t) => t.owner === null && (t.priority === "High" || t.priority === "Critical" || t.sla.kind === "due" || t.sla.kind === "overdue"));
 
-  const supervisorOf = (dept: string) => INITIAL.find((s) => canonDept(s.dept) === dept && /supervisor/i.test(s.role));
+  // needs attention: escalated, unassigned or SLA breached
+  const rank = (t: (typeof TASKS)[number]) => (t.status === "Escalated" ? 0 : t.sla.kind === "overdue" ? 1 : 2);
+  const attention = open
+    .filter((t) => t.status === "Escalated" || t.sla.kind === "overdue" || t.owner === null)
+    .sort((a, b) => rank(a) - rank(b));
 
   // team availability + workload
   const team = INITIAL.filter((s) => inScope(s.dept)).map((s) => {
@@ -53,10 +53,16 @@ export default function DepartmentDashboard() {
     return { ...s, n };
   });
 
-  // performance + recurring issues from the department's analytics
+  // service levels + recurring issues from the department's analytics
   const dm = DEPTS.filter((d) => scopeDepts.includes(canonDept(d.name)));
-  const onTime = Math.round(dm.reduce((a, d) => a + METRICS[d.name].done, 0) / Math.max(dm.length, 1));
+  const totalTasks = dm.reduce((a, d) => a + d.tasks, 0);
+  const completedPct = Math.round(dm.reduce((a, d) => a + d.tasks * METRICS[d.name].done, 0) / Math.max(totalTasks, 1));
   const overdueTotal = dm.reduce((a, d) => a + METRICS[d.name].overdue, 0);
+  const respSecs = dm.reduce((a, d) => {
+    const m = METRICS[d.name].resp.match(/(\d+)m (\d+)s/);
+    return a + (m ? Number(m[1]) * 60 + Number(m[2]) : 0);
+  }, 0) / Math.max(dm.length, 1);
+  const avgResp = `${Math.floor(respSecs / 60)}m ${String(Math.round(respSecs % 60)).padStart(2, "0")}s`;
   const recurring = [
     ...dm.flatMap((d) => d.items.filter(([l]) => l !== "Other").map(([l, v]) => ({ label: l, v, kind: "Requests" as const }))),
     ...Object.entries(COMPLAINT_DETAIL).flatMap(([label, c]) => c.by.filter(([d]) => scopeDepts.includes(canonDept(d))).map(([, v]) => ({ label, v, kind: "Complaints" as const, delta: c.delta }))),
@@ -64,12 +70,19 @@ export default function DepartmentDashboard() {
     .sort((a, b) => b.v - a.v)
     .slice(0, 5);
 
-  const C = 2 * Math.PI * 46;
-  const kpis = [
-    { label: "Escalated to you", value: escalated.length, foot: "Beyond supervisor level", to: "/tasks?view=escalated" },
-    { label: "SLA at risk", value: atRisk.length, foot: "Due within the hour", to: "/tasks?view=risk" },
-    { label: "Overdue / breached", value: overdue.length, foot: "Past SLA window", to: "/tasks?view=overdue" },
-    { label: "Help requests", value: help.length, foot: "Awaiting your decision", to: "" },
+  const ops = [
+    { label: "Open tasks", value: open.length, tone: "text-ink", to: "/tasks?view=all" },
+    { label: "SLA at risk", value: atRisk.length, tone: "text-amber-600", to: "/tasks?view=risk" },
+    { label: "Overdue", value: overdue.length, tone: "text-red-600", to: "/tasks?view=overdue" },
+    { label: "Escalations", value: escalated.length, tone: "text-brand", to: "/tasks?view=escalated" },
+    { label: "Complaints", value: complaints.length, tone: "text-violet-600", to: "/tasks?view=complaints" },
+    { label: "Unassigned critical", value: unassignedCritical.length, tone: "text-red-600", to: "/tasks?view=unassigned" },
+  ];
+  const sla = [
+    { label: "Total tasks", value: totalTasks.toLocaleString(), tone: "text-ink" },
+    { label: "Completed", value: `${completedPct}%`, tone: "text-emerald-600" },
+    { label: "Overdue", value: overdueTotal, tone: "text-red-600" },
+    { label: "Avg response", value: avgResp, tone: "text-ink" },
   ];
 
   const decide = (r: HelpRequest, ok: boolean) => {
@@ -82,17 +95,23 @@ export default function DepartmentDashboard() {
     <>
       <Topbar title="Department Dashboard" subtitle={scopeDepts.join(" · ")} showSearch={false} actions={<ScopePicker />} />
       <Page>
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-          {kpis.map((k) => (
-            <button
-              key={k.label}
-              onClick={() => (k.to ? navigate(k.to) : document.getElementById("help")?.scrollIntoView({ behavior: "smooth" }))}
-              className="rounded-card border border-line bg-white p-4 text-left hover:border-brand/40"
-            >
-              <div className="text-[13px] text-ink-secondary">{k.label}</div>
-              <div className="mt-1 text-[26px] font-bold leading-tight text-ink">{k.value}</div>
-              <div className="text-[12px] text-ink-tertiary">{k.foot}</div>
+        <h3 className="mb-3 flex items-center gap-2.5 text-[16px] font-semibold text-ink"><span className="h-2 w-2 rounded-full bg-brand" /> Department operations</h3>
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
+          {ops.map((k) => (
+            <button key={k.label} onClick={() => navigate(k.to)} className="rounded-card border border-line bg-white p-4 text-left hover:border-brand/40">
+              <div className={`text-[28px] font-bold leading-tight ${k.tone}`}>{k.value}</div>
+              <div className="mt-0.5 text-[13px] text-ink-secondary">{k.label}</div>
             </button>
+          ))}
+        </div>
+
+        <h3 className="mb-3 mt-6 flex items-center gap-2.5 text-[16px] font-semibold text-ink"><span className="h-2 w-2 rounded-full bg-emerald-500" /> Service levels</h3>
+        <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
+          {sla.map((k) => (
+            <div key={k.label} className="rounded-card border border-line bg-white p-4">
+              <div className={`text-[28px] font-bold leading-tight ${k.tone}`}>{k.value}</div>
+              <div className="mt-0.5 text-[13px] text-ink-secondary">{k.label}</div>
+            </div>
           ))}
         </div>
 
@@ -106,42 +125,28 @@ export default function DepartmentDashboard() {
                 </Link>
               </div>
               <div className="divide-y divide-line/70 border-t border-line/70">
-                {attention.map((t) => {
-                  const sup = supervisorOf(canonDept(t.dept));
-                  return (
-                    <div key={t.id} className="flex items-center gap-4 px-5 py-3">
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2 text-[13px] font-semibold text-ink">
-                          {t.title}
-                          {t.status === "Escalated" && <span className="text-[11px] font-medium text-red-600">Escalated</span>}
-                        </div>
-                        <div className="text-[12px] text-ink-tertiary">
-                          {scopeDepts.length > 1 && <>{t.dept} · </>}
-                          {t.guest} · Room {t.room} · {t.owner ?? <span className="font-medium text-brand">Unassigned</span>}
-                        </div>
+                {attention.map((t) => (
+                  <div key={t.id} className="flex items-center gap-4 px-5 py-3">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2 text-[13px] font-semibold text-ink">
+                        {t.title}
+                        {t.status === "Escalated" && <span className="text-[11px] font-medium text-red-600">Escalated</span>}
+                        {t.owner === null && <span className="text-[11px] font-medium text-brand">Unassigned</span>}
+                        {t.sla.kind === "overdue" && <span className="text-[11px] font-medium text-red-600">SLA breached</span>}
                       </div>
-                      <span className={`flex shrink-0 items-center gap-1 text-[12px] ${t.sla.kind === "overdue" ? "font-medium text-red-600" : t.sla.kind === "due" ? "font-medium text-brand" : "text-ink-secondary"}`}>
-                        <Clock className="h-3.5 w-3.5" /> {t.sla.text}
-                      </span>
-                      {sup && (
-                        <button
-                          onClick={() => {
-                            setNudged((n) => new Set(n).add(t.id));
-                            logAudit(me.name, "Followed up", t.title, `Nudged ${sup.name}`);
-                            flash(`Follow-up sent to ${sup.name}`);
-                          }}
-                          disabled={nudged.has(t.id)}
-                          className="flex shrink-0 items-center gap-1 rounded-lg border border-line px-2.5 py-1.5 text-[12px] font-semibold text-ink-secondary hover:bg-subtle disabled:opacity-50"
-                        >
-                          <Send className="h-3 w-3" /> {nudged.has(t.id) ? "Sent" : "Follow up"}
-                        </button>
-                      )}
-                      <Link to={`/tasks?open=${t.id}`} className="shrink-0 rounded-lg bg-brand px-3 py-1.5 text-[12px] font-semibold text-white hover:bg-brand-hover">
-                        Intervene
-                      </Link>
+                      <div className="text-[12px] text-ink-tertiary">
+                        {scopeDepts.length > 1 && <>{t.dept} · </>}
+                        {t.guest} · Room {t.room}{t.owner && <> · {t.owner}</>}
+                      </div>
                     </div>
-                  );
-                })}
+                    <span className={`flex shrink-0 items-center gap-1 text-[12px] ${t.sla.kind === "overdue" ? "font-medium text-red-600" : t.sla.kind === "due" ? "font-medium text-brand" : "text-ink-secondary"}`}>
+                      <Clock className="h-3.5 w-3.5" /> {t.sla.text}
+                    </span>
+                    <Link to={`/tasks?open=${t.id}`} className="shrink-0 rounded-lg border border-line px-3 py-1.5 text-[12px] font-semibold text-ink hover:bg-subtle">
+                      View
+                    </Link>
+                  </div>
+                ))}
                 {!attention.length && <p className="px-5 py-8 text-center text-[13px] text-ink-tertiary">Nothing needs attention in your department.</p>}
               </div>
             </Card>
@@ -194,27 +199,6 @@ export default function DepartmentDashboard() {
               <Link to="/team" className="mt-2 flex items-center gap-1 text-[12px] font-medium text-brand">
                 Open team <ChevronRight className="h-3.5 w-3.5" />
               </Link>
-            </Card>
-
-            <Card className="p-5">
-              <h3 className="text-[15px] font-semibold text-ink">SLA performance</h3>
-              <div className="mt-4 flex items-center gap-5">
-                <div className="relative h-[92px] w-[92px] shrink-0">
-                  <svg viewBox="0 0 116 116" className="h-full w-full -rotate-90">
-                    <circle cx="58" cy="58" r="46" fill="none" strokeWidth="10" className="stroke-subtle" />
-                    <circle cx="58" cy="58" r="46" fill="none" strokeWidth="10" strokeLinecap="round" className="stroke-brand" strokeDasharray={C} strokeDashoffset={C * (1 - onTime / 100)} />
-                  </svg>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-[22px] font-bold leading-none text-ink">{onTime}%</span>
-                    <span className="mt-0.5 text-[10px] text-ink-tertiary">completed</span>
-                  </div>
-                </div>
-                <dl className="flex-1 space-y-1.5 text-[12px]">
-                  <div className="flex justify-between"><dt className="text-ink-secondary">Overdue this week</dt><dd className="font-semibold text-ink">{overdueTotal}</dd></div>
-                  <div className="flex justify-between"><dt className="text-ink-secondary">At risk now</dt><dd className="font-semibold text-ink">{atRisk.length}</dd></div>
-                  <div className="flex justify-between"><dt className="text-ink-secondary">Avg response</dt><dd className="font-semibold text-ink">{dm.length === 1 ? METRICS[dm[0].name].resp : "See analytics"}</dd></div>
-                </dl>
-              </div>
             </Card>
 
             <Card className="p-5">

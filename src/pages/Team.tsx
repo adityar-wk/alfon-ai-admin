@@ -183,10 +183,10 @@ export default function Team() {
   const pct = (n: number) => `${Math.round((n / Math.max(total, 1)) * 100)}%`;
 
   const STATS = [
-    { label: "Total Staff", value: total, foot: manager ? <span className="text-ink-secondary">{scopeDepts.join(" + ")}</span> : <span className="flex items-center gap-1 text-emerald-600"><ArrowUp className="h-3.5 w-3.5" /><b>5%</b> <span className="text-ink-secondary">from last week</span></span>, tile: "bg-emerald-50", icon: <Users className="h-6 w-6 text-emerald-500" /> },
-    { label: "On Duty", value: onDuty, foot: <span><b className="text-emerald-600">{pct(onDuty)}</b> <span className="text-ink-secondary">of total</span></span>, tile: "bg-emerald-50", icon: <span className="h-5 w-5 rounded-full bg-emerald-500" /> },
-    { label: "On Break", value: onBreak, foot: <span><b className="text-amber-500">{pct(onBreak)}</b> <span className="text-ink-secondary">of total</span></span>, tile: "bg-amber-50", icon: <span className="h-5 w-5 rounded-full bg-amber-400" /> },
-    { label: "Off Duty", value: off, foot: <span><b className="text-red-500">{pct(off)}</b> <span className="text-ink-secondary">of total</span></span>, tile: "bg-red-50", icon: <span className="h-5 w-5 rounded-full bg-red-500" /> },
+    { label: "Total Staff", value: total, foot: manager ? scopeDepts.join(" + ") : "Across all departments" },
+    { label: "On Duty", value: onDuty, foot: `${pct(onDuty)} of total` },
+    { label: "On Break", value: onBreak, foot: `${pct(onBreak)} of total` },
+    { label: "Off Duty", value: off, foot: `${pct(off)} of total` },
   ];
 
   const toggle = (id: string) =>
@@ -241,15 +241,10 @@ export default function Team() {
 
           <div className="mt-5 grid grid-cols-2 gap-4 xl:grid-cols-4">
             {STATS.map((s) => (
-              <Card key={s.label} className="flex items-center gap-3 p-4">
-                <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${s.tile}`}>
-                  {s.icon}
-                </span>
-                <div className="min-w-0">
-                  <div className="text-[24px] font-bold leading-tight text-ink">{s.value}</div>
-                  <div className="text-[13px] text-ink-secondary">{s.label}</div>
-                  <div className="text-[12px]">{s.foot}</div>
-                </div>
+              <Card key={s.label} className="p-4">
+                <div className="text-[13px] text-ink-secondary">{s.label}</div>
+                <div className="mt-1 text-[26px] font-bold leading-tight text-ink">{s.value}</div>
+                <div className="text-[12px] text-ink-tertiary">{s.foot}</div>
               </Card>
             ))}
           </div>
@@ -563,16 +558,6 @@ export function StaffDetails({ s, perms, onSaveAccess, manager }: { s: Staff; pe
             <KV label="Status">
               <StatusPill s={s.status} />
             </KV>
-            <KV label="Current Location">{LOCATION[s.dept] ?? "Lobby"}</KV>
-            <KV label="Skills">
-              <span className="flex flex-wrap gap-1.5">
-                {(SKILLS[s.dept] ?? []).map((k) => (
-                  <span key={k} className="rounded-md bg-subtle px-2 py-1 text-[11px] text-ink-secondary">
-                    {k}
-                  </span>
-                ))}
-              </span>
-            </KV>
           </div>
 
         </>
@@ -625,7 +610,6 @@ export function StaffDetails({ s, perms, onSaveAccess, manager }: { s: Staff; pe
           <div>
             {taskRows.map((t) => (
               <div key={t.key} className="flex items-center gap-3 border-b border-line/70 py-2.5 text-[13px] last:border-0">
-                <Circle className="h-4 w-4 shrink-0 text-ink-tertiary" />
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-ink">{t.t}</span>
                   {t.sub && <span className="block truncate text-[11px] text-ink-tertiary">{t.sub}</span>}

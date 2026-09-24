@@ -217,7 +217,7 @@ export default function HousekeepingBoard() {
                 </div>
                 <div className="truncate text-[12px] text-ink-tertiary">{r.type}</div>
                 <div className={`mt-2 flex items-center gap-1.5 text-[12px] font-medium ${m.text}`}>
-                  <span className={`h-2 w-2 rounded-full ${m.dot}`} /> {m.label}
+                  {m.label}
                 </div>
                 <div className="mt-auto flex items-end justify-between gap-2">
                   <div className="min-w-0 text-[11px] leading-tight text-ink-secondary">
@@ -320,7 +320,7 @@ function EditRoomModal({
                 active ? "border-brand bg-brand-tint/40 text-ink" : "border-line bg-white text-ink-secondary hover:bg-subtle"
               }`}
             >
-              <span className={`h-2 w-2 rounded-full ${m.dot}`} /> {m.label}
+              {m.label}
             </button>
           );
         })}
