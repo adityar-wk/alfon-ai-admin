@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import {
   Search, Phone, Mail, Calendar, Hourglass, BedDouble, Users, UtensilsCrossed, Wine, SlidersHorizontal, PanelLeftClose, PanelLeftOpen, Check,
-  Pencil, UserPlus, MoreVertical, FileText, ChevronRight, CalendarDays, X,
+  FileText, ChevronRight, CalendarDays, X,
 } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { GuestChat, type ChatMsg, type ChatMode } from "../components/GuestChat";
@@ -181,13 +181,6 @@ export default function GuestChats() {
             <div className="min-w-0 flex-1">
               <div className="text-[17px] font-bold leading-tight text-ink">{guest.name}</div>
               <div className="mt-0.5 text-[13px] text-ink-tertiary">Room {guest.room} · {guest.nights} Nights Stay</div>
-            </div>
-            <div className="flex items-center gap-1 text-ink-tertiary">
-              {([[Pencil, "Edit"], [UserPlus, "Add participant"], [MoreVertical, "More"]] as const).map(([Icon, label]) => (
-                <button key={label} aria-label={label} className="flex h-9 w-9 items-center justify-center rounded-lg hover:bg-subtle hover:text-ink">
-                  <Icon className="h-[18px] w-[18px]" />
-                </button>
-              ))}
             </div>
           </div>
           <GuestChat
