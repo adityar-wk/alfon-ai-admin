@@ -206,17 +206,18 @@ export function TaskCard({
     >
       <div className="flex items-start gap-3">
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-[15px] font-semibold text-ink">{room}</span>
-            {priority && <PriorityPill p={priority} />}
-            {tag}
-          </div>
-          <p className="mt-1.5 text-[14px] leading-snug text-ink-secondary">{note}</p>
+          <div className="text-[15px] font-semibold leading-snug text-ink">{note}</div>
+          <div className="mt-1 text-[12px] font-medium text-ink-secondary">{room}</div>
+          {(priority || tag) && (
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              {priority && <PriorityPill p={priority} />}
+              {tag}
+            </div>
+          )}
           {meta && <div className="mt-2 text-[12px] text-ink-tertiary">{meta}</div>}
         </div>
         {!done && left !== undefined && total !== undefined && <SlaRing left={left} total={total} />}
       </div>
-      {onClick && <ChevronRight className="absolute bottom-3.5 right-4 h-4 w-4 text-ink-tertiary" />}
     </div>
   );
 }

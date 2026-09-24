@@ -225,7 +225,6 @@ export function ManagerPrototype() {
       total={t.slaTotal}
       done={t.status === "completed"}
       tag={tag(t)}
-      meta={`${t.escBy && t.escalated ? `Escalated by ${t.escBy} · ` : ""}${stuckAt(t)}`}
       onClick={() => open(t.id)}
     />
   );
@@ -263,7 +262,6 @@ export function ManagerPrototype() {
       total={t.slaTotal}
       done={t.status === "completed"}
       tag={<StatusTag s={t.status} />}
-      meta={t.owner ? `Owner · ${t.owner}${t.support.length ? ` +${t.support.length}` : ""}` : "No owner yet"}
       onClick={() => open(t.id)}
     />
   );
