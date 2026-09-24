@@ -16,7 +16,7 @@ const INFO: Record<Tab, { title: string; blurb: string; flows: string[]; include
     title: "Line Staff",
     blurb: "On-the-floor app for housekeeping and other line staff — do the next task, ask for help, create a manual task.",
     flows: [
-      "Bottom nav: Tasks and Guest communication",
+      "Bottom nav: Tasks and Chats",
       "Tasks: In progress, Pending and Completed tasks in one list",
       "Each card shows the task name first, the room second and the SLA timer",
       "Pending cards have ✕ Reject and Accept inside the card",
@@ -24,7 +24,7 @@ const INFO: Record<Tab, { title: string; blurb: string; flows: string[]; include
       "Task details → Need help (escalate to your supervisor) or Mark complete",
       "Bell → Notifications",
       "Orange + button (top right, after the bell) → Create Manual Task (department, service, room, optional details)",
-      "Guest communication: all chats — tap a chat to reply (take over from ALFON AI), tap the avatar for the guest profile",
+      "Chats: all guest chats — tap a chat to reply (take over from ALFON AI), tap the avatar for the guest profile",
       "Profile (tap your avatar): name, role, department, availability toggle, notification settings, sign out",
     ],
     included: ["SLA timer on every task", "Room, guest and preference details", "Escalate to supervisor when blocked", "Manual task creation"],
