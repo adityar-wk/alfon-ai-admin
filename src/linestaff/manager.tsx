@@ -617,7 +617,7 @@ export function ManagerPrototype() {
           <button key={r.number} onClick={() => setRoomSheet(r.number)} className={`flex w-full items-center justify-between gap-3 rounded-2xl bg-white p-3.5 text-left ${CARD_SHADOW}`}>
             <div className="min-w-0">
               <div className="text-[14px] font-semibold text-ink">{r.number}</div>
-              {(r.assignee || r.status === "Needs Inspection" || r.status === "In Progress") && <div className="mt-0.5 text-[12px] text-ink-tertiary">{r.assignee ? `${r.status === "In Progress" ? "Cleaning" : "Inspector"} · ${r.assignee}` : r.status === "In Progress" ? "Cleaner not assigned" : "Inspector not assigned"}</div>}
+              {(r.assignee || r.status === "Needs Inspection" || r.status === "In Progress") && <div className="mt-0.5 text-[12px] text-ink-tertiary">{r.assignee ? `${r.status === "In Progress" ? "Cleaning" : "Inspector"} · ${r.assignee}` : r.status === "In Progress" ? (r.open ? "Open task · anyone can pick it up" : "Cleaner not assigned") : "Inspector not assigned"}</div>}
             </div>
             <span className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold ${ROOM_STATUS_TONE[r.status]}`}>{r.status}</span>
           </button>
@@ -638,22 +638,34 @@ export function ManagerPrototype() {
           </div>
         </div>
       ) : roomEntry.status === "In Progress" ? (
-        <p className="mb-4 rounded-2xl bg-[#F6F6F8] p-3 text-[13px] text-ink-secondary">No staff assigned yet.</p>
+        <p className={`mb-4 rounded-2xl p-3 text-[13px] ${roomEntry.open ? "bg-amber-50 text-amber-700" : "bg-[#F6F6F8] text-ink-secondary"}`}>
+          {roomEntry.open ? "Open task — waiting for a line staff member to pick it up." : "No staff assigned yet."}
+        </p>
       ) : null}
       <Label>Status</Label>
       <Chips
         items={ROOM_STATUSES}
         active={roomEntry.status}
-        onChange={(v) => { setRooms((rs) => rs.map((r) => (r.number === roomEntry.number ? { ...r, status: v, assignee: v === r.status ? r.assignee : null } : r))); flash(`${roomEntry.number} marked ${v}`); }}
+        onChange={(v) => { setRooms((rs) => rs.map((r) => (r.number === roomEntry.number ? { ...r, status: v, assignee: v === r.status ? r.assignee : null, open: v === r.status ? r.open : false } : r))); flash(`${roomEntry.number} marked ${v}`); }}
       />
       {(roomEntry.status === "Needs Inspection" || (roomEntry.status === "In Progress" && !roomEntry.assignee)) && (
         <>
           <div className="mt-5" />
+          {roomEntry.status === "In Progress" && !roomEntry.open && (
+            <>
+              <GhostButton className="w-full" onClick={() => { setRooms((rs) => rs.map((r) => (r.number === roomEntry.number ? { ...r, open: true } : r))); flash(`${roomEntry.number} is now open for line staff to pick up`); }}>
+                Make it an open task — anyone can pick it up
+              </GhostButton>
+              <div className="my-4 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wide text-ink-tertiary">
+                <span className="h-px flex-1 bg-line" /> or assign to someone <span className="h-px flex-1 bg-line" />
+              </div>
+            </>
+          )}
           <Label>{roomEntry.status === "In Progress" ? "Assign cleaner" : "Assign inspector"}</Label>
           <StaffPicker
             tasks={tasks}
             exclude={roomEntry.assignee ? [roomEntry.assignee] : []}
-            onPick={(s) => { setRooms((rs) => rs.map((r) => (r.number === roomEntry.number ? { ...r, assignee: s.name } : r))); flash(`${roomEntry.number} assigned to ${s.name}`); }}
+            onPick={(s) => { setRooms((rs) => rs.map((r) => (r.number === roomEntry.number ? { ...r, assignee: s.name, open: false } : r))); flash(`${roomEntry.number} assigned to ${s.name}`); }}
             cta="Assign"
           />
           {roomEntry.assignee && (

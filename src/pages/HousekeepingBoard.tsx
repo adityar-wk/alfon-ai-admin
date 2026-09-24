@@ -22,6 +22,8 @@ type Room = {
   status: RoomStatus;
   mins?: number;
   assignedTo?: string;
+  /** cleaning task left open for any line staff member to pick up (never used for inspections) */
+  open?: boolean;
 };
 
 const TYPES = ["Deluxe Suite", "Executive Room", "Premium Room", "Junior Suite", "Deluxe Room"];
@@ -68,6 +70,7 @@ const STATUS_META: Record<RoomStatus, { label: string; card: string; dot: string
   oos: { label: "Out of Service", card: "bg-gray-50 border-gray-200", dot: "bg-gray-800", text: "text-ink-secondary" },
 };
 
+const OPEN_TASK = "__open__";
 const STATUS_OPTIONS: RoomStatus[] = ["clean", "progress", "inspection", "oos"];
 const STAFF = getDepartment("housekeeping")?.members.map((m) => m.name) ?? [];
 const FLOORS = [10, 11, 12, 13, 14, 15, 16];
@@ -113,7 +116,8 @@ export default function HousekeepingBoard() {
           ? {
               ...r,
               status,
-              assignedTo: staff ?? undefined,
+              assignedTo: staff && staff !== OPEN_TASK ? staff : undefined,
+              open: status === "progress" && staff === OPEN_TASK,
               mins: status === "progress" ? r.mins : undefined,
             }
           : r,
@@ -121,7 +125,9 @@ export default function HousekeepingBoard() {
     );
     setAssignFor(null);
     flash(
-      (status === "inspection" || status === "progress") && staff
+      status === "progress" && staff === OPEN_TASK
+        ? `Room ${no} → ${STATUS_META[status].label}, open for line staff to pick up`
+        : (status === "inspection" || status === "progress") && staff
         ? `Room ${no} → ${STATUS_META[status].label}, assigned to ${staff}${note ? " (note added)" : ""}`
         : `Room ${no} → ${STATUS_META[status].label}`,
     );
@@ -226,7 +232,7 @@ export default function HousekeepingBoard() {
                 </div>
                 <div className="mt-auto flex items-end justify-between gap-2">
                   <div className="min-w-0 text-[11px] leading-tight text-ink-secondary">
-                    {r.assignedTo && <div className="truncate">{r.assignedTo}</div>}
+                    {r.assignedTo ? <div className="truncate">{r.assignedTo}</div> : r.open && r.status === "progress" ? <div className="font-medium text-amber-600">Open task</div> : null}
                   </div>
                   <button
                     onClick={() => setAssignFor(r)}
@@ -276,14 +282,15 @@ function EditRoomModal({
   onSave: (no: number, status: RoomStatus, staff: string | null, note: string) => void;
 }) {
   const [status, setStatus] = useState<RoomStatus>(room.status);
-  const [staff, setStaff] = useState(room.status === "inspection" || room.status === "progress" ? room.assignedTo ?? "" : "");
+  const initialStaff = (st: RoomStatus) => (st !== room.status ? "" : st === "progress" && room.open ? OPEN_TASK : room.assignedTo ?? "");
+  const [staff, setStaff] = useState(room.status === "inspection" || room.status === "progress" ? initialStaff(room.status) : "");
   const [note, setNote] = useState("");
   const occupied = !!room.guest;
   const cleaner = status === "progress" && room.status === "progress" ? room.assignedTo : undefined;
   const canAssign = status === "inspection" || (status === "progress" && !cleaner);
   const pickStatus = (s: RoomStatus) => {
     setStatus(s);
-    setStaff(s === room.status ? room.assignedTo ?? "" : "");
+    setStaff(initialStaff(s));
   };
 
   return (
@@ -342,6 +349,7 @@ function EditRoomModal({
           <Field label={status === "progress" ? "Assign cleaner" : "Assign inspector"}>
             <Select value={staff} onChange={(e) => setStaff(e.target.value)}>
               <option value="">Unassigned</option>
+              {status === "progress" && <option value={OPEN_TASK}>Open task — anyone can pick it up</option>}
               {STAFF.map((s) => (
                 <option key={s}>{s}</option>
               ))}

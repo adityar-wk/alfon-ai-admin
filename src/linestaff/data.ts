@@ -283,7 +283,7 @@ export const GUEST_PROFILES: Record<string, GuestProfileInfo> = {
 };
 
 export type RoomStatus = "Clean" | "In Progress" | "Needs Inspection" | "Out of Service";
-export type HkRoom = { number: string; floor: number; status: RoomStatus; assignee: string | null };
+export type HkRoom = { number: string; floor: number; status: RoomStatus; assignee: string | null; /** cleaning left open for any line staff to pick up (never for inspections) */ open?: boolean };
 export const ROOMS: HkRoom[] = [
   { number: "Room 305", floor: 3, status: "In Progress", assignee: "Maria Santos" },
   { number: "Room 410", floor: 4, status: "Clean", assignee: null },
