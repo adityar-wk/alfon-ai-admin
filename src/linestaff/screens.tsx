@@ -24,8 +24,9 @@ import {
   type Priority,
 } from "./mobile";
 import { GuestProfileScreen, GuestChatScreen, type ChatMsg } from "./guestviews";
+import { ProfileScreen, NotificationSettingsScreen, SignedOutScreen } from "./profile";
 
-type Screen = { name: "home" | "notifications" | "taskDetail" | "create" | "guests" | "guestChat" | "guestProfile"; id?: string };
+type Screen = { name: "home" | "notifications" | "taskDetail" | "create" | "guests" | "guestChat" | "guestProfile" | "profile" | "notifSettings"; id?: string };
 
 type HelpKind = "escalate" | "support" | "reassign";
 const HELP_OPTIONS: { key: HelpKind; label: string; sub: string; cta: string; placeholder: string }[] = [
@@ -156,6 +157,7 @@ export function LineStaffPrototype() {
   const [manual, setManual] = useState<Record<string, boolean>>({});
   const [guestQuery, setGuestQuery] = useState("");
   const [aiDrafts, setAiDrafts] = useState<Record<string, string>>({});
+  const [signedOut, setSignedOut] = useState(false);
 
   // create manual task
   const [dept, setDept] = useState("");
@@ -232,16 +234,9 @@ export function LineStaffPrototype() {
     <div className="relative h-full">
       <div className="h-full overflow-y-auto pb-28 no-scrollbar">
         <div className="flex items-center justify-between px-6 py-2">
-          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-brand text-[13px] font-semibold text-white">AK</span>
-          <button
-            onClick={() => { setAvailable((a) => !a); flash(available ? "You're now off work" : "You're available"); }}
-            aria-pressed={available}
-            className="flex items-center gap-3 rounded-full bg-white px-4 py-2 text-[13px] font-medium text-ink shadow-[0_3px_12px_rgba(0,0,0,0.12)]"
-          >
-            {available ? "Available" : "Off work"}
-            <span className={`flex h-6 w-11 items-center rounded-full p-0.5 transition-colors ${available ? "bg-emerald-500" : "bg-[#C8C8C8]"}`}>
-              <span className={`h-5 w-5 rounded-full bg-white shadow transition-transform ${available ? "translate-x-5" : ""}`} />
-            </span>
+          <button onClick={() => nav.push({ name: "profile" })} aria-label="Profile" className="relative flex h-10 w-10 items-center justify-center rounded-full bg-brand text-[13px] font-semibold text-white">
+            AK
+            <span className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white ${available ? "bg-emerald-500" : "bg-[#C8C8C8]"}`} />
           </button>
           <div className="flex items-center gap-2">
             <button onClick={openCreate} aria-label="Create task" className="flex h-10 w-10 items-center justify-center rounded-full bg-brand text-white shadow-sm active:scale-95">
@@ -499,12 +494,23 @@ export function LineStaffPrototype() {
     </div>
   );
 
-  const VIEWS: Record<Screen["name"], React.ReactNode> = { home: Home, notifications: Notifications, taskDetail: TaskDetail, create: Create, guests: Guests, guestChat: GuestChat, guestProfile: GuestProfile };
+  const Profile = (
+    <ProfileScreen
+      name="Aanya Khan" role="Line Staff" dept="Housekeeping" available={available}
+      onToggleAvailable={() => { setAvailable((a) => !a); flash(available ? "You're now off work" : "You're available"); }}
+      onNotifSettings={() => nav.push({ name: "notifSettings" })}
+      onSignOut={() => setSignedOut(true)}
+      onBack={nav.back}
+    />
+  );
+  const NotifSettings = <NotificationSettingsScreen persona="line" onBack={nav.back} />;
+
+  const VIEWS: Record<Screen["name"], React.ReactNode> = { home: Home, notifications: Notifications, taskDetail: TaskDetail, create: Create, guests: Guests, guestChat: GuestChat, guestProfile: GuestProfile, profile: Profile, notifSettings: NotifSettings };
 
   return (
     <div className="flex flex-col items-center gap-4">
       <PhoneFrame>
-        {VIEWS[cur.name]}
+        {signedOut ? <SignedOutScreen onSignIn={() => { setSignedOut(false); nav.reset(); }} /> : VIEWS[cur.name]}
         {HelpSheet}
         {compOpen && (
           <CompensationSheet

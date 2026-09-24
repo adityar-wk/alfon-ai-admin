@@ -1,10 +1,11 @@
 import { useMemo, useState } from "react";
 import {
   Bell, Home as HomeIcon, Plus, Users, UserCog, UserPlus, ArrowUpRight, MessageCircle, Send, Filter, ChevronRight, ChevronLeft, Search,
-  Menu as MenuIcon, ListChecks, BarChart3, AlertTriangle, User, BedDouble, DoorClosed, Building2, FileText, Download, Lock, UtensilsCrossed, Languages, Thermometer, AlarmClock, Wine, Phone, Mail, Sparkles,
+  Menu as MenuIcon, ListChecks, BarChart3, AlertTriangle, User, BedDouble, DoorClosed, Building2, FileText, Download, Lock, UtensilsCrossed, Languages, Thermometer, AlarmClock, Wine, Phone, Mail, Sparkles, SlidersHorizontal,
 } from "lucide-react";
 import { DEPARTMENTS } from "../data/departments";
 import { DetailRow, ProfileSection, GuestProfileScreen } from "./guestviews";
+import { NotificationSettingsScreen } from "./profile";
 import { DEPTS, METRICS, COMPLAINT_DETAIL } from "../pages/Analytics";
 import { Donut } from "../components/Donut";
 import { BarChart } from "../components/BarChart";
@@ -16,7 +17,7 @@ import {
 import { StaffPicker, ReasonSheet, StatusTag, activeCount, atRiskCount, overdueCount, isOpen, isAtRisk, isOverdue } from "./parts";
 
 type Screen = {
-  name: "home" | "tasks" | "team" | "staffDetail" | "housekeeping" | "guests" | "guestDetail" | "guestProfile" | "detail" | "notifications" | "create" | "menu" | "analytics" | "reports" | "guestsRoster";
+  name: "home" | "tasks" | "team" | "staffDetail" | "housekeeping" | "guests" | "guestDetail" | "guestProfile" | "detail" | "notifications" | "create" | "menu" | "analytics" | "reports" | "guestsRoster" | "notifSettings";
   id?: string;
 };
 type SheetState = { k: "needHelp" | "assign" | "support" | "duty"; taskId: string } | null;
@@ -69,6 +70,7 @@ const MENU_ITEMS = [
   { key: "analytics" as const, label: "Analytics", icon: BarChart3 },
   { key: "guestsRoster" as const, label: "Guests", icon: BedDouble },
   { key: "reports" as const, label: "Reports", icon: FileText },
+  { key: "notifications" as const, label: "Notifications", icon: Bell },
 ];
 
 const REPORTS: { name: string; desc: string; locked?: boolean }[] = [
@@ -902,7 +904,11 @@ export function ManagerPrototype() {
 
   const Notifications = (
     <div className="flex h-full flex-col">
-      <ScreenHeader title="Notifications" onBack={nav.back} />
+      <ScreenHeader
+        title="Notifications"
+        onBack={nav.back}
+        right={<button onClick={() => nav.push({ name: "notifSettings" })} aria-label="Notification settings" className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-ink shadow-sm"><SlidersHorizontal className="h-[18px] w-[18px]" /></button>}
+      />
       <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-6 pt-2 no-scrollbar">
         {NOTIFS.map((n, i) => {
           const nt = n.to !== "team" ? tasks.find((x) => x.id === n.to) : undefined;
@@ -1129,7 +1135,7 @@ export function ManagerPrototype() {
   const VIEWS: Record<Screen["name"], React.ReactNode> = {
     home: Home, tasks: Tasks, team: Team, staffDetail: StaffDetail, housekeeping: Housekeeping, guests: Guests, guestDetail: GuestDetail, guestProfile: GuestProfile,
     detail: Detail, notifications: Notifications, create: Create,
-    menu: Menu, analytics: Analytics, reports: Reports, guestsRoster: GuestsRoster,
+    menu: Menu, analytics: Analytics, reports: Reports, guestsRoster: GuestsRoster, notifSettings: <NotificationSettingsScreen persona="manager" onBack={nav.back} />,
   };
 
   /* ---------- sheets ---------- */

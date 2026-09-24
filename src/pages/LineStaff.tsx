@@ -25,7 +25,7 @@ const INFO: Record<Tab, { title: string; blurb: string; flows: string[]; include
       "Bell → Notifications",
       "Orange + button (top, next to the bell) → Create Manual Task (department, service, room, optional details)",
       "Guest communication: all chats — tap a chat to reply (take over from ALFON AI), tap the avatar for the guest profile",
-      "Availability toggle: Available / Off work",
+      "Profile (tap your avatar): name, role, department, availability toggle, notification settings, sign out",
     ],
     included: ["SLA timer on every task", "Room, guest and preference details", "Escalate to supervisor when blocked", "Manual task creation"],
     excluded: ["Team and analytics views", "Reassigning work to others"],
