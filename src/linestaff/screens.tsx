@@ -363,7 +363,7 @@ export function LineStaffPrototype() {
 
   const profileName = cur.name === "guestProfile" ? cur.id : undefined;
   const GuestProfile = profileName && (
-    <GuestProfileScreen name={profileName} onBack={nav.back} onMessage={guests.some((g) => g.name === profileName) ? () => nav.push({ name: "guestChat", id: profileName }) : undefined} />
+    <GuestProfileScreen name={profileName} author="Aanya Khan · Line Staff" onBack={nav.back} onMessage={guests.some((g) => g.name === profileName) ? () => nav.push({ name: "guestChat", id: profileName }) : undefined} />
   );
 
   const Notifications = (

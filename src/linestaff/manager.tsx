@@ -795,7 +795,7 @@ export function ManagerPrototype() {
 
   const profileName = cur.name === "guestProfile" ? cur.id : undefined;
   const GuestProfile = profileName && (
-    <GuestProfileScreen name={profileName} onBack={nav.back} onMessage={guestMap.has(profileName) ? () => nav.push({ name: "guestDetail", id: profileName }) : undefined} />
+    <GuestProfileScreen name={profileName} author="Daniel Reyes · Mid Manager" onBack={nav.back} onMessage={guestMap.has(profileName) ? () => nav.push({ name: "guestDetail", id: profileName }) : undefined} />
   );
 
   const Detail = task ? (
