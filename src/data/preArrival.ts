@@ -1,4 +1,4 @@
-export type Tag = "VIP" | "Returning Guest" | "Loyalty";
+export type Tag = "Returning Guest" | "Loyalty";
 export type Eng = "Not Contacted" | "Awaiting Response" | "Engaged" | "Responded";
 export type Ready = "Ready" | "Awaiting Guest" | "Action Required" | "Not Contacted";
 export type Day = "today" | "tomorrow" | "week";
@@ -152,7 +152,7 @@ const A = "Awaiting Hotel Confirmation" as const;
 export const PRE_GUESTS: PreGuest[] = [
   // ---- Today (18) ----
   mk(1, "Emma Davis", "1608", "Deluxe King", 7, "today", "3:00 PM", "Responded", "Action Required", "12 min ago", {
-    tags: ["VIP", "Returning Guest"],
+    tags: ["Returning Guest"],
     prefs: ["Vegetarian", "Quiet Room", "High Floor", "Extra Pillow", "Late Housekeeping"],
     reqs: [["Airport Transfer", "Confirmed"], ["Early Check-In", A], ["Vegetarian Breakfast", "Captured"]],
     chips: ["Vegetarian", "Airport Pickup", "Early Check-In", "Quiet Room", "High Floor"],
@@ -170,7 +170,7 @@ export const PRE_GUESTS: PreGuest[] = [
     prefs: ["Quiet Room", "High Floor"],
   }),
   mk(3, "Rohan Sharma", "1205", "Deluxe King", 4, "today", "2:00 PM", "Engaged", "Action Required", "20 min ago", {
-    tags: ["VIP", "Loyalty"],
+    tags: ["Loyalty"],
     prefs: ["Extra Towels", "Late Turndown"],
     reqs: [["Early Check-In", A]],
     missing: "Preferred check-in time not confirmed.",
@@ -182,12 +182,12 @@ export const PRE_GUESTS: PreGuest[] = [
     lang: "English, Hindi",
   }),
   mk(5, "Michael Johnson", "1103", "Suite", 6, "today", "5:00 PM", "Engaged", "Action Required", "1 hr ago", {
-    tags: ["VIP", "Returning Guest"],
+    tags: ["Returning Guest"],
     prefs: ["Early Breakfast", "Quiet Room", "Extra Pillow"],
-    reqs: [["Returning VIP Preference", A]],
+    reqs: [["Returning Guest Preference", A]],
     brief:
-      "Returning VIP whose previous stays show a preference for early breakfast and a quiet room. ALFON detected these from past conversations — hotel confirmation is needed before applying them to this stay.",
-    recommend: "Confirm the saved VIP preferences with the Front Desk lead before arrival.",
+      "Returning guest whose previous stays show a preference for early breakfast and a quiet room. ALFON detected these from past conversations — hotel confirmation is needed before applying them to this stay.",
+    recommend: "Confirm the saved preferences with the Front Desk lead before arrival.",
   }),
   mk(6, "Sarah Chen", "704", "Deluxe King", 2, "today", "6:00 PM", "Responded", "Action Required", "42 min ago", {
     prefs: ["High Floor"],
@@ -206,12 +206,12 @@ export const PRE_GUESTS: PreGuest[] = [
   mk(15, "Grace Kim", "1209", "Superior Twin", 2, "today", "5:15 PM", "Awaiting Response", "Awaiting Guest", "4 hrs ago"),
   mk(16, "Daniel Kim", "1305", "Deluxe King", 3, "today", "7:00 PM", "Awaiting Response", "Awaiting Guest", "5 hrs ago"),
   mk(17, "Sophia Lee", "1904", "Junior Suite", 4, "today", "2:45 PM", "Awaiting Response", "Awaiting Guest", "5 hrs ago", { tags: ["Returning Guest"] }),
-  mk(18, "Ava Thompson", "2501", "Suite", 6, "today", "6:15 PM", "Awaiting Response", "Awaiting Guest", "6 hrs ago", { tags: ["VIP"] }),
+  mk(18, "Ava Thompson", "2501", "Suite", 6, "today", "6:15 PM", "Awaiting Response", "Awaiting Guest", "6 hrs ago", { tags: [] }),
 
   // ---- Tomorrow (6) ----
   mk(19, "Aisha Rahman", "1401", "Deluxe King", 3, "tomorrow", "11:00 AM", "Responded", "Action Required", "1 hr ago", { prefs: ["Halal Meals", "Quiet Room"], reqs: [["Dietary Requirement", A]], lang: "English, Arabic" }),
   mk(20, "Tom Baker", "1502", "Superior Twin", 2, "tomorrow", "2:00 PM", "Responded", "Ready", "3 hrs ago", { prefs: ["High Floor"] }),
-  mk(21, "Lucia Fernandez", "1706", "Suite", 5, "tomorrow", "4:00 PM", "Awaiting Response", "Awaiting Guest", "5 hrs ago", { tags: ["VIP"], lang: "English, Spanish" }),
+  mk(21, "Lucia Fernandez", "1706", "Suite", 5, "tomorrow", "4:00 PM", "Awaiting Response", "Awaiting Guest", "5 hrs ago", { tags: [], lang: "English, Spanish" }),
   mk(22, "Kenji Sato", "1210", "Deluxe Room", 4, "tomorrow", "3:00 PM", "Not Contacted", "Not Contacted", "—", { consent: false, lang: "English, Japanese" }),
   mk(23, "Priya Menon", "1904", "Executive King", 3, "tomorrow", "5:00 PM", "Engaged", "Ready", "2 hrs ago", { prefs: ["Vegetarian"] }),
   mk(24, "Oscar Nilsson", "2003", "Junior Suite", 2, "tomorrow", "6:00 PM", "Awaiting Response", "Awaiting Guest", "6 hrs ago"),
@@ -223,6 +223,6 @@ export const PRE_GUESTS: PreGuest[] = [
   mk(28, "Carlos Ruiz", null, "Executive King", 5, "week", "4:00 PM", "Engaged", "Ready", "2 days ago", { date: "May 28", prefs: ["High Floor"], lang: "English, Spanish" }),
   mk(29, "Nina Petrova", null, "Deluxe Room", 3, "week", "5:00 PM", "Awaiting Response", "Awaiting Guest", "2 days ago", { date: "May 28", tags: ["Loyalty"] }),
   mk(30, "Yusuf Demir", null, "Junior Suite", 4, "week", "2:30 PM", "Not Contacted", "Not Contacted", "—", { date: "May 29", wa: false }),
-  mk(31, "Grace Lee", null, "Suite", 6, "week", "3:30 PM", "Responded", "Ready", "3 days ago", { date: "May 30", tags: ["VIP", "Returning Guest"], prefs: ["Quiet Room", "Extra Pillow"] }),
+  mk(31, "Grace Lee", null, "Suite", 6, "week", "3:30 PM", "Responded", "Ready", "3 days ago", { date: "May 30", tags: ["Returning Guest"], prefs: ["Quiet Room", "Extra Pillow"] }),
   mk(32, "Peter Novak", null, "Deluxe King", 2, "week", "6:00 PM", "Awaiting Response", "Awaiting Guest", "3 days ago", { date: "May 30" }),
 ];

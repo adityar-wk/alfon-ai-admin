@@ -33,11 +33,11 @@ const STATUS_STYLE: Record<Status, string> = {
 const SKILLS: Record<string, string[]> = {
   Engineering: ["HVAC", "Electrical", "Plumbing", "+2"],
   Housekeeping: ["Deep Clean", "Linen", "Inspection"],
-  "Guest Services": ["VIP Care", "Languages", "Complaints"],
+  "Guest Services": ["Guest Care", "Languages", "Complaints"],
   "Front Desk": ["PMS", "Check-in", "Upselling"],
   "F&B": ["Service", "Allergens", "POS"],
   Security: ["CCTV", "First Aid", "Access Control"],
-  Concierge: ["Bookings", "Local Guide", "VIP Care"],
+  Concierge: ["Bookings", "Local Guide", "Guest Care"],
 };
 
 const LOCATION: Record<string, string> = {
@@ -625,7 +625,7 @@ export function StaffDetails({ s, perms, onSaveAccess, manager }: { s: Staff; pe
 }
 
 function WorkloadCell({ s }: { s: Staff }) {
-  const n = TASKS.filter((t) => t.owner === shortName(s.name) && t.status !== "Completed" && t.status !== "Unable to Complete").length + (s.task ? 1 : 0);
+  const n = TASKS.filter((t) => t.owner === shortName(s.name) && t.status !== "Completed" && t.status !== "Unable to Complete" && t.status !== "Void").length + (s.task ? 1 : 0);
   const heavy = n >= 3;
   return (
     <>

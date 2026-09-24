@@ -1,6 +1,6 @@
 export type Priority = "Critical" | "High" | "Medium" | "Low";
 export type SlaKind = "overdue" | "due" | "left" | "met";
-export type Status = "Escalated" | "In Progress" | "Pending" | "Completed" | "Unable to Complete";
+export type Status = "Escalated" | "In Progress" | "Pending" | "Completed" | "Unable to Complete" | "Void";
 
 export type Task = {
   id: number;
@@ -35,10 +35,10 @@ const T = (
 const SEED: Task[] = [
   T(1, "AC Not Working", "James Wilson", "2205", "Engineering", "Mike R.", "Critical", { kind: "overdue", text: "Overdue 12 min" }, "Escalated", "Guest Chat", {
     tag: "Complaint", vip: true,
-    escalation: "No AC for over 30 minutes; guest is VIP and asked for immediate help.",
+    escalation: "No AC for over 30 minutes; guest asked for immediate help.",
     summary: "Air conditioning in Room 2205 stopped around 2:15 PM. The room is very warm, especially uncomfortable for their child. Guest followed up once and has been waiting 25+ minutes.",
   }),
-  T(2, "VIP Airport Pickup", "Emma Davis", "1608", "Concierge", "John S.", "High", { kind: "due", text: "Due in 4 min" }, "In Progress", "Guest Chat", { vip: true }),
+  T(2, "Airport Pickup", "Emma Davis", "1608", "Concierge", "John S.", "High", { kind: "due", text: "Due in 4 min" }, "In Progress", "Guest Chat", { vip: true }),
   T(3, "Late Checkout Request", "Olivia Brown", "1203", "Front Desk", "Sarah K.", "Medium", { kind: "left", text: "22 min left" }, "Pending", "Guest Chat"),
   T(4, "Minibar Restock", "Noah Martinez", "1802", "Room Service", "Anna P.", "Medium", { kind: "left", text: "35 min left" }, "Pending", "Staff"),
   T(5, "Extra Towels", "Isabella Rossi", "2104", "Housekeeping", null, "Low", { kind: "due", text: "Due in 28 min" }, "Pending", "Guest Chat"),
@@ -89,7 +89,7 @@ export const AUDIT: AuditEntry[] = [
   { id: 1, time: "May 8, 2:40 PM", who: "System", action: "Escalated", task: "AC Not Working", detail: "No resolution after 25 minutes → General Manager" },
   { id: 2, time: "May 8, 1:12 PM", who: "Daniel Reyes", action: "Reassigned", task: "Plumbing Issue", detail: "Sarah K. → Mike R. (Engineering)" },
   { id: 3, time: "May 7, 6:05 PM", who: "Daniel Reyes", action: "Override closed", task: "Late Checkout Request", detail: "Reason: guest checked out early, no action needed" },
-  { id: 4, time: "May 7, 11:20 AM", who: "Sophia Carter", action: "Priority changed", task: "VIP Airport Pickup", detail: "Medium → High" },
+  { id: 4, time: "May 7, 11:20 AM", who: "Sophia Carter", action: "Priority changed", task: "Airport Pickup", detail: "Medium → High" },
 ];
 
 let auditSeq = AUDIT.length;
@@ -106,7 +106,7 @@ export type HelpRequest = { id: number; taskId: number; from: string; type: "Rea
 
 export const HELP_REQUESTS: HelpRequest[] = [
   { id: 1, taskId: 5, from: "Sarah Ali (Supervisor)", type: "Extra support", reason: "Floor 21 team is fully booked until 4 PM." },
-  { id: 2, taskId: 17, from: "Lisa Morgan", type: "Reassignment", reason: "Called away to a VIP turndown; needs someone to take over." },
+  { id: 2, taskId: 17, from: "Lisa Morgan", type: "Reassignment", reason: "Called away to a guest turndown; needs someone to take over." },
   { id: 3, taskId: 7, from: "Raj Patel (Supervisor)", type: "Extra support", reason: "Needs a second technician to isolate the water line." },
   { id: 4, taskId: 1, from: "Mike Rogers", type: "Reassignment", reason: "Compressor part needed; cannot finish this shift." },
   { id: 5, taskId: 8, from: "Noah Bennett (Supervisor)", type: "Extra support", reason: "Two group check-ins arriving at the same time." },

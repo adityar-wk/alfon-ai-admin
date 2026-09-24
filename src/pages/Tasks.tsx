@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import {
   AlertTriangle,
   Clock,
@@ -62,7 +62,7 @@ const DEPT_ICON: Record<string, React.ComponentType<{ className?: string }>> = {
 
 type View = "action" | "overdue" | "escalated" | "risk" | "complaints" | "unassigned" | "progress" | "completed" | "all";
 const VIEWS: { key: View; label: string; test: (t: Task) => boolean }[] = [
-  { key: "action", label: "Action required", test: (t) => t.status !== "Completed" && t.status !== "Unable to Complete" },
+  { key: "action", label: "Action required", test: (t) => t.status !== "Completed" && t.status !== "Unable to Complete" && t.status !== "Void" },
   { key: "overdue", label: "Overdue / breached", test: (t) => t.sla.kind === "overdue" && t.status !== "Completed" },
   { key: "escalated", label: "Escalated", test: (t) => t.status === "Escalated" },
   { key: "risk", label: "SLA at risk", test: (t) => t.sla.kind === "overdue" || t.sla.kind === "due" },
@@ -89,7 +89,7 @@ function PriorityLabel({ p }: { p: Priority }) {
 }
 
 function StatusLabel({ s }: { s: Status }) {
-  const dot = s === "Unable to Complete" ? "bg-amber-400" : s === "Completed" ? "bg-emerald-500" : s === "Escalated" ? "bg-red-500" : s === "In Progress" ? "bg-brand" : "bg-gray-300";
+  const dot = s === "Void" ? "bg-gray-400" : s === "Unable to Complete" ? "bg-amber-400" : s === "Completed" ? "bg-emerald-500" : s === "Escalated" ? "bg-red-500" : s === "In Progress" ? "bg-brand" : "bg-gray-300";
   return (
     <span className="inline-flex items-center gap-1.5 text-[13px] text-ink-secondary">
       <span className={`h-1.5 w-1.5 rounded-full ${dot}`} /> {s}
@@ -328,7 +328,6 @@ export default function Tasks() {
                         <div className="min-w-0">
                           <div className="flex items-center gap-2 text-[13px] font-semibold text-ink">
                             {t.title}
-                            {t.vip && <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-700">VIP</span>}
                           </div>
                           {cap(t) && <div className="text-[11px] text-ink-tertiary">{cap(t)}</div>}
                         </div>
@@ -468,7 +467,6 @@ function TaskWindow({
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-[17px] font-bold leading-tight text-ink">{task.title}</h2>
-            {task.vip && <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-700">VIP</span>}
           </div>
           <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-ink-secondary">
             <span>{task.dept}</span>
@@ -635,6 +633,8 @@ function ManagerTaskWindow({
   const [person, setPerson] = useState("");
   const [support, setSupport] = useState<string[]>(task.support ?? []);
   const [text, setText] = useState("");
+  const [modal, setModal] = useState<null | "help" | "void">(null);
+  const [voidReason, setVoidReason] = useState("");
 
   useEffect(() => {
     const h = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -642,8 +642,9 @@ function ManagerTaskWindow({
     return () => window.removeEventListener("keydown", h);
   }, [onClose]);
 
-  const closed = task.status === "Completed" || task.status === "Unable to Complete";
+  const closed = task.status === "Completed" || task.status === "Unable to Complete" || task.status === "Void";
   const help = pendingHelpFor(task.id);
+  const guestId = GUESTS.find((g) => g.name === task.guest)?.id;
   const me = `${mgr.name} (${mgr.role})`;
   const teamMates = (STAFF[task.dept] ?? []).filter((s) => s !== task.owner);
   const open = (p: Panel) => {
@@ -668,9 +669,11 @@ function ManagerTaskWindow({
       : []),
     task.status === "Completed"
       ? { done: true, title: `Task Completed — ${clockText(t0 + 30)}`, sub: task.resolution }
-      : task.status === "Unable to Complete"
-        ? { done: true, title: "Marked Unable to Complete", sub: task.resolution }
-        : { done: false, title: "Task Completed — Pending" },
+      : task.status === "Void"
+        ? { done: true, title: "Task Marked Void", sub: task.resolution }
+        : task.status === "Unable to Complete"
+          ? { done: true, title: "Marked Unable to Complete", sub: task.resolution }
+          : { done: false, title: "Task Completed — Pending" },
   ];
 
   const notes = [
@@ -732,7 +735,7 @@ function ManagerTaskWindow({
           </div>
 
           <div className="divide-y divide-line/60 border-t border-line pt-1 text-[14px]">
-            <div className="flex items-center justify-between py-2.5"><span className="text-ink-secondary">Guest</span><span className="font-medium text-ink">{task.guest}</span></div>
+            <div className="flex items-center justify-between py-2.5"><span className="text-ink-secondary">Guest</span><Link to={guestId ? `/guest-chats?guest=${guestId}` : `/guest-chats?name=${encodeURIComponent(task.guest)}&room=${task.room}`} className="font-medium text-brand hover:underline">{task.guest}</Link></div>
             <div className="flex items-center justify-between py-2.5"><span className="text-ink-secondary">Room</span><span className="font-medium text-ink">{task.room}</span></div>
             <div className="flex items-center justify-between py-2.5"><span className="text-ink-secondary">Department</span><span className="font-medium text-ink">{task.dept}</span></div>
             <div className="flex items-center justify-between py-2.5">
@@ -832,20 +835,12 @@ function ManagerTaskWindow({
             </PanelBox>
           )}
           {panel === "escalate" && (
-            <PanelBox title="Escalate to General Manager" ok="Escalate" disabled={!text.trim()} onCancel={() => setPanel(null)}
+            <PanelBox title="Escalate to Duty Manager" ok="Escalate" disabled={!text.trim()} onCancel={() => setPanel(null)}
               onOk={() => {
-                onApply({ status: "Escalated", escalatedTo: "General Manager", escalation: text.trim() }, "Escalated to GM", text.trim(), "Escalated to General Manager");
+                onApply({ status: "Escalated", escalatedTo: "Duty Manager", escalation: text.trim() }, "Escalated to Duty Manager", text.trim(), "Escalated to Duty Manager");
                 setPanel(null);
               }}>
-              <Textarea rows={2} autoFocus value={text} onChange={(e) => setText(e.target.value)} placeholder="Why does this need the General Manager?" />
-            </PanelBox>
-          )}
-          {panel === "unable" && (
-            <PanelBox title="Mark as unable to complete" ok="Mark unable" disabled={!text.trim()} onCancel={() => setPanel(null)}
-              onOk={() => {
-                onApply({ status: "Unable to Complete", resolution: text.trim() }, "Marked unable to complete", `Reason: ${text.trim()}`, "Marked unable to complete", true);
-              }}>
-              <Textarea rows={2} autoFocus value={text} onChange={(e) => setText(e.target.value)} placeholder="Reason (required) — recorded in the audit trail" />
+              <Textarea rows={2} autoFocus value={text} onChange={(e) => setText(e.target.value)} placeholder="Why does this need the Duty Manager?" />
             </PanelBox>
           )}
 
@@ -857,16 +852,73 @@ function ManagerTaskWindow({
             {closed ? "Closed" : "Mark as Complete"}
           </button>
           <div className="flex gap-2">
-            {smallBtn("reassign", "Reassign Task")}
+            <button
+              onClick={() => setModal("help")}
+              disabled={closed}
+              className="flex-1 rounded-lg border border-line bg-white px-3 py-2.5 text-[13px] font-semibold text-ink hover:bg-subtle disabled:opacity-40"
+            >
+              Need Help
+            </button>
             {smallBtn("note", "Add Note")}
           </div>
-          <div className="flex gap-2">
-            {smallBtn("support", "Add Support")}
-            {smallBtn("escalate", "Escalate to GM")}
-            {smallBtn("unable", "Unable to Complete")}
-          </div>
+          <button
+            onClick={() => { setVoidReason(""); setModal("void"); }}
+            disabled={closed}
+            className="w-full rounded-lg border border-red-200 bg-red-50/50 px-3 py-2.5 text-[13px] font-semibold text-red-600 hover:bg-red-50 disabled:opacity-40"
+          >
+            Void
+          </button>
         </div>
       </aside>
+
+      {modal && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/30 p-4" onMouseDown={(e) => e.target === e.currentTarget && setModal(null)}>
+          <div role="dialog" className="w-full max-w-[400px] rounded-2xl bg-white p-6 shadow-2xl">
+            {modal === "help" ? (
+              <>
+                <h3 className="text-[17px] font-bold text-ink">Need help?</h3>
+                <p className="mt-1 text-[13px] text-ink-secondary">{task.title} · Room {task.room}</p>
+                <div className="mt-4 space-y-2">
+                  {([
+                    ["reassign", "Reassign task", "Hand this task to another team member"],
+                    ["escalate", "Escalate to Duty Manager", "Send this up with a reason"],
+                    ["support", "Add support", "Bring in extra team members"],
+                  ] as const).map(([k, label, sub]) => (
+                    <button key={k} onClick={() => { setModal(null); setPanel(k); setText(""); setPerson(""); }} className="block w-full rounded-xl border border-line px-4 py-3 text-left hover:border-brand hover:bg-brand-tint/30">
+                      <span className="block text-[14px] font-semibold text-ink">{label}</span>
+                      <span className="block text-[12px] text-ink-secondary">{sub}</span>
+                    </button>
+                  ))}
+                </div>
+                <button onClick={() => setModal(null)} className="mt-4 w-full text-center text-[13px] font-medium text-ink-secondary">Cancel</button>
+              </>
+            ) : (
+              <>
+                <h3 className="text-[17px] font-bold text-ink">Void this task</h3>
+                <p className="mt-1 text-[13px] text-ink-secondary">Choose why this task is being voided.</p>
+                <div className="mt-4 space-y-2">
+                  {["Task no longer required", "Duplicate", "Wrong info"].map((r) => (
+                    <label key={r} className={`flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 text-[14px] ${voidReason === r ? "border-brand bg-brand-tint/40" : "border-line"}`}>
+                      <input type="radio" name="void-reason" className="accent-brand" checked={voidReason === r} onChange={() => setVoidReason(r)} />
+                      {r}
+                    </label>
+                  ))}
+                </div>
+                <div className="mt-5 flex gap-2">
+                  <button onClick={() => setModal(null)} className="flex-1 rounded-lg border border-line py-2.5 text-[13px] font-semibold text-ink-secondary hover:bg-subtle">Cancel</button>
+                  <button
+                    disabled={!voidReason}
+                    onClick={() => { onApply({ status: "Void", resolution: voidReason }, "Marked void", `Reason: ${voidReason}`, "Task marked void", true); setModal(null); }}
+                    className="flex-1 rounded-lg bg-red-500 py-2.5 text-[13px] font-semibold text-white hover:bg-red-600 disabled:opacity-40"
+                  >
+                    Mark as Void
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

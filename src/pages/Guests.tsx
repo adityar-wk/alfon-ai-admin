@@ -30,11 +30,10 @@ const STATS = [
   { label: "In House", value: "186", icon: Luggage, chip: "bg-emerald-50 text-emerald-600", foot: <Foot dot="bg-emerald-500" text="Currently staying" /> },
   { label: "Arrivals Today", value: "28", icon: Briefcase, chip: "bg-blue-50 text-blue-600", foot: <Foot dot="bg-blue-500" text="Expected" /> },
   { label: "Departures Today", value: "22", icon: Plane, chip: "bg-violet-50 text-violet-600", foot: <Foot dot="bg-violet-500" text="Scheduled" /> },
-  { label: "VIP Guests", value: "34", icon: Crown, chip: "bg-amber-50 text-amber-600", foot: <Foot dot="bg-amber-500" text="High priority" /> },
 ];
 
-type Filters = { status: string; nationality: string; type: string; room: string; vip: boolean };
-const NO_FILTERS: Filters = { status: "all", nationality: "all", type: "all", room: "all", vip: false };
+type Filters = { status: string; nationality: string; type: string; room: string };
+const NO_FILTERS: Filters = { status: "all", nationality: "all", type: "all", room: "all" };
 
 export default function Guests() {
   const navigate = useNavigate();
@@ -47,7 +46,7 @@ export default function Guests() {
 
   const activeCount =
     [filters.status, filters.nationality, filters.type, filters.room].filter((v) => v !== "all").length +
-    Number(filters.vip);
+    0;
 
   const rows = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -58,7 +57,7 @@ export default function Guests() {
         (filters.nationality === "all" || g.country === filters.nationality) &&
         (filters.type === "all" || g.type === filters.type) &&
         (filters.room === "all" || g.roomType === filters.room) &&
-        (!filters.vip || g.vip),
+        true,
     );
   }, [query, filters]);
 
@@ -101,7 +100,7 @@ export default function Guests() {
         </div>
 
         {/* stats */}
-        <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+        <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
           {STATS.map((s) => (
             <Card key={s.label} className="p-4">
               <div className="flex items-start justify-between">
@@ -191,15 +190,7 @@ export default function Guests() {
                 </label>
               </div>
               <div className="mt-3 flex items-center justify-between text-[13px]">
-                <label className="flex items-center gap-2 text-ink">
-                  <input
-                    type="checkbox"
-                    className="accent-brand"
-                    checked={filters.vip}
-                    onChange={(e) => setFilters((f) => ({ ...f, vip: e.target.checked }))}
-                  />
-                  VIP guests only
-                </label>
+                <span />
                 <span className="flex items-center gap-3 text-[12px] text-ink-secondary">
                   {rows.length} match
                   <button onClick={() => setFiltersOpen(false)} className="font-semibold text-brand">
@@ -240,9 +231,6 @@ export default function Guests() {
                         <div className="leading-tight">
                           <div className="flex items-center gap-1.5">
                             <span className="text-[13px] font-semibold text-ink">{g.name}</span>
-                            {g.vip && (
-                              <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-700">VIP</span>
-                            )}
                           </div>
                           <div className="text-[12px] text-ink-tertiary">{g.contact}</div>
                         </div>

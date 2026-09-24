@@ -13,7 +13,7 @@ export default function DepartmentDashboard() {
   const { scopeDepts, inScope } = usePersona();
 
   const mine = TASKS.filter((t) => inScope(t.dept));
-  const open = mine.filter((t) => t.status !== "Completed" && t.status !== "Unable to Complete");
+  const open = mine.filter((t) => t.status !== "Completed" && t.status !== "Unable to Complete" && t.status !== "Void");
   const escalated = open.filter((t) => t.status === "Escalated");
   const overdue = open.filter((t) => t.sla.kind === "overdue");
   const atRisk = open.filter((t) => t.sla.kind === "due");
@@ -29,7 +29,7 @@ export default function DepartmentDashboard() {
 
   // team availability + workload
   const team = INITIAL.filter((s) => inScope(s.dept)).map((s) => {
-    const n = TASKS.filter((t) => t.owner === shortName(s.name) && t.status !== "Completed" && t.status !== "Unable to Complete").length;
+    const n = TASKS.filter((t) => t.owner === shortName(s.name) && t.status !== "Completed" && t.status !== "Unable to Complete" && t.status !== "Void").length;
     return { ...s, n };
   });
 

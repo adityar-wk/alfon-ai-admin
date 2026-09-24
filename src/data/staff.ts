@@ -37,7 +37,7 @@ const SEED: Omit<Staff, "tint">[] = [
   { id: "#EMP007", name: "Daniel Wilson", role: "Concierge", dept: "Concierge", status: "On Duty", task: "Guest Assistance", shift: "Morning" },
   { id: "#EMP008", name: "Fatima Khan", role: "Housekeeping", dept: "Housekeeping", status: "On Duty", task: "Room 1202 Cleaning", shift: "Morning" },
   { id: "#EMP009", name: "Ravi Shankar", role: "Technician", dept: "Engineering", status: "On Break", task: null, shift: "Afternoon" },
-  { id: "#EMP010", name: "Chen Li", role: "Guest Relations", dept: "Guest Services", status: "On Duty", task: "Guest VIP Check-in", shift: "Morning" },
+  { id: "#EMP010", name: "Chen Li", role: "Guest Relations", dept: "Guest Services", status: "On Duty", task: "Guest Check-in", shift: "Morning" },
   { id: "#EMP011", name: "Lisa Morgan", role: "Housekeeping", dept: "Housekeeping", status: "On Duty", task: "Room 1502 Linen Change", shift: "Morning" },
   { id: "#EMP012", name: "Maria Santos", role: "Housekeeping", dept: "Housekeeping", status: "On Break", task: null, shift: "Afternoon" },
   { id: "#EMP013", name: "Mike Rogers", role: "Technician", dept: "Engineering", status: "On Duty", task: "AC Not Working – 2205", shift: "Morning" },

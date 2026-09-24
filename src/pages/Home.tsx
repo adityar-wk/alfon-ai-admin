@@ -76,7 +76,7 @@ const TEAM = [
 
 /** Health score = 82 at the starting data; it moves as tasks are resolved or new problems appear. */
 const penalty = (ts: typeof TASKS) => {
-  const open = ts.filter((t) => t.status !== "Completed" && t.status !== "Unable to Complete");
+  const open = ts.filter((t) => t.status !== "Completed" && t.status !== "Unable to Complete" && t.status !== "Void");
   return (
     open.filter((t) => t.sla.kind === "overdue").length * 2.5 +
     open.filter((t) => t.status === "Escalated").length * 2 +
@@ -113,7 +113,7 @@ export default function Home() {
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
 
-  const open = TASKS.filter((t) => t.status !== "Completed" && t.status !== "Unable to Complete");
+  const open = TASKS.filter((t) => t.status !== "Completed" && t.status !== "Unable to Complete" && t.status !== "Void");
   const inProgress = open.filter((t) => t.status === "In Progress").length;
   const completed = TASKS.filter((t) => t.status === "Completed").length;
   const overdue = open.filter((t) => t.sla.kind === "overdue").length;
@@ -272,7 +272,6 @@ export default function Home() {
                         <td className="py-3 pl-5 pr-3">
                           <div className="flex items-center gap-2 text-[13px] font-semibold text-ink">
                             {t.title}
-                            {t.vip && <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-700">VIP</span>}
                             {t.tag && <span className="text-[11px] font-medium text-red-600">{t.tag}</span>}
                           </div>
                           <div className="text-[12px] text-ink-tertiary">{t.guest} · Room {t.room}</div>

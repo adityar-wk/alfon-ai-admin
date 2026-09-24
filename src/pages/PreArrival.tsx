@@ -67,9 +67,7 @@ function TagChips({ g }: { g: PreGuest }) {
       {g.tags.map((t) => (
         <span
           key={t}
-          className={`rounded px-1.5 py-0.5 text-[11px] font-semibold ${
-            t === "VIP" ? "bg-amber-100 text-amber-700" : "bg-slate-100 text-slate-600"
-          }`}
+          className="rounded bg-slate-100 px-1.5 py-0.5 text-[11px] font-semibold text-slate-600"
         >
           {t}
         </span>
@@ -102,7 +100,7 @@ const TABS: { key: Tab; label: string; test: (g: PreGuest) => boolean }[] = [
 ];
 
 type Filters = {
-  vip: boolean;
+  loyalty: boolean;
   returning: boolean;
   wa: string;
   consent: string;
@@ -111,7 +109,7 @@ type Filters = {
   request: string;
   ready: string;
 };
-const NO_FILTERS: Filters = { vip: false, returning: false, wa: "all", consent: "all", room: "all", lang: "all", request: "all", ready: "all" };
+const NO_FILTERS: Filters = { loyalty: false, returning: false, wa: "all", consent: "all", room: "all", lang: "all", request: "all", ready: "all" };
 
 const REQUEST_KEYS = ["Airport", "Early Check-In", "Dietary", "Vegetarian", "Accessibility"];
 
@@ -165,7 +163,7 @@ export default function PreArrival() {
   const roomTypes = useMemo(() => [...new Set(guests.map((g) => g.type))].sort(), [guests]);
   const langs = useMemo(() => [...new Set(guests.map((g) => g.lang))].sort(), [guests]);
   const activeFilterCount =
-    Number(tab !== "all") + Number(filters.vip) + Number(filters.returning) + [filters.wa, filters.consent, filters.room, filters.lang, filters.request, filters.ready].filter((v) => v !== "all").length;
+    Number(tab !== "all") + Number(filters.loyalty) + Number(filters.returning) + [filters.wa, filters.consent, filters.room, filters.lang, filters.request, filters.ready].filter((v) => v !== "all").length;
 
   const hasRequest = (g: PreGuest, key: string) =>
     [...g.reqs.map((r) => r.name), ...g.prefs].some((v) => v.toLowerCase().includes(key.toLowerCase()));
@@ -175,7 +173,7 @@ export default function PreArrival() {
     return dayGuests.filter(
       (g) =>
         (!q || [g.name, g.room ?? "", g.type, `res-${100000 + g.id * 731}`].some((v) => v.toLowerCase().includes(q))) &&
-        (!filters.vip || g.tags.includes("VIP") || g.tags.includes("Loyalty")) &&
+        (!filters.loyalty || g.tags.includes("Loyalty")) &&
         (!filters.returning || g.tags.includes("Returning Guest")) &&
         (filters.wa === "all" || (filters.wa === "available") === g.wa) &&
         (filters.consent === "all" || (filters.consent === "confirmed") === g.consent) &&
@@ -328,8 +326,8 @@ export default function PreArrival() {
               </div>
               <div className="mt-3 flex flex-wrap items-center gap-4 text-[13px] text-ink">
                 <label className="flex items-center gap-2">
-                  <input type="checkbox" className="accent-brand" checked={filters.vip} onChange={(e) => setFilters((f) => ({ ...f, vip: e.target.checked }))} />
-                  VIP / loyalty
+                  <input type="checkbox" className="accent-brand" checked={filters.loyalty} onChange={(e) => setFilters((f) => ({ ...f, loyalty: e.target.checked }))} />
+                  Loyalty members
                 </label>
                 <label className="flex items-center gap-2">
                   <input type="checkbox" className="accent-brand" checked={filters.returning} onChange={(e) => setFilters((f) => ({ ...f, returning: e.target.checked }))} />

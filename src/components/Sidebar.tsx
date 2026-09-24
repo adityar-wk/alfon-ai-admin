@@ -38,6 +38,7 @@ const GM_NAV: Item[] = [
   { label: "Team", to: "/team/roles", icon: Users, match: "/team" },
   { label: "Housekeeping", to: "/housekeeping", icon: BedDouble },
   { label: "Guests", to: "/guests", icon: UserRound },
+  { label: "Guest Chats", to: "/guest-chats", icon: MessageSquare },
   { label: "Departments", to: "/departments", icon: Building2 },
   { label: "Analytics", to: "/analytics", icon: BarChart3 },
   { label: "Reports", to: "/reports", icon: FileText },
@@ -53,7 +54,7 @@ const MID_NAV: Item[] = [
   { label: "Team", to: "/team", icon: Users },
   { label: "Housekeeping", to: "/housekeeping", icon: BedDouble },
   { label: "Guests", to: "/guests", icon: UserRound },
-  { label: "Guest Communication", to: "/guest-communication", icon: MessageSquare },
+  { label: "Guest Chats", to: "/guest-chats", icon: MessageSquare },
   { label: "Analytics", to: "/analytics", icon: BarChart3 },
   { label: "Reports", to: "/reports", icon: FileText },
 ];

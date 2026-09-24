@@ -9,7 +9,7 @@ type Priority = "Urgent" | "High" | "Medium" | "Low";
 type Target = { response: string; resolve: string };
 
 const PRIORITY_META: Record<Priority, { desc: string; dot: string; text: string; card: string }> = {
-  Urgent: { desc: "Safety, VIP or guest-blocking issues", dot: "bg-red-500", text: "text-red-600", card: "border-red-100 bg-red-50/40" },
+  Urgent: { desc: "Safety or guest-blocking issues", dot: "bg-red-500", text: "text-red-600", card: "border-red-100 bg-red-50/40" },
   High: { desc: "Time-sensitive guest requests", dot: "bg-orange-500", text: "text-orange-600", card: "border-orange-100 bg-orange-50/40" },
   Medium: { desc: "Standard service requests", dot: "bg-amber-500", text: "text-amber-600", card: "border-amber-100 bg-amber-50/40" },
   Low: { desc: "Routine, non-urgent tasks", dot: "bg-emerald-500", text: "text-emerald-600", card: "border-emerald-100 bg-emerald-50/40" },

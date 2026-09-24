@@ -1,16 +1,11 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
-import {
-  MoreVertical,
-  Search,
-  Check,
-  Plus,
-} from "lucide-react";
+import { Search, Plus, User, Lightbulb, Bell, BedDouble, UtensilsCrossed, Target, MessageCircle, AlarmClock, Thermometer, Wine, Newspaper, Calendar, Hourglass, History } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { Card } from "../components/ui";
 import { Flag } from "../components/Flag";
 import { GUESTS, type Guest } from "../data/guests";
-import { GuestChat, type ChatMsg, type ChatMode as Mode } from "../components/GuestChat";
+import { type ChatMsg } from "../components/GuestChat";
 
 type Prefs = {
   room: string[];
@@ -80,7 +75,7 @@ const EMMA: Profile = {
 const RICH: Record<number, Profile> = {
   1: {
     summary:
-      "Rohan is a VIP loyalty member on his fifth stay, travelling for business with an extended leisure weekend. He values speed and personal recognition, and prefers to be greeted by name. Late evening turndown has been part of every previous stay.",
+      "Rohan is a loyalty member on his fifth stay, travelling for business with an extended leisure weekend. He values speed and personal recognition, and prefers to be greeted by name. Late evening turndown has been part of every previous stay.",
     anticipated:
       "Have the room ready before the 2:00 PM arrival and offer a fresh towel set on arrival. As a repeat guest he is likely to request a late check-out on his final morning.",
     prefs: {
@@ -126,7 +121,7 @@ const RICH: Record<number, Profile> = {
   },
   4: {
     summary:
-      "Michael is a VIP returning guest travelling for business. He keeps a tight schedule and prefers early, efficient service with minimal interruption. Previous stays show a strong preference for early breakfast and a quiet room away from the elevator.",
+      "Michael is a returning guest travelling for business. He keeps a tight schedule and prefers early, efficient service with minimal interruption. Previous stays show a strong preference for early breakfast and a quiet room away from the elevator.",
     anticipated:
       "He has a 9 AM meeting tomorrow — offer early breakfast delivery and confirm a wake-up call. A printer and stationery set in the room may be appreciated.",
     prefs: {
@@ -141,7 +136,7 @@ const RICH: Record<number, Profile> = {
     },
     actions: [
       { text: "Schedule early breakfast delivery for tomorrow before his 9 AM meeting.", dept: "Room Service", who: "AP", status: "Pending" },
-      { text: "Confirm saved VIP preferences with the Front Desk lead before arrival.", dept: "Front Desk", who: "SK", status: "Completed" },
+      { text: "Confirm saved preferences with the Front Desk lead before arrival.", dept: "Front Desk", who: "SK", status: "Completed" },
     ],
     notes: [{ author: "John S. (Concierge)", time: "May 23 09:40 AM", text: "Guest mentioned a 9 AM meeting tomorrow. Suggested early breakfast; awaiting his confirmation." }],
     history: ["Mar 2025 · Room 1103 · 4 nights", "Oct 2024 · Room 1103 · 6 nights", "Apr 2024 · Room 1002 · 3 nights"],
@@ -253,14 +248,14 @@ function pick<T>(list: T[], seed: number, n: number): T[] {
   return Array.from({ length: n }, (_, i) => list[(seed + i * 2) % list.length]);
 }
 
-function buildProfile(g: Guest): Profile {
+export function buildProfile(g: Guest): Profile {
   if (g.id === 2) return EMMA;
   if (RICH[g.id]) return RICH[g.id];
   const first = g.name.split(" ")[0];
   const business = g.type === "Business";
   return {
     summary: `${first} is a ${g.type.toLowerCase()} guest from ${g.country}, staying ${g.nights} nights in Room ${g.room} (${g.roomType}). ${
-      g.vip ? "VIP guest — prioritise service and personal touches. " : ""
+      ""
     }Prefers clear, timely communication over WhatsApp.`,
     anticipated: business
       ? "Offer early breakfast delivery and a late check-out option. Check for meeting-room or printing needs."
@@ -290,29 +285,34 @@ function buildProfile(g: Guest): Profile {
         text: `Confirmed ${g.roomType.toLowerCase()} for ${g.nights} nights. Guest requested a quiet floor.`,
       },
     ],
-    history: g.vip
+    history: g.id % 2
       ? ["Feb 2025 · Room 1201 · 3 nights", "Nov 2024 · Room 905 · 5 nights"]
       : ["Jan 2025 · Room 704 · 2 nights"],
-    previousStays: g.vip ? 2 : 1,
+    previousStays: g.id % 2 ? 2 : 1,
   };
 }
 
 
 
 
+const STATUS_LABEL: Record<Guest["status"], string> = { "In House": "In-House", Arriving: "Pre-Arrival", "Checked Out": "Checked Out" };
+const STATUS_PILL: Record<Guest["status"], string> = {
+  "In House": "bg-emerald-50 text-emerald-600",
+  Arriving: "bg-blue-50 text-blue-600",
+  "Checked Out": "bg-slate-100 text-slate-500",
+};
+const LIST_FILTERS = ["All", "In House", "Arriving", "Checked Out"] as const;
+
 function GuestList({ activeId }: { activeId: number }) {
   const [q, setQ] = useState("");
+  const [f, setF] = useState<(typeof LIST_FILTERS)[number]>("All");
   const list = GUESTS.filter((g) => {
     const t = q.trim().toLowerCase();
-    return !t || [g.name, g.room, g.contact, g.country].some((v) => v.toLowerCase().includes(t));
+    return (f === "All" || g.status === f) && (!t || [g.name, g.room, g.contact, g.country].some((v) => v.toLowerCase().includes(t)));
   });
   return (
-    <aside className="flex w-[290px] shrink-0 flex-col border-r border-line bg-white">
-      <div className="border-b border-line p-3">
-        <div className="mb-2 flex items-center justify-between px-1">
-          <span className="text-[13px] font-semibold text-ink">Guests</span>
-          <span className="text-[12px] text-ink-tertiary">{list.length} of {GUESTS.length}</span>
-        </div>
+    <aside className="flex w-[300px] shrink-0 flex-col border-r border-line bg-white">
+      <div className="space-y-3 border-b border-line p-3">
         <div className="relative">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-tertiary" />
           <input
@@ -322,28 +322,29 @@ function GuestList({ activeId }: { activeId: number }) {
             className="h-9 w-full rounded-lg border border-line bg-subtle pl-9 pr-3 text-[13px] outline-none placeholder:text-ink-tertiary focus:border-brand focus:bg-white"
           />
         </div>
+        <div className="flex flex-wrap gap-1.5">
+          {LIST_FILTERS.map((x) => (
+            <button
+              key={x}
+              onClick={() => setF(x)}
+              className={`rounded-full px-3 py-1 text-[12px] font-medium ${f === x ? "bg-brand text-white" : "bg-subtle text-ink-secondary hover:bg-line/60"}`}
+            >
+              {x === "All" ? "All" : STATUS_LABEL[x]}
+            </button>
+          ))}
+        </div>
       </div>
-      <div className="min-h-0 flex-1 overflow-y-auto p-2">
+      <div className="min-h-0 flex-1 overflow-y-auto">
         {list.map((g) => {
           const on = g.id === activeId;
           return (
-            <Link
-              key={g.id}
-              to={`/guests/${g.id}`}
-              className={`flex items-center gap-3 rounded-lg px-3 py-2.5 ${on ? "bg-brand-tint" : "hover:bg-subtle"}`}
-            >
-              <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold ${g.tint}`}>
-                {g.initials}
-              </span>
+            <Link key={g.id} to={`/guests/${g.id}`} className={`flex items-center gap-3 border-b border-line/60 px-4 py-3 ${on ? "bg-brand-tint/50" : "hover:bg-subtle"}`}>
+              <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[12px] font-semibold ${g.tint}`}>{g.initials}</span>
               <span className="min-w-0 flex-1 leading-tight">
-                <span className="flex items-center gap-1.5">
-                  <span className={`truncate text-[13px] font-semibold ${on ? "text-brand" : "text-ink"}`}>{g.name}</span>
-                  {g.vip && <span className="rounded bg-amber-100 px-1 py-0.5 text-[9px] font-bold text-amber-700">VIP</span>}
-                </span>
-                <span className="block truncate text-[12px] text-ink-tertiary">
-                  Room {g.room} · {g.status}
-                </span>
+                <span className="block truncate text-[14px] font-semibold text-ink">{g.name}</span>
+                <span className="block truncate text-[12px] text-ink-tertiary">Room {g.room} · {STATUS_LABEL[g.status]}</span>
               </span>
+              <Flag country={g.country} />
             </Link>
           );
         })}
@@ -353,7 +354,7 @@ function GuestList({ activeId }: { activeId: number }) {
   );
 }
 
-function seedChat(g: Guest): ChatMsg[] {
+export function seedChat(g: Guest): ChatMsg[] {
   if (g.status === "Arriving") return [];
   if (g.id === 2)
     return [
@@ -379,36 +380,28 @@ function seedChat(g: Guest): ChatMsg[] {
   ];
 }
 
-const NOT_SET = (v: string) => v !== "Not yet captured" && v !== "None" && !v.toLowerCase().startsWith("no ");
-
-const PREF_ROWS: { key: keyof Prefs; label: string }[] = [
-  { key: "room", label: "Room" },
-  { key: "dietary", label: "Dietary" },
-  { key: "purpose", label: "Purpose" },
-  { key: "language", label: "Language" },
-  { key: "wake", label: "Wake-up" },
-  { key: "temp", label: "Temperature" },
-  { key: "minibar", label: "Minibar" },
-  { key: "newspaper", label: "Newspaper" },
+const PREF_CARDS: { key: keyof Prefs; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
+  { key: "room", label: "Room preferences", icon: BedDouble },
+  { key: "dietary", label: "Dietary requirements", icon: UtensilsCrossed },
+  { key: "purpose", label: "Purpose of visit", icon: Target },
+  { key: "language", label: "Communication language", icon: MessageCircle },
+  { key: "wake", label: "Wake up call preference", icon: AlarmClock },
+  { key: "temp", label: "Temperature preference", icon: Thermometer },
+  { key: "minibar", label: "Minibar preference", icon: Wine },
+  { key: "newspaper", label: "Newspaper preference", icon: Newspaper },
 ];
 
-function Section({ title, action, children }: { title: string; action?: React.ReactNode; children: React.ReactNode }) {
+function Heading({ icon: Icon, tone, children }: { icon: React.ComponentType<{ className?: string }>; tone: string; children: React.ReactNode }) {
   return (
-    <section>
-      <div className="mb-2 flex items-center justify-between">
-        <h3 className="text-[11px] font-semibold uppercase tracking-wide text-ink-secondary">{title}</h3>
-        {action}
-      </div>
-      {children}
-    </section>
+    <div className={`mb-2 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide ${tone}`}>
+      <Icon className="h-3.5 w-3.5" /> {children}
+    </div>
   );
 }
 
 export default function GuestProfile() {
   const { id } = useParams();
   const guest = GUESTS.find((g) => String(g.id) === id);
-  const [chats, setChats] = useState<Record<number, ChatMsg[]>>({});
-  const [modes, setModes] = useState<Record<number, Mode>>({});
   const [extraNotes, setExtraNotes] = useState<Record<number, Note[]>>({});
   const [done, setDone] = useState<Record<string, boolean>>({});
   const [noteOpen, setNoteOpen] = useState(false);
@@ -422,106 +415,125 @@ export default function GuestProfile() {
   if (!guest) return <Navigate to="/guests" replace />;
 
   const p = buildProfile(guest);
-  const msgs = chats[guest.id] ?? seedChat(guest);
-  const mode: Mode = modes[guest.id] ?? "auto";
   const notes = [...(extraNotes[guest.id] ?? []), ...p.notes];
   const actions = p.actions.map((a, i) => ({ ...a, key: `${guest.id}:${i}` }));
-  const pending = actions.filter((a) => a.status === "Pending" && !done[a.key]);
-
-  const send = (text: string) =>
-    setChats((c) => ({ ...c, [guest.id]: [...(c[guest.id] ?? seedChat(guest)), { from: "staff", text, time: "Now" }] }));
 
   const addNote = () => {
     if (!draft.trim()) return;
-    setExtraNotes((n) => ({ ...n, [guest.id]: [{ author: "Sophia Carter (GM)", time: "Just now", text: draft.trim() }, ...(n[guest.id] ?? [])] }));
+    setExtraNotes((n) => ({ ...n, [guest.id]: [{ author: "You", time: "Just now", text: draft.trim() }, ...(n[guest.id] ?? [])] }));
     setDraft("");
     setNoteOpen(false);
   };
 
-  const inHouse = guest.status === "In House";
-
   return (
     <>
-      <Topbar title="" backTo="/guests" />
+      <Topbar title="Guests" />
       <div className="flex min-h-0 flex-1">
         <GuestList activeId={guest.id} />
 
-        {/* details in focus */}
         <div className="min-w-0 flex-1 overflow-y-auto bg-subtle/40 p-5">
-          <div className="mx-auto max-w-[760px] space-y-4">
+          <div className="mx-auto max-w-[1100px] space-y-4">
             <Card className="p-5">
-              <div className="flex items-center gap-4">
-              <span className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-full text-[18px] font-semibold ${guest.tint}`}>
-                {guest.initials}
-              </span>
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h1 className="text-[20px] font-bold leading-tight text-ink">{guest.name}</h1>
-                  <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${inHouse ? "bg-emerald-50 text-emerald-600" : "bg-blue-50 text-blue-600"}`}>
-                    {inHouse ? "In-House" : "Arriving"}
-                  </span>
-                  {guest.vip && <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-700">VIP</span>}
+              <div className="flex items-start gap-4">
+                <span className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-full text-[20px] font-semibold ${guest.tint}`}>{guest.initials}</span>
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h1 className="text-[22px] font-bold leading-tight text-ink">{guest.name}</h1>
+                    <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${STATUS_PILL[guest.status]}`}>{STATUS_LABEL[guest.status]}</span>
+                  </div>
+                  <div className="mt-1.5 flex flex-wrap items-center gap-x-2 text-[13px] text-ink-secondary">
+                    <Flag country={guest.country} /> {guest.country} <span>·</span> Room {guest.room} <span>·</span> {guest.roomType}
+                  </div>
+                  <div className="mt-3 flex flex-wrap items-center gap-x-6 gap-y-1 text-[13px] text-ink-secondary">
+                    <span className="flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5 text-ink-tertiary" /> Check-in <b className="text-ink">{guest.from}, 2025</b></span>
+                    <span className="flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5 text-ink-tertiary" /> Check-out <b className="text-ink">{guest.to}, 2025</b></span>
+                    <span className="flex items-center gap-1.5"><Hourglass className="h-3.5 w-3.5 text-ink-tertiary" /> Length of stay <b className="text-ink">{guest.nights} nights</b></span>
+                    <span className="flex items-center gap-1.5"><History className="h-3.5 w-3.5 text-ink-tertiary" /> Previous stays <b className="text-ink">{p.previousStays}</b></span>
+                  </div>
                 </div>
-                <div className="mt-1 flex flex-wrap items-center gap-x-2 text-[13px] text-ink-secondary">
-                  <Flag country={guest.country} /> {guest.country}
-                  <span>·</span> Room {guest.room} · {guest.roomType}
-                  <span>·</span> {guest.type}
-                </div>
-              </div>
-              </div>
-              <div className="mt-4 grid grid-cols-4 gap-4 border-t border-line/70 pt-4 text-[13px]">
-                <div><div className="text-[11px] text-ink-tertiary">Check-in</div><div className="font-medium text-ink">{guest.from}</div></div>
-                <div><div className="text-[11px] text-ink-tertiary">Check-out</div><div className="font-medium text-ink">{guest.to}</div></div>
-                <div><div className="text-[11px] text-ink-tertiary">Nights</div><div className="font-medium text-ink">{guest.nights}</div></div>
-                <div><div className="text-[11px] text-ink-tertiary">Stays</div><div className="font-medium text-ink">{p.previousStays}</div></div>
+                <Link to={`/guest-chats?guest=${guest.id}`} className="shrink-0 rounded-lg border border-line px-3.5 py-2 text-[13px] font-semibold text-ink hover:bg-subtle">
+                  Open chat
+                </Link>
               </div>
             </Card>
 
-            <Card className="p-5">
-              <Section title="About">
-                <p className="text-[14px] leading-relaxed text-ink">{p.summary}</p>
-                <p className="mt-2 text-[13px] leading-relaxed text-ink-secondary">
-                  <span className="font-medium text-ink">Anticipate: </span>
-                  {p.anticipated}
-                </p>
-              </Section>
-            </Card>
+            <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1fr_340px]">
+              <div className="min-w-0 space-y-4">
+                <Card className="border-l-4 border-l-blue-400 p-5">
+                  <Heading icon={User} tone="text-blue-700">Guest profile</Heading>
+                  <p className="text-[14px] leading-relaxed text-ink">{p.summary}</p>
+                </Card>
 
-            <Card className="p-5">
-              <Section title="Preferences">
-                <dl className="grid grid-cols-1 gap-x-8 2xl:grid-cols-2">
-                  {PREF_ROWS.map((r) => (
-                    <div key={r.key} className="grid grid-cols-[92px_1fr] gap-3 border-b border-line/70 py-2.5 text-[13px]">
-                      <dt className="text-ink-tertiary">{r.label}</dt>
-                      <dd className="text-ink">{p.prefs[r.key].join(" · ")}</dd>
-                    </div>
-                  ))}
-                </dl>
-              </Section>
-            </Card>
+                <Card className="border-l-4 border-l-amber-400 p-5">
+                  <Heading icon={Lightbulb} tone="text-amber-700">Anticipated needs</Heading>
+                  <p className="text-[14px] leading-relaxed text-ink">{p.anticipated}</p>
+                </Card>
 
-            <div className="grid grid-cols-1 gap-4 2xl:grid-cols-2">
-              <Card className="p-5">
-                <Section title="Stay history">
-                  <div className="space-y-1.5">
-                    {p.history.map((h) => (
-                      <div key={h} className="rounded-lg bg-subtle px-3 py-2 text-[12px] text-ink">{h}</div>
+                <Card className="p-5">
+                  <div className="mb-3 text-[11px] font-bold uppercase tracking-wide text-ink-tertiary">Preferences</div>
+                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                    {PREF_CARDS.map(({ key, label, icon: Icon }) => (
+                      <div key={key} className="rounded-xl bg-subtle/70 p-3.5">
+                        <div className="mb-2 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-ink-tertiary"><Icon className="h-3.5 w-3.5" /> {label}</div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {p.prefs[key].map((v) => <span key={v} className="rounded-full bg-white px-3 py-1 text-[13px] text-ink">{v}</span>)}
+                        </div>
+                      </div>
                     ))}
                   </div>
-                </Section>
-              </Card>
+                </Card>
 
-              <Card className="p-5">
-                <Section
-                  title="Notes"
-                  action={
-                    <button onClick={() => setNoteOpen((o) => !o)} className="flex items-center gap-1 text-[12px] font-medium text-brand">
-                      <Plus className="h-3.5 w-3.5" /> Add
-                    </button>
-                  }
-                >
+                <Card className="p-5">
+                  <div className="mb-3 text-[11px] font-bold uppercase tracking-wide text-ink-tertiary">Stay history</div>
+                  <div className="space-y-2">
+                    {p.history.map((h) => <div key={h} className="rounded-lg bg-subtle/70 px-3 py-2.5 text-[13px] text-ink">{h}</div>)}
+                  </div>
+                </Card>
+              </div>
+
+              <div className="min-w-0 space-y-4">
+                <Card className="p-5">
+                  <Heading icon={Bell} tone="text-red-700">Actions</Heading>
+                  <div className="divide-y divide-line/70">
+                    {actions.map((a, i) => {
+                      const isDone = a.status === "Completed" || done[a.key];
+                      return (
+                        <div key={a.key} className="flex items-start gap-3 py-3">
+                          <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-50 text-[11px] font-bold text-red-600">{i + 1}</span>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-[13px] leading-snug text-ink">{a.text}</p>
+                            <div className="mt-2 flex flex-wrap items-center gap-2">
+                              <span className="rounded-full bg-subtle px-2 py-0.5 text-[11px] font-medium text-ink-secondary">{a.dept}</span>
+                              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-brand-tint text-[9px] font-bold text-brand">{a.who}</span>
+                              <button
+                                onClick={() => !isDone && setDone((d) => ({ ...d, [a.key]: true }))}
+                                className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${isDone ? "bg-emerald-50 text-emerald-600" : "bg-amber-50 text-amber-700 hover:bg-amber-100"}`}
+                              >
+                                {isDone ? "Completed" : "Pending"}
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </Card>
+
+                <Card className="p-5">
+                  <div className="mb-3 flex items-center justify-between">
+                    <div className="text-[11px] font-bold uppercase tracking-wide text-ink-tertiary">Notes</div>
+                    <button onClick={() => setNoteOpen((o) => !o)} className="flex items-center gap-1 text-[12px] font-medium text-brand"><Plus className="h-3.5 w-3.5" /> Add note</button>
+                  </div>
+                  <div className="space-y-2">
+                    {notes.map((n, i) => (
+                      <div key={i} className="rounded-lg bg-subtle/70 p-3">
+                        <p className="text-[11px] text-ink-tertiary">{n.author} · {n.time}</p>
+                        <p className="mt-1 text-[13px] leading-snug text-ink">{n.text}</p>
+                      </div>
+                    ))}
+                  </div>
                   {noteOpen && (
-                    <div className="mb-3">
+                    <div className="mt-3">
                       <textarea
                         autoFocus
                         rows={2}
@@ -530,70 +542,14 @@ export default function GuestProfile() {
                         placeholder="Add an internal note…"
                         className="w-full rounded-lg bg-subtle p-2.5 text-[13px] outline-none placeholder:text-ink-tertiary focus:ring-1 focus:ring-brand"
                       />
-                      <button
-                        onClick={addNote}
-                        disabled={!draft.trim()}
-                        className="mt-2 rounded-lg bg-brand px-3 py-1.5 text-[12px] font-semibold text-white disabled:opacity-40"
-                      >
-                        Save note
-                      </button>
+                      <button onClick={addNote} disabled={!draft.trim()} className="mt-2 rounded-lg bg-brand px-3.5 py-1.5 text-[12px] font-semibold text-white disabled:opacity-40">Add Note</button>
                     </div>
                   )}
-                  <div className="space-y-2">
-                    {notes.map((n, i) => (
-                      <div key={i} className="rounded-lg bg-subtle p-3">
-                        <p className="text-[13px] leading-snug text-ink">{n.text}</p>
-                        <p className="mt-1 text-[11px] text-ink-tertiary">{n.author} · {n.time}</p>
-                      </div>
-                    ))}
-                  </div>
-                </Section>
-              </Card>
+                </Card>
+              </div>
             </div>
           </div>
         </div>
-
-        {/* right rail — attention on top, chat docked bottom-right */}
-        <aside className="flex w-[400px] shrink-0 flex-col gap-4 border-l border-line bg-white p-4">
-          <Card className="max-h-[38%] shrink-0 overflow-y-auto p-4">
-            <Section title="Needs attention">
-              {pending.length ? (
-                <div className="space-y-3">
-                  {pending.map((a) => (
-                    <div key={a.key} className="flex items-start gap-2.5">
-                      <div className="min-w-0 flex-1">
-                        <p className="text-[13px] leading-snug text-ink">{a.text}</p>
-                        <span className="mt-1 inline-block rounded-full bg-subtle px-2 py-0.5 text-[11px] text-ink-secondary">{a.dept}</span>
-                      </div>
-                      <button
-                        onClick={() => setDone((d) => ({ ...d, [a.key]: true }))}
-                        className="mt-0.5 flex shrink-0 items-center gap-1 rounded-md border border-line px-2 py-1 text-[12px] font-semibold text-ink-secondary hover:bg-subtle"
-                      >
-                        <Check className="h-3.5 w-3.5" /> Done
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="flex items-center gap-2 text-[13px] text-emerald-600">
-                  <Check className="h-4 w-4" /> All caught up
-                </p>
-              )}
-            </Section>
-          </Card>
-
-          <Card className="flex min-h-[320px] flex-1 flex-col overflow-hidden shadow-md">
-            <GuestChat
-              className="h-full"
-              name={guest.name}
-              msgs={msgs}
-              mode={mode}
-              setMode={(m) => setModes((x) => ({ ...x, [guest.id]: m }))}
-              onSend={send}
-              emptyText="No messages yet. Guest hasn't been contacted."
-            />
-          </Card>
-        </aside>
       </div>
     </>
   );

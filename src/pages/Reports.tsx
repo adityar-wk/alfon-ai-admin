@@ -46,7 +46,7 @@ const REPORTS: Report[] = [
       ["Late checkout override 1203", "James W.", "Front Desk", "May 8, 4:10 PM", "Repeated by user"],
       ["Room upgrade 1608", "Maria S.", "Front Desk", "May 7, 9:05 AM", "—"],
       ["Extra towels 2104", "Lisa M.", "Housekeeping", "May 7, 8:30 AM", "—"],
-      ["Airport pickup VIP", "John S.", "Concierge", "May 6, 6:15 PM", "No guest request"],
+      ["Airport pickup", "John S.", "Concierge", "May 6, 6:15 PM", "No guest request"],
     ],
   },
   {
