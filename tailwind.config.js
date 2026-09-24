@@ -23,6 +23,7 @@ export default {
       },
       fontFamily: {
         sans: [
+          "Sora", // digits only (see index.html) — everything else falls through to Inter
           "Inter",
           "ui-sans-serif",
           "system-ui",
