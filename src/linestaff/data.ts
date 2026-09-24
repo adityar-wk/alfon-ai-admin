@@ -33,6 +33,7 @@ export type MTask = {
   vip?: boolean;
   related?: string[];
   resolution?: string;
+  compensation?: { type: string; reason: string; by: string }[];
 };
 
 export type Presence = "Available" | "Busy" | "On Break" | "Off work";
@@ -199,12 +200,12 @@ export const PRE_ARRIVAL_GUESTS: PreArrivalGuest[] = [
   },
   {
     name: "Priya Nair", room: "Room 902", roomType: "Junior Suite", eta: "Today, Sep 23 · 1:00 PM", vip: true,
-    notes: "VIP arrival — welcome amenities and turndown setup requested.",
+    notes: "Welcome amenities and turndown setup requested.",
     country: "India", flag: "🇮🇳", checkIn: "Sep 23, 2026", checkOut: "Sep 27, 2026", nights: 4,
     profile: "Priya is a VIP loyalty member celebrating her anniversary. She has requested a quiet, romantic setup and has stayed at the property before.",
-    anticipatedNeeds: "VIP welcome amenities and a turndown setup should be ready before arrival. Consider a small anniversary gesture.",
+    anticipatedNeeds: "Welcome amenities and a turndown setup should be ready before arrival. Consider a small anniversary gesture.",
     actions: [
-      { text: "Set up VIP welcome amenities and turndown service.", dept: "Housekeeping" },
+      { text: "Set up welcome amenities and turndown service.", dept: "Housekeeping" },
       { text: "Arrange an anniversary card and small gift for the room.", dept: "Guest Services" },
     ],
     prefs: [
@@ -281,15 +282,15 @@ export const GUEST_PROFILES: Record<string, GuestProfileInfo> = {
   "Omar Haddad": gp("Room 1012", "Deluxe King", "United Arab Emirates", "🇦🇪", "Sep 19, 2026", "Sep 21, 2026", 2, "Omar stayed for a short business trip and preferred Arabic-language communication.", ["High floor, king bed", "Halal only", "Arabic, English", "Cool (21°C)", "6:00 AM", "Standard inventory"], "+971 50 555 0166", "omar.haddad@email.com"),
 };
 
-export type RoomStatus = "Clean" | "In Progress" | "Dirty" | "Out of Service";
+export type RoomStatus = "Clean" | "In Progress" | "Needs Inspection" | "Out of Service";
 export type HkRoom = { number: string; floor: number; status: RoomStatus; assignee: string | null };
 export const ROOMS: HkRoom[] = [
   { number: "Room 305", floor: 3, status: "In Progress", assignee: "Maria Santos" },
   { number: "Room 410", floor: 4, status: "Clean", assignee: null },
   { number: "Room 501", floor: 5, status: "In Progress", assignee: "Aanya Khan" },
-  { number: "Room 623", floor: 6, status: "Dirty", assignee: null },
-  { number: "Room 704", floor: 7, status: "Dirty", assignee: null },
-  { number: "Room 812", floor: 8, status: "Dirty", assignee: null },
+  { number: "Room 623", floor: 6, status: "Needs Inspection", assignee: null },
+  { number: "Room 704", floor: 7, status: "Needs Inspection", assignee: null },
+  { number: "Room 812", floor: 8, status: "Needs Inspection", assignee: null },
   { number: "Room 908", floor: 9, status: "In Progress", assignee: "Aanya Khan" },
   { number: "Room 1103", floor: 11, status: "Out of Service", assignee: null },
   { number: "Room 1204", floor: 12, status: "In Progress", assignee: "Fatima Khan" },

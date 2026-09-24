@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Bell, Send, Check, Plus, BedDouble, User, Building2, ChevronLeft } from "lucide-react";
+import { Bell, Send, Plus, BedDouble, User, Building2, ChevronLeft } from "lucide-react";
 import { DEPARTMENTS } from "../data/departments";
 import {
   PhoneFrame,
@@ -8,6 +8,7 @@ import {
   SectionTitle,
   SlaRing,
   SlaCountdown,
+  CompensationSheet,
   Fab,
   Sheet,
   PrimaryButton,
@@ -50,6 +51,7 @@ type Task = {
   created: string;
   staffNote?: string;
   dept?: string;
+  compensation?: { type: string; reason: string; by: string }[];
 };
 
 const INITIAL: Task[] = [
@@ -147,6 +149,7 @@ export function LineStaffPrototype() {
   const [helpOpen, setHelpOpen] = useState(false);
   const [helpKind, setHelpKind] = useState<HelpKind>("escalate");
   const [helpNote, setHelpNote] = useState("");
+  const [compOpen, setCompOpen] = useState(false);
 
   // create manual task
   const [dept, setDept] = useState("");
@@ -275,6 +278,26 @@ export function LineStaffPrototype() {
           <p className="mt-1.5 text-[14px] leading-relaxed text-ink">{active.note}</p>
           {active.staffNote && <p className="mt-2 text-[14px] leading-relaxed text-ink">{active.staffNote}</p>}
         </div>
+
+        <div className="rounded-2xl border border-line bg-white p-4">
+          <div className="flex items-center justify-between">
+            <span className="text-[12px] font-semibold text-ink-tertiary">Compensation</span>
+            <button onClick={() => setCompOpen(true)} className="text-[13px] font-semibold text-brand">Add compensation</button>
+          </div>
+          {active.compensation?.length ? (
+            <div className="mt-2 space-y-2">
+              {active.compensation.map((c, i) => (
+                <div key={i} className="rounded-xl bg-[#F6F6F8] p-3">
+                  <div className="text-[14px] font-medium text-ink">{c.type}</div>
+                  <p className="text-[12px] text-ink-secondary">{c.reason}</p>
+                  <p className="mt-0.5 text-[11px] text-ink-tertiary">Approved by {c.by}</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-1.5 text-[13px] text-ink-tertiary">None given.</p>
+          )}
+        </div>
       </div>
 
       <div className="flex shrink-0 gap-3 px-6 pb-6 pt-3">
@@ -288,7 +311,7 @@ export function LineStaffPrototype() {
               disabled={active.status === "completed"}
               onClick={() => { setStatus(active.id, "completed", "Done just now"); flash(`${active.room} marked complete`); nav.back(); }}
             >
-              {active.status === "completed" ? "Completed" : "Mark complete"} <Check className="h-4 w-4" />
+              {active.status === "completed" ? "Completed" : "Mark complete"}
             </PrimaryButton>
           </>
         )}
@@ -367,6 +390,18 @@ export function LineStaffPrototype() {
       <PhoneFrame>
         {VIEWS[cur.name]}
         {HelpSheet}
+        {compOpen && (
+          <CompensationSheet
+            subtitle={`${active.title} · ${active.room}`}
+            approvers={["Sarah Ali (Supervisor)", "Daniel Reyes (Housekeeping Manager)", "Duty Manager"]}
+            onClose={() => setCompOpen(false)}
+            onSubmit={(type, reason, by) => {
+              setTasks((ts) => ts.map((t) => (t.id === active.id ? { ...t, compensation: [...(t.compensation ?? []), { type, reason, by }] } : t)));
+              setCompOpen(false);
+              flash("Compensation submitted");
+            }}
+          />
+        )}
 
         {incoming && (
           <div className="absolute inset-0 z-40">

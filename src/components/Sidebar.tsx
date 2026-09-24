@@ -56,6 +56,7 @@ const MID_NAV: Item[] = [
   { label: "Guest Chats", to: "/guest-chats", icon: MessageSquare },
   { label: "Analytics", to: "/analytics", icon: BarChart3 },
   { label: "Reports", to: "/reports", icon: FileText },
+  { label: "Mobile App", to: "/line-staff", icon: Smartphone },
 ];
 
 export function Sidebar() {

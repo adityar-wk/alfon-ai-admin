@@ -10,7 +10,7 @@ import { BarChart } from "../components/BarChart";
 import { SEED_TASKS, SEED_REQUESTS, STAFF, PRESENCE_DOT, GUEST_STAYS, PRE_ARRIVAL_GUESTS, CHECKED_OUT_GUESTS, GUEST_PROFILES, ROOMS, type MTask, type Presence, type Staffer, type HkRoom, type RoomStatus, type EscType } from "./data";
 import {
   PhoneFrame, ScreenHeader, SectionTitle, TaskCard, StatCard, Avatar, Chips, Segmented, FloatingNav, PrimaryButton, GhostButton, SelectField, TextField, Label, Sheet,
-  useNav, useToast, CARD_SHADOW, TextHeader, PriorityPill, SlaCountdown, fmtMins, type Priority,
+  useNav, useToast, CARD_SHADOW, TextHeader, PriorityPill, SlaCountdown, fmtMins, CompensationSheet, type Priority,
 } from "./mobile";
 import { StaffPicker, ReasonSheet, StatusTag, activeCount, atRiskCount, overdueCount, isOpen, isAtRisk, isOverdue } from "./parts";
 
@@ -36,13 +36,13 @@ const GUEST_FILTERS = ["All", "Complaints", "Open requests"] as const;
 type GuestFilter = (typeof GUEST_FILTERS)[number];
 const ROSTER_STAGE_FILTERS = ["All", "In-house", "Pre-arrival", "Checked out"] as const;
 type RosterStage = (typeof ROSTER_STAGE_FILTERS)[number];
-const ROOM_STATUS_FILTERS = ["All", "In Progress", "Dirty", "Out of Service", "Clean"] as const;
+const ROOM_STATUS_FILTERS = ["All", "In Progress", "Needs Inspection", "Out of Service", "Clean"] as const;
 type RoomStatusFilter = (typeof ROOM_STATUS_FILTERS)[number];
-const ROOM_STATUSES = ["Clean", "In Progress", "Dirty", "Out of Service"] as const;
+const ROOM_STATUSES = ["Clean", "In Progress", "Needs Inspection", "Out of Service"] as const;
 const ROOM_STATUS_TONE: Record<RoomStatus, string> = {
   Clean: "bg-emerald-50 text-emerald-600",
   "In Progress": "bg-blue-50 text-blue-600",
-  Dirty: "bg-amber-50 text-amber-700",
+  "Needs Inspection": "bg-amber-50 text-amber-700",
   "Out of Service": "bg-red-50 text-red-600",
 };
 const TASK_FILTERS = ["All", "Unassigned", "In Progress", "At Risk", "Overdue", "Completed"] as const;
@@ -71,9 +71,9 @@ const DetailRow = ({ icon: Icon, label, children }: { icon: React.ComponentType<
 );
 
 const PROFILE_SECTION_TONE = {
-  blue: { border: "border-blue-400", icon: "text-blue-600", label: "text-blue-700" },
-  amber: { border: "border-amber-400", icon: "text-amber-600", label: "text-amber-700" },
-  red: { border: "border-red-400", icon: "text-red-600", label: "text-red-700" },
+  blue: { bg: "bg-[#EEF3FF]", icon: "text-blue-600", label: "text-blue-700" },
+  amber: { bg: "bg-amber-50", icon: "text-amber-600", label: "text-amber-700" },
+  red: { bg: "bg-red-50", icon: "text-red-600", label: "text-red-700" },
 } as const;
 const ProfileSection = ({
   icon: Icon, label, tone, children,
@@ -82,14 +82,15 @@ const ProfileSection = ({
 }) => {
   const t = PROFILE_SECTION_TONE[tone];
   return (
-    <div className={`rounded-2xl border-l-4 ${t.border} bg-white p-4 ${CARD_SHADOW}`}>
-      <div className={`flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide ${t.label}`}>
+    <div className={`rounded-2xl p-4 ${t.bg}`}>
+      <div className={`flex items-center gap-1.5 text-[11px] font-bold ${t.label}`}>
         <Icon className={`h-3.5 w-3.5 ${t.icon}`} /> {label}
       </div>
       <div className="mt-2">{children}</div>
     </div>
   );
 };
+
 const MENU_ITEMS = [
   { key: "team" as const, label: "Team Management", icon: Users },
   { key: "housekeeping" as const, label: "Housekeeping", icon: DoorClosed },
@@ -184,6 +185,7 @@ export function ManagerPrototype() {
   const [teamQuery, setTeamQuery] = useState("");
   const [rosterFilterOpen, setRosterFilterOpen] = useState(false);
   const [staffTab, setStaffTab] = useState<StaffTab>("Overview");
+  const [compOpen, setCompOpen] = useState(false);
   const [rooms, setRooms] = useState<HkRoom[]>(ROOMS);
   const [roomFilter, setRoomFilter] = useState<RoomStatusFilter>("All");
   const [roomSheet, setRoomSheet] = useState<string | null>(null);
@@ -626,6 +628,17 @@ export function ManagerPrototype() {
 
   const RoomSheet = roomEntry && (
     <Sheet title={roomEntry.number} onClose={() => setRoomSheet(null)}>
+      {roomEntry.assignee ? (
+        <div className="mb-4 flex items-center gap-3 rounded-2xl bg-[#F6F6F8] p-3">
+          <Avatar name={roomEntry.assignee} />
+          <div className="leading-tight">
+            <div className="text-[11px] text-ink-tertiary">{roomEntry.status === "In Progress" ? "Cleaning in progress by" : "Assigned to"}</div>
+            <div className="text-[14px] font-semibold text-ink">{roomEntry.assignee}</div>
+          </div>
+        </div>
+      ) : roomEntry.status === "In Progress" ? (
+        <p className="mb-4 rounded-2xl bg-[#F6F6F8] p-3 text-[13px] text-ink-secondary">No staff assigned yet.</p>
+      ) : null}
       <Label>Status</Label>
       <Chips
         items={ROOM_STATUSES}
@@ -761,25 +774,38 @@ export function ManagerPrototype() {
   const profileStage = !profileName ? "" : PRE_ARRIVAL_GUESTS.some((g) => g.name === profileName) ? "Pre-arrival" : CHECKED_OUT_GUESTS.some((g) => g.name === profileName) ? "Checked out" : "In-house";
   const profileTone = profileStage === "Pre-arrival" ? "bg-blue-50 text-blue-700" : profileStage === "Checked out" ? "bg-slate-100 text-slate-600" : "bg-emerald-50 text-emerald-700";
 
+  const preEntry = profileName ? PRE_ARRIVAL_GUESTS.find((g) => g.name === profileName) : undefined;
+
   const GuestProfile = profileName && (
     <div className="flex h-full flex-col">
-      <ScreenHeader
-        onBack={nav.back}
-        title={profileName}
-        sub={profileInfo ? `${profileInfo.room} · ${profileInfo.roomType}` : undefined}
-        right={<span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${profileTone}`}>{profileStage}</span>}
-      />
-      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 pb-6 no-scrollbar">
-        {!profileInfo && <p className="rounded-2xl bg-white p-6 text-center text-[13px] text-ink-tertiary">No profile details available.</p>}
+      <div className="flex shrink-0 items-center justify-between px-6 pb-2 pt-4">
+        <button onClick={nav.back} aria-label="Back" className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-ink shadow-sm">
+          <ChevronLeft className="h-5 w-5" />
+        </button>
+        <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${profileTone}`}>{profileStage}</span>
+      </div>
+      <div className="min-h-0 flex-1 space-y-3.5 overflow-y-auto px-6 pb-6 pt-1 no-scrollbar">
+        {!profileInfo && (
+          <>
+            <h1 className="text-[22px] font-bold text-ink">{profileName}</h1>
+            <p className="rounded-2xl bg-white p-6 text-center text-[13px] text-ink-tertiary">No profile details available.</p>
+          </>
+        )}
         {profileInfo && (
           <>
-            <div className="flex items-center gap-4">
-              <Avatar name={profileName} size={64} />
-              <div className="leading-snug">
-                <div className="text-[12px] text-ink-secondary">{profileInfo.flag} {profileInfo.country}</div>
-                <div className="mt-0.5 text-[13px] text-ink-secondary">Check-in: <b className="text-ink">{profileInfo.checkIn}</b></div>
-                <div className="text-[13px] text-ink-secondary">Check-out: <b className="text-ink">{profileInfo.checkOut}</b></div>
-                <div className="text-[12px] text-ink-tertiary">{profileInfo.nights} night{profileInfo.nights === 1 ? "" : "s"}</div>
+            <div className={`rounded-2xl bg-white p-4 ${CARD_SHADOW}`}>
+              <div className="flex items-center gap-3.5">
+                <Avatar name={profileName} size={56} />
+                <div className="min-w-0 leading-tight">
+                  <div className="truncate text-[19px] font-bold text-ink">{profileName}</div>
+                  <div className="mt-1 text-[13px] text-ink-secondary">{profileInfo.room} · {profileInfo.roomType}</div>
+                  <div className="mt-0.5 text-[12px] text-ink-tertiary">{profileInfo.country}</div>
+                </div>
+              </div>
+              <div className="mt-4 grid grid-cols-3 divide-x divide-line rounded-xl bg-[#F6F6F8] py-2.5 text-center">
+                <div><div className="text-[11px] text-ink-tertiary">Check-in</div><div className="mt-0.5 text-[13px] font-semibold text-ink">{profileInfo.checkIn.replace(/, \d{4}/, "")}</div></div>
+                <div><div className="text-[11px] text-ink-tertiary">Check-out</div><div className="mt-0.5 text-[13px] font-semibold text-ink">{profileInfo.checkOut.replace(/, \d{4}/, "")}</div></div>
+                <div><div className="text-[11px] text-ink-tertiary">Nights</div><div className="mt-0.5 text-[13px] font-semibold text-ink">{profileInfo.nights}</div></div>
               </div>
             </div>
 
@@ -787,8 +813,19 @@ export function ManagerPrototype() {
               <p className="text-[13px] leading-relaxed text-ink">{profileInfo.profile}</p>
             </ProfileSection>
 
-            <div className="rounded-2xl border border-line bg-white">
-              <div className="border-b border-line px-4 py-3 text-[12px] font-semibold text-ink-tertiary">Preferences</div>
+            {preEntry && (
+              <div className={`rounded-2xl bg-white p-4 ${CARD_SHADOW}`}>
+                <div className="text-[12px] font-semibold text-ink-tertiary">Requests from the guest</div>
+                <ul className="mt-2 space-y-2">
+                  {[preEntry.notes, ...preEntry.actions.map((a) => a.text)].map((r) => (
+                    <li key={r} className="flex gap-2 text-[13px] leading-snug text-ink"><span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-brand" />{r}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            <div className={`rounded-2xl bg-white ${CARD_SHADOW}`}>
+              <div className="px-4 pt-3.5 text-[12px] font-semibold text-ink-tertiary">Preferences</div>
               <div className="divide-y divide-line px-4">
                 <DetailRow icon={BedDouble} label="Room">{profileInfo.prefs.room}</DetailRow>
                 <DetailRow icon={UtensilsCrossed} label="Dietary">{profileInfo.prefs.dietary}</DetailRow>
@@ -799,8 +836,8 @@ export function ManagerPrototype() {
               </div>
             </div>
 
-            <div className="rounded-2xl border border-line bg-white">
-              <div className="border-b border-line px-4 py-3 text-[12px] font-semibold text-ink-tertiary">Contact</div>
+            <div className={`rounded-2xl bg-white ${CARD_SHADOW}`}>
+              <div className="px-4 pt-3.5 text-[12px] font-semibold text-ink-tertiary">Contact</div>
               <div className="divide-y divide-line px-4">
                 <div className="flex items-center gap-3 py-3.5 text-[14px] font-medium text-ink"><Phone className="h-4 w-4 shrink-0 text-ink-tertiary" />{profileInfo.phone}</div>
                 <div className="flex items-center gap-3 py-3.5 text-[14px] font-medium text-ink"><Mail className="h-4 w-4 shrink-0 text-ink-tertiary" /><span className="min-w-0 break-all">{profileInfo.email}</span></div>
@@ -857,6 +894,26 @@ export function ManagerPrototype() {
           </div>
         ))}
 
+        <div className="rounded-2xl border border-line bg-white p-4">
+          <div className="flex items-center justify-between">
+            <span className="text-[12px] font-semibold text-ink-tertiary">Compensation</span>
+            <button onClick={() => setCompOpen(true)} className="text-[13px] font-semibold text-brand">Add compensation</button>
+          </div>
+          {task.compensation?.length ? (
+            <div className="mt-2 space-y-2">
+              {task.compensation.map((c, i) => (
+                <div key={i} className="rounded-xl bg-[#F6F6F8] p-3">
+                  <div className="text-[14px] font-medium text-ink">{c.type}</div>
+                  <p className="text-[12px] text-ink-secondary">{c.reason}</p>
+                  <p className="mt-0.5 text-[11px] text-ink-tertiary">Approved by {c.by}</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-1.5 text-[13px] text-ink-tertiary">None given.</p>
+          )}
+        </div>
+
         <div className={`rounded-2xl bg-white p-4 ${CARD_SHADOW}`}>
           <div className="text-[11px] font-semibold text-ink-secondary">Timeline</div>
           <ol className="relative mt-3 space-y-3 border-l border-line pl-4">
@@ -882,7 +939,7 @@ export function ManagerPrototype() {
       {task.status !== "completed" && (
         <div className="flex shrink-0 gap-3 px-6 pb-6 pt-3">
           <GhostButton className="flex-1" onClick={() => setSheet({ k: "needHelp", taskId: task.id })}>Assist</GhostButton>
-          {task.owner === ME ? (
+          {task.owner === ME || task.status === "progress" ? (
             <PrimaryButton
               className="flex-[1.3]"
               onClick={() => { patch(task.id, { status: "completed", escalated: false }, `${ME} marked complete`); flash("Task marked complete"); nav.back(); }}
@@ -1101,15 +1158,16 @@ export function ManagerPrototype() {
               <ChevronRight className="h-4 w-4 shrink-0 text-ink-tertiary" />
             </button>
           ) : row.stage === "Upcoming" ? (
-            <button key={row.g.name} onClick={() => nav.push({ name: "guestProfile", id: row.g.name })} className={`w-full rounded-2xl bg-white p-3.5 text-left ${CARD_SHADOW}`}>
-              <div className="flex items-center gap-2">
-                <span className="text-[14px] font-semibold text-ink">{row.g.name}</span>
-                <span className="shrink-0 rounded-full bg-blue-50 px-1.5 py-0.5 text-[9px] font-bold text-blue-700">Pre-arrival</span>
-                <ChevronRight className="ml-auto h-4 w-4 shrink-0 text-ink-tertiary" />
+            <button key={row.g.name} onClick={() => nav.push({ name: "guestProfile", id: row.g.name })} className={`flex w-full items-center gap-3 rounded-2xl bg-white p-3.5 text-left ${CARD_SHADOW}`}>
+              <Avatar name={row.g.name} />
+              <div className="min-w-0 flex-1 leading-tight">
+                <div className="flex items-center gap-2">
+                  <span className="truncate text-[14px] font-semibold text-ink">{row.g.name}</span>
+                  <span className="shrink-0 rounded-full bg-blue-50 px-1.5 py-0.5 text-[9px] font-bold text-blue-700">Pre-arrival</span>
+                </div>
+                <div className="text-[12px] text-ink-tertiary">{row.g.room} · {GUEST_PROFILES[row.g.name]?.checkIn.replace(/, \d{4}/, "")} – {GUEST_PROFILES[row.g.name]?.checkOut.replace(/, \d{4}/, "")}</div>
               </div>
-              <div className="mt-0.5 text-[12px] text-ink-tertiary">{row.g.room}</div>
-              <div className="mt-1 text-[12px] font-semibold text-brand">Arriving {row.g.eta}</div>
-              <p className="mt-1.5 text-[12px] leading-snug text-ink-secondary">{row.g.notes}</p>
+              <ChevronRight className="h-4 w-4 shrink-0 text-ink-tertiary" />
             </button>
           ) : (
             <button key={row.g.name} onClick={() => nav.push({ name: "guestProfile", id: row.g.name })} className={`flex w-full items-center gap-3 rounded-2xl bg-white p-3.5 text-left opacity-70 ${CARD_SHADOW}`}>
@@ -1237,6 +1295,18 @@ export function ManagerPrototype() {
         {GuestFilterSheet}
         {RosterFilterSheet}
         {RoomSheet}
+        {compOpen && task && (
+          <CompensationSheet
+            subtitle={`${task.title} · ${task.room}`}
+            approvers={["Sophia Carter (General Manager)", "Duty Manager", "Daniel Reyes (Housekeeping Manager)"]}
+            onClose={() => setCompOpen(false)}
+            onSubmit={(type, reason, by) => {
+              patch(task.id, { compensation: [...(task.compensation ?? []), { type, reason, by }] }, `Compensation given: ${type}`);
+              setCompOpen(false);
+              flash("Compensation submitted");
+            }}
+          />
+        )}
         {toast}
       </PhoneFrame>
       <div className="flex flex-wrap items-center justify-center gap-2">
