@@ -84,6 +84,22 @@ const SEED: Task[] = [
   T(36, "Spa Appointment Change", "Emma Davis", "1608", "Guest Services", "Priya N.", "Medium", { kind: "left", text: "1 hr left" }, "Yet to be picked", "Guest Chat"),
   T(37, "Extra Hangers", "Liam Anderson", "623", "Housekeeping", null, "Low", { kind: "left", text: "55 min left" }, "Yet to be picked", "Guest Chat"),
   T(38, "Bathrobe Replacement", "Olivia Turner", "1108", "Housekeeping", null, "Medium", { kind: "left", text: "40 min left" }, "Yet to be picked", "Staff"),
+  T(39, "Pest Sighting Complaint", "Noah Martinez", "1802", "Housekeeping", "Sarah A.", "Critical", { kind: "overdue", text: "Overdue 9 min" }, "Escalated", "Guest Chat", {
+    tag: "Complaint",
+    escalation: "Guest reported insects in the bathroom; the room needs to be changed immediately.",
+  }),
+  T(40, "Missing Towels Complaint", "Ava Thompson", "2501", "Housekeeping", "Lisa M.", "High", { kind: "overdue", text: "Overdue 6 min" }, "Escalated", "Guest Chat", {
+    tag: "Complaint",
+    escalation: "Third request for towels; the guest is upset and asked for a manager.",
+  }),
+  T(41, "Room Not Cleaned Complaint", "Robert Brown", "905", "Housekeeping", "Maria S.", "High", { kind: "due", text: "Due in 7 min" }, "In Progress", "Guest Chat", { tag: "Complaint" }),
+  T(42, "Stale Smell in Room", "Sophia Lee", "1904", "Housekeeping", "Lisa M.", "Medium", { kind: "due", text: "Due in 11 min" }, "Escalated", "Guest Chat", {
+    tag: "Complaint",
+    escalation: "Odour remains after two cleans; guest wants to move rooms.",
+  }),
+  T(43, "Laundry Not Returned", "Daniel Kim", "1305", "Housekeeping", "Sarah A.", "High", { kind: "overdue", text: "Overdue 22 min" }, "In Progress", "Guest Chat", { tag: "Complaint" }),
+  T(44, "Late Turndown Service", "Olivia Brown", "1203", "Housekeeping", "Maria S.", "Low", { kind: "overdue", text: "Overdue 4 min" }, "In Progress", "Staff"),
+  T(45, "Extra Bed Not Ready", "Sarah Mitchell", "2501", "Housekeeping", "Lisa M.", "Medium", { kind: "overdue", text: "Overdue 15 min" }, "In Progress", "PMS"),
 ];
 
 

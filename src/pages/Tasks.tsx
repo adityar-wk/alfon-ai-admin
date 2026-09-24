@@ -60,7 +60,7 @@ function availabilityOf(name: string): { label: string; dot: string; text: strin
   const open = TASKS.filter((t) => t.owner === name && !["Completed", "Void", "Unable to Complete"].includes(t.status)).length;
   return open === 0
     ? { label: "Available", dot: "bg-emerald-500", text: "text-emerald-600" }
-    : { label: `Busy · ${open} task${open > 1 ? "s" : ""}`, dot: "bg-blue-500", text: "text-blue-600" };
+    : { label: "Busy", dot: "bg-blue-500", text: "text-blue-600" };
 }
 const AvailabilityTag = ({ name }: { name: string }) => {
   const a = availabilityOf(name);
@@ -667,6 +667,7 @@ function ManagerTaskWindow({
   const [support, setSupport] = useState<string[]>(task.support ?? []);
   const [assignOpen, setAssignOpen] = useState(false);
   const [assignSel, setAssignSel] = useState<string[]>([]);
+  const [assignQuery, setAssignQuery] = useState("");
   const [text, setText] = useState("");
   const [modal, setModal] = useState<null | "help" | "void" | "compensation">(null);
   const [voidReason, setVoidReason] = useState("");
@@ -801,7 +802,7 @@ function ManagerTaskWindow({
                 disabled={closed}
                 aria-expanded={assignOpen}
                 aria-label="Assigned to"
-                onClick={() => { setAssignOpen((o) => !o); setAssignSel([...(task.owner ? [task.owner] : []), ...(task.support ?? [])]); }}
+                onClick={() => { setAssignOpen(true); setAssignQuery(""); setAssignSel([...(task.owner ? [task.owner] : []), ...(task.support ?? [])]); }}
                 className="flex w-full items-center justify-between disabled:cursor-default"
               >
                 <span className="text-ink-secondary">Assigned To</span>
@@ -814,54 +815,9 @@ function ManagerTaskWindow({
                   ) : (
                     <span className="font-medium text-brand">Unassigned</span>
                   )}
-                  {!closed && <ChevronDown className={`h-4 w-4 text-ink-tertiary transition-transform ${assignOpen ? "rotate-180" : ""}`} />}
+                  {!closed && <ChevronDown className="h-4 w-4 text-ink-tertiary" />}
                 </span>
               </button>
-              {assignOpen && !closed && (
-                <div className="mt-2.5 rounded-xl border border-line bg-white p-2.5 shadow-sm">
-                  <div className="px-1 pb-2 text-[12px] text-ink-secondary">Select one or more {task.dept} team members. The first is the owner, others support.</div>
-                  <div className="max-h-56 space-y-1.5 overflow-y-auto">
-                    {(STAFF[task.dept] ?? []).map((m) => {
-                      const idx = assignSel.indexOf(m);
-                      return (
-                        <label key={m} className={`flex cursor-pointer items-center gap-3 rounded-lg border px-3 py-2 text-[13px] text-ink ${idx >= 0 ? "border-brand bg-brand-tint/40" : "border-line hover:bg-subtle"}`}>
-                          <input type="checkbox" className="h-4 w-4 accent-brand" checked={idx >= 0} onChange={(e) => setAssignSel((cur) => (e.target.checked ? [...cur, m] : cur.filter((x) => x !== m)))} />
-                          <span className="min-w-0 flex-1 font-medium">{m}{idx === 0 && <span className="ml-2 rounded-full bg-brand px-1.5 py-0.5 text-[10px] font-semibold text-white">Owner</span>}</span>
-                          <AvailabilityTag name={m} />
-                        </label>
-                      );
-                    })}
-                  </div>
-                  <div className="mt-2.5 flex items-center justify-between gap-2">
-                    {task.owner ? (
-                      <button
-                        onClick={() => { onApply({ owner: null, support: [], status: "Yet to be picked" }, "Reopened", "Reopened for anyone to pick up", "Task reopened for others to pick up"); settleHelp(); setAssignOpen(false); }}
-                        className="text-[12px] font-medium text-ink-secondary hover:text-ink"
-                      >
-                        Make it an open task
-                      </button>
-                    ) : <span />}
-                    <Button
-                      disabled={!assignSel.length}
-                      className="disabled:opacity-40"
-                      onClick={() => {
-                        const [owner, ...others] = assignSel;
-                        onApply(
-                          { owner, support: others, status: task.status === "Yet to be picked" ? "In Progress" : task.status },
-                          task.owner ? "Reassigned" : "Assigned",
-                          `${task.owner ?? "Unassigned"} → ${assignSel.join(", ")} (${task.dept})`,
-                          `Assigned to ${assignSel.join(", ")}`,
-                        );
-                        setSupport(others);
-                        settleHelp();
-                        setAssignOpen(false);
-                      }}
-                    >
-                      Assign{assignSel.length > 1 ? ` (${assignSel.length})` : ""}
-                    </Button>
-                  </div>
-                </div>
-              )}
             </div>
             {!!task.support?.length && (
               <div className="flex items-center justify-between py-2.5"><span className="text-ink-secondary">Support</span><span className="font-medium text-ink">{task.support.join(", ")}</span></div>
@@ -957,6 +913,56 @@ function ManagerTaskWindow({
         </div>
       </aside>
 
+      {assignOpen && !closed && (
+        <CenterDialog
+          title="Assign task"
+          sub={`${task.title} · Room ${task.room}`}
+          ok={`Assign${assignSel.length > 1 ? ` (${assignSel.length})` : ""}`}
+          disabled={!assignSel.length}
+          onClose={() => setAssignOpen(false)}
+          onOk={() => {
+            const [owner, ...others] = assignSel;
+            onApply(
+              { owner, support: others, status: task.status === "Yet to be picked" ? "In Progress" : task.status },
+              task.owner ? "Reassigned" : "Assigned",
+              `${task.owner ?? "Unassigned"} → ${assignSel.join(", ")} (${task.dept})`,
+              `Assigned to ${assignSel.join(", ")}`,
+            );
+            setSupport(others);
+            settleHelp();
+            setAssignOpen(false);
+          }}
+        >
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-tertiary" />
+            <Input autoFocus value={assignQuery} onChange={(e) => setAssignQuery(e.target.value)} placeholder="Search team members" className="pl-9" />
+          </div>
+          <div className="mt-1 mb-2 px-0.5 pt-2 text-[12px] text-ink-secondary">Select one or more. The first is the owner, the rest support.</div>
+          <div className="max-h-64 space-y-1.5 overflow-y-auto">
+            {(STAFF[task.dept] ?? []).filter((m) => m.toLowerCase().includes(assignQuery.trim().toLowerCase())).map((m) => {
+              const idx = assignSel.indexOf(m);
+              return (
+                <label key={m} className={`flex cursor-pointer items-center gap-3 rounded-xl border px-3.5 py-2.5 text-[13px] text-ink ${idx >= 0 ? "border-brand bg-brand-tint/40" : "border-line hover:bg-subtle"}`}>
+                  <input type="checkbox" className="h-4 w-4 accent-brand" checked={idx >= 0} onChange={(e) => setAssignSel((cur) => (e.target.checked ? [...cur, m] : cur.filter((x) => x !== m)))} />
+                  <span className="min-w-0 flex-1 font-medium">{m}{idx === 0 && <span className="ml-2 rounded-full bg-brand px-1.5 py-0.5 text-[10px] font-semibold text-white">Owner</span>}</span>
+                  <AvailabilityTag name={m} />
+                </label>
+              );
+            })}
+            {!(STAFF[task.dept] ?? []).some((m) => m.toLowerCase().includes(assignQuery.trim().toLowerCase())) && (
+              <p className="py-6 text-center text-[13px] text-ink-tertiary">No team members match.</p>
+            )}
+          </div>
+          {task.owner && (
+            <button
+              onClick={() => { onApply({ owner: null, support: [], status: "Yet to be picked" }, "Reopened", "Reopened for anyone to pick up", "Task reopened for others to pick up"); settleHelp(); setAssignOpen(false); }}
+              className="mt-3 text-[12px] font-medium text-ink-secondary hover:text-ink"
+            >
+              Make it an open task instead
+            </button>
+          )}
+        </CenterDialog>
+      )}
       {panel === "support" && (
         <CenterDialog
           title="Add support"
