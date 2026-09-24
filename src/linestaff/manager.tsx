@@ -433,8 +433,8 @@ export function ManagerPrototype() {
         </div>
         <div className="flex items-center gap-2">
           {bellBtn}
-          <button onClick={openCreate} className="flex h-10 items-center gap-1.5 rounded-2xl bg-brand px-3.5 text-[13px] font-semibold text-white shadow-sm">
-            <Plus className="h-4 w-4" /> Create
+          <button onClick={openCreate} aria-label="Create task" className="flex h-10 w-10 items-center justify-center rounded-full bg-brand text-white shadow-sm active:scale-95">
+            <Plus className="h-5 w-5" />
           </button>
         </div>
       </div>
