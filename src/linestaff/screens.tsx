@@ -123,7 +123,6 @@ function LsCard({ t, onOpen, onAccept }: { t: Task; onOpen?: () => void; onAccep
         <div className="min-w-0 flex-1">
           <div className="text-[14px] font-semibold leading-snug text-ink">{t.title}</div>
           <div className="mt-0.5 text-[12px] font-medium text-ink-secondary">{t.room}</div>
-          <p className="mt-1.5 line-clamp-2 text-[12px] leading-snug text-ink-tertiary">{t.note}</p>
           {t.assignedBy && !done && <span className="mt-1.5 mr-1.5 inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-semibold text-blue-600">Assigned by {t.assignedBy.split(" · ")[1]}</span>}
           {t.escalatedTo && !done && <span className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-semibold text-red-600"><ArrowUpRight className="h-3 w-3" /> Escalated to {t.escalatedTo}</span>}
           {done && t.time && <div className="mt-1.5 text-[11px] font-medium text-emerald-600">✓ {t.time}</div>}
