@@ -1,16 +1,18 @@
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Clock, ChevronRight } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { Page, Card } from "../components/ui";
 import { ScopePicker } from "../components/ScopePicker";
-import { TASKS, HELP_REQUESTS, shortName } from "../data/tasks";
+import { TASKS, shortName, logAudit } from "../data/tasks";
 import { INITIAL } from "../data/staff";
-import { DEPTS, METRICS, COMPLAINT_DETAIL } from "./Analytics";
-import { usePersona, canonDept } from "../persona";
+import { usePersona } from "../persona";
 
 export default function DepartmentDashboard() {
   const navigate = useNavigate();
-  const { scopeDepts, inScope } = usePersona();
+  const { scopeDepts, inScope, me } = usePersona();
+  const [, refresh] = useState(0);
+  const [toast, setToast] = useState<string | null>(null);
 
   const mine = TASKS.filter((t) => inScope(t.dept));
   const open = mine.filter((t) => t.status !== "Completed" && t.status !== "Unable to Complete" && t.status !== "Void");
@@ -20,27 +22,30 @@ export default function DepartmentDashboard() {
   const complaints = open.filter((t) => t.tag === "Complaint");
   const unassignedCritical = open.filter((t) => t.owner === null && (t.priority === "High" || t.priority === "Critical" || t.sla.kind === "due" || t.sla.kind === "overdue"));
 
-  // needs attention: escalated, unassigned, SLA breached or awaiting a help / reassignment decision
-  const rank = (t: (typeof TASKS)[number]) => (t.status === "Escalated" ? 0 : t.sla.kind === "overdue" ? 1 : helpFor(t.id) ? 2 : 3);
-  const helpFor = (id: number) => HELP_REQUESTS.find((h) => h.taskId === id && !h.done);
+  // needs attention: unassigned tasks whose SLA is at risk (or already breached)
   const attention = open
-    .filter((t) => t.status === "Escalated" || t.sla.kind === "overdue" || t.owner === null || helpFor(t.id))
-    .sort((a, b) => rank(a) - rank(b));
+    .filter((t) => t.owner === null && (t.sla.kind === "due" || t.sla.kind === "overdue"))
+    .sort((x, y) => Number(y.sla.kind === "overdue") - Number(x.sla.kind === "overdue"));
 
-  // team availability + workload
+  // open unassigned tasks the manager can pick up
+  const pickable = open.filter((t) => t.owner === null);
+  const pickUp = (id: number) => {
+    const t = TASKS.find((x) => x.id === id);
+    if (!t) return;
+    t.owner = shortName(me.name);
+    t.status = "In Progress";
+    logAudit(me.name, "Accepted task", t.title, `Picked up by ${me.name}`);
+    setToast(`${t.title} is now yours`);
+    setTimeout(() => setToast(null), 2200);
+    refresh((n) => n + 1);
+  };
+
+  // team availability + tasks picked up today
   const team = INITIAL.filter((s) => inScope(s.dept)).map((s) => {
-    const n = TASKS.filter((t) => t.owner === shortName(s.name) && t.status !== "Completed" && t.status !== "Unable to Complete" && t.status !== "Void").length;
+    const n = TASKS.filter((t) => t.owner === shortName(s.name)).length;
     return { ...s, n };
   });
-
-  // recurring issues from the department's analytics
-  const dm = DEPTS.filter((d) => scopeDepts.includes(canonDept(d.name)));
-  const recurring = [
-    ...dm.flatMap((d) => d.items.filter(([l]) => l !== "Other").map(([l, v]) => ({ label: l, v, kind: "Requests" as const }))),
-    ...Object.entries(COMPLAINT_DETAIL).flatMap(([label, c]) => c.by.filter(([d]) => scopeDepts.includes(canonDept(d))).map(([, v]) => ({ label, v, kind: "Complaints" as const, delta: c.delta }))),
-  ]
-    .sort((a, b) => b.v - a.v)
-    .slice(0, 5);
+  const maxPicked = Math.max(1, ...team.map((s) => s.n));
 
   const ops = [
     { label: "Open tasks", value: open.length, tone: "text-ink", to: "/tasks?view=all" },
@@ -79,14 +84,12 @@ export default function DepartmentDashboard() {
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2 text-[13px] font-semibold text-ink">
                         {t.title}
-                        {t.status === "Escalated" && <span className="text-[11px] font-medium text-red-600">Escalated</span>}
-                        {t.owner === null && <span className="text-[11px] font-medium text-brand">Unassigned</span>}
+                        <span className="text-[11px] font-medium text-brand">Unassigned</span>
                         {t.sla.kind === "overdue" && <span className="text-[11px] font-medium text-red-600">SLA breached</span>}
-                        {helpFor(t.id) && <span className="text-[11px] font-medium text-blue-600">{helpFor(t.id)!.type} requested</span>}
                       </div>
                       <div className="text-[12px] text-ink-tertiary">
                         {scopeDepts.length > 1 && <>{t.dept} · </>}
-                        {t.guest} · Room {t.room}{t.owner && <> · {t.owner}</>}
+                        Room {t.room}
                       </div>
                     </div>
                     <span className={`flex shrink-0 items-center gap-1 text-[12px] ${t.sla.kind === "overdue" ? "font-medium text-red-600" : t.sla.kind === "due" ? "font-medium text-brand" : "text-ink-secondary"}`}>
@@ -97,7 +100,7 @@ export default function DepartmentDashboard() {
                     </Link>
                   </div>
                 ))}
-                {!attention.length && <p className="px-5 py-8 text-center text-[13px] text-ink-tertiary">Nothing needs attention in your department.</p>}
+                {!attention.length && <p className="px-5 py-8 text-center text-[13px] text-ink-tertiary">No unassigned tasks are at risk of breaching SLA.</p>}
               </div>
             </Card>
 
@@ -106,17 +109,21 @@ export default function DepartmentDashboard() {
           <div className="space-y-5">
             <Card className="p-5">
               <h3 className="text-[15px] font-semibold text-ink">Team availability &amp; workload</h3>
-              <div className="mt-3 divide-y divide-line/70">
+              <p className="mt-0.5 text-[12px] text-ink-tertiary">Tasks picked up today</p>
+              <div className="mt-3 space-y-3">
                 {team.map((s) => (
-                  <div key={s.id} className="flex items-center gap-3 py-2.5">
-                    <span className={`h-2 w-2 shrink-0 rounded-full ${s.status === "On Duty" ? "bg-emerald-500" : s.status === "On Break" ? "bg-amber-400" : "bg-gray-300"}`} />
-                    <div className="min-w-0 flex-1 leading-tight">
-                      <div className="text-[13px] font-medium text-ink">{s.name}</div>
-                      <div className="text-[11px] text-ink-tertiary">{s.role} · {s.status}{scopeDepts.length > 1 && ` · ${s.dept}`}</div>
+                  <div key={s.id}>
+                    <div className="flex items-center gap-2">
+                      <span className={`h-2 w-2 shrink-0 rounded-full ${s.status === "On Duty" ? "bg-emerald-500" : s.status === "On Break" ? "bg-amber-400" : "bg-gray-300"}`} />
+                      <span className="min-w-0 flex-1 truncate text-[13px] font-medium text-ink">{s.name}</span>
+                      <span className="text-[11px] text-ink-tertiary">{s.status}{scopeDepts.length > 1 && ` · ${s.dept}`}</span>
                     </div>
-                    <span className={`shrink-0 text-[12px] ${s.n >= 3 ? "font-semibold text-brand" : "text-ink-secondary"}`}>
-                      {s.n} open{s.n >= 3 ? " · High" : ""}
-                    </span>
+                    <div className="mt-1.5 flex items-center gap-2.5">
+                      <div className="h-2 flex-1 overflow-hidden rounded-full bg-subtle">
+                        <div className="h-full rounded-full bg-brand" style={{ width: `${(s.n / maxPicked) * 100}%` }} />
+                      </div>
+                      <span className="w-5 text-right text-[12px] font-semibold tabular-nums text-ink">{s.n}</span>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -127,23 +134,28 @@ export default function DepartmentDashboard() {
 
             <Card className="p-5">
               <div className="flex items-center justify-between">
-                <h3 className="text-[15px] font-semibold text-ink">Recurring issues</h3>
-                <Link to="/analytics" className="text-[12px] font-medium text-brand">Analytics</Link>
+                <h3 className="text-[15px] font-semibold text-ink">Open tasks to pick up</h3>
+                <span className="text-[12px] text-ink-tertiary">{pickable.length} unassigned</span>
               </div>
               <div className="mt-2 divide-y divide-line/70">
-                {recurring.map((r, i) => (
-                  <div key={i} className="flex items-center gap-3 py-2.5 text-[13px]">
-                    <span className="flex-1 text-ink">{r.label}</span>
-                    <span className="text-[11px] text-ink-tertiary">{r.kind}</span>
-                    <span className="w-8 text-right font-semibold text-ink">{r.v}</span>
+                {pickable.map((t) => (
+                  <div key={t.id} className="flex items-center gap-3 py-2.5">
+                    <div className="min-w-0 flex-1 leading-tight">
+                      <div className="truncate text-[13px] font-medium text-ink">{t.title}</div>
+                      <div className="text-[11px] text-ink-tertiary">{scopeDepts.length > 1 && <>{t.dept} · </>}Room {t.room} · {t.sla.text}</div>
+                    </div>
+                    <button onClick={() => pickUp(t.id)} className="shrink-0 rounded-lg bg-brand px-3 py-1.5 text-[12px] font-semibold text-white hover:bg-brand-hover">
+                      Pick up
+                    </button>
                   </div>
                 ))}
+                {!pickable.length && <p className="py-6 text-center text-[13px] text-ink-tertiary">No open unassigned tasks.</p>}
               </div>
             </Card>
           </div>
         </div>
       </Page>
-
+      {toast && <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-lg bg-ink px-4 py-2.5 text-[13px] font-medium text-white shadow-lg">{toast}</div>}
     </>
   );
 }
