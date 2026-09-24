@@ -825,26 +825,6 @@ function ManagerTaskWindow({
         </div>
 
         <div className="max-h-[52%] shrink-0 space-y-2 overflow-y-auto border-t border-line px-6 py-4">
-          {panel === "reassign" && (
-            <PanelBox title={`Reassign to another ${task.dept} team member`} ok="Reassign" disabled={!person} onCancel={() => setPanel(null)}
-              onOk={() => {
-                onApply({ owner: person }, "Reassigned", `${task.owner ?? "Unassigned"} → ${person} (${task.dept})`, `Reassigned to ${person}`);
-                settleHelp();
-                setPanel(null);
-              }}>
-              <button
-                onClick={() => { onApply({ owner: null, status: "Pending" }, "Reopened", "Reopened for anyone to pick up", "Task reopened for others to pick up"); settleHelp(); setPanel(null); }}
-                className="mb-2 w-full rounded-lg border border-line bg-white px-3 py-2 text-[13px] font-semibold text-ink hover:bg-subtle"
-              >
-                Make it an open task — anyone can pick it up
-              </button>
-              <div className="mb-2 text-center text-[11px] text-ink-tertiary">or assign to a person</div>
-              <Select value={person} onChange={(e) => setPerson(e.target.value)}>
-                <option value="">Select staff member</option>
-                {teamMates.map((s) => <option key={s}>{s}</option>)}
-              </Select>
-            </PanelBox>
-          )}
           {panel === "support" && (
             <PanelBox title={`Add support from ${task.dept}`} ok="Add" disabled={support.length === (task.support ?? []).length && support.every((s) => task.support?.includes(s))} onCancel={() => setPanel(null)}
               onOk={() => {
@@ -921,6 +901,51 @@ function ManagerTaskWindow({
           </button>
         </div>
       </aside>
+
+      {panel === "reassign" && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/30 p-4" onMouseDown={(e) => e.target === e.currentTarget && setPanel(null)}>
+          <div role="dialog" aria-label="Reassign task" className="w-full max-w-[420px] rounded-2xl bg-white p-6 shadow-2xl">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h3 className="text-[17px] font-bold text-ink">Reassign task</h3>
+                <p className="mt-1 text-[13px] text-ink-secondary">{task.title} · Room {task.room}</p>
+              </div>
+              <button onClick={() => setPanel(null)} aria-label="Close" className="shrink-0 rounded-md p-1 text-ink-tertiary hover:bg-subtle hover:text-ink">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="mt-4">
+              <button
+                onClick={() => { onApply({ owner: null, status: "Pending" }, "Reopened", "Reopened for anyone to pick up", "Task reopened for others to pick up"); settleHelp(); setPanel(null); }}
+                className="w-full rounded-xl border border-line px-4 py-3 text-left hover:border-brand hover:bg-brand-tint/30"
+              >
+                <span className="block text-[14px] font-semibold text-ink">Make it an open task</span>
+                <span className="block text-[12px] text-ink-secondary">Anyone in {task.dept} can pick it up</span>
+              </button>
+              <div className="my-3 text-center text-[11px] text-ink-tertiary">or assign to a person</div>
+              <div className="mb-1 text-[12px] text-ink-secondary">Team member</div>
+              <Select value={person} onChange={(e) => setPerson(e.target.value)}>
+                <option value="">Select staff member</option>
+                {teamMates.map((s) => <option key={s}>{s}</option>)}
+              </Select>
+            </div>
+            <div className="mt-5 flex gap-2">
+              <button onClick={() => setPanel(null)} className="flex-1 rounded-lg border border-line py-2.5 text-[13px] font-semibold text-ink-secondary hover:bg-subtle">Cancel</button>
+              <button
+                disabled={!person}
+                onClick={() => {
+                  onApply({ owner: person }, "Reassigned", `${task.owner ?? "Unassigned"} → ${person} (${task.dept})`, `Reassigned to ${person}`);
+                  settleHelp();
+                  setPanel(null);
+                }}
+                className="flex-1 rounded-lg bg-brand py-2.5 text-[13px] font-semibold text-white hover:bg-brand-hover disabled:opacity-40"
+              >
+                Reassign
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {modal && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/30 p-4" onMouseDown={(e) => e.target === e.currentTarget && setModal(null)}>
