@@ -216,16 +216,16 @@ export default function HousekeepingBoard() {
                   {occupied ? r.guest : <span className="font-normal text-ink-tertiary">Vacant</span>}
                 </div>
                 <div className="truncate text-[12px] text-ink-tertiary">{r.type}</div>
-                <div className={`mt-2 flex items-center gap-1.5 text-[12px] font-medium ${m.text}`}>
-                  {m.label}
+                <div className={`mt-2 flex items-center justify-between gap-2 text-[12px] font-medium ${m.text}`}>
+                  <span>{m.label}</span>
+                  {r.mins != null && (
+                    <span className="flex items-center gap-1 font-medium text-amber-600">
+                      <Timer className="h-3 w-3" /> {r.mins} mins
+                    </span>
+                  )}
                 </div>
                 <div className="mt-auto flex items-end justify-between gap-2">
                   <div className="min-w-0 text-[11px] leading-tight text-ink-secondary">
-                    {r.mins != null && (
-                      <div className="flex items-center gap-1 font-medium text-amber-600">
-                        <Timer className="h-3 w-3" /> {r.mins} mins
-                      </div>
-                    )}
                     {r.assignedTo && <div className="truncate">{r.assignedTo}</div>}
                   </div>
                   <button
