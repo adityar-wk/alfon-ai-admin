@@ -356,8 +356,8 @@ export function FloatingNav<K extends string>({
   fab?: { icon: React.ComponentType<{ className?: string }>; onClick: () => void; label: string };
 }) {
   return (
-    <div className="pointer-events-none absolute inset-x-5 bottom-5 z-20 flex items-center gap-3">
-      <div className="pointer-events-auto flex flex-1 items-center rounded-full bg-white/95 px-2 py-1.5 shadow-[0_6px_22px_rgba(0,0,0,0.14)] backdrop-blur">
+    <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20">
+      <div className="pointer-events-auto flex items-center border-t border-line bg-white px-4 pb-4 pt-1.5">
         {items.map((it) => {
           const on = it.key === active;
           return (
@@ -381,7 +381,7 @@ export function FloatingNav<K extends string>({
         <button
           onClick={fab.onClick}
           aria-label={fab.label}
-          className="pointer-events-auto flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-brand text-white shadow-[0_3px_10px_rgba(241,90,36,0.22)] active:scale-95"
+          className="pointer-events-auto absolute bottom-[84px] right-5 flex h-14 w-14 items-center justify-center rounded-full bg-brand text-white shadow-[0_3px_10px_rgba(241,90,36,0.22)] active:scale-95"
         >
           <fab.icon className="h-7 w-7" />
         </button>
