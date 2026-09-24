@@ -299,12 +299,13 @@ export default function Tasks() {
 
         <Card className="overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[820px] text-left">
+            <table className="w-full min-w-[900px] text-left">
               <thead>
                 <tr className="border-b border-line bg-subtle/50 text-[11px] uppercase tracking-wide text-ink-secondary">
                   <th className="py-3 pl-4 font-medium">Task</th>
                   <th className="py-3 font-medium">Guest / Room</th>
                   <th className="py-3 font-medium">Owner</th>
+                  <th className="py-3 font-medium">Priority</th>
                   <th className="py-3 font-medium">SLA</th>
                   <th className="py-3 pr-4 font-medium">Status</th>
                 </tr>
@@ -330,13 +331,14 @@ export default function Tasks() {
                     <td className="py-3 pr-3 text-[13px]">
                       {t.owner ? <span className="text-ink-secondary">{t.owner}</span> : <span className="font-medium text-brand">Unassigned</span>}
                     </td>
+                    <td className="py-3 pr-3"><PriorityLabel p={t.priority} /></td>
                     <td className="py-3 pr-3"><SlaText sla={t.sla} /></td>
                     <td className="py-3 pr-4"><StatusLabel s={t.status} /></td>
                   </tr>
                 ))}
                 {!rows.length && (
                   <tr>
-                    <td colSpan={5} className="py-10 text-center text-[13px] text-ink-tertiary">No tasks in this view.</td>
+                    <td colSpan={6} className="py-10 text-center text-[13px] text-ink-tertiary">No tasks in this view.</td>
                   </tr>
                 )}
               </tbody>
