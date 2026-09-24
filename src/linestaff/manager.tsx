@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import {
   Bell, Home as HomeIcon, Plus, Users, UserCog, UserPlus, ArrowUpRight, MessageCircle, Send, Filter, ChevronRight, ChevronLeft, Search,
-  Menu as MenuIcon, ListChecks, BarChart3, AlertTriangle, User, BedDouble, DoorClosed, Building2, FileText, Download, Lock, UtensilsCrossed, Languages, Thermometer, AlarmClock, Wine, Phone, Mail,
+  Menu as MenuIcon, ListChecks, BarChart3, AlertTriangle, User, BedDouble, DoorClosed, Building2, FileText, Download, Lock, UtensilsCrossed, Languages, Thermometer, AlarmClock, Wine, Phone, Mail, Sparkles,
 } from "lucide-react";
 import { DEPARTMENTS } from "../data/departments";
 import { DEPTS, METRICS, COMPLAINT_DETAIL } from "../pages/Analytics";
@@ -18,13 +18,11 @@ type Screen = {
   name: "home" | "tasks" | "team" | "staffDetail" | "housekeeping" | "guests" | "guestDetail" | "guestProfile" | "detail" | "notifications" | "create" | "menu" | "analytics" | "reports" | "guestsRoster";
   id?: string;
 };
-type SheetState = { k: "needHelp" | "assign" | "support" | "gm"; taskId: string } | null;
+type SheetState = { k: "needHelp" | "assign" | "support" | "duty"; taskId: string } | null;
 
 const ME = "Daniel Reyes";
 const ESC_FILTERS = ["All", "SLA breach", "SLA at risk", "Guest complaint", "Unable to complete", "Staffing issue", "Supervisor escalation", "High priority"] as const;
-const SEVS = ["Low", "Medium", "High", "Critical"] as const;
-const SEV_COLOR: Record<(typeof SEVS)[number], string> = { Low: "bg-slate-500", Medium: "bg-amber-500", High: "bg-orange-500", Critical: "bg-red-500" };
-const SEV_SLA: Record<Priority, number> = { Low: 60, Medium: 40, High: 20, Critical: 10 };
+const DEFAULT_SLA = 40;
 type EscFilter = (typeof ESC_FILTERS)[number];
 const AVAIL_ORDER: Presence[] = ["Available", "On Break", "Off work"];
 const teamStatus = (s: Staffer): Presence => (s.status === "Busy" ? "Available" : s.status);
@@ -194,9 +192,10 @@ export function ManagerPrototype() {
   const [chat, setChat] = useState<Record<string, { from: "guest" | "ai" | "me"; text: string }[]>>({});
   const [manual, setManual] = useState<Record<string, boolean>>({});
   const [draft, setDraft] = useState("");
+  const [aiDrafts, setAiDrafts] = useState<Record<string, string>>({});
+  const [editingDraft, setEditingDraft] = useState(false);
   // create task
   const [service, setService] = useState("");
-  const [sev, setSev] = useState<Priority>("Medium");
   const [room, setRoom] = useState("");
   const [details, setDetails] = useState("");
 
@@ -358,6 +357,23 @@ export function ManagerPrototype() {
   const seedGuestChat = (g?: GuestEntry) => (g && g.convo !== "—" ? [{ from: "guest" as const, text: g.convo }, { from: "ai" as const, text: "Thanks for letting us know — I've flagged this to the team." }] : []);
   const guestThread = guestName ? chat[guestName] ?? seedGuestChat(guestEntry) : [];
   const guestManual = guestName ? !!manual[guestName] : false;
+  const completeTask = (task: MTask) => {
+    patch(task.id, { status: "completed", escalated: false }, `${ME} marked complete`);
+    if (!guestMap.has(task.guest)) { flash("Task marked complete"); nav.back(); return; }
+    const first = task.guest.split(" ")[0];
+    setAiDrafts((d) => ({ ...d, [task.guest]: `Hi ${first}, we've taken care of your request (${task.title.toLowerCase()}) for ${task.room}. Please let us know if there's anything else we can do — we hope you're enjoying your stay.` }));
+    setEditingDraft(false);
+    flash("Task complete — review the reply to your guest");
+    nav.push({ name: "guestDetail", id: task.guest });
+  };
+  const approveDraft = () => {
+    if (!guestName || !aiDrafts[guestName]?.trim()) return;
+    const text = aiDrafts[guestName].trim();
+    setChat((c) => ({ ...c, [guestName]: [...guestThread, { from: "me", text }] }));
+    setAiDrafts((d) => { const n = { ...d }; delete n[guestName]; return n; });
+    setEditingDraft(false);
+    flash("Reply sent to guest");
+  };
   const sendGuestChat = () => {
     if (!guestName || !draft.trim()) return;
     setChat((c) => ({ ...c, [guestName]: [...guestThread, { from: "me", text: draft.trim() }] }));
@@ -366,7 +382,7 @@ export function ManagerPrototype() {
 
   /* ---------- shell ---------- */
   const openCreate = () => {
-    setService(""); setSev("Medium"); setRoom(""); setDetails("");
+    setService(""); setRoom(""); setDetails("");
     nav.push({ name: "create" });
   };
   const shell = (key: "home" | "tasks" | "guests", body: React.ReactNode) => (
@@ -616,7 +632,7 @@ export function ManagerPrototype() {
           <button key={r.number} onClick={() => setRoomSheet(r.number)} className={`flex w-full items-center justify-between gap-3 rounded-2xl bg-white p-3.5 text-left ${CARD_SHADOW}`}>
             <div className="min-w-0">
               <div className="text-[14px] font-semibold text-ink">{r.number}</div>
-              <div className="mt-0.5 text-[12px] text-ink-tertiary">{r.assignee ? `Assigned · ${r.assignee}` : "Unassigned"}</div>
+              {(r.assignee || r.status === "Needs Inspection") && <div className="mt-0.5 text-[12px] text-ink-tertiary">{r.assignee ? `${r.status === "In Progress" ? "Cleaning" : "Inspector"} · ${r.assignee}` : "Inspector not assigned"}</div>}
             </div>
             <span className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold ${ROOM_STATUS_TONE[r.status]}`}>{r.status}</span>
           </button>
@@ -632,7 +648,7 @@ export function ManagerPrototype() {
         <div className="mb-4 flex items-center gap-3 rounded-2xl bg-[#F6F6F8] p-3">
           <Avatar name={roomEntry.assignee} />
           <div className="leading-tight">
-            <div className="text-[11px] text-ink-tertiary">{roomEntry.status === "In Progress" ? "Cleaning in progress by" : "Assigned to"}</div>
+            <div className="text-[11px] text-ink-tertiary">{roomEntry.status === "In Progress" ? "Cleaning in progress by" : "Inspection assigned to"}</div>
             <div className="text-[14px] font-semibold text-ink">{roomEntry.assignee}</div>
           </div>
         </div>
@@ -643,20 +659,24 @@ export function ManagerPrototype() {
       <Chips
         items={ROOM_STATUSES}
         active={roomEntry.status}
-        onChange={(v) => { setRooms((rs) => rs.map((r) => (r.number === roomEntry.number ? { ...r, status: v } : r))); flash(`${roomEntry.number} marked ${v}`); }}
+        onChange={(v) => { setRooms((rs) => rs.map((r) => (r.number === roomEntry.number ? { ...r, status: v, assignee: v === r.status ? r.assignee : null } : r))); flash(`${roomEntry.number} marked ${v}`); }}
       />
-      <div className="mt-5" />
-      <Label>Assign to</Label>
-      <StaffPicker
-        tasks={tasks}
-        exclude={roomEntry.assignee ? [roomEntry.assignee] : []}
-        onPick={(s) => { setRooms((rs) => rs.map((r) => (r.number === roomEntry.number ? { ...r, assignee: s.name } : r))); flash(`${roomEntry.number} assigned to ${s.name}`); }}
-        cta="Assign"
-      />
-      {roomEntry.assignee && (
-        <GhostButton className="mt-3 w-full" onClick={() => { setRooms((rs) => rs.map((r) => (r.number === roomEntry.number ? { ...r, assignee: null } : r))); flash("Unassigned"); }}>
-          Unassign
-        </GhostButton>
+      {roomEntry.status === "Needs Inspection" && (
+        <>
+          <div className="mt-5" />
+          <Label>Assign inspector</Label>
+          <StaffPicker
+            tasks={tasks}
+            exclude={roomEntry.assignee ? [roomEntry.assignee] : []}
+            onPick={(s) => { setRooms((rs) => rs.map((r) => (r.number === roomEntry.number ? { ...r, assignee: s.name } : r))); flash(`${roomEntry.number} assigned to ${s.name}`); }}
+            cta="Assign"
+          />
+          {roomEntry.assignee && (
+            <GhostButton className="mt-3 w-full" onClick={() => { setRooms((rs) => rs.map((r) => (r.number === roomEntry.number ? { ...r, assignee: null } : r))); flash("Unassigned"); }}>
+              Unassign
+            </GhostButton>
+          )}
+        </>
       )}
     </Sheet>
   );
@@ -753,6 +773,26 @@ export function ManagerPrototype() {
           </div>
         ))}
       </div>
+      {guestName && aiDrafts[guestName] !== undefined && (
+        <div className="mx-6 mb-3 shrink-0 rounded-2xl border border-violet-200 bg-violet-50/60 p-3.5">
+          <div className="mb-2 flex items-center gap-1.5 text-[12px] font-semibold text-violet-700"><Sparkles className="h-3.5 w-3.5" /> ALFON AI drafted a reply</div>
+          {editingDraft ? (
+            <textarea
+              value={aiDrafts[guestName]}
+              onChange={(e) => setAiDrafts((d) => ({ ...d, [guestName]: e.target.value }))}
+              rows={4}
+              autoFocus
+              className="w-full resize-none rounded-xl border border-line bg-white p-2.5 text-[13px] leading-snug text-ink outline-none focus:border-brand"
+            />
+          ) : (
+            <p className="text-[13px] leading-snug text-ink">{aiDrafts[guestName]}</p>
+          )}
+          <div className="mt-3 flex gap-2">
+            <GhostButton className="flex-1" onClick={() => setEditingDraft((v) => !v)}>{editingDraft ? "Done" : "Edit"}</GhostButton>
+            <PrimaryButton className="flex-[1.4]" disabled={!aiDrafts[guestName].trim()} onClick={approveDraft}>Approve &amp; send</PrimaryButton>
+          </div>
+        </div>
+      )}
       <div className="flex shrink-0 items-center gap-2 border-t border-line px-6 py-3">
         <input
           value={draft}
@@ -884,15 +924,17 @@ export function ManagerPrototype() {
 
         <div className="rounded-2xl bg-[#F6F6F8] p-4">
           <div className="text-[12px] font-semibold text-ink-tertiary">Notes</div>
-          <p className="mt-1.5 text-[14px] leading-relaxed text-ink">{task.note}</p>
+          {(() => {
+            const staffNotes = SEED_REQUESTS.filter((r) => r.taskId === task.id);
+            if (!staffNotes.length) return <p className="mt-1.5 text-[14px] leading-relaxed text-ink">{task.note}</p>;
+            return staffNotes.map((r) => (
+              <div key={r.id} className="mt-1.5">
+                <p className="text-[14px] leading-relaxed text-ink">{r.note}</p>
+                <p className="mt-1 text-[12px] text-ink-tertiary"><span className="font-semibold text-ink-secondary">{r.staff}</span> · {STAFF.find((s) => s.name === r.staff)?.role ?? "Line Staff"}</p>
+              </div>
+            ));
+          })()}
         </div>
-
-        {SEED_REQUESTS.filter((r) => r.taskId === task.id).map((r) => (
-          <div key={r.id} className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
-            <div className="flex items-center gap-2 text-[12px] font-semibold text-amber-800"><AlertTriangle className="h-4 w-4" /> Note from {r.staff} · {r.reason}</div>
-            <p className="mt-1.5 text-[13px] leading-snug text-ink">{r.note}</p>
-          </div>
-        ))}
 
         <div className="rounded-2xl border border-line bg-white p-4">
           <div className="flex items-center justify-between">
@@ -942,7 +984,7 @@ export function ManagerPrototype() {
           {task.owner === ME || task.status === "progress" ? (
             <PrimaryButton
               className="flex-[1.3]"
-              onClick={() => { patch(task.id, { status: "completed", escalated: false }, `${ME} marked complete`); flash("Task marked complete"); nav.back(); }}
+              onClick={() => completeTask(task)}
             >
               Complete
             </PrimaryButton>
@@ -992,9 +1034,6 @@ export function ManagerPrototype() {
       <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-4 pt-4 no-scrollbar">
         <SelectField value="Housekeeping" onChange={() => {}} placeholder="Department" options={["Housekeeping"]} disabled />
         <div className="mt-3"><SelectField value={service} onChange={setService} placeholder="Select service" options={services} /></div>
-        <Label>How severe is it?</Label>
-        <Segmented items={SEVS} active={sev as (typeof SEVS)[number]} onChange={(v) => setSev(v)} colors={SEV_COLOR} />
-        <p className="mt-2 px-1 text-[12px] text-ink-tertiary">Resolution SLA: <span className="font-semibold text-ink-secondary">{SEV_SLA[sev]} min</span></p>
         <Label>Room</Label>
         <TextField value={room} onChange={setRoom} placeholder="e.g. 501" />
         <Label>Details</Label>
@@ -1007,12 +1046,12 @@ export function ManagerPrototype() {
           onClick={() => {
             const id = "n" + Date.now();
             setTasks((ts) => [{
-              id, room: `Room ${room.trim().replace(/^room\s*/i, "")}`, guest: "Guest", title: service, note: details || service, priority: sev, status: "unassigned", owner: null, support: [],
-              slaTotal: SEV_SLA[sev], slaLeft: SEV_SLA[sev], isNew: true, createdAt: "now", pickup: "Not yet picked up", summary: details || service, prefs: [], convo: "Created manually by the department head.",
+              id, room: `Room ${room.trim().replace(/^room\s*/i, "")}`, guest: "Guest", title: service, note: details || service, priority: "Medium", status: "unassigned", owner: null, support: [],
+              slaTotal: DEFAULT_SLA, slaLeft: DEFAULT_SLA, isNew: true, createdAt: "now", pickup: "Not yet picked up", summary: details || service, prefs: [], convo: "Created manually by the department head.",
               timeline: [{ t: "now", text: `Created manually by ${ME}` }], notes: [],
             }, ...ts]);
             nav.go({ name: "home" });
-            flash(sev === "High" || sev === "Critical" ? "Task created — unassigned critical" : "Task created — unassigned");
+            flash("Task created — unassigned");
           }}
         >
           Create Task
@@ -1213,9 +1252,9 @@ export function ManagerPrototype() {
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-600"><UserPlus className="h-[18px] w-[18px]" /></span>
               <span className="text-[14px] font-semibold text-ink">Add support</span>
             </button>
-            <button onClick={() => setSheet({ k: "gm", taskId: t0.id })} className="flex w-full items-center gap-3 rounded-2xl border border-line p-3.5 text-left active:bg-brand-tint/40">
+            <button onClick={() => setSheet({ k: "duty", taskId: t0.id })} className="flex w-full items-center gap-3 rounded-2xl border border-line p-3.5 text-left active:bg-brand-tint/40">
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-red-50 text-red-600"><ArrowUpRight className="h-[18px] w-[18px]" /></span>
-              <span className="text-[14px] font-semibold text-ink">Escalate to GM</span>
+              <span className="text-[14px] font-semibold text-ink">Escalate to Duty Manager</span>
             </button>
           </div>
         </Sheet>
@@ -1248,9 +1287,9 @@ export function ManagerPrototype() {
           </div>
         </Sheet>
       )}
-      {sheet.k === "gm" && t0 && (
-        <ReasonSheet title="Escalate to High Management" reasons={["Critical guest complaint", "Repeated SLA breach", "Unresolved operational issue", "VIP / high-risk situation", "Serious service recovery"]} requireNote placeholder="Context for the General Manager…" cta="Escalate to GM" tone="bg-red-600" onClose={() => setSheet(null)}
-          onSubmit={(reason, note) => { patch(t0.id, { escType: (t0.escType ?? "Supervisor escalation") as EscType, notes: [{ by: ME, t: "Just now", text: `Escalated to GM — ${reason}: ${note}` }, ...t0.notes] }, `${ME} escalated to General Manager`); setSheet(null); flash("Escalated to the General Manager"); }} />
+      {sheet.k === "duty" && t0 && (
+        <ReasonSheet title="Escalate to Duty Manager" noteLabel="Reason (optional)" placeholder="Add context for the Duty Manager…" cta="Escalate" tone="bg-red-600" onClose={() => setSheet(null)}
+          onSubmit={(_reason, note) => { patch(t0.id, { escType: (t0.escType ?? "Supervisor escalation") as EscType, notes: [{ by: ME, t: "Just now", text: note ? `Escalated to Duty Manager — ${note}` : "Escalated to Duty Manager" }, ...t0.notes] }, `${ME} escalated to Duty Manager`); setSheet(null); flash("Escalated to the Duty Manager"); }} />
       )}
     </>
   );

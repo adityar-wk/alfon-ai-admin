@@ -21,9 +21,7 @@ type SheetState =
 const ME = "Sarah Ali";
 const FILTERS = ["All", "New", "Unassigned", "In Progress", "At Risk", "Overdue", "Completed"] as const;
 type Filter = (typeof FILTERS)[number];
-const SEVS = ["Low", "Medium", "High", "Critical"] as const;
-const SEV_COLOR: Record<(typeof SEVS)[number], string> = { Low: "bg-slate-500", Medium: "bg-amber-500", High: "bg-orange-500", Critical: "bg-red-500" };
-const SEV_SLA: Record<Priority, number> = { Low: 60, Medium: 40, High: 20, Critical: 10 };
+const DEFAULT_SLA = 40;
 
 const NOTIFS = [
   { icon: "🆕", text: "New unassigned task — Room 812 extra pillows & rollaway bed", time: "10:29 AM", to: "t3" },
@@ -49,7 +47,6 @@ export function SupervisorPrototype() {
   const [sheet, setSheet] = useState<SheetState>(null);
   // create
   const [service, setService] = useState("");
-  const [sev, setSev] = useState<Priority>("Medium");
   const [room, setRoom] = useState("");
   const [details, setDetails] = useState("");
 
@@ -126,7 +123,7 @@ export function SupervisorPrototype() {
           { key: "queue", label: "Queue", icon: ListChecks, badge: counts.unassigned },
           { key: "team", label: "Team", icon: Users },
         ]}
-        fab={{ icon: Plus, label: "Create task", onClick: () => { setService(""); setSev("Medium"); setRoom(""); setDetails(""); nav.push({ name: "create" }); } }}
+        fab={{ icon: Plus, label: "Create task", onClick: () => { setService(""); setRoom(""); setDetails(""); nav.push({ name: "create" }); } }}
       />
     </div>
   );
@@ -346,8 +343,6 @@ export function SupervisorPrototype() {
       <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-4 pt-4 no-scrollbar">
         <SelectField value="Housekeeping" onChange={() => {}} placeholder="Department" options={["Housekeeping"]} disabled />
         <div className="mt-3"><SelectField value={service} onChange={setService} placeholder="Select service" options={services} /></div>
-        <Label>How severe is it?</Label>
-        <Segmented items={SEVS} active={sev as (typeof SEVS)[number]} onChange={(v) => setSev(v)} colors={SEV_COLOR} />
         <Label>Room</Label>
         <TextField value={room} onChange={setRoom} placeholder="e.g. 501" />
         <Label>Details</Label>
@@ -357,8 +352,8 @@ export function SupervisorPrototype() {
         <PrimaryButton className="w-full" disabled={!service || !room.trim()} onClick={() => {
           const id = "n" + Date.now();
           setTasks((ts) => [{
-            id, room: `Room ${room.trim().replace(/^room\s*/i, "")}`, guest: "Guest", title: service, note: details || service, priority: sev, status: "unassigned", owner: null, support: [],
-            slaTotal: SEV_SLA[sev], slaLeft: SEV_SLA[sev], isNew: true, createdAt: "now", pickup: "Not yet picked up", summary: details || service, prefs: [], convo: "Created manually by supervisor.",
+            id, room: `Room ${room.trim().replace(/^room\s*/i, "")}`, guest: "Guest", title: service, note: details || service, priority: "Medium", status: "unassigned", owner: null, support: [],
+            slaTotal: DEFAULT_SLA, slaLeft: DEFAULT_SLA, isNew: true, createdAt: "now", pickup: "Not yet picked up", summary: details || service, prefs: [], convo: "Created manually by supervisor.",
             timeline: [{ t: "now", text: `Created manually by ${ME}` }], notes: [],
           }, ...ts]);
           nav.go({ name: "queue" });

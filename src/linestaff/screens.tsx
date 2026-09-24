@@ -101,9 +101,7 @@ const NOTIFS = [
   { title: "Rollaway bed & pillows", room: "Room 812", state: "New task", tone: "text-brand", time: "10:22 AM", id: "t3" },
 ];
 
-const SEVERITIES = ["Low", "Medium", "High", "Critical"] as const;
-const SEV_COLOR: Record<(typeof SEVERITIES)[number], string> = { Low: "bg-slate-500", Medium: "bg-amber-500", High: "bg-orange-500", Critical: "bg-red-500" };
-const SEV_SLA: Record<Priority, number> = { Low: 60, Medium: 40, High: 20, Critical: 10 };
+const DEFAULT_SLA = 40;
 
 /** task card: task name first, room second, SLA timer on the right, actions inside the card */
 function LsCard({ t, onOpen, onAccept }: { t: Task; onOpen?: () => void; onAccept?: () => void }) {
@@ -154,7 +152,6 @@ export function LineStaffPrototype() {
   // create manual task
   const [dept, setDept] = useState("");
   const [service, setService] = useState("");
-  const [sev, setSev] = useState<Priority>("Medium");
   const [room, setRoom] = useState("");
   const [details, setDetails] = useState("");
 
@@ -170,7 +167,7 @@ export function LineStaffPrototype() {
   const services = DEPARTMENTS.find((d) => d.name === dept)?.services.filter((s) => s.active).map((s) => s.name) ?? [];
 
   const openCreate = () => {
-    setDept(""); setService(""); setSev("Medium"); setRoom(""); setDetails("");
+    setDept(""); setService(""); setRoom(""); setDetails("");
     nav.push({ name: "create" });
   };
 
@@ -179,7 +176,7 @@ export function LineStaffPrototype() {
     const r = room.trim() ? `Room ${room.trim().replace(/^room\s*/i, "")}` : dept;
     setTasks((ts) => [
       {
-        id, title: service, room: r, note: details.trim() || service, status: "progress", left: SEV_SLA[sev], total: SEV_SLA[sev],
+        id, title: service, room: r, note: details.trim() || service, status: "progress", left: DEFAULT_SLA, total: DEFAULT_SLA,
         guest: "—", roomType: "—", floor: 0, stay: "—", prefs: [], source: "Created by you", created: "Just now", dept,
       },
       ...ts,
@@ -366,10 +363,6 @@ export function LineStaffPrototype() {
           <SelectField value={dept} onChange={(v) => { setDept(v); setService(""); }} placeholder="Select department" options={DEPARTMENTS.map((d) => d.name)} />
           <SelectField value={service} onChange={setService} placeholder="Select service" options={services} disabled={!dept} />
         </div>
-
-        <Label>How severe is it?</Label>
-        <Segmented items={SEVERITIES} active={sev as (typeof SEVERITIES)[number]} onChange={(v) => setSev(v)} colors={SEV_COLOR} />
-        <p className="mt-2 px-1 text-[12px] text-ink-tertiary">Resolution SLA: <span className="font-semibold text-ink-secondary">{SEV_SLA[sev]} min</span></p>
 
         <Label>Room (optional)</Label>
         <TextField value={room} onChange={setRoom} placeholder="e.g. 501" />

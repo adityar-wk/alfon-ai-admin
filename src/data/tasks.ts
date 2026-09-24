@@ -122,6 +122,9 @@ export function logAudit(who: string, action: string, task: string, detail: stri
 
 export type HelpRequest = { id: number; taskId: number; from: string; type: "Reassignment" | "Extra support"; reason: string; done?: boolean };
 
+/** AI-drafted guest replies waiting for manager approval, keyed by guest name. */
+export const AI_DRAFTS: Record<string, string> = {};
+
 export const HELP_REQUESTS: HelpRequest[] = [
   { id: 1, taskId: 5, from: "Sarah Ali (Supervisor)", type: "Extra support", reason: "Floor 21 team is fully booked until 4 PM." },
   { id: 2, taskId: 17, from: "Lisa Morgan", type: "Reassignment", reason: "Called away to a guest turndown; needs someone to take over." },

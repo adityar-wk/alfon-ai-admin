@@ -86,6 +86,7 @@ export function ReasonSheet({
   placeholder,
   cta,
   requireNote = false,
+  noteLabel,
   tone,
   onClose,
   onSubmit,
@@ -96,6 +97,7 @@ export function ReasonSheet({
   placeholder: string;
   cta: string;
   requireNote?: boolean;
+  noteLabel?: string;
   tone?: string;
   onClose: () => void;
   onSubmit: (reason: string, note: string) => void;
@@ -111,7 +113,7 @@ export function ReasonSheet({
           <SelectField value={reason} onChange={setReason} placeholder="Select a reason" options={[...reasons]} />
         </>
       )}
-      <Label>{requireNote ? "Note (required)" : "Note"}</Label>
+      <Label>{noteLabel ?? (requireNote ? "Note (required)" : "Note")}</Label>
       <TextField rows={4} value={note} onChange={setNote} placeholder={placeholder} />
       <PrimaryButton className="mt-5 w-full" tone={tone} disabled={!ok} onClick={() => onSubmit(reason, note.trim())}>{cta}</PrimaryButton>
     </Sheet>

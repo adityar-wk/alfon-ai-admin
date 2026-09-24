@@ -113,15 +113,15 @@ export default function HousekeepingBoard() {
           ? {
               ...r,
               status,
-              assignedTo: status === "clean" ? undefined : staff ?? undefined,
-              mins: status === "clean" ? undefined : r.mins,
+              assignedTo: staff ?? undefined,
+              mins: status === "progress" ? r.mins : undefined,
             }
           : r,
       ),
     );
     setAssignFor(null);
     flash(
-      status !== "clean" && staff
+      status === "inspection" && staff
         ? `Room ${no} → ${STATUS_META[status].label}, assigned to ${staff}${note ? " (note added)" : ""}`
         : `Room ${no} → ${STATUS_META[status].label}`,
     );
@@ -276,10 +276,11 @@ function EditRoomModal({
   onSave: (no: number, status: RoomStatus, staff: string | null, note: string) => void;
 }) {
   const [status, setStatus] = useState<RoomStatus>(room.status);
-  const [staff, setStaff] = useState(room.assignedTo ?? "");
+  const [staff, setStaff] = useState(room.status === "inspection" ? room.assignedTo ?? "" : "");
   const [note, setNote] = useState("");
   const occupied = !!room.guest;
-  const needsWork = status !== "clean";
+  const needsWork = status === "inspection";
+  const cleaner = status === "progress" && room.status === "progress" ? room.assignedTo : undefined;
 
   return (
     <Modal
@@ -290,7 +291,7 @@ function EditRoomModal({
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
-          <Button onClick={() => onSave(room.no, status, staff || null, note)}>Save</Button>
+          <Button onClick={() => onSave(room.no, status, status === "inspection" ? staff || null : cleaner ?? null, note)}>Save</Button>
         </>
       }
     >
@@ -300,7 +301,7 @@ function EditRoomModal({
         </span>
       </div>
 
-      {occupied && needsWork && (
+      {occupied && status !== "clean" && (
         <div className="mb-4 rounded-lg bg-blue-50 px-3 py-2.5 text-[12px] text-blue-700">
           <span className="font-semibold">Room is occupied.</span> Coordinate timing with the guest
           before entering.
@@ -326,9 +327,15 @@ function EditRoomModal({
         })}
       </div>
 
+      {status === "progress" && (
+        <p className="mt-5 rounded-lg bg-subtle px-3 py-2.5 text-[13px] text-ink-secondary">
+          {cleaner ? `Cleaning in progress by ${cleaner}.` : "Cleaning in progress."} Change the status to Needs Inspection to assign someone to inspect it.
+        </p>
+      )}
+
       {needsWork && (
         <div className="mt-5 border-t border-line pt-4">
-          <Field label="Assign to">
+          <Field label="Assign inspector">
             <Select value={staff} onChange={(e) => setStaff(e.target.value)}>
               <option value="">Unassigned</option>
               {STAFF.map((s) => (

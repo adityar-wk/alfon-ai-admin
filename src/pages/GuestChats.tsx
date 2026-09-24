@@ -7,6 +7,7 @@ import { Card } from "../components/ui";
 import { Flag } from "../components/Flag";
 import { GUESTS as BASE_GUESTS, type Guest } from "../data/guests";
 import { buildProfile, seedChat } from "./GuestProfile";
+import { AI_DRAFTS } from "../data/tasks";
 
 const chip = (status: string) =>
   status === "Checked Out"
@@ -37,6 +38,7 @@ export default function GuestChats() {
   const [selectedId, setSelectedId] = useState<number>(Number(params.get("guest")) || (orphanName && !BASE_GUESTS.some((g) => g.name === orphanName) ? ORPHAN_ID : 2));
   const [chats, setChats] = useState<Record<number, ChatMsg[]>>({});
   const [modes, setModes] = useState<Record<number, ChatMode>>({});
+  const [, refreshDrafts] = useState(0);
 
   const list = GUESTS.filter((g) => {
     const q = query.trim().toLowerCase();
@@ -115,6 +117,14 @@ export default function GuestChats() {
             setMode={(m) => setModes((x) => ({ ...x, [guest.id]: m }))}
             onSend={(text) => setChats((c) => ({ ...c, [guest.id]: [...msgs, { from: "staff", text, time: "Now" }] }))}
             emptyText="No messages yet. This guest has not been contacted."
+            aiDraft={AI_DRAFTS[guest.name]}
+            onDraftChange={(text) => { AI_DRAFTS[guest.name] = text; refreshDrafts((n) => n + 1); }}
+            onApproveDraft={() => {
+              const text = AI_DRAFTS[guest.name]?.trim();
+              if (!text) return;
+              delete AI_DRAFTS[guest.name];
+              setChats((c) => ({ ...c, [guest.id]: [...msgs, { from: "staff", text, time: "Now" }] }));
+            }}
           />
         </Card>
 

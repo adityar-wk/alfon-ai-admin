@@ -14,6 +14,9 @@ export function GuestChat({
   title,
   className = "",
   emptyText = "No messages yet.",
+  aiDraft,
+  onDraftChange,
+  onApproveDraft,
 }: {
   name: string;
   msgs: ChatMsg[];
@@ -23,13 +26,18 @@ export function GuestChat({
   title?: ReactNode;
   className?: string;
   emptyText?: string;
+  /** AI-drafted reply awaiting manager approval. */
+  aiDraft?: string;
+  onDraftChange?: (text: string) => void;
+  onApproveDraft?: () => void;
 }) {
+  const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState("");
   const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ block: "end" });
-  }, [msgs.length, name]);
+  }, [msgs.length, name, aiDraft !== undefined]);
 
   const send = () => {
     if (!draft.trim() || mode !== "manual") return;
@@ -109,6 +117,36 @@ export function GuestChat({
         <div ref={endRef} />
       </div>
 
+      {aiDraft !== undefined && (
+        <div className="mx-3 mb-3 rounded-xl border border-violet-200 bg-violet-50/60 p-3.5">
+          <div className="mb-2 flex items-center gap-1.5 text-[12px] font-semibold text-violet-700">
+            <Sparkles className="h-3.5 w-3.5" /> ALFON AI drafted a reply to {name.split(" ")[0]} — review before it's sent
+          </div>
+          {editing ? (
+            <textarea
+              value={aiDraft}
+              onChange={(e) => onDraftChange?.(e.target.value)}
+              rows={3}
+              autoFocus
+              className="w-full resize-none rounded-lg border border-line bg-white p-2.5 text-[13px] leading-relaxed text-ink outline-none focus:border-brand"
+            />
+          ) : (
+            <p className="text-[13px] leading-relaxed text-ink">{aiDraft}</p>
+          )}
+          <div className="mt-3 flex justify-end gap-2">
+            <button onClick={() => setEditing((v) => !v)} className="rounded-lg border border-line bg-white px-3.5 py-2 text-[13px] font-medium text-ink hover:bg-subtle">
+              {editing ? "Done" : "Edit"}
+            </button>
+            <button
+              onClick={() => { setEditing(false); onApproveDraft?.(); }}
+              disabled={!aiDraft.trim()}
+              className="rounded-lg bg-brand px-3.5 py-2 text-[13px] font-semibold text-white hover:bg-brand-hover disabled:opacity-40"
+            >
+              Approve &amp; send
+            </button>
+          </div>
+        </div>
+      )}
       <div className="flex items-center gap-2 border-t border-line p-3">
         <input
           value={draft}

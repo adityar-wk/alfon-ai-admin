@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import {
   AlertTriangle,
   Clock,
@@ -23,7 +23,7 @@ import {
 import { Topbar } from "../components/Topbar";
 import { GuestChat, type ChatMsg, type ChatMode } from "../components/GuestChat";
 import { Page, Card, Button, Field, Input, Select, Textarea } from "../components/ui";
-import { TASKS, HELP_REQUESTS, logAudit, pendingHelpFor, resolveHelp, shortName, type Task, type Priority, type Status } from "../data/tasks";
+import { TASKS, HELP_REQUESTS, AI_DRAFTS, logAudit, pendingHelpFor, resolveHelp, shortName, type Task, type Priority, type Status } from "../data/tasks";
 import { GUESTS } from "../data/guests";
 import { usePersona } from "../persona";
 import { ScopePicker } from "../components/ScopePicker";
@@ -47,8 +47,6 @@ const STAFF: Record<string, string[]> = {
   "Guest Services": ["Priya N.", "Maria L."],
 };
 const DEPTS = Object.keys(STAFF);
-const PRIORITIES: Priority[] = ["Low", "Medium", "High", "Critical"];
-const SLA_OPTS = ["15 min", "30 min", "1 hour", "2 hours", "4 hours"];
 
 const DEPT_ICON: Record<string, React.ComponentType<{ className?: string }>> = {
   Engineering: Wrench,
@@ -637,6 +635,7 @@ function ManagerTaskWindow({
   onApply: (patch: Partial<Task>, action: string, detail: string, msg: string, close?: boolean) => void;
 }) {
   const [panel, setPanel] = useState<Panel>(null);
+  const navigate = useNavigate();
   const [, force] = useState(0);
   const { me: mgr } = usePersona();
   const [person, setPerson] = useState("");
@@ -696,11 +695,15 @@ function ManagerTaskWindow({
           : { done: false, title: "Task Completed — Pending" },
   ];
 
+  const roleOf = (name: string) => (name === mgr.name || name === shortName(mgr.name) ? mgr.role : "Line Staff");
   const notes = [
-    ...(anyHelp ? [{ author: anyHelp.from, text: anyHelp.reason, time: "Note" }] : []),
-    ...(task.escalation ? [{ author: "Escalation", text: task.escalation, time: "" }] : []),
+    ...(anyHelp ? [{ author: anyHelp.from, text: anyHelp.reason, time: "" }] : []),
+    ...(task.escalation ? [{ author: task.owner ?? "Line Staff", text: task.escalation, time: "" }] : []),
     ...(task.notes ?? []),
-  ];
+  ].map((n) => {
+    const m = n.author.match(/^(.*?)\s*\((.+)\)$/);
+    return m ? { ...n, author: m[1], role: m[2] } : { ...n, role: roleOf(n.author) };
+  });
   const description =
     task.details ?? task.summary ?? `${task.guest} (Room ${task.room}) asked for “${task.title.toLowerCase()}” via ${task.source.toLowerCase()}.`;
   const initials = (n: string) => n.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
@@ -804,22 +807,19 @@ function ManagerTaskWindow({
 
           <div className="border-t border-line pt-5">
             <div className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-ink-tertiary">Notes</div>
-            <div className="rounded-lg border border-line px-3 py-2.5 text-[14px] leading-relaxed text-ink">{description}</div>
-          </div>
-
-          {!!notes.length && (
-            <div className="border-t border-line pt-5">
-              <div className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-ink-tertiary">Internal notes</div>
+            {notes.length ? (
               <div className="space-y-2">
                 {notes.map((n, i) => (
-                  <div key={i} className="rounded-lg bg-subtle px-3 py-2.5">
-                    <div className="text-[12px] text-ink-secondary">{[n.time, n.author].filter(Boolean).join(" — ")}</div>
-                    <p className="text-[14px] leading-snug text-ink">{n.text}</p>
+                  <div key={i} className="rounded-lg border border-line px-3 py-2.5">
+                    <p className="text-[14px] leading-relaxed text-ink">{n.text}</p>
+                    <div className="mt-1.5 text-[12px] text-ink-tertiary"><span className="font-semibold text-ink-secondary">{n.author}</span> · {n.role}</div>
                   </div>
                 ))}
               </div>
-            </div>
-          )}
+            ) : (
+              <div className="rounded-lg border border-line px-3 py-2.5 text-[14px] leading-relaxed text-ink">{description}</div>
+            )}
+          </div>
         </div>
 
         <div className="max-h-[52%] shrink-0 space-y-2 overflow-y-auto border-t border-line px-6 py-4">
@@ -882,7 +882,11 @@ function ManagerTaskWindow({
 
           {task.owner || closed ? (
             <button
-              onClick={() => onApply({ status: "Completed", sla: { kind: "met", text: "Met" } }, "Marked complete", "Completed by manager", "Task marked complete", true)}
+              onClick={() => {
+                onApply({ status: "Completed", sla: { kind: "met", text: "Met" } }, "Marked complete", "Completed by manager", "Task marked complete — review the reply to your guest", true);
+                AI_DRAFTS[task.guest] = `Hi ${task.guest.split(" ")[0]}, we've taken care of your request (${task.title.toLowerCase()}) for room ${task.room}. Please let us know if there's anything else we can do — we hope you're enjoying your stay.`;
+                navigate(guestId ? `/guest-chats?guest=${guestId}` : `/guest-chats?name=${encodeURIComponent(task.guest)}&room=${task.room}`);
+              }}
               disabled={closed}
               className="w-full rounded-lg bg-emerald-500 py-3 text-[14px] font-semibold text-white hover:bg-emerald-600 disabled:opacity-40"
             >
@@ -1046,8 +1050,6 @@ function NewTask({
   const [title, setTitle] = useState("");
   const [dept, setDept] = useState(deptOptions[0]);
   const [owner, setOwner] = useState("");
-  const [priority, setPriority] = useState<Priority>("Medium");
-  const [sla, setSla] = useState("30 min");
   const [details, setDetails] = useState("");
 
   const valid = title.trim() && guest.trim();
@@ -1060,8 +1062,8 @@ function NewTask({
       room: room.trim() || "—",
       dept,
       owner: owner || STAFF[dept][0],
-      priority,
-      sla: { kind: "left", text: `${sla} left` },
+      priority: "Medium",
+      sla: { kind: "left", text: "40 min left" },
       status: "Pending",
       source: "Staff",
       details: details.trim() || undefined,
@@ -1104,31 +1106,6 @@ function NewTask({
             <Select value={owner} onChange={(e) => setOwner(e.target.value)}>
               <option value="">Auto-assign (ALFON)</option>
               {STAFF[dept].map((s) => <option key={s}>{s}</option>)}
-            </Select>
-          </Field>
-        </div>
-
-        <div className="grid grid-cols-[1fr_150px] gap-3">
-          <div>
-            <div className="mb-1.5 text-[13px] font-medium text-ink">Priority</div>
-            <div className="flex rounded-lg bg-subtle p-1">
-              {PRIORITIES.map((p) => (
-                <button
-                  key={p}
-                  type="button"
-                  onClick={() => setPriority(p)}
-                  className={`flex flex-1 items-center justify-center gap-1.5 rounded-md py-1.5 text-[12px] font-medium ${
-                    priority === p ? "bg-white text-ink shadow-sm" : "text-ink-secondary"
-                  }`}
-                >
-                  <span className={`h-1.5 w-1.5 rounded-full ${PRIORITY_DOT[p]}`} /> {p}
-                </button>
-              ))}
-            </div>
-          </div>
-          <Field label="Complete within">
-            <Select value={sla} onChange={(e) => setSla(e.target.value)}>
-              {SLA_OPTS.map((s) => <option key={s}>{s}</option>)}
             </Select>
           </Field>
         </div>
