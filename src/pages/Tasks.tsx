@@ -109,11 +109,17 @@ function PriorityLabel({ p }: { p: Priority }) {
   );
 }
 
-function StatusLabel({ s }: { s: Status }) {
+/** what the status reads as: a task nobody owns is "Unassigned", an owned one that has not started is "Assigned" */
+function statusText(t: Pick<Task, "status" | "owner">): string {
+  return t.status === "Yet to Assign" ? (t.owner ? "Assigned" : "Unassigned") : t.status;
+}
+
+function StatusLabel({ t }: { t: Pick<Task, "status" | "owner"> }) {
+  const s = t.status;
   const dot = s === "Void" ? "bg-gray-400" : s === "Unable to Complete" ? "bg-amber-400" : s === "Completed" ? "bg-emerald-500" : s === "Escalated" ? "bg-red-500" : s === "In Progress" ? "bg-brand" : "bg-gray-300";
   return (
     <span className="inline-flex items-center gap-1.5 text-[13px] text-ink-secondary">
-      <span className={`h-1.5 w-1.5 rounded-full ${dot}`} /> {s}
+      <span className={`h-1.5 w-1.5 rounded-full ${dot}`} /> {statusText(t)}
     </span>
   );
 }
@@ -352,11 +358,11 @@ export default function Tasks() {
                       <div className="text-[12px] text-ink-tertiary">Room {t.room}</div>
                     </td>
                     <td className="py-3 pr-3 text-[13px]">
-                      {t.owner ? <span className="text-ink-secondary">{t.owner}</span> : <span className="font-medium text-brand">Unassigned</span>}
+                      {t.owner ? <span className="text-ink-secondary">{t.owner}</span> : <span className="text-ink-tertiary">—</span>}
                     </td>
                     <td className="py-3 pr-3"><PriorityLabel p={t.priority} /></td>
                     <td className="py-3 pr-3"><SlaText sla={t.sla} /></td>
-                    <td className="py-3 pr-4"><StatusLabel s={t.status} /></td>
+                    <td className="py-3 pr-4"><StatusLabel t={t} /></td>
                   </tr>
                 ))}
                 {!rows.length && (
@@ -486,7 +492,7 @@ function TaskWindow({
             <span>{task.dept}</span>
             <span>Room {task.room}</span>
             <span>via {task.source}</span>
-            <StatusLabel s={task.status} />
+            <StatusLabel t={task} />
           </div>
         </div>
         <button onClick={onClose} aria-label="Close" className="rounded-md p-1 text-ink-tertiary hover:bg-subtle hover:text-ink">
@@ -763,7 +769,7 @@ function ManagerTaskWindow({
             </button>
           </div>
           <div className="mt-3 flex flex-wrap items-center gap-2">
-            <span className={`rounded-full px-2.5 py-1 text-[12px] font-semibold ${STATUS_PILL[task.status]}`}>{task.status}</span>
+            <span className={`rounded-full px-2.5 py-1 text-[12px] font-semibold ${STATUS_PILL[task.status]}`}>{statusText(task)}</span>
             <PriorityLabel p={task.priority} />
             {task.tag === "Complaint" && <span className="rounded-full bg-red-50 px-2.5 py-1 text-[12px] font-semibold text-red-600">Complaint</span>}
           </div>
