@@ -331,10 +331,12 @@ export default function Tasks() {
             <table className="w-full min-w-[900px] text-left">
               <thead>
                 <tr className="border-b border-line bg-subtle/50 text-[11px] uppercase tracking-wide text-ink-secondary">
-                  <th className="py-3 pl-4 font-medium">Task</th>
+                  {!manager && <th className="py-3 pl-4 font-medium">Task ID</th>}
+                  <th className={`py-3 font-medium ${manager ? "pl-4" : ""}`}>Task</th>
+                  {!manager && <th className="py-3 font-medium">Department</th>}
                   <th className="py-3 font-medium">Guest / Room</th>
                   <th className="py-3 font-medium">Owner</th>
-                  <th className="py-3 font-medium">Priority</th>
+                  {manager && <th className="py-3 font-medium">Priority</th>}
                   <th className="py-3 font-medium">SLA</th>
                   <th className="py-3 pr-4 font-medium">Status</th>
                 </tr>
@@ -342,9 +344,10 @@ export default function Tasks() {
               <tbody>
                 {rows.map((t) => (
                   <tr key={t.id} onClick={() => setSelectedId(t.id)} className={`cursor-pointer border-b border-line/70 last:border-0 hover:bg-subtle/60 ${t.status === "Completed" ? "opacity-50" : ""}`}>
-                    <td className="py-3 pl-4 pr-3">
+                    {!manager && <td className="py-3 pl-4 pr-3 font-mono text-[12px] text-ink-tertiary">#{String(t.id).padStart(3, "0")}</td>}
+                    <td className={`py-3 pr-3 ${manager ? "pl-4" : ""}`}>
                       <div className="flex items-center gap-3">
-                        <DeptIcon dept={t.dept} />
+                        {manager && <DeptIcon dept={t.dept} />}
                         <div className="min-w-0">
                           <div className="flex items-center gap-2 text-[13px] font-semibold text-ink">
                             {t.title}
@@ -353,6 +356,7 @@ export default function Tasks() {
                         </div>
                       </div>
                     </td>
+                    {!manager && <td className="py-3 pr-3 text-[13px] text-ink-secondary">{t.dept}</td>}
                     <td className="py-3 pr-3">
                       <div className="text-[13px] text-ink">{t.guest}</div>
                       <div className="text-[12px] text-ink-tertiary">Room {t.room}</div>
@@ -360,14 +364,14 @@ export default function Tasks() {
                     <td className="py-3 pr-3 text-[13px]">
                       {t.owner ? <span className="text-ink-secondary">{t.owner}</span> : <span className="text-ink-tertiary">—</span>}
                     </td>
-                    <td className="py-3 pr-3"><PriorityLabel p={t.priority} /></td>
+                    {manager && <td className="py-3 pr-3"><PriorityLabel p={t.priority} /></td>}
                     <td className="py-3 pr-3"><SlaText sla={t.sla} /></td>
                     <td className="py-3 pr-4"><StatusLabel t={t} /></td>
                   </tr>
                 ))}
                 {!rows.length && (
                   <tr>
-                    <td colSpan={6} className="py-10 text-center text-[13px] text-ink-tertiary">No tasks in this view.</td>
+                    <td colSpan={7} className="py-10 text-center text-[13px] text-ink-tertiary">No tasks in this view.</td>
                   </tr>
                 )}
               </tbody>
