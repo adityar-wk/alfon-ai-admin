@@ -23,7 +23,7 @@ const INFO: Record<Tab, { title: string; blurb: string; flows: string[]; include
       "Tap a card → Task details (task, room and guest details; tap the guest to open their profile)",
       "Task details → Need help (escalate to your supervisor) or Mark complete",
       "Bell → Notifications",
-      "Create task button (above the nav bar) → Create Manual Task (department, service, room, optional details)",
+      "Orange + button (top, next to the bell) → Create Manual Task (department, service, room, optional details)",
       "Guest communication: all chats — tap a chat to reply (take over from ALFON AI), tap the avatar for the guest profile",
       "Availability toggle: Available / Off work",
     ],

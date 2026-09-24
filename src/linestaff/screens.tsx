@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Bell, Send, Plus, BedDouble, User, Building2, ChevronLeft, ChevronRight, ListChecks, MessageCircle, Search } from "lucide-react";
+import { Bell, Send, Plus, BedDouble, User, Building2, ChevronLeft, ChevronRight, ArrowUpRight, ListChecks, MessageCircle, Search } from "lucide-react";
 import { DEPARTMENTS } from "../data/departments";
 import {
   PhoneFrame,
@@ -54,6 +54,7 @@ type Task = {
   staffNote?: string;
   dept?: string;
   compensation?: { type: string; reason: string; by: string }[];
+  escalatedTo?: "Supervisor" | "Mid Manager";
 };
 
 const INITIAL: Task[] = [
@@ -64,7 +65,7 @@ const INITIAL: Task[] = [
   },
   {
     id: "t10", title: "Extra pillows", room: "Room 908", note: "Two extra pillows requested. Guest is waiting in the room.",
-    status: "progress", left: -8, total: 30, guest: "Ananya Kapoor", roomType: "Executive King", floor: 9, stay: "In house · 4 nights", prefs: ["Extra pillows"],
+    status: "progress", left: -8, total: 30, guest: "Ananya Kapoor", roomType: "Executive King", floor: 9, stay: "In house · 4 nights", prefs: ["Extra pillows"], escalatedTo: "Mid Manager",
     source: "Guest chat", created: "9:55 AM",
   },
   {
@@ -115,6 +116,7 @@ function LsCard({ t, onOpen, onAccept }: { t: Task; onOpen?: () => void; onAccep
           <div className="text-[14px] font-semibold leading-snug text-ink">{t.title}</div>
           <div className="mt-0.5 text-[12px] font-medium text-ink-secondary">{t.room}</div>
           <p className="mt-1.5 line-clamp-2 text-[12px] leading-snug text-ink-tertiary">{t.note}</p>
+          {t.escalatedTo && !done && <span className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-semibold text-red-600"><ArrowUpRight className="h-3 w-3" /> Escalated to {t.escalatedTo}</span>}
           {done && t.time && <div className="mt-1.5 text-[11px] font-medium text-emerald-600">✓ {t.time}</div>}
         </div>
         {!done && <SlaRing left={t.left} total={t.total} size={50} />}
@@ -228,7 +230,7 @@ export function LineStaffPrototype() {
 
   const Home = (
     <div className="relative h-full">
-      <div className="h-full overflow-y-auto pb-44 no-scrollbar">
+      <div className="h-full overflow-y-auto pb-28 no-scrollbar">
         <div className="flex items-center justify-between px-6 py-2">
           <span className="flex h-10 w-10 items-center justify-center rounded-full bg-brand text-[13px] font-semibold text-white">AK</span>
           <button
@@ -241,10 +243,15 @@ export function LineStaffPrototype() {
               <span className={`h-5 w-5 rounded-full bg-white shadow transition-transform ${available ? "translate-x-5" : ""}`} />
             </span>
           </button>
-          <button onClick={() => nav.push({ name: "notifications" })} aria-label="Notifications" className="relative flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-sm">
-            <Bell className="h-[18px] w-[18px] text-ink" />
-            <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500" />
-          </button>
+          <div className="flex items-center gap-2">
+            <button onClick={openCreate} aria-label="Create task" className="flex h-10 w-10 items-center justify-center rounded-full bg-brand text-white shadow-sm active:scale-95">
+              <Plus className="h-5 w-5" />
+            </button>
+            <button onClick={() => nav.push({ name: "notifications" })} aria-label="Notifications" className="relative flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-sm">
+              <Bell className="h-[18px] w-[18px] text-ink" />
+              <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500" />
+            </button>
+          </div>
         </div>
 
         <div className="mt-5"><SectionTitle dot={false} small action={<span className="text-[12px] text-ink-tertiary">{inProgress.length}</span>}>In progress</SectionTitle></div>
@@ -264,13 +271,6 @@ export function LineStaffPrototype() {
           {completed.map((t) => <LsCard key={t.id} t={t} onOpen={() => openTask(t.id)} />)}
         </div>
       </div>
-      <button
-        onClick={openCreate}
-        aria-label="Create task"
-        className="absolute bottom-[92px] right-5 z-20 flex h-12 items-center gap-2 rounded-full bg-brand px-5 text-[14px] font-semibold text-white shadow-[0_3px_10px_rgba(241,90,36,0.3)] active:scale-95"
-      >
-        <Plus className="h-5 w-5" /> Create task
-      </button>
       {lsNav}
     </div>
   );
@@ -376,6 +376,7 @@ export function LineStaffPrototype() {
             <span className={`mt-1 inline-block rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${active.status === "completed" ? "bg-emerald-50 text-emerald-600" : active.status === "progress" ? "bg-blue-50 text-blue-600" : "bg-amber-50 text-amber-700"}`}>
               {active.status === "completed" ? "Completed" : active.status === "progress" ? "In progress" : "Pending"}
             </span>
+            {active.escalatedTo && active.status !== "completed" && <span className="ml-1.5 mt-1 inline-flex items-center gap-1 rounded-full bg-red-50 px-2.5 py-0.5 text-[11px] font-semibold text-red-600"><ArrowUpRight className="h-3 w-3" /> Escalated to {active.escalatedTo}</span>}
           </div>
         </div>
 
@@ -440,6 +441,7 @@ export function LineStaffPrototype() {
   const helpSubmit = () => {
     const msg =
       helpKind === "escalate" ? "Escalated to your supervisor" : helpKind === "support" ? "Support request sent" : "Reassignment request sent to your supervisor";
+    if (helpKind === "escalate") setTasks((ts) => ts.map((t) => (t.id === active.id ? { ...t, escalatedTo: "Supervisor" } : t)));
     flash(msg);
     setHelpOpen(false);
     setHelpNote("");
