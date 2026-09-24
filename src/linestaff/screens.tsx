@@ -239,12 +239,12 @@ export function LineStaffPrototype() {
             <span className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white ${available ? "bg-emerald-500" : "bg-[#C8C8C8]"}`} />
           </button>
           <div className="flex items-center gap-2">
-            <button onClick={openCreate} aria-label="Create task" className="flex h-10 w-10 items-center justify-center rounded-full bg-brand text-white shadow-sm active:scale-95">
-              <Plus className="h-5 w-5" />
-            </button>
             <button onClick={() => nav.push({ name: "notifications" })} aria-label="Notifications" className="relative flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-sm">
               <Bell className="h-[18px] w-[18px] text-ink" />
               <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500" />
+            </button>
+            <button onClick={openCreate} aria-label="Create task" className="flex h-10 w-10 items-center justify-center rounded-full bg-brand text-white shadow-sm active:scale-95">
+              <Plus className="h-5 w-5" />
             </button>
           </div>
         </div>
