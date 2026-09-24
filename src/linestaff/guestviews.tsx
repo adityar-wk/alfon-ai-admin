@@ -305,15 +305,6 @@ export function GuestChatScreen({
           </div>
         </button>
       </div>
-      <div className={`flex shrink-0 items-center justify-between gap-3 border-y border-line px-6 py-2.5 text-[12px] ${manual ? "bg-[#FBDCCB]/60 text-brand" : "bg-brand-tint text-brand"}`}>
-        <span className="font-medium">{manual ? "You're replying — AI is paused" : "ALFON AI is replying automatically"}</span>
-        <button onClick={onToggle} aria-pressed={manual} aria-label="Take over" className="flex items-center gap-2">
-          <span className="text-[11px] font-semibold">Take over</span>
-          <span className={`flex h-6 w-11 items-center rounded-full p-0.5 transition-colors ${manual ? "bg-brand" : "bg-[#D8D8DC]"}`}>
-            <span className={`h-5 w-5 rounded-full bg-white shadow transition-transform ${manual ? "translate-x-5" : ""}`} />
-          </span>
-        </button>
-      </div>
       <div className="min-h-0 flex-1 space-y-2.5 overflow-y-auto px-6 py-4">
         {!thread.length && <p className="py-6 text-center text-[12px] text-ink-tertiary">No messages yet.</p>}
         {thread.map((m, i) => (
@@ -327,7 +318,16 @@ export function GuestChatScreen({
         <div ref={endRef} />
       </div>
       {aiDraft !== undefined && <AiDraftCard draft={aiDraft} onChange={(t) => onDraftChange?.(t)} onApprove={() => onApproveDraft?.()} />}
-      <div className="flex shrink-0 items-center gap-2 border-t border-line px-6 py-3">
+      <div className={`flex shrink-0 items-center justify-between gap-3 border-t border-line px-6 py-2.5 text-[12px] ${manual ? "bg-[#FBDCCB]/60 text-brand" : "bg-brand-tint text-brand"}`}>
+        <span className="font-medium">{manual ? "You're replying — AI is paused" : "ALFON AI is replying automatically"}</span>
+        <button onClick={onToggle} aria-pressed={manual} aria-label="Take over" className="flex items-center gap-2">
+          <span className="text-[11px] font-semibold">Take over</span>
+          <span className={`flex h-6 w-11 items-center rounded-full p-0.5 transition-colors ${manual ? "bg-brand" : "bg-[#D8D8DC]"}`}>
+            <span className={`h-5 w-5 rounded-full bg-white shadow transition-transform ${manual ? "translate-x-5" : ""}`} />
+          </span>
+        </button>
+      </div>
+      <div className="flex shrink-0 items-center gap-2 px-6 py-3">
         <input
           value={draft}
           disabled={!manual}

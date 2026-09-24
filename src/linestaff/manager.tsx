@@ -646,7 +646,7 @@ export function ManagerPrototype() {
         active={roomEntry.status}
         onChange={(v) => { setRooms((rs) => rs.map((r) => (r.number === roomEntry.number ? { ...r, status: v, assignee: v === r.status ? r.assignee : null, open: v === r.status ? r.open : false } : r))); flash(`${roomEntry.number} marked ${v}`); }}
       />
-      {(roomEntry.status === "Needs Inspection" || (roomEntry.status === "In Progress" && !roomEntry.assignee)) && (
+      {(roomEntry.status === "Needs Inspection" || roomEntry.status === "In Progress") && !roomEntry.assignee && (
         <>
           <div className="mt-5" />
           {roomEntry.status === "In Progress" && !roomEntry.open && (
@@ -666,11 +666,6 @@ export function ManagerPrototype() {
             onPick={(s) => { setRooms((rs) => rs.map((r) => (r.number === roomEntry.number ? { ...r, assignee: s.name, open: false } : r))); flash(`${roomEntry.number} assigned to ${s.name}`); }}
             cta="Assign"
           />
-          {roomEntry.assignee && (
-            <GhostButton className="mt-3 w-full" onClick={() => { setRooms((rs) => rs.map((r) => (r.number === roomEntry.number ? { ...r, assignee: null } : r))); flash("Unassigned"); }}>
-              Unassign
-            </GhostButton>
-          )}
         </>
       )}
     </Sheet>
@@ -744,20 +739,6 @@ export function ManagerPrototype() {
           </div>
         </button>
       </div>
-      <div className={`flex shrink-0 items-center justify-between gap-3 border-y border-line px-6 py-2.5 text-[12px] ${guestManual ? "bg-brand-tint/50 text-brand" : "bg-brand-tint text-brand"}`}>
-        <span className="font-medium">{guestManual ? "You're replying — AI is paused" : "ALFON AI is replying automatically"}</span>
-        <button
-          onClick={() => { setManual((m) => ({ ...m, [guestName!]: !guestManual })); flash(guestManual ? "Handed back to AI" : "AI paused — you're now replying"); }}
-          aria-pressed={guestManual}
-          aria-label="Take over"
-          className="flex items-center gap-2"
-        >
-          <span className="text-[11px] font-semibold">Take over</span>
-          <span className={`flex h-6 w-11 items-center rounded-full p-0.5 transition-colors ${guestManual ? "bg-brand" : "bg-[#D8D8DC]"}`}>
-            <span className={`h-5 w-5 rounded-full bg-white shadow transition-transform ${guestManual ? "translate-x-5" : ""}`} />
-          </span>
-        </button>
-      </div>
       <div className="min-h-0 flex-1 space-y-2.5 overflow-y-auto px-6 py-4">
         {!guestThread.length && <p className="py-6 text-center text-[12px] text-ink-tertiary">No messages yet.</p>}
         {guestThread.map((m, i) => (
@@ -789,7 +770,21 @@ export function ManagerPrototype() {
           </div>
         </div>
       )}
-      <div className="flex shrink-0 items-center gap-2 border-t border-line px-6 py-3">
+      <div className={`flex shrink-0 items-center justify-between gap-3 border-t border-line px-6 py-2.5 text-[12px] ${guestManual ? "bg-brand-tint/50 text-brand" : "bg-brand-tint text-brand"}`}>
+        <span className="font-medium">{guestManual ? "You're replying — AI is paused" : "ALFON AI is replying automatically"}</span>
+        <button
+          onClick={() => { setManual((m) => ({ ...m, [guestName!]: !guestManual })); flash(guestManual ? "Handed back to AI" : "AI paused — you're now replying"); }}
+          aria-pressed={guestManual}
+          aria-label="Take over"
+          className="flex items-center gap-2"
+        >
+          <span className="text-[11px] font-semibold">Take over</span>
+          <span className={`flex h-6 w-11 items-center rounded-full p-0.5 transition-colors ${guestManual ? "bg-brand" : "bg-[#D8D8DC]"}`}>
+            <span className={`h-5 w-5 rounded-full bg-white shadow transition-transform ${guestManual ? "translate-x-5" : ""}`} />
+          </span>
+        </button>
+      </div>
+      <div className="flex shrink-0 items-center gap-2 px-6 py-3">
         <input
           value={draft}
           disabled={!guestManual}
