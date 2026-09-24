@@ -25,6 +25,8 @@ export type Task = {
   escalatedTo?: string;
   /** reason recorded when a manager closes / overrides / marks unable */
   resolution?: string;
+  /** guest compensation given for this task */
+  compensation?: { type: string; reason: string; approvedBy: string; time: string }[];
 };
 
 const T = (
@@ -64,6 +66,22 @@ const SEED: Task[] = [
   T(22, "Key Card Not Working", "Ananya Kapoor", "908", "Front Desk", "Sarah K.", "High", { kind: "overdue", text: "Overdue 5 min" }, "Escalated", "Guest Chat", {
     escalation: "Second key card failure this stay; agent could not re-encode.",
   }),
+  T(23, "Bathroom Amenities Restock", "Olivia Brown", "1203", "Housekeeping", "Lisa M.", "Low", { kind: "left", text: "40 min left" }, "In Progress", "Staff"),
+  T(24, "Extra Blanket", "Pooja Patel", "602", "Housekeeping", null, "Low", { kind: "due", text: "Due in 20 min" }, "Pending", "Guest Chat"),
+  T(25, "Mattress Topper Request", "Robert Brown", "905", "Housekeeping", "Maria S.", "Medium", { kind: "left", text: "50 min left" }, "Pending", "PMS"),
+  T(26, "Balcony Cleaning", "Sarah Mitchell", "2501", "Housekeeping", "Sarah A.", "Low", { kind: "overdue", text: "Overdue 6 min" }, "In Progress", "Staff"),
+  T(27, "Laundry Pickup", "Ava Thompson", "2501", "Housekeeping", "Lisa M.", "Low", { kind: "met", text: "Met" }, "Completed", "Guest Chat"),
+  T(28, "Room Ready for Early Check-in", "Khalid Al-Mansouri", "1710", "Housekeeping", "Maria S.", "High", { kind: "met", text: "Met" }, "Completed", "PMS"),
+  T(29, "Pillow Menu Selection", "Emma Davis", "1608", "Housekeeping", null, "Medium", { kind: "due", text: "Due in 12 min" }, "Pending", "Guest Chat"),
+  T(30, "Airport Transfer Booking", "Robert Brown", "905", "Concierge", "John S.", "Medium", { kind: "left", text: "45 min left" }, "Pending", "Guest Chat"),
+  T(31, "Dinner Reservation — 4 Guests", "Sarah Mitchell", "2501", "Food & Beverage", "Tom H.", "Medium", { kind: "met", text: "On time" }, "In Progress", "Guest Chat"),
+  T(32, "Heater Not Working", "Pooja Patel", "602", "Engineering", "Raj P.", "High", { kind: "overdue", text: "Overdue 10 min" }, "Escalated", "Guest Chat", {
+    escalation: "Heating unit failed twice this evening; technician is waiting for a part.",
+  }),
+  T(33, "Invoice Copy Request", "David Williams", "1008", "Front Desk", null, "Low", { kind: "due", text: "Due in 25 min" }, "Pending", "Guest Chat"),
+  T(34, "In-Room Dining Order", "Ananya Kapoor", "908", "Room Service", "Anna P.", "Medium", { kind: "met", text: "Met" }, "Completed", "Guest Chat"),
+  T(35, "Wake-up Call Change", "Michael Johnson", "1103", "Front Desk", "Maria S.", "Low", { kind: "met", text: "Met" }, "Completed", "Guest Chat"),
+  T(36, "Spa Appointment Change", "Emma Davis", "1608", "Guest Services", "Priya N.", "Medium", { kind: "left", text: "1 hr left" }, "Pending", "Guest Chat"),
 ];
 
 

@@ -23,7 +23,7 @@ import {
 import { Topbar } from "../components/Topbar";
 import { GuestChat, type ChatMsg, type ChatMode } from "../components/GuestChat";
 import { Page, Card, Button, Field, Input, Select, Textarea } from "../components/ui";
-import { TASKS, logAudit, pendingHelpFor, resolveHelp, type Task, type Priority, type Status } from "../data/tasks";
+import { TASKS, logAudit, pendingHelpFor, resolveHelp, shortName, type Task, type Priority, type Status } from "../data/tasks";
 import { GUESTS } from "../data/guests";
 import { usePersona } from "../persona";
 import { ScopePicker } from "../components/ScopePicker";
@@ -292,12 +292,6 @@ export default function Tasks() {
                   </Select>
                 </Field>
               )}
-              <Field label="Priority">
-                <Select value={fPriority} onChange={(e) => setFPriority(e.target.value)}>
-                  <option value="">All priorities</option>
-                  {PRIORITIES.map((p) => <option key={p}>{p}</option>)}
-                </Select>
-              </Field>
             </div>
           )}
         </div>
@@ -314,14 +308,13 @@ export default function Tasks() {
                   <th className="py-3 pl-4 font-medium">Task</th>
                   <th className="py-3 font-medium">Guest / Room</th>
                   <th className="py-3 font-medium">Owner</th>
-                  <th className="py-3 font-medium">Priority</th>
                   <th className="py-3 font-medium">SLA</th>
                   <th className="py-3 pr-4 font-medium">Status</th>
                 </tr>
               </thead>
               <tbody>
                 {rows.map((t) => (
-                  <tr key={t.id} onClick={() => setSelectedId(t.id)} className="cursor-pointer border-b border-line/70 last:border-0 hover:bg-subtle/60">
+                  <tr key={t.id} onClick={() => setSelectedId(t.id)} className={`cursor-pointer border-b border-line/70 last:border-0 hover:bg-subtle/60 ${t.status === "Completed" ? "opacity-50" : ""}`}>
                     <td className="py-3 pl-4 pr-3">
                       <div className="flex items-center gap-3">
                         <DeptIcon dept={t.dept} />
@@ -340,14 +333,13 @@ export default function Tasks() {
                     <td className="py-3 pr-3 text-[13px]">
                       {t.owner ? <span className="text-ink-secondary">{t.owner}</span> : <span className="font-medium text-brand">Unassigned</span>}
                     </td>
-                    <td className="py-3 pr-3"><PriorityLabel p={t.priority} /></td>
                     <td className="py-3 pr-3"><SlaText sla={t.sla} /></td>
                     <td className="py-3 pr-4"><StatusLabel s={t.status} /></td>
                   </tr>
                 ))}
                 {!rows.length && (
                   <tr>
-                    <td colSpan={6} className="py-10 text-center text-[13px] text-ink-tertiary">No tasks in this view.</td>
+                    <td colSpan={5} className="py-10 text-center text-[13px] text-ink-tertiary">No tasks in this view.</td>
                   </tr>
                 )}
               </tbody>
@@ -575,7 +567,10 @@ function TaskWindow({
 
 /* ---------- mid-manager task window ---------- */
 
-type Panel = null | "reassign" | "support" | "note" | "escalate" | "unable" | "override";
+type Panel = null | "reassign" | "support" | "note" | "escalate" | "unable" | "override" | "compensation";
+
+const COMP_TYPES = ["Chocolate Cake — $10", "Fruit Platter — $10", "Date Box — $10", "Non-Alcoholic Sparkling Beverage — $10", "Prosecco — $20", "Champagne — $50", "Resort Credit — $500", "Resort Credit — $1,000"];
+const APPROVERS = ["Sophia Carter (General Manager)", "Duty Manager", "Daniel Reyes (Housekeeping Manager)"];
 
 
 const SLA_TARGET: Record<Priority, number> = { Critical: 10, High: 20, Medium: 40, Low: 60 };
@@ -635,6 +630,9 @@ function ManagerTaskWindow({
   const [text, setText] = useState("");
   const [modal, setModal] = useState<null | "help" | "void">(null);
   const [voidReason, setVoidReason] = useState("");
+  const [compType, setCompType] = useState("");
+  const [compReason, setCompReason] = useState("");
+  const [compBy, setCompBy] = useState("");
 
   useEffect(() => {
     const h = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -777,6 +775,28 @@ function ManagerTaskWindow({
           )}
 
           <div className="border-t border-line pt-5">
+            <div className="mb-2 flex items-center justify-between">
+              <div className="text-[11px] font-semibold uppercase tracking-wide text-ink-tertiary">Compensation</div>
+              <button onClick={() => { setCompType(""); setCompReason(""); setCompBy(""); open("compensation"); }} className="text-[12px] font-semibold text-brand">
+                {task.compensation?.length ? "Add another" : "Add compensation"}
+              </button>
+            </div>
+            {task.compensation?.length ? (
+              <div className="space-y-2">
+                {task.compensation.map((c, i) => (
+                  <div key={i} className="rounded-lg bg-subtle px-3 py-2.5">
+                    <div className="text-[14px] font-medium text-ink">{c.type}</div>
+                    <p className="text-[13px] leading-snug text-ink-secondary">{c.reason}</p>
+                    <p className="mt-0.5 text-[11px] text-ink-tertiary">Approved by {c.approvedBy} · {c.time}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-[13px] text-ink-tertiary">No compensation given.</p>
+            )}
+          </div>
+
+          <div className="border-t border-line pt-5">
             <div className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-ink-tertiary">Notes</div>
             <div className="rounded-lg border border-line px-3 py-2.5 text-[14px] leading-relaxed text-ink">{description}</div>
           </div>
@@ -803,6 +823,13 @@ function ManagerTaskWindow({
                 onApply({ owner: person }, "Reassigned", `${task.owner ?? "Unassigned"} → ${person} (${task.dept})`, `Reassigned to ${person}`);
                 setPanel(null);
               }}>
+              <button
+                onClick={() => { onApply({ owner: null, status: "Pending" }, "Reopened", "Reopened for anyone to pick up", "Task reopened for others to pick up"); setPanel(null); }}
+                className="mb-2 w-full rounded-lg border border-line bg-white px-3 py-2 text-[13px] font-semibold text-ink hover:bg-subtle"
+              >
+                Make it an open task — anyone can pick it up
+              </button>
+              <div className="mb-2 text-center text-[11px] text-ink-tertiary">or assign to a person</div>
               <Select value={person} onChange={(e) => setPerson(e.target.value)}>
                 <option value="">Select staff member</option>
                 {teamMates.map((s) => <option key={s}>{s}</option>)}
@@ -835,22 +862,63 @@ function ManagerTaskWindow({
             </PanelBox>
           )}
           {panel === "escalate" && (
-            <PanelBox title="Escalate to Duty Manager" ok="Escalate" disabled={!text.trim()} onCancel={() => setPanel(null)}
+            <PanelBox title="Escalate to Duty Manager" ok="Escalate" onCancel={() => setPanel(null)}
               onOk={() => {
-                onApply({ status: "Escalated", escalatedTo: "Duty Manager", escalation: text.trim() }, "Escalated to Duty Manager", text.trim(), "Escalated to Duty Manager");
+                onApply({ status: "Escalated", escalatedTo: "Duty Manager", escalation: text.trim() || undefined }, "Escalated to Duty Manager", text.trim() || "No reason given", "Escalated to Duty Manager");
                 setPanel(null);
               }}>
-              <Textarea rows={2} autoFocus value={text} onChange={(e) => setText(e.target.value)} placeholder="Why does this need the Duty Manager?" />
+              <Textarea rows={2} autoFocus value={text} onChange={(e) => setText(e.target.value)} placeholder="Reason (optional)" />
             </PanelBox>
           )}
 
-          <button
-            onClick={() => onApply({ status: "Completed", sla: { kind: "met", text: "Met" } }, "Marked complete", "Completed by manager", "Task marked complete", true)}
-            disabled={closed}
-            className="w-full rounded-lg bg-emerald-500 py-3 text-[14px] font-semibold text-white hover:bg-emerald-600 disabled:opacity-40"
-          >
-            {closed ? "Closed" : "Mark as Complete"}
-          </button>
+          {panel === "compensation" && (
+            <PanelBox title="Guest compensation" ok="Submit compensation" disabled={!compType || !compReason.trim() || !compBy} onCancel={() => setPanel(null)}
+              onOk={() => {
+                onApply(
+                  { compensation: [...(task.compensation ?? []), { type: compType, reason: compReason.trim(), approvedBy: compBy, time: "Just now" }] },
+                  "Compensation submitted", `${compType} · approved by ${compBy}`, "Compensation submitted",
+                );
+                setPanel(null);
+              }}>
+              <div className="space-y-2">
+                <div>
+                  <div className="mb-1 text-[11px] text-ink-tertiary">Compensation type</div>
+                  <Select value={compType} onChange={(e) => setCompType(e.target.value)}>
+                    <option value="">Select compensation</option>
+                    {COMP_TYPES.map((c) => <option key={c}>{c}</option>)}
+                  </Select>
+                </div>
+                <div>
+                  <div className="mb-1 text-[11px] text-ink-tertiary">Reason</div>
+                  <Textarea rows={2} value={compReason} onChange={(e) => setCompReason(e.target.value)} placeholder="Why is this compensation being given?" />
+                </div>
+                <div>
+                  <div className="mb-1 text-[11px] text-ink-tertiary">Approved by</div>
+                  <Select value={compBy} onChange={(e) => setCompBy(e.target.value)}>
+                    <option value="">Select approver</option>
+                    {APPROVERS.map((c) => <option key={c}>{c}</option>)}
+                  </Select>
+                </div>
+              </div>
+            </PanelBox>
+          )}
+
+          {task.owner || closed ? (
+            <button
+              onClick={() => onApply({ status: "Completed", sla: { kind: "met", text: "Met" } }, "Marked complete", "Completed by manager", "Task marked complete", true)}
+              disabled={closed}
+              className="w-full rounded-lg bg-emerald-500 py-3 text-[14px] font-semibold text-white hover:bg-emerald-600 disabled:opacity-40"
+            >
+              {closed ? "Closed" : "Mark as Complete"}
+            </button>
+          ) : (
+            <button
+              onClick={() => onApply({ owner: shortName(mgr.name), status: "In Progress" }, "Accepted task", `Accepted by ${mgr.name}`, "Task accepted — it's yours")}
+              className="w-full rounded-lg bg-brand py-3 text-[14px] font-semibold text-white hover:bg-brand-hover"
+            >
+              Accept
+            </button>
+          )}
           <div className="flex gap-2">
             <button
               onClick={() => setModal("help")}
