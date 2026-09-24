@@ -407,21 +407,29 @@ export function Fab({ onClick, label, icon: Icon }: { onClick: () => void; label
 export const COMP_TYPES = [
   "Chocolate Cake — $10", "Fruit Platter — $10", "Date Box — $10", "Non-Alcoholic Sparkling Beverage — $10",
   "Prosecco — $20", "Champagne — $50", "Resort Credit — $500", "Resort Credit — $1,000",
+  "Other",
 ];
 
 export function CompensationSheet({ subtitle, approvers, onClose, onSubmit }: { subtitle: string; approvers: string[]; onClose: () => void; onSubmit: (type: string, reason: string, by: string) => void }) {
   const [type, setType] = useState("");
   const [reason, setReason] = useState("");
   const [by, setBy] = useState("");
+  const [other, setOther] = useState("");
   return (
     <Sheet title="Guest compensation" onClose={onClose}>
       <p className="mb-3 text-[13px] text-ink-secondary">{subtitle}</p>
       <SelectField value={type} onChange={setType} placeholder="Compensation type" options={COMP_TYPES} />
+      {type === "Other" && (
+        <>
+          <Label>What is the compensation?</Label>
+          <TextField value={other} onChange={setOther} placeholder="e.g. Late check-out, spa voucher" />
+        </>
+      )}
       <Label>Reason</Label>
       <TextField rows={3} value={reason} onChange={setReason} placeholder="Why is this compensation being given?" />
       <Label>Approved by</Label>
       <SelectField value={by} onChange={setBy} placeholder="Select approver" options={approvers} />
-      <PrimaryButton className="mt-5 w-full" disabled={!type || !reason.trim() || !by} onClick={() => onSubmit(type, reason.trim(), by)}>
+      <PrimaryButton className="mt-5 w-full" disabled={!type || (type === "Other" && !other.trim()) || !reason.trim() || !by} onClick={() => onSubmit(type === "Other" ? `Other — ${other.trim()}` : type, reason.trim(), by)}>
         Submit compensation
       </PrimaryButton>
     </Sheet>

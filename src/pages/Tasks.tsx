@@ -568,7 +568,7 @@ function TaskWindow({
 
 type Panel = null | "reassign" | "support" | "note" | "escalate" | "unable" | "override" | "compensation";
 
-const COMP_TYPES = ["Chocolate Cake — $10", "Fruit Platter — $10", "Date Box — $10", "Non-Alcoholic Sparkling Beverage — $10", "Prosecco — $20", "Champagne — $50", "Resort Credit — $500", "Resort Credit — $1,000"];
+const COMP_TYPES = ["Chocolate Cake — $10", "Fruit Platter — $10", "Date Box — $10", "Non-Alcoholic Sparkling Beverage — $10", "Prosecco — $20", "Champagne — $50", "Resort Credit — $500", "Resort Credit — $1,000", "Other"];
 const APPROVERS = ["Sophia Carter (General Manager)", "Duty Manager", "Daniel Reyes (Housekeeping Manager)"];
 
 
@@ -648,6 +648,7 @@ function ManagerTaskWindow({
   const [compType, setCompType] = useState("");
   const [compReason, setCompReason] = useState("");
   const [compBy, setCompBy] = useState("");
+  const [compOther, setCompOther] = useState("");
 
   useEffect(() => {
     const h = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -825,23 +826,6 @@ function ManagerTaskWindow({
         </div>
 
         <div className="max-h-[52%] shrink-0 space-y-2 overflow-y-auto border-t border-line px-6 py-4">
-          {panel === "support" && (
-            <PanelBox title={`Add support from ${task.dept}`} ok="Add" disabled={support.length === (task.support ?? []).length && support.every((s) => task.support?.includes(s))} onCancel={() => setPanel(null)}
-              onOk={() => {
-                onApply({ support }, "Support added", support.join(", "), "Support staff added");
-                settleHelp();
-                setPanel(null);
-              }}>
-              <div className="grid max-h-36 grid-cols-2 gap-x-3 gap-y-1.5 overflow-y-auto">
-                {teamMates.map((s) => (
-                  <label key={s} className="flex items-center gap-2 text-[13px] text-ink">
-                    <input type="checkbox" className="h-4 w-4 accent-brand" checked={support.includes(s)} onChange={(e) => setSupport((cur) => (e.target.checked ? [...cur, s] : cur.filter((x) => x !== s)))} />
-                    {s}
-                  </label>
-                ))}
-              </div>
-            </PanelBox>
-          )}
           {panel === "note" && (
             <PanelBox title="Add note" ok="Save note" disabled={!text.trim()} onCancel={() => setPanel(null)}
               onOk={() => {
@@ -851,17 +835,6 @@ function ManagerTaskWindow({
               <Textarea rows={2} autoFocus value={text} onChange={(e) => setText(e.target.value)} placeholder="Visible to managers only…" />
             </PanelBox>
           )}
-          {panel === "escalate" && (
-            <PanelBox title="Escalate to Duty Manager" ok="Escalate" onCancel={() => setPanel(null)}
-              onOk={() => {
-                onApply({ status: "Escalated", escalatedTo: "Duty Manager", escalation: text.trim() || undefined }, "Escalated to Duty Manager", text.trim() || "No reason given", "Escalated to Duty Manager");
-                settleHelp();
-                setPanel(null);
-              }}>
-              <Textarea rows={2} autoFocus value={text} onChange={(e) => setText(e.target.value)} placeholder="Reason (optional)" />
-            </PanelBox>
-          )}
-
           {task.owner || closed ? (
             <button
               onClick={() => {
@@ -902,6 +875,46 @@ function ManagerTaskWindow({
         </div>
       </aside>
 
+      {panel === "support" && (
+        <CenterDialog
+          title="Add support"
+          sub={`${task.title} · Room ${task.room}`}
+          ok="Add support"
+          disabled={support.length === (task.support ?? []).length && support.every((s) => task.support?.includes(s))}
+          onClose={() => setPanel(null)}
+          onOk={() => {
+            onApply({ support }, "Support added", support.join(", "), "Support staff added");
+            settleHelp();
+            setPanel(null);
+          }}
+        >
+          <div className="mb-2 text-[12px] text-ink-secondary">Bring in extra {task.dept} team members</div>
+          <div className="grid max-h-56 grid-cols-2 gap-x-3 gap-y-2 overflow-y-auto">
+            {teamMates.map((s) => (
+              <label key={s} className="flex items-center gap-2 text-[13px] text-ink">
+                <input type="checkbox" className="h-4 w-4 accent-brand" checked={support.includes(s)} onChange={(e) => setSupport((cur) => (e.target.checked ? [...cur, s] : cur.filter((x) => x !== s)))} />
+                {s}
+              </label>
+            ))}
+          </div>
+        </CenterDialog>
+      )}
+      {panel === "escalate" && (
+        <CenterDialog
+          title="Escalate to Duty Manager"
+          sub={`${task.title} · Room ${task.room}`}
+          ok="Escalate"
+          onClose={() => setPanel(null)}
+          onOk={() => {
+            onApply({ status: "Escalated", escalatedTo: "Duty Manager", escalation: text.trim() || undefined }, "Escalated to Duty Manager", text.trim() || "No reason given", "Escalated to Duty Manager");
+            settleHelp();
+            setPanel(null);
+          }}
+        >
+          <div className="mb-1 text-[12px] text-ink-secondary">Reason (optional)</div>
+          <Textarea rows={3} autoFocus value={text} onChange={(e) => setText(e.target.value)} placeholder="Add context for the Duty Manager…" />
+        </CenterDialog>
+      )}
       {panel === "reassign" && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/30 p-4" onMouseDown={(e) => e.target === e.currentTarget && setPanel(null)}>
           <div role="dialog" aria-label="Reassign task" className="w-full max-w-[420px] rounded-2xl bg-white p-6 shadow-2xl">
@@ -980,6 +993,12 @@ function ManagerTaskWindow({
                       {COMP_TYPES.map((c) => <option key={c}>{c}</option>)}
                     </Select>
                   </div>
+                  {compType === "Other" && (
+                    <div>
+                      <div className="mb-1 text-[12px] text-ink-secondary">What is the compensation?</div>
+                      <Input value={compOther} onChange={(e) => setCompOther(e.target.value)} placeholder="e.g. Late check-out, spa voucher" />
+                    </div>
+                  )}
                   <div>
                     <div className="mb-1 text-[12px] text-ink-secondary">Reason</div>
                     <Textarea rows={3} value={compReason} onChange={(e) => setCompReason(e.target.value)} placeholder="Why is this compensation being given?" />
@@ -995,12 +1014,14 @@ function ManagerTaskWindow({
                 <div className="mt-5 flex gap-2">
                   <button onClick={() => setModal(null)} className="flex-1 rounded-lg border border-line py-2.5 text-[13px] font-semibold text-ink-secondary hover:bg-subtle">Cancel</button>
                   <button
-                    disabled={!compType || !compReason.trim() || !compBy}
+                    disabled={!compType || (compType === "Other" && !compOther.trim()) || !compReason.trim() || !compBy}
                     onClick={() => {
+                      const compLabel = compType === "Other" ? `Other — ${compOther.trim()}` : compType;
                       onApply(
-                        { compensation: [...(task.compensation ?? []), { type: compType, reason: compReason.trim(), approvedBy: compBy, time: "Just now" }] },
-                        "Compensation submitted", `${compType} · approved by ${compBy}`, "Compensation submitted",
+                        { compensation: [...(task.compensation ?? []), { type: compLabel, reason: compReason.trim(), approvedBy: compBy, time: "Just now" }] },
+                        "Compensation submitted", `${compLabel} · approved by ${compBy}`, "Compensation submitted",
                       );
+                      setCompType(""); setCompReason(""); setCompBy(""); setCompOther("");
                       setModal(null);
                     }}
                     className="flex-1 rounded-lg bg-brand py-2.5 text-[13px] font-semibold text-white hover:bg-brand-hover disabled:opacity-40"
@@ -1036,6 +1057,39 @@ function ManagerTaskWindow({
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function CenterDialog({
+  title, sub, ok, disabled, onOk, onClose, children,
+}: {
+  title: string;
+  sub?: string;
+  ok: string;
+  disabled?: boolean;
+  onOk: () => void;
+  onClose: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/30 p-4" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+      <div role="dialog" aria-label={title} className="w-full max-w-[420px] rounded-2xl bg-white p-6 shadow-2xl">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h3 className="text-[17px] font-bold text-ink">{title}</h3>
+            {sub && <p className="mt-1 text-[13px] text-ink-secondary">{sub}</p>}
+          </div>
+          <button onClick={onClose} aria-label="Close" className="shrink-0 rounded-md p-1 text-ink-tertiary hover:bg-subtle hover:text-ink">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+        <div className="mt-4">{children}</div>
+        <div className="mt-5 flex gap-2">
+          <button onClick={onClose} className="flex-1 rounded-lg border border-line py-2.5 text-[13px] font-semibold text-ink-secondary hover:bg-subtle">Cancel</button>
+          <button onClick={onOk} disabled={disabled} className="flex-1 rounded-lg bg-brand py-2.5 text-[13px] font-semibold text-white hover:bg-brand-hover disabled:opacity-40">{ok}</button>
+        </div>
+      </div>
     </div>
   );
 }
