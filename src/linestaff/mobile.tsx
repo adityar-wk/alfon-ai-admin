@@ -357,20 +357,21 @@ export function FloatingNav<K extends string>({
 }) {
   return (
     <div className="pointer-events-none absolute inset-x-5 bottom-5 z-20 flex items-center gap-3">
-      <div className="pointer-events-auto flex flex-1 items-center rounded-full bg-white/95 p-1.5 shadow-[0_6px_22px_rgba(0,0,0,0.18)] backdrop-blur">
+      <div className="pointer-events-auto flex flex-1 items-center rounded-full bg-white/95 px-2 py-1.5 shadow-[0_6px_22px_rgba(0,0,0,0.14)] backdrop-blur">
         {items.map((it) => {
           const on = it.key === active;
           return (
             <button
               key={it.key}
               aria-label={it.label}
+              aria-current={on ? "page" : undefined}
               onClick={() => onChange(it.key)}
-              className={`relative flex h-12 items-center justify-center gap-2 rounded-full text-[14px] font-semibold transition-all ${on ? "flex-[1.6] bg-brand text-white shadow-md" : "flex-1 text-ink-secondary"}`}
+              className={`relative flex h-12 flex-1 flex-col items-center justify-center gap-1 ${on ? "text-brand" : "text-ink-tertiary"}`}
             >
-              <it.icon className="h-[19px] w-[19px]" />
-              {on && it.label}
+              <it.icon className="h-[22px] w-[22px]" />
+              <span className={`h-[3px] w-6 rounded-full transition-colors ${on ? "bg-brand" : "bg-transparent"}`} />
               {!!it.badge && !on && (
-                <span className="absolute right-3 top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white">{it.badge}</span>
+                <span className="absolute right-[calc(50%-20px)] top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white">{it.badge}</span>
               )}
             </button>
           );
