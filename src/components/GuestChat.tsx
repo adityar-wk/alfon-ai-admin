@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { Send, Sparkles, Hand } from "lucide-react";
+import { Send, Sparkles, Hand, FileText } from "lucide-react";
+
+export type MessageTemplate = { label: string; text: string };
 
 export type ChatMsg = { from: "guest" | "ai" | "staff"; text: string; time: string };
 export type ChatMode = "auto" | "manual";
@@ -13,6 +15,7 @@ export function GuestChat({
   onSend,
   className = "",
   emptyText = "No messages yet.",
+  templates,
   aiDraft,
   onDraftChange,
   onApproveDraft,
@@ -25,11 +28,14 @@ export function GuestChat({
   className?: string;
   emptyText?: string;
   /** AI-drafted reply awaiting manager approval. */
+  /** ready-made messages the staff member can insert (use {name} for the guest's first name) */
+  templates?: MessageTemplate[];
   aiDraft?: string;
   onDraftChange?: (text: string) => void;
   onApproveDraft?: () => void;
 }) {
   const [editing, setEditing] = useState(false);
+  const [tplOpen, setTplOpen] = useState(false);
   const [draft, setDraft] = useState("");
   const endRef = useRef<HTMLDivElement>(null);
 
@@ -116,7 +122,22 @@ export function GuestChat({
           </div>
         </div>
       )}
-      <div className="flex items-center gap-2 border-t border-line p-3">
+      <div className="relative flex items-center gap-2 border-t border-line p-3">
+        {tplOpen && templates && (
+          <div className="absolute inset-x-3 bottom-[calc(100%-4px)] z-10 max-h-64 overflow-y-auto rounded-xl border border-line bg-white p-1.5 shadow-lg">
+            <div className="px-2.5 pb-1 pt-1.5 text-[11px] font-semibold uppercase tracking-wide text-ink-tertiary">Message templates</div>
+            {templates.map((t) => (
+              <button
+                key={t.label}
+                onClick={() => { setDraft(t.text.replace("{name}", name.split(" ")[0])); setMode("manual"); setTplOpen(false); }}
+                className="block w-full rounded-lg px-2.5 py-2 text-left hover:bg-subtle"
+              >
+                <span className="block text-[13px] font-semibold text-ink">{t.label}</span>
+                <span className="line-clamp-2 block text-[12px] text-ink-secondary">{t.text.replace("{name}", name.split(" ")[0])}</span>
+              </button>
+            ))}
+          </div>
+        )}
         <div className="flex shrink-0 rounded-lg bg-subtle p-1 text-[12px] font-semibold">
           <button
             onClick={() => setMode("auto")}
@@ -135,6 +156,16 @@ export function GuestChat({
             <Hand className="h-3.5 w-3.5" /> Manual
           </button>
         </div>
+        {templates && (
+          <button
+            onClick={() => setTplOpen((o) => !o)}
+            aria-label="Message templates"
+            aria-expanded={tplOpen}
+            className={`flex h-10 shrink-0 items-center gap-1.5 rounded-full border px-3 text-[12px] font-semibold ${tplOpen ? "border-brand bg-brand-tint text-brand" : "border-line bg-white text-ink-secondary hover:bg-subtle"}`}
+          >
+            <FileText className="h-3.5 w-3.5" /> Templates
+          </button>
+        )}
         <input
           value={draft}
           disabled={mode !== "manual"}

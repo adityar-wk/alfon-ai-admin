@@ -21,7 +21,15 @@ import {
   Check,
 } from "lucide-react";
 import { Topbar } from "../components/Topbar";
-import { GuestChat, type ChatMsg, type ChatMode } from "../components/GuestChat";
+import { GuestChat, type ChatMsg, type ChatMode, type MessageTemplate } from "../components/GuestChat";
+
+const PRE_ARRIVAL_TEMPLATES: MessageTemplate[] = [
+  { label: "Welcome & preferences", text: "Hi {name}, we are delighted to welcome you soon! Could you share any preferences, such as room setup, dietary needs or a special occasion, so we can prepare your stay?" },
+  { label: "Arrival time", text: "Hi {name}, your room is being prepared. Check-in starts at 3:00 PM. Could you let us know your estimated arrival time so we can have everything ready?" },
+  { label: "Airport transfer", text: "Hi {name}, would you like us to arrange an airport transfer for your arrival? Just share your flight details and we will take care of the rest." },
+  { label: "Early check-in", text: "Hi {name}, we will do our best to have your room ready early. We will message you as soon as it is available." },
+  { label: "Messaging consent", text: "Hi {name}, may we message you here with updates about your stay? Reply YES to opt in." },
+];
 import { Drawer } from "../components/Drawer";
 import { Page, Card, Button, Modal, Select } from "../components/ui";
 import { PRE_GUESTS, type PreGuest, type Ready, type ReqStatus } from "../data/preArrival";
@@ -699,6 +707,7 @@ function GuestDrawer({
           mode={mode}
           setMode={setMode}
           onSend={onSend}
+          templates={PRE_ARRIVAL_TEMPLATES}
           emptyText="No messages yet."
         />
       </div>

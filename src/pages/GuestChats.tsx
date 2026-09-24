@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { Search, Phone, Mail, Calendar, Hourglass, BedDouble, Users } from "lucide-react";
+import { Search, Phone, Mail, Calendar, Hourglass, BedDouble, Users, UtensilsCrossed, Wine } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { GuestChat, type ChatMsg, type ChatMode } from "../components/GuestChat";
 import { Card } from "../components/ui";
@@ -149,10 +149,17 @@ export default function GuestChats() {
           </div>
           <div className="mt-5 border-t border-line pt-4">
             <div className="mb-2 text-[11px] font-bold uppercase tracking-wide text-ink-tertiary">Guest preferences</div>
-            <div className="space-y-2 text-[13px] text-ink">
-              <p>{p.prefs.dietary.join(". ")}</p>
-              <p>{p.prefs.room.join(", ")}</p>
-              <p>{p.prefs.minibar.join(", ")}</p>
+            <div className="space-y-2.5 text-[13px] text-ink">
+              {([
+                [UtensilsCrossed, "Dietary", p.prefs.dietary.join(". ")],
+                [BedDouble, "Room", p.prefs.room.join(", ")],
+                [Wine, "Minibar", p.prefs.minibar.join(", ")],
+              ] as const).map(([Icon, label, text]) => (
+                <div key={label} className="flex items-start gap-2.5" title={label}>
+                  <Icon className="mt-0.5 h-4 w-4 shrink-0 text-ink-tertiary" aria-label={label} />
+                  <span className="leading-snug">{text}</span>
+                </div>
+              ))}
             </div>
           </div>
         </Card>
