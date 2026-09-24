@@ -632,7 +632,7 @@ export function ManagerPrototype() {
           <button key={r.number} onClick={() => setRoomSheet(r.number)} className={`flex w-full items-center justify-between gap-3 rounded-2xl bg-white p-3.5 text-left ${CARD_SHADOW}`}>
             <div className="min-w-0">
               <div className="text-[14px] font-semibold text-ink">{r.number}</div>
-              {(r.assignee || r.status === "Needs Inspection") && <div className="mt-0.5 text-[12px] text-ink-tertiary">{r.assignee ? `${r.status === "In Progress" ? "Cleaning" : "Inspector"} · ${r.assignee}` : "Inspector not assigned"}</div>}
+              {(r.assignee || r.status === "Needs Inspection" || r.status === "In Progress") && <div className="mt-0.5 text-[12px] text-ink-tertiary">{r.assignee ? `${r.status === "In Progress" ? "Cleaning" : "Inspector"} · ${r.assignee}` : r.status === "In Progress" ? "Cleaner not assigned" : "Inspector not assigned"}</div>}
             </div>
             <span className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold ${ROOM_STATUS_TONE[r.status]}`}>{r.status}</span>
           </button>
@@ -661,10 +661,10 @@ export function ManagerPrototype() {
         active={roomEntry.status}
         onChange={(v) => { setRooms((rs) => rs.map((r) => (r.number === roomEntry.number ? { ...r, status: v, assignee: v === r.status ? r.assignee : null } : r))); flash(`${roomEntry.number} marked ${v}`); }}
       />
-      {roomEntry.status === "Needs Inspection" && (
+      {(roomEntry.status === "Needs Inspection" || (roomEntry.status === "In Progress" && !roomEntry.assignee)) && (
         <>
           <div className="mt-5" />
-          <Label>Assign inspector</Label>
+          <Label>{roomEntry.status === "In Progress" ? "Assign cleaner" : "Assign inspector"}</Label>
           <StaffPicker
             tasks={tasks}
             exclude={roomEntry.assignee ? [roomEntry.assignee] : []}
@@ -716,7 +716,7 @@ export function ManagerPrototype() {
       </div>
       <div className="mt-3 space-y-3 px-6">
         {guestsFiltered.map((g) => (
-          <button key={g.name} onClick={() => nav.push({ name: "guestDetail", id: g.name })} className={`flex w-full items-center gap-3 rounded-2xl bg-white p-3.5 text-left ${CARD_SHADOW}`}>
+          <button key={g.name} onClick={() => nav.push({ name: "guestProfile", id: g.name })} className={`flex w-full items-center gap-3 rounded-2xl bg-white p-3.5 text-left ${CARD_SHADOW}`}>
             <Avatar name={g.name} tone={g.complaint ? "bg-red-50 text-red-600" : undefined} />
             <div className="min-w-0 flex-1 leading-tight">
               <div className="flex items-center gap-2">
@@ -817,7 +817,7 @@ export function ManagerPrototype() {
   const preEntry = profileName ? PRE_ARRIVAL_GUESTS.find((g) => g.name === profileName) : undefined;
 
   const GuestProfile = profileName && (
-    <div className="flex h-full flex-col">
+    <div className="relative flex h-full flex-col">
       <div className="flex shrink-0 items-center justify-between px-6 pb-2 pt-4">
         <button onClick={nav.back} aria-label="Back" className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-ink shadow-sm">
           <ChevronLeft className="h-5 w-5" />
@@ -886,6 +886,15 @@ export function ManagerPrototype() {
           </>
         )}
       </div>
+      {guestMap.has(profileName) && (
+        <button
+          onClick={() => nav.push({ name: "guestDetail", id: profileName })}
+          aria-label="Message guest"
+          className="absolute bottom-6 right-5 z-10 flex h-14 w-14 items-center justify-center rounded-full bg-brand text-white shadow-[0_6px_18px_rgba(241,90,36,0.4)]"
+        >
+          <MessageCircle className="h-6 w-6" />
+        </button>
+      )}
     </div>
   );
 
@@ -1185,7 +1194,7 @@ export function ManagerPrototype() {
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-6 pb-6 pt-3 no-scrollbar">
         {rosterFiltered.map((row) =>
           row.stage === "Current" ? (
-            <button key={row.g.name} onClick={() => nav.push({ name: "guestDetail", id: row.g.name })} className={`flex w-full items-center gap-3 rounded-2xl bg-white p-3.5 text-left ${CARD_SHADOW}`}>
+            <button key={row.g.name} onClick={() => nav.push({ name: "guestProfile", id: row.g.name })} className={`flex w-full items-center gap-3 rounded-2xl bg-white p-3.5 text-left ${CARD_SHADOW}`}>
               <Avatar name={row.g.name} tone={row.g.complaint ? "bg-red-50 text-red-600" : undefined} />
               <div className="min-w-0 flex-1 leading-tight">
                 <div className="flex items-center gap-2">

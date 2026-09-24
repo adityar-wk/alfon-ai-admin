@@ -2,14 +2,12 @@ import { useState } from "react";
 import { Check, X } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { LineStaffPrototype } from "../linestaff/screens";
-import { SupervisorPrototype } from "../linestaff/supervisor";
 import { ManagerPrototype } from "../linestaff/manager";
 
-type Tab = "line" | "supervisor" | "manager";
+type Tab = "line" | "manager";
 
 const TABS: { key: Tab; label: string }[] = [
   { key: "line", label: "Line Staff" },
-  { key: "supervisor", label: "Supervisor" },
   { key: "manager", label: "Mid Manager" },
 ];
 
@@ -29,23 +27,6 @@ const INFO: Record<Tab, { title: string; blurb: string; flows: string[]; include
     ],
     included: ["SLA timer on every task", "Room, guest and preference details", "Escalate to supervisor when blocked", "Manual task creation"],
     excluded: ["Team and analytics views", "Reassigning work to others"],
-  },
-  supervisor: {
-    title: "Supervisor",
-    blurb: "Keeps today's department queue moving — assign, support, unblock and escalate.",
-    flows: [
-      "Home: availability pill (Available ⇄ On Break / Offline), shift overview, staff requests",
-      "Queue: filter New / Unassigned / In progress / At risk / Overdue / Completed, plus search",
-      "Task Detail: AI summary, guest context, SLA, timeline, notes",
-      "Assign / Reassign — see available staff and their active load",
-      "Add support — owner is kept, supporter is notified",
-      "Staff requests: help (add support / reassign / reply) and reassignment (approve / reject / assign other)",
-      "Team: availability, workload, contact, reassign",
-      "Unable to complete (reason required), Escalate to Mid Manager, Close task",
-      "+ button → Create Manual Task",
-    ],
-    included: ["Only the department queue", "Permission-safe conversation summary", "Notifications for new tasks, help requests, SLA at risk / breached"],
-    excluded: ["Checklist / photo-proof approval", "Detailed analytics and reports", "SLA and user/RBAC configuration"],
   },
   manager: {
     title: "Mid Manager · Department Head",
@@ -95,7 +76,6 @@ export default function LineStaff() {
           <div className="mt-8 grid grid-cols-1 gap-12 lg:grid-cols-[auto_1fr] lg:items-start">
             {/* remount on tab change so each phone starts fresh */}
             {tab === "line" && <LineStaffPrototype />}
-            {tab === "supervisor" && <SupervisorPrototype />}
             {tab === "manager" && <ManagerPrototype />}
 
             <div className="space-y-5">
