@@ -153,6 +153,7 @@ export function LineStaffPrototype() {
   const [chat, setChat] = useState<Record<string, ChatMsg[]>>({});
   const [manual, setManual] = useState<Record<string, boolean>>({});
   const [guestQuery, setGuestQuery] = useState("");
+  const [aiDrafts, setAiDrafts] = useState<Record<string, string>>({});
 
   // create manual task
   const [dept, setDept] = useState("");
@@ -195,6 +196,14 @@ export function LineStaffPrototype() {
       onChange={(k) => nav.go({ name: k === "guests" ? "guests" : "home" })}
     />
   );
+
+  const completeTask = (t: Task) => {
+    setStatus(t.id, "completed", "Done just now");
+    if (!t.guest || t.guest === "—" || t.guest === "Guest") { flash(`${t.room} marked complete`); nav.back(); return; }
+    setAiDrafts((d) => ({ ...d, [t.guest]: `Hi ${t.guest.split(" ")[0]}, we've taken care of your request (${t.title.toLowerCase()}) for ${t.room}. Please let us know if there's anything else we can do — we hope you're enjoying your stay.` }));
+    flash("Task complete — review the reply to your guest");
+    nav.push({ name: "guestChat", id: t.guest });
+  };
 
   const openCreate = () => {
     setDept(""); setService(""); setRoom(""); setDetails("");
@@ -318,6 +327,15 @@ export function LineStaffPrototype() {
       onSend={(text) => setChat((c) => ({ ...c, [chatName]: [...threadOf(chatName), { from: "me", text }] }))}
       onBack={nav.back}
       onProfile={() => nav.push({ name: "guestProfile", id: chatName })}
+      aiDraft={aiDrafts[chatName]}
+      onDraftChange={(text) => setAiDrafts((d) => ({ ...d, [chatName]: text }))}
+      onApproveDraft={() => {
+        const text = aiDrafts[chatName]?.trim();
+        if (!text) return;
+        setChat((c) => ({ ...c, [chatName]: [...threadOf(chatName), { from: "me", text }] }));
+        setAiDrafts((d) => { const n = { ...d }; delete n[chatName]; return n; });
+        flash("Reply sent to guest");
+      }}
     />
   );
 
@@ -409,7 +427,7 @@ export function LineStaffPrototype() {
             <PrimaryButton
               className="flex-[1.3]"
               disabled={active.status === "completed"}
-              onClick={() => { setStatus(active.id, "completed", "Done just now"); flash(`${active.room} marked complete`); nav.back(); }}
+              onClick={() => completeTask(active)}
             >
               {active.status === "completed" ? "Completed" : "Mark complete"}
             </PrimaryButton>
@@ -535,7 +553,7 @@ export function LineStaffPrototype() {
         <button className="rounded-lg bg-brand px-3 py-1.5 text-[12px] font-semibold text-white" onClick={() => setIncoming(true)}>Simulate new task assignment</button>
         <button
           className="rounded-lg border border-line bg-white px-3 py-1.5 text-[12px] font-medium text-ink-secondary"
-          onClick={() => { nav.reset(); setIncoming(false); setTasks(INITIAL); setAvailable(true); }}
+          onClick={() => { nav.reset(); setIncoming(false); setTasks(INITIAL); setAvailable(true); setChat({}); setManual({}); setAiDrafts({}); }}
         >
           Reset
         </button>

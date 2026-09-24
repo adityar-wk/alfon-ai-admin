@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { ChevronLeft, User, BedDouble, UtensilsCrossed, Languages, Thermometer, AlarmClock, Wine, Phone, Mail, MessageCircle, Send } from "lucide-react";
-import { Avatar, CARD_SHADOW } from "./mobile";
+import { Sparkles, ChevronLeft, User, BedDouble, UtensilsCrossed, Languages, Thermometer, AlarmClock, Wine, Phone, Mail, MessageCircle, Send } from "lucide-react";
+import { Avatar, CARD_SHADOW, GhostButton, PrimaryButton } from "./mobile";
 import { GUEST_PROFILES, PRE_ARRIVAL_GUESTS, CHECKED_OUT_GUESTS } from "./data";
 
 export const DetailRow = ({ icon: Icon, label, children }: { icon: React.ComponentType<{ className?: string }>; label: string; children: React.ReactNode }) => (
@@ -125,15 +125,41 @@ export function GuestProfileScreen({ name, onBack, onMessage }: { name: string; 
 
 export type ChatMsg = { from: "guest" | "ai" | "me"; text: string };
 
+/** AI-drafted reply the staff member can edit and approve before it goes to the guest. */
+export function AiDraftCard({ draft, onChange, onApprove }: { draft: string; onChange: (t: string) => void; onApprove: () => void }) {
+  const [editing, setEditing] = useState(false);
+  return (
+    <div className="mx-6 mb-3 shrink-0 rounded-2xl border border-violet-200 bg-violet-50/60 p-3.5">
+      <div className="mb-2 flex items-center gap-1.5 text-[12px] font-semibold text-violet-700"><Sparkles className="h-3.5 w-3.5" /> ALFON AI drafted a reply</div>
+      {editing ? (
+        <textarea
+          value={draft}
+          onChange={(e) => onChange(e.target.value)}
+          rows={4}
+          autoFocus
+          className="w-full resize-none rounded-xl border border-line bg-white p-2.5 text-[13px] leading-snug text-ink outline-none focus:border-brand"
+        />
+      ) : (
+        <p className="text-[13px] leading-snug text-ink">{draft}</p>
+      )}
+      <div className="mt-3 flex gap-2">
+        <GhostButton className="flex-1" onClick={() => setEditing((v) => !v)}>{editing ? "Done" : "Edit"}</GhostButton>
+        <PrimaryButton className="flex-[1.4]" disabled={!draft.trim()} onClick={() => { setEditing(false); onApprove(); }}>Approve &amp; send</PrimaryButton>
+      </div>
+    </div>
+  );
+}
+
 /** Guest conversation with the ALFON AI / take-over toggle. */
 export function GuestChatScreen({
-  name, room, thread, manual, onToggle, onSend, onBack, onProfile,
+  name, room, thread, manual, onToggle, onSend, onBack, onProfile, aiDraft, onDraftChange, onApproveDraft,
 }: {
+  aiDraft?: string; onDraftChange?: (t: string) => void; onApproveDraft?: () => void;
   name: string; room: string; thread: ChatMsg[]; manual: boolean; onToggle: () => void; onSend: (text: string) => void; onBack: () => void; onProfile: () => void;
 }) {
   const [draft, setDraft] = useState("");
   const endRef = useRef<HTMLDivElement>(null);
-  useEffect(() => { endRef.current?.scrollIntoView({ block: "end" }); }, [thread.length]);
+  useEffect(() => { endRef.current?.scrollIntoView({ block: "end" }); }, [thread.length, aiDraft !== undefined]);
   const send = () => { if (!manual || !draft.trim()) return; onSend(draft.trim()); setDraft(""); };
   return (
     <div className="flex h-full flex-col bg-white">
@@ -170,6 +196,7 @@ export function GuestChatScreen({
         ))}
         <div ref={endRef} />
       </div>
+      {aiDraft !== undefined && <AiDraftCard draft={aiDraft} onChange={(t) => onDraftChange?.(t)} onApprove={() => onApproveDraft?.()} />}
       <div className="flex shrink-0 items-center gap-2 border-t border-line px-6 py-3">
         <input
           value={draft}
