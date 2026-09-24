@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Bell, Send, Plus, BedDouble, User, Building2, ChevronLeft } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Bell, Send, Plus, BedDouble, User, Building2, ChevronLeft, ChevronRight, ListChecks, MessageCircle, Search } from "lucide-react";
 import { DEPARTMENTS } from "../data/departments";
 import {
   PhoneFrame,
@@ -9,7 +9,8 @@ import {
   SlaRing,
   SlaCountdown,
   CompensationSheet,
-  Fab,
+  FloatingNav,
+  Avatar,
   Sheet,
   PrimaryButton,
   GhostButton,
@@ -22,8 +23,9 @@ import {
   CARD_SHADOW,
   type Priority,
 } from "./mobile";
+import { GuestProfileScreen, GuestChatScreen, type ChatMsg } from "./guestviews";
 
-type Screen = { name: "home" | "notifications" | "taskDetail" | "create"; id?: string };
+type Screen = { name: "home" | "notifications" | "taskDetail" | "create" | "guests" | "guestChat" | "guestProfile"; id?: string };
 
 type HelpKind = "escalate" | "support" | "reassign";
 const HELP_OPTIONS: { key: HelpKind; label: string; sub: string; cta: string; placeholder: string }[] = [
@@ -148,6 +150,9 @@ export function LineStaffPrototype() {
   const [helpKind, setHelpKind] = useState<HelpKind>("escalate");
   const [helpNote, setHelpNote] = useState("");
   const [compOpen, setCompOpen] = useState(false);
+  const [chat, setChat] = useState<Record<string, ChatMsg[]>>({});
+  const [manual, setManual] = useState<Record<string, boolean>>({});
+  const [guestQuery, setGuestQuery] = useState("");
 
   // create manual task
   const [dept, setDept] = useState("");
@@ -165,6 +170,31 @@ export function LineStaffPrototype() {
   const completed = tasks.filter((t) => t.status === "completed");
   const active = tasks.find((t) => t.id === cur.id) ?? tasks[0];
   const services = DEPARTMENTS.find((d) => d.name === dept)?.services.filter((s) => s.active).map((s) => s.name) ?? [];
+
+  const guests = useMemo(() => {
+    const map = new Map<string, { name: string; room: string; title: string }>();
+    for (const t of tasks) {
+      if (!t.guest || t.guest === "—" || t.guest === "Guest") continue;
+      if (!map.has(t.guest)) map.set(t.guest, { name: t.guest, room: t.room, title: t.title });
+    }
+    return Array.from(map.values());
+  }, [tasks]);
+  const seedThread = (g: { title: string; room: string }): ChatMsg[] => [
+    { from: "guest", text: `Hello, could you help with this? ${g.title} for ${g.room}.` },
+    { from: "ai", text: "Thanks for letting us know — I've passed this to housekeeping and they're on it." },
+  ];
+  const threadOf = (name: string) => chat[name] ?? seedThread(guests.find((g) => g.name === name) ?? { title: "a request", room: "my room" });
+  const guestsFiltered = guests.filter((g) => `${g.name} ${g.room}`.toLowerCase().includes(guestQuery.trim().toLowerCase()));
+  const lsNav = (
+    <FloatingNav
+      items={[
+        { key: "tasks", label: "Tasks", icon: ListChecks },
+        { key: "guests", label: "Guest communication", icon: MessageCircle },
+      ]}
+      active={cur.name === "guests" ? "guests" : "tasks"}
+      onChange={(k) => nav.go({ name: k === "guests" ? "guests" : "home" })}
+    />
+  );
 
   const openCreate = () => {
     setDept(""); setService(""); setRoom(""); setDetails("");
@@ -189,7 +219,7 @@ export function LineStaffPrototype() {
 
   const Home = (
     <div className="relative h-full">
-      <div className="h-full overflow-y-auto pb-28 no-scrollbar">
+      <div className="h-full overflow-y-auto pb-44 no-scrollbar">
         <div className="flex items-center justify-between px-6 py-2">
           <span className="flex h-10 w-10 items-center justify-center rounded-full bg-brand text-[13px] font-semibold text-white">AK</span>
           <button
@@ -225,8 +255,75 @@ export function LineStaffPrototype() {
           {completed.map((t) => <LsCard key={t.id} t={t} onOpen={() => openTask(t.id)} />)}
         </div>
       </div>
-      <Fab icon={Plus} label="Create task" onClick={openCreate} />
+      <button
+        onClick={openCreate}
+        aria-label="Create task"
+        className="absolute bottom-[92px] right-5 z-20 flex h-12 items-center gap-2 rounded-full bg-brand px-5 text-[14px] font-semibold text-white shadow-[0_3px_10px_rgba(241,90,36,0.3)] active:scale-95"
+      >
+        <Plus className="h-5 w-5" /> Create task
+      </button>
+      {lsNav}
     </div>
+  );
+
+  const Guests = (
+    <div className="relative h-full">
+      <div className="h-full overflow-y-auto pb-28 no-scrollbar">
+        <h1 className="px-6 pb-2 pt-4 text-[22px] font-bold text-ink">Guest communication</h1>
+        <div className="px-6">
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-tertiary" />
+            <input
+              value={guestQuery}
+              onChange={(e) => setGuestQuery(e.target.value)}
+              placeholder="Search guest or room"
+              className="h-11 w-full rounded-2xl bg-white pl-10 pr-3 text-[14px] shadow-sm outline-none placeholder:text-ink-tertiary focus:ring-2 focus:ring-brand/30"
+            />
+          </div>
+        </div>
+        <div className="mt-3 space-y-3 px-6">
+          {guestsFiltered.map((g) => {
+            const th = threadOf(g.name);
+            return (
+              <div key={g.name} className={`flex w-full items-center gap-3 rounded-2xl bg-white p-3.5 ${CARD_SHADOW}`}>
+                <button onClick={() => nav.push({ name: "guestProfile", id: g.name })} aria-label={`View ${g.name} profile`} className="shrink-0">
+                  <Avatar name={g.name} />
+                </button>
+                <button onClick={() => nav.push({ name: "guestChat", id: g.name })} className="flex min-w-0 flex-1 items-center gap-2 text-left">
+                  <div className="min-w-0 flex-1 leading-tight">
+                    <div className="truncate text-[14px] font-semibold text-ink">{g.name}</div>
+                    <div className="text-[12px] text-ink-tertiary">{g.room}</div>
+                    <p className="mt-0.5 truncate text-[12px] text-ink-secondary">{th.length ? th[th.length - 1].text : "No messages yet"}</p>
+                  </div>
+                  <ChevronRight className="h-4 w-4 shrink-0 text-ink-tertiary" />
+                </button>
+              </div>
+            );
+          })}
+          {!guestsFiltered.length && <p className="rounded-2xl bg-white p-6 text-center text-[13px] text-ink-tertiary">No guests match.</p>}
+        </div>
+      </div>
+      {lsNav}
+    </div>
+  );
+
+  const chatName = cur.name === "guestChat" ? cur.id : undefined;
+  const GuestChat = chatName && (
+    <GuestChatScreen
+      name={chatName}
+      room={guests.find((g) => g.name === chatName)?.room ?? ""}
+      thread={threadOf(chatName)}
+      manual={!!manual[chatName]}
+      onToggle={() => { setManual((m) => ({ ...m, [chatName]: !m[chatName] })); flash(manual[chatName] ? "Handed back to AI" : "AI paused — you're now replying"); }}
+      onSend={(text) => setChat((c) => ({ ...c, [chatName]: [...threadOf(chatName), { from: "me", text }] }))}
+      onBack={nav.back}
+      onProfile={() => nav.push({ name: "guestProfile", id: chatName })}
+    />
+  );
+
+  const profileName = cur.name === "guestProfile" ? cur.id : undefined;
+  const GuestProfile = profileName && (
+    <GuestProfileScreen name={profileName} onBack={nav.back} onMessage={guests.some((g) => g.name === profileName) ? () => nav.push({ name: "guestChat", id: profileName }) : undefined} />
   );
 
   const Notifications = (
@@ -265,7 +362,13 @@ export function LineStaffPrototype() {
         </div>
 
         <div className="divide-y divide-line rounded-2xl border border-line bg-white px-4">
-          {active.guest !== "—" && <Row icon={User} label="Guest">{active.guest}</Row>}
+          {active.guest !== "—" && (
+            <Row icon={User} label="Guest">
+              <button onClick={() => nav.push({ name: "guestProfile", id: active.guest })} className="flex items-center gap-1 text-left font-semibold text-brand">
+                {active.guest} <ChevronRight className="h-4 w-4" />
+              </button>
+            </Row>
+          )}
           <Row icon={BedDouble} label="Room">{active.room}</Row>
           <Row icon={Building2} label="Department">{active.dept ?? "Housekeeping"}</Row>
         </div>
@@ -376,7 +479,7 @@ export function LineStaffPrototype() {
     </div>
   );
 
-  const VIEWS: Record<Screen["name"], JSX.Element> = { home: Home, notifications: Notifications, taskDetail: TaskDetail, create: Create };
+  const VIEWS: Record<Screen["name"], React.ReactNode> = { home: Home, notifications: Notifications, taskDetail: TaskDetail, create: Create, guests: Guests, guestChat: GuestChat, guestProfile: GuestProfile };
 
   return (
     <div className="flex flex-col items-center gap-4">

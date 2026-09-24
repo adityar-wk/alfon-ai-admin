@@ -4,6 +4,7 @@ import {
   Menu as MenuIcon, ListChecks, BarChart3, AlertTriangle, User, BedDouble, DoorClosed, Building2, FileText, Download, Lock, UtensilsCrossed, Languages, Thermometer, AlarmClock, Wine, Phone, Mail, Sparkles,
 } from "lucide-react";
 import { DEPARTMENTS } from "../data/departments";
+import { DetailRow, ProfileSection, GuestProfileScreen } from "./guestviews";
 import { DEPTS, METRICS, COMPLAINT_DETAIL } from "../pages/Analytics";
 import { Donut } from "../components/Donut";
 import { BarChart } from "../components/BarChart";
@@ -60,34 +61,7 @@ const KvRow = ({ label, children }: { label: string; children: React.ReactNode }
   </div>
 );
 
-const DetailRow = ({ icon: Icon, label, children }: { icon: React.ComponentType<{ className?: string }>; label: string; children: React.ReactNode }) => (
-  <div className="flex items-center gap-3 py-3.5">
-    <Icon className="h-4 w-4 shrink-0 text-ink-tertiary" />
-    <span className="w-24 shrink-0 text-[13px] text-ink-tertiary">{label}</span>
-    <span className="min-w-0 flex-1 text-[14px] font-semibold text-ink">{children}</span>
-  </div>
-);
 
-const PROFILE_SECTION_TONE = {
-  blue: { bg: "bg-[#EEF3FF]", icon: "text-blue-600", label: "text-blue-700" },
-  amber: { bg: "bg-amber-50", icon: "text-amber-600", label: "text-amber-700" },
-  red: { bg: "bg-red-50", icon: "text-red-600", label: "text-red-700" },
-} as const;
-const ProfileSection = ({
-  icon: Icon, label, tone, children,
-}: {
-  icon: React.ComponentType<{ className?: string }>; label: string; tone: keyof typeof PROFILE_SECTION_TONE; children: React.ReactNode;
-}) => {
-  const t = PROFILE_SECTION_TONE[tone];
-  return (
-    <div className={`rounded-2xl p-4 ${t.bg}`}>
-      <div className={`flex items-center gap-1.5 text-[11px] font-bold ${t.label}`}>
-        <Icon className={`h-3.5 w-3.5 ${t.icon}`} /> {label}
-      </div>
-      <div className="mt-2">{children}</div>
-    </div>
-  );
-};
 
 const MENU_ITEMS = [
   { key: "team" as const, label: "Team Management", icon: Users },
@@ -810,92 +784,8 @@ export function ManagerPrototype() {
   );
 
   const profileName = cur.name === "guestProfile" ? cur.id : undefined;
-  const profileInfo = profileName ? GUEST_PROFILES[profileName] : undefined;
-  const profileStage = !profileName ? "" : PRE_ARRIVAL_GUESTS.some((g) => g.name === profileName) ? "Pre-arrival" : CHECKED_OUT_GUESTS.some((g) => g.name === profileName) ? "Checked out" : "In-house";
-  const profileTone = profileStage === "Pre-arrival" ? "bg-blue-50 text-blue-700" : profileStage === "Checked out" ? "bg-slate-100 text-slate-600" : "bg-emerald-50 text-emerald-700";
-
-  const preEntry = profileName ? PRE_ARRIVAL_GUESTS.find((g) => g.name === profileName) : undefined;
-
   const GuestProfile = profileName && (
-    <div className="relative flex h-full flex-col">
-      <div className="flex shrink-0 items-center justify-between px-6 pb-2 pt-4">
-        <button onClick={nav.back} aria-label="Back" className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-ink shadow-sm">
-          <ChevronLeft className="h-5 w-5" />
-        </button>
-        <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${profileTone}`}>{profileStage}</span>
-      </div>
-      <div className="min-h-0 flex-1 space-y-3.5 overflow-y-auto px-6 pb-6 pt-1 no-scrollbar">
-        {!profileInfo && (
-          <>
-            <h1 className="text-[22px] font-bold text-ink">{profileName}</h1>
-            <p className="rounded-2xl bg-white p-6 text-center text-[13px] text-ink-tertiary">No profile details available.</p>
-          </>
-        )}
-        {profileInfo && (
-          <>
-            <div className={`rounded-2xl bg-white p-4 ${CARD_SHADOW}`}>
-              <div className="flex items-center gap-3.5">
-                <Avatar name={profileName} size={56} />
-                <div className="min-w-0 leading-tight">
-                  <div className="truncate text-[19px] font-bold text-ink">{profileName}</div>
-                  <div className="mt-1 text-[13px] text-ink-secondary">{profileInfo.room} · {profileInfo.roomType}</div>
-                  <div className="mt-0.5 text-[12px] text-ink-tertiary">{profileInfo.country}</div>
-                </div>
-              </div>
-              <div className="mt-4 grid grid-cols-3 divide-x divide-line rounded-xl bg-[#F6F6F8] py-2.5 text-center">
-                <div><div className="text-[11px] text-ink-tertiary">Check-in</div><div className="mt-0.5 text-[13px] font-semibold text-ink">{profileInfo.checkIn.replace(/, \d{4}/, "")}</div></div>
-                <div><div className="text-[11px] text-ink-tertiary">Check-out</div><div className="mt-0.5 text-[13px] font-semibold text-ink">{profileInfo.checkOut.replace(/, \d{4}/, "")}</div></div>
-                <div><div className="text-[11px] text-ink-tertiary">Nights</div><div className="mt-0.5 text-[13px] font-semibold text-ink">{profileInfo.nights}</div></div>
-              </div>
-            </div>
-
-            <ProfileSection icon={User} label="Guest profile" tone="blue">
-              <p className="text-[13px] leading-relaxed text-ink">{profileInfo.profile}</p>
-            </ProfileSection>
-
-            {preEntry && (
-              <div className={`rounded-2xl bg-white p-4 ${CARD_SHADOW}`}>
-                <div className="text-[12px] font-semibold text-ink-tertiary">Requests from the guest</div>
-                <ul className="mt-2 space-y-2">
-                  {[preEntry.notes, ...preEntry.actions.map((a) => a.text)].map((r) => (
-                    <li key={r} className="flex gap-2 text-[13px] leading-snug text-ink"><span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-brand" />{r}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            <div className={`rounded-2xl bg-white ${CARD_SHADOW}`}>
-              <div className="px-4 pt-3.5 text-[12px] font-semibold text-ink-tertiary">Preferences</div>
-              <div className="divide-y divide-line px-4">
-                <DetailRow icon={BedDouble} label="Room">{profileInfo.prefs.room}</DetailRow>
-                <DetailRow icon={UtensilsCrossed} label="Dietary">{profileInfo.prefs.dietary}</DetailRow>
-                <DetailRow icon={Languages} label="Language">{profileInfo.prefs.language}</DetailRow>
-                <DetailRow icon={Thermometer} label="Temperature">{profileInfo.prefs.temperature}</DetailRow>
-                <DetailRow icon={AlarmClock} label="Wake up">{profileInfo.prefs.wakeUp}</DetailRow>
-                <DetailRow icon={Wine} label="Minibar">{profileInfo.prefs.minibar}</DetailRow>
-              </div>
-            </div>
-
-            <div className={`rounded-2xl bg-white ${CARD_SHADOW}`}>
-              <div className="px-4 pt-3.5 text-[12px] font-semibold text-ink-tertiary">Contact</div>
-              <div className="divide-y divide-line px-4">
-                <div className="flex items-center gap-3 py-3.5 text-[14px] font-medium text-ink"><Phone className="h-4 w-4 shrink-0 text-ink-tertiary" />{profileInfo.phone}</div>
-                <div className="flex items-center gap-3 py-3.5 text-[14px] font-medium text-ink"><Mail className="h-4 w-4 shrink-0 text-ink-tertiary" /><span className="min-w-0 break-all">{profileInfo.email}</span></div>
-              </div>
-            </div>
-          </>
-        )}
-      </div>
-      {guestMap.has(profileName) && (
-        <button
-          onClick={() => nav.push({ name: "guestDetail", id: profileName })}
-          aria-label="Message guest"
-          className="absolute bottom-6 right-5 z-10 flex h-14 w-14 items-center justify-center rounded-full bg-brand text-white shadow-[0_6px_18px_rgba(241,90,36,0.4)]"
-        >
-          <MessageCircle className="h-6 w-6" />
-        </button>
-      )}
-    </div>
+    <GuestProfileScreen name={profileName} onBack={nav.back} onMessage={guestMap.has(profileName) ? () => nav.push({ name: "guestDetail", id: profileName }) : undefined} />
   );
 
   const Detail = task ? (
