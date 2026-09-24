@@ -1213,19 +1213,19 @@ export function ManagerPrototype() {
       {sheet.k === "assign" && t0 && (
         <Sheet title={t0.owner ? "Change owner" : "Assign task"} onClose={closeHelpSheet}>
           <p className="mb-3 text-[13px] text-ink-secondary">Within Housekeeping only · {t0.room}</p>
-          <Label>Reason</Label>
+          <Label>Reason (optional)</Label>
           <TextField rows={2} value={needHelpReason} onChange={setNeedHelpReason} placeholder="Why does this need to be reassigned?" />
-          <div className={`mt-4 ${needHelpReason.trim() ? "" : "pointer-events-none opacity-40"}`}>
+          <div className="mt-4">
             <GhostButton
               className="w-full"
-              onClick={() => { patch(t0.id, { owner: null, status: "unassigned" }, `${ME} reopened the task for anyone — ${needHelpReason.trim()}`); closeHelpSheet(); flash("Reopened for anyone to pick up"); }}
+              onClick={() => { patch(t0.id, { owner: null, status: "unassigned" }, `${ME} reopened the task for anyone${needHelpReason.trim() ? ` — ${needHelpReason.trim()}` : ""}`); closeHelpSheet(); flash("Reopened for anyone to pick up"); }}
             >
               Reopen — let anyone pick it up
             </GhostButton>
             <div className="my-4 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wide text-ink-tertiary">
               <span className="h-px flex-1 bg-line" /> or assign to someone <span className="h-px flex-1 bg-line" />
             </div>
-            <StaffPicker tasks={tasks} exclude={t0.owner ? [t0.owner] : []} onPick={(s) => { patch(t0.id, { owner: s.name, status: "assigned" }, `${ME} assigned to ${s.name} — ${needHelpReason.trim()}`); closeHelpSheet(); flash(`Assigned to ${s.name}`); }} cta="Assign" />
+            <StaffPicker tasks={tasks} exclude={t0.owner ? [t0.owner] : []} onPick={(s) => { patch(t0.id, { owner: s.name, status: "assigned" }, `${ME} assigned to ${s.name}${needHelpReason.trim() ? ` — ${needHelpReason.trim()}` : ""}`); closeHelpSheet(); flash(`Assigned to ${s.name}`); }} cta="Assign" />
           </div>
         </Sheet>
       )}

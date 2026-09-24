@@ -48,6 +48,28 @@ const STAFF: Record<string, string[]> = {
 };
 const DEPTS = Object.keys(STAFF);
 
+// shift presence per staff member (default: on duty); workload comes from the live task list
+const PRESENCE: Record<string, "On Duty" | "On Break" | "Off Duty"> = {
+  "Lisa M.": "On Break", "Ali H.": "Off Duty", "Raj P.": "On Break", "Maria L.": "Off Duty", "Anna P.": "On Break",
+};
+function availabilityOf(name: string): { label: string; dot: string; text: string } {
+  const presence = PRESENCE[name] ?? "On Duty";
+  if (presence === "Off Duty") return { label: "Off duty", dot: "bg-gray-300", text: "text-ink-tertiary" };
+  if (presence === "On Break") return { label: "On break", dot: "bg-amber-400", text: "text-amber-600" };
+  const open = TASKS.filter((t) => t.owner === name && !["Completed", "Void", "Unable to Complete"].includes(t.status)).length;
+  return open === 0
+    ? { label: "Available", dot: "bg-emerald-500", text: "text-emerald-600" }
+    : { label: `Busy · ${open} task${open > 1 ? "s" : ""}`, dot: "bg-blue-500", text: "text-blue-600" };
+}
+const AvailabilityTag = ({ name }: { name: string }) => {
+  const a = availabilityOf(name);
+  return (
+    <span className={`inline-flex shrink-0 items-center gap-1.5 text-[12px] font-medium ${a.text}`}>
+      <span className={`h-1.5 w-1.5 rounded-full ${a.dot}`} /> {a.label}
+    </span>
+  );
+};
+
 const DEPT_ICON: Record<string, React.ComponentType<{ className?: string }>> = {
   Engineering: Wrench,
   Concierge: ConciergeBell,
@@ -889,11 +911,12 @@ function ManagerTaskWindow({
           }}
         >
           <div className="mb-2 text-[12px] text-ink-secondary">Bring in extra {task.dept} team members</div>
-          <div className="grid max-h-56 grid-cols-2 gap-x-3 gap-y-2 overflow-y-auto">
+          <div className="max-h-64 space-y-1.5 overflow-y-auto">
             {teamMates.map((s) => (
-              <label key={s} className="flex items-center gap-2 text-[13px] text-ink">
+              <label key={s} className={`flex cursor-pointer items-center gap-3 rounded-xl border px-3.5 py-2.5 text-[13px] text-ink ${support.includes(s) ? "border-brand bg-brand-tint/40" : "border-line hover:bg-subtle"}`}>
                 <input type="checkbox" className="h-4 w-4 accent-brand" checked={support.includes(s)} onChange={(e) => setSupport((cur) => (e.target.checked ? [...cur, s] : cur.filter((x) => x !== s)))} />
-                {s}
+                <span className="min-w-0 flex-1 font-medium">{s}</span>
+                <AvailabilityTag name={s} />
               </label>
             ))}
           </div>
@@ -936,11 +959,24 @@ function ManagerTaskWindow({
                 <span className="block text-[12px] text-ink-secondary">Anyone in {task.dept} can pick it up</span>
               </button>
               <div className="my-3 text-center text-[11px] text-ink-tertiary">or assign to a person</div>
-              <div className="mb-1 text-[12px] text-ink-secondary">Team member</div>
-              <Select value={person} onChange={(e) => setPerson(e.target.value)}>
-                <option value="">Select staff member</option>
-                {teamMates.map((s) => <option key={s}>{s}</option>)}
-              </Select>
+              <div className="mb-2 text-[12px] text-ink-secondary">Team member</div>
+              <div className="max-h-56 space-y-1.5 overflow-y-auto">
+                {teamMates.map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => setPerson(s)}
+                    aria-pressed={person === s}
+                    className={`flex w-full items-center gap-3 rounded-xl border px-3.5 py-2.5 text-left text-[13px] ${person === s ? "border-brand bg-brand-tint/40" : "border-line hover:bg-subtle"}`}
+                  >
+                    <span className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 ${person === s ? "border-brand" : "border-line"}`}>
+                      {person === s && <span className="h-2 w-2 rounded-full bg-brand" />}
+                    </span>
+                    <span className="min-w-0 flex-1 font-medium text-ink">{s}</span>
+                    <AvailabilityTag name={s} />
+                  </button>
+                ))}
+              </div>
             </div>
             <div className="mt-5 flex gap-2">
               <button onClick={() => setPanel(null)} className="flex-1 rounded-lg border border-line py-2.5 text-[13px] font-semibold text-ink-secondary hover:bg-subtle">Cancel</button>
