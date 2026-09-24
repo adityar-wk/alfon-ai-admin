@@ -744,7 +744,7 @@ export function ManagerPrototype() {
           </div>
         </button>
       </div>
-      <div className={`flex shrink-0 items-center justify-between gap-3 border-y border-line px-6 py-2.5 text-[12px] ${guestManual ? "bg-brand-tint/50 text-brand" : "bg-violet-50 text-violet-700"}`}>
+      <div className={`flex shrink-0 items-center justify-between gap-3 border-y border-line px-6 py-2.5 text-[12px] ${guestManual ? "bg-brand-tint/50 text-brand" : "bg-brand-tint text-brand"}`}>
         <span className="font-medium">{guestManual ? "You're replying — AI is paused" : "ALFON AI is replying automatically"}</span>
         <button
           onClick={() => { setManual((m) => ({ ...m, [guestName!]: !guestManual })); flash(guestManual ? "Handed back to AI" : "AI paused — you're now replying"); }}
@@ -762,7 +762,7 @@ export function ManagerPrototype() {
         {!guestThread.length && <p className="py-6 text-center text-[12px] text-ink-tertiary">No messages yet.</p>}
         {guestThread.map((m, i) => (
           <div key={i} className={`flex ${m.from === "guest" ? "justify-start" : "justify-end"}`}>
-            <div className={`max-w-[82%] rounded-2xl px-3.5 py-2.5 text-[13px] leading-snug ${m.from === "guest" ? "bg-[#F1F1F3] text-ink" : m.from === "ai" ? "bg-violet-50 text-ink" : "bg-brand-tint text-ink"}`}>
+            <div className={`max-w-[82%] rounded-2xl px-3.5 py-2.5 text-[13px] leading-snug ${m.from === "guest" ? "bg-[#F1F1F3] text-ink" : m.from === "ai" ? "bg-brand-tint text-ink" : "bg-[#FBDCCB] text-ink"}`}>
               {m.text}
               <div className="mt-1 text-[10px] font-semibold text-ink-tertiary">{m.from === "ai" ? "ALFON AI" : m.from === "me" ? "You" : "Guest"}</div>
             </div>
@@ -770,8 +770,8 @@ export function ManagerPrototype() {
         ))}
       </div>
       {guestName && aiDrafts[guestName] !== undefined && (
-        <div className="mx-6 mb-3 shrink-0 rounded-2xl border border-violet-200 bg-violet-50/60 p-3.5">
-          <div className="mb-2 flex items-center gap-1.5 text-[12px] font-semibold text-violet-700"><Sparkles className="h-3.5 w-3.5" /> ALFON AI drafted a reply</div>
+        <div className="mx-6 mb-3 shrink-0 rounded-2xl border border-brand/25 bg-brand-tint/60 p-3.5">
+          <div className="mb-2 flex items-center gap-1.5 text-[12px] font-semibold text-brand"><Sparkles className="h-3.5 w-3.5" /> ALFON AI drafted a reply</div>
           {editingDraft ? (
             <textarea
               value={aiDrafts[guestName]}

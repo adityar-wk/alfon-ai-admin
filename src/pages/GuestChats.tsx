@@ -136,7 +136,6 @@ export default function GuestChats() {
           <div className="mt-4 flex flex-col items-center text-center">
             <span className={`flex h-14 w-14 items-center justify-center rounded-full text-[18px] font-semibold ${guest.tint}`}>{guest.initials}</span>
             <div className="mt-2 text-[16px] font-bold text-ink">{guest.name}</div>
-            <div className="text-[12px] text-ink-tertiary">Room {guest.room}</div>
           </div>
           <div className="mt-4 space-y-2.5 text-[13px] text-ink">
             <div className="flex items-center gap-2.5"><Phone className="h-4 w-4 text-ink-tertiary" /> {guest.contact.startsWith("+") ? guest.contact : "+1 (555) 123-4567"}</div>
