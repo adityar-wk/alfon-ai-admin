@@ -16,6 +16,8 @@ const chip = (status: string) =>
       : null;
 
 const ORPHAN_ID = 1000;
+const CHAT_FILTERS = ["All", "Active", "Resolved", "Pre-Arrival"] as const;
+const chatFilterOf = (status: string) => (status === "Checked Out" ? "Resolved" : status === "Arriving" ? "Pre-Arrival" : "Active");
 
 export default function GuestChats() {
   const [params] = useSearchParams();
@@ -31,13 +33,14 @@ export default function GuestChats() {
     ...BASE_GUESTS,
   ];
   const [query, setQuery] = useState("");
+  const [filter, setFilter] = useState<(typeof CHAT_FILTERS)[number]>("All");
   const [selectedId, setSelectedId] = useState<number>(Number(params.get("guest")) || (orphanName && !BASE_GUESTS.some((g) => g.name === orphanName) ? ORPHAN_ID : 2));
   const [chats, setChats] = useState<Record<number, ChatMsg[]>>({});
   const [modes, setModes] = useState<Record<number, ChatMode>>({});
 
   const list = GUESTS.filter((g) => {
     const q = query.trim().toLowerCase();
-    return !q || `${g.name} ${g.room}`.toLowerCase().includes(q);
+    return (filter === "All" || chatFilterOf(g.status) === filter) && (!q || `${g.name} ${g.room}`.toLowerCase().includes(q));
   });
   const guest = GUESTS.find((g) => g.id === selectedId) ?? GUESTS[0];
   const p = buildProfile(guest);
@@ -51,12 +54,12 @@ export default function GuestChats() {
 
   return (
     <>
-      <Topbar title="Guest Chats" subtitle="Manage all guest conversations in one place" showSearch={false} />
+      <Topbar title="Guest Chats" subtitle="Manage all guest conversations in one place" />
       <div className="flex min-h-0 flex-1 gap-4 bg-subtle/40 p-5">
         <Card className="flex w-[320px] shrink-0 flex-col overflow-hidden">
           <div className="border-b border-line p-4">
             <div className="text-[16px] font-bold text-ink">All Conversations</div>
-            <div className="text-[12px] text-ink-tertiary">{GUESTS.length} conversations</div>
+            <div className="text-[12px] text-ink-tertiary">{list.length} of {GUESTS.length} conversations</div>
             <div className="relative mt-3">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-tertiary" />
               <input
@@ -65,6 +68,11 @@ export default function GuestChats() {
                 placeholder="Search conversations…"
                 className="h-10 w-full rounded-lg bg-subtle pl-9 pr-3 text-[13px] outline-none placeholder:text-ink-tertiary focus:ring-1 focus:ring-brand"
               />
+            </div>
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {CHAT_FILTERS.map((x) => (
+                <button key={x} onClick={() => setFilter(x)} className={`rounded-full px-3 py-1 text-[12px] font-medium ${filter === x ? "bg-brand text-white" : "bg-subtle text-ink-secondary hover:bg-line/60"}`}>{x}</button>
+              ))}
             </div>
           </div>
           <div className="min-h-0 flex-1 divide-y divide-line/60 overflow-y-auto">

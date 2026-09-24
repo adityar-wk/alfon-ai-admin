@@ -52,7 +52,7 @@ export default function DepartmentDashboard() {
   ];
   return (
     <>
-      <Topbar title="Department Dashboard" subtitle={scopeDepts.join(" · ")} showSearch={false} actions={<ScopePicker />} />
+      <Topbar title="Department Dashboard" subtitle={scopeDepts.join(" · ")} actions={<ScopePicker />} />
       <Page>
         <h3 className="mb-3 flex items-center gap-2.5 text-[16px] font-semibold text-ink"><span className="h-2 w-2 rounded-full bg-brand" /> Department operations</h3>
         <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">

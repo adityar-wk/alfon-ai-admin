@@ -23,7 +23,7 @@ import {
 import { Topbar } from "../components/Topbar";
 import { GuestChat, type ChatMsg, type ChatMode } from "../components/GuestChat";
 import { Page, Card, Button, Field, Input, Select, Textarea } from "../components/ui";
-import { TASKS, logAudit, pendingHelpFor, resolveHelp, shortName, type Task, type Priority, type Status } from "../data/tasks";
+import { TASKS, HELP_REQUESTS, logAudit, pendingHelpFor, resolveHelp, shortName, type Task, type Priority, type Status } from "../data/tasks";
 import { GUESTS } from "../data/guests";
 import { usePersona } from "../persona";
 import { ScopePicker } from "../components/ScopePicker";
@@ -214,12 +214,11 @@ export default function Tasks() {
     <div className="flex min-h-0 flex-1 flex-col">
       <Topbar
         title="Tasks"
-        showSearch={false}
         actions={
           <div className="flex items-center gap-3">
             <ScopePicker />
             <Button onClick={() => { setPrefill({ guest: "", room: "" }); setNewOpen(true); }}>
-              <Plus className="h-4 w-4" /> New Task
+              <Plus className="h-4 w-4" /> Create task
             </Button>
           </div>
         }
@@ -573,6 +572,15 @@ const COMP_TYPES = ["Chocolate Cake — $10", "Fruit Platter — $10", "Date Box
 const APPROVERS = ["Sophia Carter (General Manager)", "Duty Manager", "Daniel Reyes (Housekeeping Manager)"];
 
 
+const STATUS_PILL: Record<Status, string> = {
+  Pending: "bg-amber-50 text-amber-700",
+  "In Progress": "bg-blue-50 text-blue-600",
+  Escalated: "bg-red-50 text-red-600",
+  Completed: "bg-emerald-50 text-emerald-600",
+  "Unable to Complete": "bg-slate-100 text-slate-600",
+  Void: "bg-gray-100 text-gray-500",
+};
+
 const SLA_TARGET: Record<Priority, number> = { Critical: 10, High: 20, Medium: 40, Low: 60 };
 const slaMinutes = (text: string) => {
   const h = text.match(/(\d+)\s*hr/);
@@ -594,14 +602,20 @@ function SlaTimer({ task }: { task: Task }) {
   const over = !met && secs < 0;
   const frac = met ? 1 : over ? 1 : Math.max(0.03, Math.min(1, secs / total));
   const tone = met ? "text-emerald-600" : over ? "text-red-600" : frac < 0.25 ? "text-brand" : "text-emerald-600";
+  const bg = met ? "bg-emerald-50" : over ? "bg-red-50" : frac < 0.25 ? "bg-orange-50" : "bg-emerald-50";
   const bar = met ? "bg-emerald-500" : over ? "bg-red-500" : frac < 0.25 ? "bg-brand" : "bg-emerald-500";
   const abs = Math.abs(secs);
   const clock = `${over ? "-" : ""}${String(Math.floor(abs / 60)).padStart(2, "0")}:${String(abs % 60).padStart(2, "0")}`;
   return (
-    <div className="rounded-2xl border border-line bg-white p-4 shadow-sm">
-      <div className="text-[11px] font-semibold uppercase tracking-wide text-ink-tertiary">SLA target: {target} minutes</div>
-      <div className={`mt-1 font-mono text-[34px] font-bold leading-tight ${tone}`}>{met ? "Met" : clock}</div>
-      <div className="mt-2 h-2 overflow-hidden rounded-full bg-subtle"><div className={`h-full rounded-full ${bar}`} style={{ width: `${frac * 100}%` }} /></div>
+    <div className={`rounded-xl px-4 py-3.5 ${bg}`}>
+      <div className="flex items-center justify-between">
+        <div>
+          <div className="text-[12px] font-medium text-ink-secondary">{met ? "SLA met" : over ? "SLA breached" : "Time remaining"}</div>
+          <div className="text-[11px] text-ink-tertiary">Target {target} min</div>
+        </div>
+        <div className={`font-mono text-[32px] font-bold leading-none ${tone}`}>{met ? "Met" : clock}</div>
+      </div>
+      <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/70"><div className={`h-full rounded-full ${bar}`} style={{ width: `${frac * 100}%` }} /></div>
     </div>
   );
 }
@@ -628,7 +642,7 @@ function ManagerTaskWindow({
   const [person, setPerson] = useState("");
   const [support, setSupport] = useState<string[]>(task.support ?? []);
   const [text, setText] = useState("");
-  const [modal, setModal] = useState<null | "help" | "void">(null);
+  const [modal, setModal] = useState<null | "help" | "void" | "compensation">(null);
   const [voidReason, setVoidReason] = useState("");
   const [compType, setCompType] = useState("");
   const [compReason, setCompReason] = useState("");
@@ -643,6 +657,13 @@ function ManagerTaskWindow({
   const closed = task.status === "Completed" || task.status === "Unable to Complete" || task.status === "Void";
   const help = pendingHelpFor(task.id);
   const guestId = GUESTS.find((g) => g.name === task.guest)?.id;
+  const anyHelp = HELP_REQUESTS.find((h) => h.taskId === task.id);
+  const settleHelp = () => {
+    if (help) {
+      resolveHelp(help.id);
+      force((n) => n + 1);
+    }
+  };
   const me = `${mgr.name} (${mgr.role})`;
   const teamMates = (STAFF[task.dept] ?? []).filter((s) => s !== task.owner);
   const open = (p: Panel) => {
@@ -662,6 +683,7 @@ function ManagerTaskWindow({
     task.owner && started
       ? { done: true, title: `Task Accepted — ${clockText(t0 + 4)}`, sub: `${task.owner} confirmed receipt` }
       : { done: false, title: "Task Accepted — Pending" },
+    ...(anyHelp ? [{ done: true, title: `${anyHelp.type} requested — ${clockText(t0 + 12)}`, sub: `${anyHelp.from}: ${anyHelp.reason}` }] : []),
     ...(task.status === "Escalated"
       ? [{ done: true, title: `Task Escalated — ${clockText(t0 + 20)}`, sub: `Escalated to ${task.escalatedTo ?? "Department Head"}` }]
       : []),
@@ -675,6 +697,7 @@ function ManagerTaskWindow({
   ];
 
   const notes = [
+    ...(anyHelp ? [{ author: anyHelp.from, text: anyHelp.reason, time: "Note" }] : []),
     ...(task.escalation ? [{ author: "Escalation", text: task.escalation, time: "" }] : []),
     ...(task.notes ?? []),
   ];
@@ -697,19 +720,24 @@ function ManagerTaskWindow({
   return (
     <div className="fixed inset-0 z-50 bg-black/20" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
       <aside role="dialog" aria-label="Task details" className="absolute inset-y-0 right-0 flex w-[460px] max-w-full flex-col bg-white shadow-2xl">
-        <div className="flex items-center justify-between px-6 pb-3 pt-5">
-          <h2 className="text-[20px] font-bold text-ink">{task.title}</h2>
-          <button onClick={onClose} aria-label="Close" className="rounded-md p-1 text-ink-tertiary hover:bg-subtle hover:text-ink">
-            <X className="h-5 w-5" />
-          </button>
+        <div className="border-b border-line px-6 pb-4 pt-5">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <div className="font-mono text-[11px] text-ink-tertiary">#{String(task.id).padStart(3, "0")} · {task.dept}</div>
+              <h2 className="mt-0.5 text-[21px] font-bold leading-tight text-ink">{task.title}</h2>
+            </div>
+            <button onClick={onClose} aria-label="Close" className="shrink-0 rounded-md p-1 text-ink-tertiary hover:bg-subtle hover:text-ink">
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <span className={`rounded-full px-2.5 py-1 text-[12px] font-semibold ${STATUS_PILL[task.status]}`}>{task.status}</span>
+            <PriorityLabel p={task.priority} />
+            {task.tag === "Complaint" && <span className="rounded-full bg-red-50 px-2.5 py-1 text-[12px] font-semibold text-red-600">Complaint</span>}
+          </div>
         </div>
 
-        <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-6 pb-5">
-          <div className="flex items-center justify-between">
-            <StatusLabel s={task.status} />
-            <span className="rounded bg-subtle px-1.5 py-0.5 font-mono text-[11px] text-ink-tertiary">#{String(task.id).padStart(3, "0")}</span>
-          </div>
-
+        <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-6 py-5">
           <SlaTimer key={task.id + task.sla.text} task={task} />
 
           <div className="border-t border-line pt-5">
@@ -752,32 +780,10 @@ function ManagerTaskWindow({
             )}
           </div>
 
-          {help && (
-            <div className="rounded-xl border border-blue-100 bg-blue-50/50 p-4">
-              <div className="text-[13px] font-semibold text-ink">{help.type} request</div>
-              <p className="mt-1 text-[13px] leading-snug text-ink">{help.reason}</p>
-              <p className="mt-1 text-[11px] text-ink-tertiary">From {help.from}</p>
-              <div className="mt-3 flex gap-2">
-                <button
-                  onClick={() => { onApply({}, `${help.type} declined`, `Requested by ${help.from}`, "Request declined"); resolveHelp(help.id); force((n) => n + 1); }}
-                  className="flex flex-1 items-center justify-center gap-1 rounded-lg border border-line bg-white px-3 py-2 text-[13px] font-semibold text-ink-secondary hover:bg-subtle"
-                >
-                  <X className="h-3.5 w-3.5" /> Decline
-                </button>
-                <button
-                  onClick={() => { onApply({}, `${help.type} approved`, `Requested by ${help.from}`, `${help.type} approved`); resolveHelp(help.id); force((n) => n + 1); }}
-                  className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-brand px-3 py-2 text-[13px] font-semibold text-white hover:bg-brand-hover"
-                >
-                  <Check className="h-3.5 w-3.5" /> Approve
-                </button>
-              </div>
-            </div>
-          )}
-
           <div className="border-t border-line pt-5">
             <div className="mb-2 flex items-center justify-between">
               <div className="text-[11px] font-semibold uppercase tracking-wide text-ink-tertiary">Compensation</div>
-              <button onClick={() => { setCompType(""); setCompReason(""); setCompBy(""); open("compensation"); }} className="text-[12px] font-semibold text-brand">
+              <button onClick={() => { setCompType(""); setCompReason(""); setCompBy(""); setModal("compensation"); }} className="text-[12px] font-semibold text-brand">
                 {task.compensation?.length ? "Add another" : "Add compensation"}
               </button>
             </div>
@@ -821,10 +827,11 @@ function ManagerTaskWindow({
             <PanelBox title={`Reassign to another ${task.dept} team member`} ok="Reassign" disabled={!person} onCancel={() => setPanel(null)}
               onOk={() => {
                 onApply({ owner: person }, "Reassigned", `${task.owner ?? "Unassigned"} → ${person} (${task.dept})`, `Reassigned to ${person}`);
+                settleHelp();
                 setPanel(null);
               }}>
               <button
-                onClick={() => { onApply({ owner: null, status: "Pending" }, "Reopened", "Reopened for anyone to pick up", "Task reopened for others to pick up"); setPanel(null); }}
+                onClick={() => { onApply({ owner: null, status: "Pending" }, "Reopened", "Reopened for anyone to pick up", "Task reopened for others to pick up"); settleHelp(); setPanel(null); }}
                 className="mb-2 w-full rounded-lg border border-line bg-white px-3 py-2 text-[13px] font-semibold text-ink hover:bg-subtle"
               >
                 Make it an open task — anyone can pick it up
@@ -840,6 +847,7 @@ function ManagerTaskWindow({
             <PanelBox title={`Add support from ${task.dept}`} ok="Add" disabled={support.length === (task.support ?? []).length && support.every((s) => task.support?.includes(s))} onCancel={() => setPanel(null)}
               onOk={() => {
                 onApply({ support }, "Support added", support.join(", "), "Support staff added");
+                settleHelp();
                 setPanel(null);
               }}>
               <div className="grid max-h-36 grid-cols-2 gap-x-3 gap-y-1.5 overflow-y-auto">
@@ -865,41 +873,10 @@ function ManagerTaskWindow({
             <PanelBox title="Escalate to Duty Manager" ok="Escalate" onCancel={() => setPanel(null)}
               onOk={() => {
                 onApply({ status: "Escalated", escalatedTo: "Duty Manager", escalation: text.trim() || undefined }, "Escalated to Duty Manager", text.trim() || "No reason given", "Escalated to Duty Manager");
+                settleHelp();
                 setPanel(null);
               }}>
               <Textarea rows={2} autoFocus value={text} onChange={(e) => setText(e.target.value)} placeholder="Reason (optional)" />
-            </PanelBox>
-          )}
-
-          {panel === "compensation" && (
-            <PanelBox title="Guest compensation" ok="Submit compensation" disabled={!compType || !compReason.trim() || !compBy} onCancel={() => setPanel(null)}
-              onOk={() => {
-                onApply(
-                  { compensation: [...(task.compensation ?? []), { type: compType, reason: compReason.trim(), approvedBy: compBy, time: "Just now" }] },
-                  "Compensation submitted", `${compType} · approved by ${compBy}`, "Compensation submitted",
-                );
-                setPanel(null);
-              }}>
-              <div className="space-y-2">
-                <div>
-                  <div className="mb-1 text-[11px] text-ink-tertiary">Compensation type</div>
-                  <Select value={compType} onChange={(e) => setCompType(e.target.value)}>
-                    <option value="">Select compensation</option>
-                    {COMP_TYPES.map((c) => <option key={c}>{c}</option>)}
-                  </Select>
-                </div>
-                <div>
-                  <div className="mb-1 text-[11px] text-ink-tertiary">Reason</div>
-                  <Textarea rows={2} value={compReason} onChange={(e) => setCompReason(e.target.value)} placeholder="Why is this compensation being given?" />
-                </div>
-                <div>
-                  <div className="mb-1 text-[11px] text-ink-tertiary">Approved by</div>
-                  <Select value={compBy} onChange={(e) => setCompBy(e.target.value)}>
-                    <option value="">Select approver</option>
-                    {APPROVERS.map((c) => <option key={c}>{c}</option>)}
-                  </Select>
-                </div>
-              </div>
             </PanelBox>
           )}
 
@@ -959,6 +936,47 @@ function ManagerTaskWindow({
                   ))}
                 </div>
                 <button onClick={() => setModal(null)} className="mt-4 w-full text-center text-[13px] font-medium text-ink-secondary">Cancel</button>
+              </>
+            ) : modal === "compensation" ? (
+              <>
+                <h3 className="text-[17px] font-bold text-ink">Guest compensation</h3>
+                <p className="mt-1 text-[13px] text-ink-secondary">{task.guest} · Room {task.room}</p>
+                <div className="mt-4 space-y-3">
+                  <div>
+                    <div className="mb-1 text-[12px] text-ink-secondary">Compensation type</div>
+                    <Select value={compType} onChange={(e) => setCompType(e.target.value)}>
+                      <option value="">Select compensation</option>
+                      {COMP_TYPES.map((c) => <option key={c}>{c}</option>)}
+                    </Select>
+                  </div>
+                  <div>
+                    <div className="mb-1 text-[12px] text-ink-secondary">Reason</div>
+                    <Textarea rows={3} value={compReason} onChange={(e) => setCompReason(e.target.value)} placeholder="Why is this compensation being given?" />
+                  </div>
+                  <div>
+                    <div className="mb-1 text-[12px] text-ink-secondary">Approved by</div>
+                    <Select value={compBy} onChange={(e) => setCompBy(e.target.value)}>
+                      <option value="">Select approver</option>
+                      {APPROVERS.map((c) => <option key={c}>{c}</option>)}
+                    </Select>
+                  </div>
+                </div>
+                <div className="mt-5 flex gap-2">
+                  <button onClick={() => setModal(null)} className="flex-1 rounded-lg border border-line py-2.5 text-[13px] font-semibold text-ink-secondary hover:bg-subtle">Cancel</button>
+                  <button
+                    disabled={!compType || !compReason.trim() || !compBy}
+                    onClick={() => {
+                      onApply(
+                        { compensation: [...(task.compensation ?? []), { type: compType, reason: compReason.trim(), approvedBy: compBy, time: "Just now" }] },
+                        "Compensation submitted", `${compType} · approved by ${compBy}`, "Compensation submitted",
+                      );
+                      setModal(null);
+                    }}
+                    className="flex-1 rounded-lg bg-brand py-2.5 text-[13px] font-semibold text-white hover:bg-brand-hover disabled:opacity-40"
+                  >
+                    Submit compensation
+                  </button>
+                </div>
               </>
             ) : (
               <>

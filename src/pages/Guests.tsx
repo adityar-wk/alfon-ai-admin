@@ -65,22 +65,7 @@ export default function Guests() {
 
   return (
     <>
-      <Topbar
-        title="Guests"
-        actions={
-          <div className="flex items-center gap-3">
-            <button className="relative rounded-lg p-2 text-ink-secondary hover:bg-subtle">
-              <span className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-brand text-[10px] font-semibold text-white">
-                9
-              </span>
-              <MessageSquare className="h-[18px] w-[18px]" />
-            </button>
-            <button className="flex items-center gap-2 rounded-lg border border-line px-3 py-1.5 text-[13px] font-medium text-ink">
-              The Grand Luxury Hotel <ChevronDown className="h-4 w-4 text-ink-tertiary" />
-            </button>
-          </div>
-        }
-      />
+      <Topbar title="Guests" />
       <Page>
         <div className="flex items-start justify-between gap-4">
           <div>
@@ -88,14 +73,6 @@ export default function Guests() {
             <p className="mt-1 text-[13px] text-ink-secondary">
               View and manage guest profiles, stay details and preferences.
             </p>
-          </div>
-          <div className="flex overflow-hidden rounded-lg">
-            <Button className="rounded-none">
-              <Plus className="h-4 w-4" /> Add Guest
-            </Button>
-            <button className="flex items-center border-l border-white/25 bg-brand px-2 text-white hover:bg-brand-hover">
-              <ChevronDown className="h-4 w-4" />
-            </button>
           </div>
         </div>
 
@@ -160,14 +137,6 @@ export default function Guests() {
                     <option value="all">Any</option>
                     <option>In House</option>
                     <option>Arriving</option>
-                  </Select>
-                </label>
-                <label className="block">
-                  <span className="mb-1 block text-[11px] text-ink-secondary">Guest type</span>
-                  <Select className="h-9 text-[13px]" value={filters.type} onChange={(e) => setFilters((f) => ({ ...f, type: e.target.value }))}>
-                    <option value="all">Any</option>
-                    <option>Leisure</option>
-                    <option>Business</option>
                   </Select>
                 </label>
                 <label className="block">

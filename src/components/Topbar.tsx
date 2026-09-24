@@ -68,7 +68,10 @@ export function Topbar({
           <SearchBar placeholder={searchPlaceholder} />
         </div>
       )}
-      <div className="ml-auto shrink-0">{actions ?? <DefaultTopbarActions />}</div>
+      <div className="ml-auto flex shrink-0 items-center gap-3">
+        {actions}
+        <DefaultTopbarActions />
+      </div>
     </header>
   );
 }
