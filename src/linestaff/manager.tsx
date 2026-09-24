@@ -1,11 +1,11 @@
 import { useMemo, useState } from "react";
 import {
   Bell, Home as HomeIcon, Plus, Users, UserCog, UserPlus, ArrowUpRight, MessageCircle, Send, Filter, ChevronRight, ChevronLeft, Search,
-  Menu as MenuIcon, ListChecks, BarChart3, AlertTriangle, User, BedDouble, DoorClosed, Building2, FileText, Download, Lock, UtensilsCrossed, Languages, Thermometer, AlarmClock, Wine, Phone, Mail, Sparkles, SlidersHorizontal,
+  Menu as MenuIcon, ListChecks, BarChart3, AlertTriangle, User, BedDouble, DoorClosed, Building2, FileText, Download, Lock, UtensilsCrossed, Languages, Thermometer, AlarmClock, Wine, Phone, Mail, Sparkles, SlidersHorizontal, LogOut,
 } from "lucide-react";
 import { DEPARTMENTS } from "../data/departments";
 import { DetailRow, ProfileSection, GuestProfileScreen } from "./guestviews";
-import { NotificationSettingsScreen } from "./profile";
+import { NotificationSettingsScreen, SignedOutScreen } from "./profile";
 import { DEPTS, METRICS, COMPLAINT_DETAIL } from "../pages/Analytics";
 import { Donut } from "../components/Donut";
 import { BarChart } from "../components/BarChart";
@@ -169,6 +169,8 @@ export function ManagerPrototype() {
   const [manual, setManual] = useState<Record<string, boolean>>({});
   const [draft, setDraft] = useState("");
   const [aiDrafts, setAiDrafts] = useState<Record<string, string>>({});
+  const [available, setAvailable] = useState(true);
+  const [signedOut, setSignedOut] = useState(false);
   const [editingDraft, setEditingDraft] = useState(false);
   // create task
   const [service, setService] = useState("");
@@ -977,6 +979,30 @@ export function ManagerPrototype() {
     <div className="flex h-full flex-col">
       <ScreenHeader title="More" onBack={nav.back} />
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-6 pb-6 pt-2 no-scrollbar">
+        <div className="rounded-2xl bg-brand-tint p-4">
+          <div className="flex items-center gap-3.5">
+            <Avatar name={ME} size={56} tone="bg-brand text-white" />
+            <div className="min-w-0 leading-tight">
+              <div className="truncate text-[17px] font-bold text-ink">{ME}</div>
+              <div className="mt-0.5 text-[13px] font-medium text-brand">Housekeeping Manager</div>
+              <div className="text-[12px] text-ink-secondary">Housekeeping · Department Head</div>
+            </div>
+          </div>
+          <div className="mt-3.5 flex items-center justify-between rounded-xl bg-white px-3.5 py-2.5">
+            <div className="leading-tight">
+              <div className="text-[13px] font-semibold text-ink">Availability</div>
+              <div className={`text-[11px] ${available ? "text-emerald-600" : "text-ink-tertiary"}`}>{available ? "Available" : "Off work"}</div>
+            </div>
+            <button
+              onClick={() => { setAvailable((a) => !a); flash(available ? "You're now off work" : "You're available"); }}
+              aria-pressed={available}
+              aria-label="Availability"
+              className={`flex h-6 w-11 shrink-0 items-center rounded-full p-0.5 transition-colors ${available ? "bg-emerald-500" : "bg-[#C8C8C8]"}`}
+            >
+              <span className={`h-5 w-5 rounded-full bg-white shadow transition-transform ${available ? "translate-x-5" : ""}`} />
+            </button>
+          </div>
+        </div>
         {MENU_ITEMS.map((m) => (
           <button
             key={m.key}
@@ -988,6 +1014,10 @@ export function ManagerPrototype() {
             <ChevronRight className="h-4 w-4 shrink-0 text-ink-tertiary" />
           </button>
         ))}
+        <button onClick={() => setSignedOut(true)} className={`flex w-full items-center gap-3 rounded-2xl bg-white p-4 text-left ${CARD_SHADOW}`}>
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-50 text-red-600"><LogOut className="h-[18px] w-[18px]" /></div>
+          <div className="text-[14px] font-semibold text-red-600">Sign out</div>
+        </button>
       </div>
     </div>
   );
@@ -1241,7 +1271,7 @@ export function ManagerPrototype() {
   return (
     <div className="flex flex-col items-center gap-4">
       <PhoneFrame>
-        {VIEWS[cur.name]}
+        {signedOut ? <SignedOutScreen onSignIn={() => { setSignedOut(false); nav.reset(); }} /> : VIEWS[cur.name]}
         {sheetNode}
         {TeamFilterSheet}
         {GuestFilterSheet}
