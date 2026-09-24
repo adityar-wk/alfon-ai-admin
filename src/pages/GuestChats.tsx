@@ -79,7 +79,7 @@ export default function GuestChats() {
   return (
     <>
       <Topbar title="Guest Chats" subtitle="Manage all guest conversations in one place" />
-      <div className="flex min-h-0 flex-1 gap-5 bg-[#F5F6FA] p-6">
+      <div className="flex min-h-0 flex-1 gap-5 bg-[#FBFBFD] p-6">
         {/* ---------------- conversations ---------------- */}
         <div className={`flex shrink-0 flex-col overflow-hidden transition-[width] duration-200 ${CARD} ${collapsed ? "w-[80px]" : "w-[340px]"}`}>
           {collapsed ? (
@@ -151,7 +151,7 @@ export default function GuestChats() {
                     <button
                       key={g.id}
                       onClick={() => setSelectedId(g.id)}
-                      className={`flex w-full items-start gap-3.5 px-6 py-4 text-left hover:bg-subtle/70 ${g.id === guest.id ? "bg-[#F1F2F5]" : ""}`}
+                      className={`flex w-full items-start gap-3.5 px-6 py-4 text-left hover:bg-subtle/70 ${g.id === guest.id ? "bg-[#F6F7F9]" : ""}`}
                     >
                       <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-[13px] font-semibold ${g.tint}`}>{g.initials}</span>
                       <span className="min-w-0 flex-1">
