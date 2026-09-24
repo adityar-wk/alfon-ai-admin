@@ -471,13 +471,13 @@ export default function GuestProfile() {
 
             <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1fr_340px]">
               <div className="min-w-0 space-y-4">
-                <Card className="border-l-4 border-l-blue-400 p-5">
-                  <Heading icon={User} tone="text-blue-700">Guest profile</Heading>
+                <Card className="p-5">
+                  <Heading icon={User} tone="text-ink-tertiary">Guest profile</Heading>
                   <p className="text-[14px] leading-relaxed text-ink">{p.summary}</p>
                 </Card>
 
-                <Card className="border-l-4 border-l-amber-400 p-5">
-                  <Heading icon={Lightbulb} tone="text-amber-700">Anticipated needs</Heading>
+                <Card className="p-5">
+                  <Heading icon={Lightbulb} tone="text-ink-tertiary">Anticipated needs</Heading>
                   <p className="text-[14px] leading-relaxed text-ink">{p.anticipated}</p>
                 </Card>
 
