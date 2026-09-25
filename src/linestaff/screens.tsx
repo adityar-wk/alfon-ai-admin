@@ -312,7 +312,7 @@ export function LineStaffPrototype() {
               value={guestQuery}
               onChange={(e) => setGuestQuery(e.target.value)}
               placeholder="Search guest or room"
-              className="h-11 w-full rounded-2xl bg-white pl-10 pr-3 text-[14px] shadow-sm outline-none placeholder:text-ink-tertiary focus:ring-2 focus:ring-brand/30"
+              className="h-11 w-full rounded-full bg-[#F4F4F6] pl-10 pr-3 text-[14px] outline-none placeholder:text-ink-tertiary focus:ring-2 focus:ring-brand/30"
             />
           </div>
         </div>
@@ -539,7 +539,7 @@ export function LineStaffPrototype() {
 
   return (
     <div className="flex flex-col items-center gap-4">
-      <PhoneFrame>
+      <PhoneFrame white={!signedOut && cur.name === "guests"}>
         {signedOut ? <SignedOutScreen onSignIn={() => { setSignedOut(false); nav.reset(); }} /> : VIEWS[cur.name]}
         {HelpSheet}
         {compOpen && (
