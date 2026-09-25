@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { X } from "lucide-react";
 
 export function Page({ children }: { children: ReactNode }) {
@@ -128,6 +128,54 @@ export function Select(props: React.SelectHTMLAttributes<HTMLSelectElement>) {
           "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%236B7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m4 6 4 4 4-4'/%3E%3C/svg%3E\")",
       }}
     />
+  );
+}
+
+const DIAL_CODES = ["+91", "+1", "+44", "+61", "+65", "+971", "+49", "+33"];
+
+/** country code + number, side by side; the number keeps digits and spaces only */
+export function PhoneInput({
+  code = "+91",
+  number = "",
+  onChange,
+  placeholder = "98765 43210",
+  disabled = false,
+}: {
+  code?: string;
+  number?: string;
+  onChange?: (code: string, number: string) => void;
+  placeholder?: string;
+  disabled?: boolean;
+}) {
+  const [c, setC] = useState(code);
+  const [n, setN] = useState(number);
+  return (
+    <div className="grid grid-cols-[92px_1fr] gap-2">
+      <Select
+        aria-label="Country code"
+        value={c}
+        disabled={disabled}
+        onChange={(e) => {
+          setC(e.target.value);
+          onChange?.(e.target.value, n);
+        }}
+      >
+        {DIAL_CODES.map((d) => <option key={d}>{d}</option>)}
+      </Select>
+      <Input
+        type="tel"
+        inputMode="tel"
+        aria-label="Phone number"
+        value={n}
+        disabled={disabled}
+        placeholder={placeholder}
+        onChange={(e) => {
+          const v = e.target.value.replace(/[^\d ]/g, "");
+          setN(v);
+          onChange?.(c, v);
+        }}
+      />
+    </div>
   );
 }
 

@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from "react";
 import { Bell, Filter, Plus, Search, Menu as MenuIcon, ChevronRight, ChevronLeft, SlidersHorizontal, LogOut, ListChecks, MessageCircle, Home as HomeIcon, Wrench, Trash2, Download } from "lucide-react";
 import { Topbar } from "../components/Topbar";
-import { Page, Card, Badge, Button, Field, Input, Select, Textarea, Toggle, Stars, Modal, Tabs } from "../components/ui";
+import { Page, Card, Badge, Button, Field, Input, Select, Textarea, PhoneInput, Toggle, Stars, Modal, Tabs } from "../components/ui";
 import { Drawer } from "../components/Drawer";
 import { Donut } from "../components/Donut";
 import Orb from "../components/Orb";
@@ -26,6 +26,7 @@ const INVENTORY: Item[] = [
   { id: "button", name: "Button", group: "Actions", note: "Primary, outline, ghost, disabled, with icon" },
   { id: "icon-button", name: "Icon button", group: "Actions", note: "Plain, filled and funnel-with-count buttons" },
   { id: "input", name: "Input, Select, Textarea", group: "Forms", note: "Field wrapper with label, hint and required mark" },
+  { id: "phone", name: "Phone number field", group: "Forms", note: "Country code plus number, digits only" },
   { id: "search", name: "Search field", group: "Forms", note: "Search with the single funnel filter beside it" },
   { id: "toggle", name: "Toggle, checkbox, stars", group: "Forms", note: "Small selection controls" },
   { id: "calendar", name: "Date picker", group: "Forms", note: "Arrival-date calendar with arrival dots" },
@@ -201,6 +202,14 @@ export default function ComponentDesign() {
               <Field label="Full name" required><Input placeholder="Sophia Carter" /></Field>
               <Field label="Department" hint="Where this person works"><Select defaultValue="Housekeeping"><option>Housekeeping</option><option>Front Desk</option></Select></Field>
               <div className="md:col-span-2"><Field label="Notes"><Textarea rows={3} placeholder="Add an internal note…" /></Field></div>
+            </div>
+          </Section>
+
+          <Section id="phone" title="Phone number field" note="Country-code select beside a number input. Numbers accept digits and spaces only.">
+            <div className="grid max-w-3xl grid-cols-1 gap-5 md:grid-cols-2">
+              <Field label="Mobile number" required hint="Used for WhatsApp and app invites"><PhoneInput /></Field>
+              <Field label="Business number"><PhoneInput code="+44" number="7700 900123" /></Field>
+              <Field label="Disabled"><PhoneInput number="98765 43210" disabled /></Field>
             </div>
           </Section>
 
