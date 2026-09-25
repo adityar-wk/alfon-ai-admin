@@ -1,4 +1,4 @@
-import { pastel, PASTEL } from "../data/pastel";
+import { pastel, PASTEL, TAGS } from "../data/pastel";
 import { useEffect, useMemo, useState } from "react";
 import { ListChecks, CheckCircle2, AlertTriangle, Timer, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, Download, Filter, CalendarDays, X } from "lucide-react";
 import { Field, Input, Select } from "../components/ui";
@@ -148,13 +148,15 @@ export default function Analytics() {
   const avgResp = manager ? fmtSecs(mine.reduce((a, d) => a + secs(METRICS[d.name].resp), 0) / Math.max(mine.length, 1)) : "2m 45s";
   const sorted = [...depts].sort((a, b) => b.n - a.n);
   const maxDept = sorted[0].n;
-  const deptColors = ramp(sorted.length);
+  // each department keeps the same colour everywhere
+  const deptIdx = (name: string) => Math.max(0, DEPTS.findIndex((x) => x.name === name)) % TAGS.length;
+  const deptColors = sorted.map((d) => TAGS[deptIdx(d.name)].mid);
 
   const kpis = [
-    { label: "Total Tasks", value: total.toLocaleString(), delta: "16% vs last period", up: true, icon: ListChecks, chip: "bg-sky-100 text-sky-600" },
-    { label: "Completed", value: completed.toLocaleString(), delta: "18% vs last period", up: true, icon: CheckCircle2, chip: "bg-emerald-100 text-emerald-600" },
-    { label: "Overdue", value: overdue.toLocaleString(), delta: "8% vs last period", up: false, icon: AlertTriangle, chip: "bg-rose-100 text-rose-500" },
-    { label: "Avg Response", value: avgResp, delta: "12% vs last period", up: false, icon: Timer, chip: "bg-violet-100 text-violet-500" },
+    { label: "Total Tasks", value: total.toLocaleString(), delta: "16% vs last period", up: true, icon: ListChecks, chip: "bg-sky-100 text-sky-700" },
+    { label: "Completed", value: completed.toLocaleString(), delta: "18% vs last period", up: true, icon: CheckCircle2, chip: "bg-emerald-100 text-emerald-700" },
+    { label: "Overdue", value: overdue.toLocaleString(), delta: "8% vs last period", up: false, icon: AlertTriangle, chip: "bg-rose-100 text-rose-600" },
+    { label: "Avg Response", value: avgResp, delta: "12% vs last period", up: false, icon: Timer, chip: "bg-violet-100 text-violet-700" },
   ];
 
   const flash = (m: string) => {
@@ -372,7 +374,7 @@ export default function Analytics() {
               <tbody>
                 {rows.map((d) => (
                   <tr key={d.name} className="border-b border-line/70 last:border-0">
-                    <td className="py-3 pl-5 text-[13px] font-semibold text-ink">{d.name}</td>
+                    <td className="py-3 pl-5"><span className={`inline-flex rounded-md px-2.5 py-1 text-[12px] font-semibold ${TAGS[deptIdx(d.name)].pill}`}>{d.name}</span></td>
                     <td className="py-3 text-[14px] font-bold text-ink">{d.n.toLocaleString()}</td>
                     <td className="py-3 text-[13px] text-ink-secondary">{d.m.done}%</td>
                     <td className={`py-3 text-[13px] ${d.m.overdue / d.tasks > 0.04 ? "font-semibold text-rose-500" : "text-ink-secondary"}`}>{scale(d.m.overdue)}</td>
