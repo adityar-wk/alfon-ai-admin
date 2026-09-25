@@ -62,18 +62,12 @@ const ENG_LABEL: Record<string, string> = {
   Responded: "Responded",
 };
 
+/** text colour only, no chip */
 const ENG_PILL: Record<string, string> = {
-  "Not Contacted": "bg-gray-100 text-gray-600",
-  "Awaiting Response": "bg-blue-50 text-blue-700",
-  Engaged: "bg-emerald-50 text-emerald-700",
-  Responded: "bg-emerald-50 text-emerald-700",
-};
-
-const ENG_DOT: Record<string, string> = {
-  "Not Contacted": "bg-gray-300",
-  "Awaiting Response": "bg-blue-500",
-  Engaged: "bg-emerald-500",
-  Responded: "bg-emerald-500",
+  "Not Contacted": "text-slate-500",
+  "Awaiting Response": "text-sky-600",
+  Engaged: "text-emerald-600",
+  Responded: "text-emerald-600",
 };
 
 function Avatar({ g, size = 36, soft = false }: { g: PreGuest; size?: number; soft?: boolean }) {
@@ -395,8 +389,8 @@ export default function PreArrival() {
                         <div className="text-[12px] text-ink-tertiary">{g.time}</div>
                       </td>
                       <td className="py-3.5 pr-3">
-                        <span className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-[12px] font-medium ${ENG_PILL[g.eng]}`}>
-                          <span className={`h-1.5 w-1.5 rounded-full ${ENG_DOT[g.eng]}`} /> {ENG_LABEL[g.eng]}
+                        <span className={`whitespace-nowrap text-[14px] font-medium ${ENG_PILL[g.eng]}`}>
+                          {ENG_LABEL[g.eng]}
                         </span>
                       </td>
                       <td className="whitespace-nowrap py-3.5 pr-3 text-[14px] text-ink-secondary">{g.last}</td>
