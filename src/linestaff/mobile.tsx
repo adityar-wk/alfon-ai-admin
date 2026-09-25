@@ -1,7 +1,7 @@
 import { Button } from "../components/ui";
 import { useClock, secsFromMinutes, formatClock } from "../data/attention";
 import { useEffect, useState, type ReactNode } from "react";
-import { AlertCircle, DoorOpen, User, UserRoundPlus, Signal, Wifi, BatteryFull, ChevronLeft, ChevronRight, ChevronDown, X, Clock } from "lucide-react";
+import { AlertCircle, Search, DoorOpen, User, UserRoundPlus, Signal, Wifi, BatteryFull, ChevronLeft, ChevronRight, ChevronDown, X, Clock } from "lucide-react";
 
 /* ============================================================
    Shared mobile kit — used by the Line Staff, Supervisor and
@@ -17,7 +17,8 @@ export const PRIORITY_STYLE: Record<Priority, { dot: string; pill: string }> = {
   Critical: { dot: "bg-red-500", pill: "bg-red-50 text-red-700" },
 };
 
-export const CARD_SHADOW = "shadow-[0_2px_10px_rgba(17,17,17,0.08)]";
+/** every phone card shares one flat style: hairline border, no elevation */
+export const CARD_SHADOW = "border border-[#E6E4DF]";
 
 /* ---------- phone ---------- */
 
@@ -339,6 +340,21 @@ export function PersonRow({
   );
 }
 
+/** the one search bar used on every phone screen */
+export function SearchField({ value, onChange, placeholder }: { value: string; onChange: (v: string) => void; placeholder: string }) {
+  return (
+    <div className="relative flex-1">
+      <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-tertiary" />
+      <input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="h-11 w-full rounded-full border border-[#DAD7CF] bg-white pl-10 pr-3 text-[14px] outline-none placeholder:text-ink-tertiary focus:border-brand"
+      />
+    </div>
+  );
+}
+
 /* ---------- controls ---------- */
 
 export function Chips<T extends string>({ items, active, onChange, counts, flat = false }: { items: readonly T[]; active: T; onChange: (v: T) => void; counts?: Partial<Record<T, number>>; flat?: boolean }) {
@@ -360,7 +376,7 @@ export function Chips<T extends string>({ items, active, onChange, counts, flat 
 
 export function Segmented<T extends string>({ items, active, onChange, colors }: { items: readonly T[]; active: T; onChange: (v: T) => void; colors?: Partial<Record<T, string>> }) {
   return (
-    <div className="flex rounded-2xl bg-white p-1 shadow-sm">
+    <div className="flex rounded-2xl border border-[#E6E4DF] bg-white p-1">
       {items.map((c) => (
         <button
           key={c}

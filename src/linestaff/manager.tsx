@@ -18,6 +18,7 @@ import {
   useNav, useToast, CARD_SHADOW, TextHeader, SlaCountdown, fmtMins, CompensationSheet, type Priority,
   ChatRow,
   PersonRow,
+  SearchField,
   sampleUnread,
 } from "./mobile";
 import { StaffPicker, ReasonSheet, StatusTag, STATUS_LABEL, STATUS_TONE, activeCount, atRiskCount, overdueCount, isOpen, isAtRisk, isOverdue } from "./parts";
@@ -423,15 +424,7 @@ export function ManagerPrototype() {
         </div>
       </div>
       <div className="mt-3 px-6">
-        <div className="relative">
-          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-tertiary" />
-          <input
-            value={taskQuery}
-            onChange={(e) => setTaskQuery(e.target.value)}
-            placeholder="Search room, guest or task"
-            className="h-11 w-full rounded-full border border-[#E6E4DF] bg-white pl-10 pr-3 text-[14px] outline-none placeholder:text-ink-tertiary focus:ring-2 focus:ring-brand/30"
-          />
-        </div>
+        <SearchField value={taskQuery} onChange={setTaskQuery} placeholder="Search room, guest or task" />
       </div>
       <div className="mt-3"><Chips flat items={TASK_FILTERS} active={taskFilter} onChange={setTaskFilter} counts={taskChipCounts} /></div>
       <div className="mt-3 space-y-3 px-6">
@@ -460,15 +453,7 @@ export function ManagerPrototype() {
   );
   const searchRow = (value: string, onChange: (v: string) => void, placeholder: string, filter: React.ReactNode) => (
     <div className="flex items-center gap-2 px-6">
-      <div className="relative flex-1">
-        <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-tertiary" />
-        <input
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
-          className="h-11 w-full rounded-full bg-white pl-10 pr-3 text-[14px] shadow-sm outline-none placeholder:text-ink-tertiary focus:ring-2 focus:ring-brand/30"
-        />
-      </div>
+      <SearchField value={value} onChange={onChange} placeholder={placeholder} />
       {filter}
     </div>
   );
@@ -505,37 +490,8 @@ export function ManagerPrototype() {
           </div>
         </div>
 
-        <div className="mt-4"><Segmented items={STAFF_TABS} active={staffTab} onChange={setStaffTab} /></div>
-
-        {staffTab === "Overview" && (
-          <div className={`mt-4 rounded-2xl bg-white p-4 ${CARD_SHADOW}`}>
-            <KvRow label="Phone">{staffEntry.phone}</KvRow>
-            <KvRow label="Role">{staffEntry.role}</KvRow>
-            <KvRow label="Shift">{staffShift}</KvRow>
-            <div className="py-2.5">
-              <div className="mb-1.5 text-ink-secondary text-[13px]">Skills</div>
-              <div className="flex flex-wrap gap-1.5">
-                {SKILLS_BY_ROLE[staffEntry.role].map((k) => (
-                  <span key={k} className="rounded-full bg-[#F1F1F3] px-2.5 py-1 text-[12px] text-ink-secondary">{k}</span>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {staffTab === "Schedule" && (
-          <div className={`mt-4 rounded-2xl bg-white p-4 ${CARD_SHADOW}`}>
-            {STAFF_DAYS.map((d, i) => (
-              <div key={d} className="flex items-center justify-between border-b border-line/70 py-2.5 text-[13px] last:border-0">
-                <span className="w-10 font-semibold text-ink">{d}</span>
-                <span className={i === staffDayOff ? "text-ink-tertiary" : "text-ink-secondary"}>{i === staffDayOff ? "Off" : staffShift}</span>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {staffTab === "Performance" && (
-          <div className="mt-4">
+        {(
+          <div className="mt-5">
             <div className="grid grid-cols-2 gap-3">
               {[
                 ["Tasks completed", `${18 + staffIndex * 3}`],
@@ -651,15 +607,7 @@ export function ManagerPrototype() {
         {bellBtn}
       </div>
       <div className="mt-3 flex items-center gap-2 px-6">
-        <div className="relative flex-1">
-          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-tertiary" />
-          <input
-            value={guestQuery}
-            onChange={(e) => setGuestQuery(e.target.value)}
-            placeholder="Search guest or room"
-            className="h-11 w-full rounded-full border border-[#E6E4DF] bg-white pl-10 pr-3 text-[14px] outline-none placeholder:text-ink-tertiary focus:ring-2 focus:ring-brand/30"
-          />
-        </div>
+        <SearchField value={guestQuery} onChange={setGuestQuery} placeholder="Search guest or room" />
         <button
           onClick={() => setNewChatOpen(true)}
           aria-label="New chat"
@@ -1111,7 +1059,7 @@ export function ManagerPrototype() {
             <PersonRow
               key={row.g.name}
               name={row.g.name}
-              sub={room}
+              sub={row.stage === "Current" ? room : undefined}
               detail={stay}
               right={right}
               tone={row.stage === "Current" && row.g.complaint ? "bg-red-50 text-red-600" : undefined}

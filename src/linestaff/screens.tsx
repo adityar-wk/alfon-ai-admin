@@ -23,6 +23,7 @@ import {
   CARD_SHADOW,
   type Priority,
   ChatRow,
+  SearchField,
   Chips,
   sampleUnread,
 } from "./mobile";
@@ -327,15 +328,7 @@ export function LineStaffPrototype() {
       <div className="h-full overflow-y-auto pb-28 no-scrollbar">
         <h1 className="px-6 pb-2 pt-4 text-[20px] font-semibold text-ink">Chats</h1>
         <div className="flex items-center gap-2 px-6">
-          <div className="relative flex-1">
-            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-tertiary" />
-            <input
-              value={guestQuery}
-              onChange={(e) => setGuestQuery(e.target.value)}
-              placeholder="Search guest or room"
-              className="h-11 w-full rounded-full border border-[#E6E4DF] bg-white pl-10 pr-3 text-[14px] outline-none placeholder:text-ink-tertiary focus:ring-2 focus:ring-brand/30"
-            />
-          </div>
+          <SearchField value={guestQuery} onChange={setGuestQuery} placeholder="Search guest or room" />
           <button
             onClick={() => setNewChatOpen(true)}
             aria-label="New chat"
