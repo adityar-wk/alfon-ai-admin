@@ -963,13 +963,12 @@ export function ManagerPrototype() {
     <div className="flex h-full flex-col">
       <ScreenHeader title="More" onBack={nav.back} />
       <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-6 pt-2 no-scrollbar">
-        <div className="rounded-2xl bg-[#F6F6F8] p-5">
+        <div className="-mx-6 bg-[#F6F6F8] px-6 py-6">
           <div className="flex items-center gap-4">
             <Avatar name={ME} size={64} tone="bg-brand text-white" />
             <div className="min-w-0 leading-tight">
               <div className="truncate text-[18px] font-bold text-ink">{ME}</div>
-              <div className="mt-1 text-[13px] font-medium text-brand">Housekeeping Manager</div>
-              <div className="mt-0.5 text-[12px] text-ink-secondary">Housekeeping · Department Head</div>
+              <div className="mt-1 text-[13px] text-ink-secondary">Housekeeping Manager</div>
             </div>
           </div>
         </div>
