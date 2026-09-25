@@ -65,7 +65,7 @@ const RAW_TASKS: MTask[] = [
   {
     id: "t2", room: "Room 623", guest: "Liam Anderson", title: "Carpet vacuum & spot clean",
     note: "Carpet vacuum and spot clean requested by the guest.", priority: "Low", status: "assigned",
-    owner: "Lisa Morgan", support: [], slaTotal: 60, slaLeft: 52, isNew: true, createdAt: "10:22 AM", pickup: "Awaiting acceptance · 4 min",
+    owner: "Lisa Morgan", support: [], slaTotal: 60, slaLeft: 52, isNew: true, createdAt: "10:22 AM", pickup: "Not picked up · 4 min",
     summary: "Small stain near the window from a spilled drink. Guest is out until 2 PM.", prefs: ["Non-smoking"], convo: "Guest apologised for the spill; no urgency.",
     timeline: [{ t: "10:22", text: "Request created" }, { t: "10:23", text: "Assigned to Lisa Morgan" }], notes: [],
   },
@@ -287,18 +287,18 @@ export const GUEST_PROFILES: Record<string, GuestProfileInfo> = {
   "Omar Haddad": gp("Room 1012", "Deluxe King", "United Arab Emirates", "🇦🇪", "Sep 19, 2026", "Sep 21, 2026", 2, "Omar stayed for a short business trip and preferred Arabic-language communication.", ["High floor, king bed", "Halal only", "Arabic, English", "Cool (21°C)", "6:00 AM", "Standard inventory"], "+971 50 555 0166", "omar.haddad@email.com"),
 };
 
-export type RoomStatus = "Clean" | "In Progress" | "Needs Inspection" | "Out of Service";
+export type RoomStatus = "Clean" | "Cleaning" | "Needs Inspection" | "Out of Service";
 export type HkRoom = { number: string; floor: number; status: RoomStatus; assignee: string | null; /** cleaning left open for any line staff to pick up (never for inspections) */ open?: boolean };
 export const ROOMS: HkRoom[] = [
-  { number: "Room 305", floor: 3, status: "In Progress", assignee: "Maria Santos" },
+  { number: "Room 305", floor: 3, status: "Cleaning", assignee: "Maria Santos" },
   { number: "Room 410", floor: 4, status: "Clean", assignee: null },
-  { number: "Room 501", floor: 5, status: "In Progress", assignee: "Aanya Khan" },
+  { number: "Room 501", floor: 5, status: "Cleaning", assignee: "Aanya Khan" },
   { number: "Room 623", floor: 6, status: "Needs Inspection", assignee: null },
   { number: "Room 704", floor: 7, status: "Needs Inspection", assignee: null },
   { number: "Room 812", floor: 8, status: "Needs Inspection", assignee: null },
-  { number: "Room 908", floor: 9, status: "In Progress", assignee: "Aanya Khan" },
+  { number: "Room 908", floor: 9, status: "Cleaning", assignee: "Aanya Khan" },
   { number: "Room 1103", floor: 11, status: "Out of Service", assignee: null },
-  { number: "Room 1204", floor: 12, status: "In Progress", assignee: "Fatima Khan" },
+  { number: "Room 1204", floor: 12, status: "Cleaning", assignee: "Fatima Khan" },
   { number: "Room 1501", floor: 15, status: "Out of Service", assignee: null },
   { number: "Room 2104", floor: 21, status: "Clean", assignee: null },
   { number: "Room 227", floor: 2, status: "Clean", assignee: null },

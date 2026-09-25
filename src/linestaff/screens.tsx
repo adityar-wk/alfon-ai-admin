@@ -301,10 +301,10 @@ export function LineStaffPrototype() {
           </div>
         </div>
 
-        <div className="mt-5"><SectionTitle dot={false} small action={<span className="text-[12px] text-ink-tertiary">{inProgress.length}</span>}>In progress</SectionTitle></div>
+        <div className="mt-5"><SectionTitle dot={false} small action={<span className="text-[12px] text-ink-tertiary">{inProgress.length}</span>}>Active</SectionTitle></div>
         <div className="mt-2.5 space-y-3 px-6">
           {inProgress.map((t) => <LsCard key={t.id} t={t} onOpen={() => openTask(t.id)} />)}
-          {!inProgress.length && <p className="rounded-2xl bg-white p-4 text-center text-[12px] text-ink-tertiary">Nothing in progress. Accept a pending task.</p>}
+          {!inProgress.length && <p className="rounded-2xl bg-white p-4 text-center text-[12px] text-ink-tertiary">Nothing active. Accept a pending task.</p>}
         </div>
 
         <div className="mt-6"><SectionTitle dot={false} small action={<span className="text-[12px] text-ink-tertiary">{pending.length}</span>}>Pending</SectionTitle></div>
@@ -426,9 +426,11 @@ export function LineStaffPrototype() {
           <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-tint text-brand"><BedDouble className="h-6 w-6" /></span>
           <div className="min-w-0">
             <h2 className="text-[18px] font-bold leading-snug text-ink">{active.title}</h2>
-            <span className={`mt-1 inline-block rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${active.status === "completed" ? "bg-emerald-50 text-emerald-600" : active.status === "progress" ? "bg-blue-50 text-blue-600" : "bg-amber-50 text-amber-700"}`}>
-              {active.status === "completed" ? "Completed" : active.status === "progress" ? "In progress" : "Pending"}
-            </span>
+            {active.status !== "progress" && (
+              <span className={`mt-1 inline-block text-[12px] font-medium ${active.status === "completed" ? "text-emerald-600" : "text-slate-500"}`}>
+                {active.status === "completed" ? "Completed" : "Pending"}
+              </span>
+            )}
             {active.escalatedTo && active.status !== "completed" && <span className="ml-1.5 mt-1 inline-flex items-center gap-1 rounded-full bg-red-50 px-2.5 py-0.5 text-[11px] font-semibold text-red-600"><ArrowUpRight className="h-3 w-3" /> Escalated to {active.escalatedTo}</span>}
           </div>
         </div>

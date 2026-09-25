@@ -17,8 +17,8 @@ export const isOverdue = (t: MTask) => isOpen(t) && t.slaLeft < 0;
 
 export const STATUS_LABEL: Record<MTask["status"], string> = {
   unassigned: "Unassigned",
-  assigned: "Awaiting acceptance",
-  progress: "In progress",
+  assigned: "",
+  progress: "",
   completed: "Completed",
   unable: "Unable to complete",
 };
@@ -31,6 +31,7 @@ export const STATUS_TONE: Record<MTask["status"], string> = {
 };
 
 export function StatusTag({ s }: { s: MTask["status"] }) {
+  if (!STATUS_LABEL[s]) return null;
   return <span className={`text-[12px] font-medium ${STATUS_TONE[s]}`}>{STATUS_LABEL[s]}</span>;
 }
 

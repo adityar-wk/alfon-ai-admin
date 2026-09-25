@@ -37,16 +37,16 @@ const GUEST_FILTERS = ["All", "Unread", "Complaints", "Open requests", "Pre-arri
 type GuestFilter = (typeof GUEST_FILTERS)[number];
 const ROSTER_STAGE_FILTERS = ["All", "In-house", "Pre-arrival", "Checked out"] as const;
 type RosterStage = (typeof ROSTER_STAGE_FILTERS)[number];
-const ROOM_STATUS_FILTERS = ["All", "In Progress", "Needs Inspection", "Out of Service", "Clean"] as const;
+const ROOM_STATUS_FILTERS = ["All", "Cleaning", "Needs Inspection", "Out of Service", "Clean"] as const;
 type RoomStatusFilter = (typeof ROOM_STATUS_FILTERS)[number];
-const ROOM_STATUSES = ["Clean", "In Progress", "Needs Inspection", "Out of Service"] as const;
+const ROOM_STATUSES = ["Clean", "Cleaning", "Needs Inspection", "Out of Service"] as const;
 const ROOM_STATUS_TONE: Record<RoomStatus, string> = {
   Clean: "bg-emerald-50 text-emerald-600",
-  "In Progress": "bg-blue-50 text-blue-600",
+  "Cleaning": "bg-blue-50 text-blue-600",
   "Needs Inspection": "bg-amber-50 text-amber-700",
   "Out of Service": "bg-red-50 text-red-600",
 };
-const TASK_FILTERS = ["All", "Unassigned", "In Progress", "At Risk", "Overdue", "Completed"] as const;
+const TASK_FILTERS = ["All", "Unassigned", "At Risk", "Overdue", "Completed"] as const;
 type TaskFilter = (typeof TASK_FILTERS)[number];
 const STAFF_TABS = ["Overview", "Schedule", "Performance"] as const;
 type StaffTab = (typeof STAFF_TABS)[number];
@@ -224,14 +224,14 @@ export function ManagerPrototype() {
       left: t.status === "completed" ? undefined : t.slaLeft,
       total: t.slaTotal,
       done: t.status === "completed",
-      status: escalated ? undefined : { label: STATUS_LABEL[t.status], tone: STATUS_TONE[t.status] },
+      status: escalated || !STATUS_LABEL[t.status] ? undefined : { label: STATUS_LABEL[t.status], tone: STATUS_TONE[t.status] },
       flags,
     };
   };
   const card = (t: MTask) => <TaskCard key={t.id} {...cardProps(t)} onClick={() => open(t.id)} />;
 
   const stuckAt = (t: MTask) =>
-    t.status === "unassigned" ? "Not picked up — no owner" : t.status === "assigned" ? `Awaiting acceptance by ${t.owner}` : t.status === "unable" ? `Blocked — ${t.resolution ?? "unable to complete"}` : `In progress with ${t.owner}`;
+    t.status === "unassigned" ? "Not picked up — no owner" : t.status === "unable" ? `Blocked — ${t.resolution ?? "unable to complete"}` : `With ${t.owner}`;
 
   const services = DEPARTMENTS.find((d) => d.name === "Housekeeping")?.services.filter((sv) => sv.active).map((sv) => sv.name) ?? [];
 
@@ -239,7 +239,6 @@ export function ManagerPrototype() {
   const taskFilterFn: Record<TaskFilter, (t: MTask) => boolean> = {
     All: () => true,
     Unassigned: (t) => t.status === "unassigned",
-    "In Progress": (t) => t.status === "progress" || t.status === "assigned",
     "At Risk": isAtRisk,
     Overdue: isOverdue,
     Completed: (t) => t.status === "completed",
@@ -389,11 +388,11 @@ export function ManagerPrototype() {
       <div className="mt-5"><SectionTitle tone="bg-brand">Department operations</SectionTitle></div>
       <div className="mt-3 grid grid-cols-3 gap-3 px-6">
         <StatCard label="Open tasks" value={counts.open} onClick={() => setFilter("All")} />
-        <StatCard label="SLA at risk" value={counts.risk} tone="text-amber-600" onClick={() => setFilter("SLA at risk")} />
-        <StatCard label="Overdue" value={counts.over} tone="text-red-600" onClick={() => setFilter("SLA breach")} />
-        <StatCard label="Escalations" value={counts.esc} tone="text-brand" onClick={() => setFilter("All")} />
-        <StatCard label="Complaints" value={counts.complaints} tone="text-violet-600" onClick={() => setFilter("Guest complaint")} />
-        <StatCard label="Unassigned critical" value={counts.critical} tone="text-red-600" onClick={() => { const t = tasks.find((x) => x.status === "unassigned" && (x.priority === "High" || x.priority === "Critical")); if (t) open(t.id); }} />
+        <StatCard label="SLA at risk" value={counts.risk} onClick={() => setFilter("SLA at risk")} />
+        <StatCard label="Overdue" value={counts.over} onClick={() => setFilter("SLA breach")} />
+        <StatCard label="Escalations" value={counts.esc} onClick={() => setFilter("All")} />
+        <StatCard label="Complaints" value={counts.complaints} onClick={() => setFilter("Guest complaint")} />
+        <StatCard label="Unassigned critical" value={counts.critical} onClick={() => { const t = tasks.find((x) => x.status === "unassigned" && (x.priority === "High" || x.priority === "Critical")); if (t) open(t.id); }} />
       </div>
 
       <div className="mt-7"><SectionTitle tone="bg-red-500">Escalations</SectionTitle></div>
@@ -584,7 +583,7 @@ export function ManagerPrototype() {
           <button key={r.number} onClick={() => setRoomSheet(r.number)} className={`flex w-full items-center justify-between gap-3 rounded-2xl bg-white p-3.5 text-left ${CARD_SHADOW}`}>
             <div className="min-w-0">
               <div className="text-[14px] font-semibold text-ink">{r.number}</div>
-              {(r.assignee || r.status === "Needs Inspection" || r.status === "In Progress") && <div className="mt-0.5 text-[12px] text-ink-tertiary">{r.assignee ? `${r.status === "In Progress" ? "Cleaning" : "Inspector"} · ${r.assignee}` : r.status === "In Progress" ? (r.open ? "Open task · anyone can pick it up" : "Cleaner not assigned") : "Inspector not assigned"}</div>}
+              {(r.assignee || r.status === "Needs Inspection" || r.status === "Cleaning") && <div className="mt-0.5 text-[12px] text-ink-tertiary">{r.assignee ? `${r.status === "Cleaning" ? "Cleaning" : "Inspector"} · ${r.assignee}` : r.status === "Cleaning" ? (r.open ? "Open task · anyone can pick it up" : "Cleaner not assigned") : "Inspector not assigned"}</div>}
             </div>
             <span className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold ${ROOM_STATUS_TONE[r.status]}`}>{r.status}</span>
           </button>
@@ -600,11 +599,11 @@ export function ManagerPrototype() {
         <div className="mb-4 flex items-center gap-3 rounded-2xl bg-[#F6F6F8] p-3">
           <Avatar name={roomEntry.assignee} />
           <div className="leading-tight">
-            <div className="text-[11px] text-ink-tertiary">{roomEntry.status === "In Progress" ? "Cleaning in progress by" : "Inspection assigned to"}</div>
+            <div className="text-[11px] text-ink-tertiary">{roomEntry.status === "Cleaning" ? "Cleaning by" : "Inspection assigned to"}</div>
             <div className="text-[14px] font-semibold text-ink">{roomEntry.assignee}</div>
           </div>
         </div>
-      ) : roomEntry.status === "In Progress" ? (
+      ) : roomEntry.status === "Cleaning" ? (
         <p className={`mb-4 rounded-2xl p-3 text-[13px] ${roomEntry.open ? "bg-amber-50 text-amber-700" : "bg-[#F6F6F8] text-ink-secondary"}`}>
           {roomEntry.open ? "Open task — waiting for a line staff member to pick it up." : "No staff assigned yet."}
         </p>
@@ -615,10 +614,10 @@ export function ManagerPrototype() {
         active={roomEntry.status}
         onChange={(v) => { setRooms((rs) => rs.map((r) => (r.number === roomEntry.number ? { ...r, status: v, assignee: v === r.status ? r.assignee : null, open: v === r.status ? r.open : false } : r))); flash(`${roomEntry.number} marked ${v}`); }}
       />
-      {(roomEntry.status === "Needs Inspection" || roomEntry.status === "In Progress") && !roomEntry.assignee && (
+      {(roomEntry.status === "Needs Inspection" || roomEntry.status === "Cleaning") && !roomEntry.assignee && (
         <>
           <div className="mt-5" />
-          {roomEntry.status === "In Progress" && !roomEntry.open && (
+          {roomEntry.status === "Cleaning" && !roomEntry.open && (
             <>
               <Button variant="outline" className="w-full" onClick={() => { setRooms((rs) => rs.map((r) => (r.number === roomEntry.number ? { ...r, open: true } : r))); flash(`${roomEntry.number} is now open for line staff to pick up`); }}>
                 Make it an open task — anyone can pick it up
@@ -628,7 +627,7 @@ export function ManagerPrototype() {
               </div>
             </>
           )}
-          <Label>{roomEntry.status === "In Progress" ? "Assign cleaner" : "Assign inspector"}</Label>
+          <Label>{roomEntry.status === "Cleaning" ? "Assign cleaner" : "Assign inspector"}</Label>
           <StaffPicker
             tasks={tasks}
             exclude={roomEntry.assignee ? [roomEntry.assignee] : []}
@@ -1000,8 +999,8 @@ export function ManagerPrototype() {
       <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 pb-6 pt-2 no-scrollbar">
         <div className="grid grid-cols-2 gap-3">
           <StatCard label="Total tasks" value={HK_DEPT.tasks.toLocaleString()} />
-          <StatCard label="Completed" value={`${HK_METRICS.done}%`} tone="text-emerald-600" />
-          <StatCard label="Overdue" value={HK_METRICS.overdue} tone="text-red-600" />
+          <StatCard label="Completed" value={`${HK_METRICS.done}%`} />
+          <StatCard label="Overdue" value={HK_METRICS.overdue} />
           <StatCard label="Avg response" value={HK_METRICS.resp} />
         </div>
 

@@ -18,7 +18,7 @@ const INFO: Record<Tab, { title: string; blurb: string; flows: string[]; include
     flows: [
       "Bottom nav: Tasks and Chats",
       "Assigned by a supervisor or mid manager: a drop-down banner shows the task and its SLA (no Accept needed — it is already yours)",
-      "Tasks: In progress, Pending and Completed tasks in one list",
+      "Tasks: Active, Pending and Completed tasks in one list",
       "Each card shows the task name first, the room second and the SLA timer",
       "Pending cards have ✕ Reject and Accept inside the card",
       "Tap a card → Task details (task, room and guest details; tap the guest to open their profile)",
