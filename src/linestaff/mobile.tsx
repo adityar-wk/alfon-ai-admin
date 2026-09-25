@@ -259,9 +259,9 @@ export function ChatRow({
       {!plain && (
         <span className="flex shrink-0 flex-col items-end justify-between gap-2 self-stretch py-0.5">
           <span className="flex h-5 items-center">
-            {unread > 0 && <span aria-label="Unread" className="h-2.5 w-2.5 rounded-full bg-ink" />}
+            {unread > 0 && <span aria-label="Unread" className="h-2.5 w-2.5 rounded-full bg-brand" />}
           </span>
-          <span className="text-[12px] text-ink-tertiary">{chatTime(name)}</span>
+          <span className={`text-[12px] ${unread > 0 ? "font-bold text-brand" : "text-ink-tertiary"}`}>{chatTime(name)}</span>
         </span>
       )}
     </>
