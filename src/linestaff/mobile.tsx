@@ -1,7 +1,7 @@
 import { Button } from "../components/ui";
 import { useClock, secsFromMinutes, formatClock } from "../data/attention";
 import { useEffect, useState, type ReactNode } from "react";
-import { AlertCircle, DoorOpen, User, Signal, Wifi, BatteryFull, ChevronLeft, ChevronRight, ChevronDown, X, Clock } from "lucide-react";
+import { AlertCircle, DoorOpen, User, UserRoundPlus, Signal, Wifi, BatteryFull, ChevronLeft, ChevronRight, ChevronDown, X, Clock } from "lucide-react";
 
 /* ============================================================
    Shared mobile kit — used by the Line Staff, Supervisor and
@@ -208,9 +208,9 @@ export function TaskCard({
 }) {
   const initials = (n: string) => n.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
   return (
-    <div className={`relative rounded-2xl border border-[#E6E4DF] bg-white px-5 py-4 ${done ? "opacity-55 grayscale-[0.5]" : ""}`}>
+    <div className={`relative rounded-2xl border border-[#E6E4DF] bg-white px-5 py-4`}>
       <div onClick={onClick} role={onClick ? "button" : undefined} className={onClick ? "cursor-pointer active:scale-[0.99]" : ""}>
-        <div className="font-display text-[16px] font-semibold leading-snug text-ink">{note}</div>
+        <div className={`font-display text-[16px] font-semibold leading-snug ${done ? "text-ink-secondary" : "text-ink"}`}>{note}</div>
         <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px]">
           <span className="flex items-center gap-1 font-medium text-ink-secondary">
             {/^Room\s/i.test(room) ? <><DoorOpen className="h-[15px] w-[15px]" />{room.replace(/^Room\s+/i, "")}</> : room}
@@ -228,7 +228,7 @@ export function TaskCard({
               </span>
             ) : (
               <span className="flex items-center gap-2 text-[13px] text-ink-tertiary">
-                <span className="flex h-[26px] w-[26px] items-center justify-center rounded-full border border-dashed border-gray-300"><User className="h-3.5 w-3.5" /></span>
+                <span className="flex h-[26px] w-[26px] items-center justify-center rounded-full border border-dashed border-gray-300"><UserRoundPlus className="h-3.5 w-3.5" /></span>
                 Unassigned
               </span>
             )
