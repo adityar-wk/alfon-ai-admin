@@ -92,7 +92,7 @@ export default function GuestChats() {
               <div className="min-h-0 flex-1 space-y-3 overflow-y-auto py-4">
                 {list.map((g) => (
                   <button key={g.id} onClick={() => setSelectedId(g.id)} title={`${g.name} · Room ${g.room}`} aria-label={g.name} className="flex w-full justify-center">
-                    <span className={`flex h-11 w-11 items-center justify-center rounded-full text-[13px] font-semibold ${g.tint} ${g.id === guest.id ? "ring-2 ring-ink/20 ring-offset-2" : ""}`}>{g.initials}</span>
+                    <span className={`flex h-11 w-11 items-center justify-center rounded-full font-display text-[13px] font-semibold ${g.tint} ${g.id === guest.id ? "ring-2 ring-ink/20 ring-offset-2" : ""}`}>{g.initials}</span>
                   </button>
                 ))}
               </div>
@@ -153,7 +153,7 @@ export default function GuestChats() {
                       onClick={() => setSelectedId(g.id)}
                       className={`flex w-full items-start gap-3.5 px-6 py-4 text-left hover:bg-subtle/70 ${g.id === guest.id ? "bg-[#F6F7F9]" : ""}`}
                     >
-                      <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-[13px] font-semibold ${g.tint}`}>{g.initials}</span>
+                      <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full font-display text-[13px] font-semibold ${g.tint}`}>{g.initials}</span>
                       <span className="min-w-0 flex-1">
                         <span className="flex items-baseline justify-between gap-2">
                           <span className="truncate text-[15px] font-semibold text-ink">{g.name}</span>
@@ -177,7 +177,7 @@ export default function GuestChats() {
         {/* ---------------- chat ---------------- */}
         <div className={`flex min-w-0 flex-1 flex-col overflow-hidden ${CARD}`}>
           <div className="flex items-center gap-3.5 border-b border-line/60 px-7 py-4">
-            <span className={`flex h-11 w-11 items-center justify-center rounded-full text-[13px] font-semibold ${guest.tint}`}>{guest.initials}</span>
+            <span className={`flex h-11 w-11 items-center justify-center rounded-full font-display text-[13px] font-semibold ${guest.tint}`}>{guest.initials}</span>
             <div className="min-w-0 flex-1">
               <div className="text-[17px] font-bold leading-tight text-ink">{guest.name}</div>
               <div className="mt-0.5 text-[13px] text-ink-tertiary">Room {guest.room} · {guest.nights} Nights Stay</div>
@@ -210,7 +210,7 @@ export default function GuestChats() {
             <Link to={`/guests/${guest.id}`} className="text-[13px] font-medium text-brand">View Profile</Link>
           </div>
           <div className="mt-5 flex flex-col items-center text-center">
-            <span className={`flex h-16 w-16 items-center justify-center rounded-full text-[20px] font-semibold ${guest.tint}`}>{guest.initials}</span>
+            <span className={`flex h-16 w-16 items-center justify-center rounded-full font-display text-[20px] font-semibold ${guest.tint}`}>{guest.initials}</span>
             <div className="mt-3 text-[18px] font-bold text-ink">{guest.name}</div>
           </div>
           <div className="mt-6 space-y-3.5 text-[14px] text-ink">

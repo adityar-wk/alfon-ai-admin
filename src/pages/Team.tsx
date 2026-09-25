@@ -99,7 +99,7 @@ function initials(name: string) {
 export function Avatar({ s, size = 36 }: { s: Staff; size?: number }) {
   return (
     <span
-      className={`flex shrink-0 items-center justify-center rounded-full text-[12px] font-semibold ${s.tint}`}
+      className={`flex shrink-0 items-center justify-center rounded-full font-display text-[12px] font-semibold ${s.tint}`}
       style={{ width: size, height: size, fontSize: size > 40 ? 18 : 12 }}
     >
       {initials(s.name)}

@@ -351,7 +351,7 @@ function GuestList({ activeId }: { activeId: number }) {
           const on = g.id === activeId;
           return (
             <Link key={g.id} to={`/guests/${g.id}`} className={`flex items-center gap-3 border-b border-line/60 px-4 py-3 ${on ? "bg-brand-tint/50" : "hover:bg-subtle"}`}>
-              <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[12px] font-semibold ${g.tint}`}>{g.initials}</span>
+              <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full font-display text-[12px] font-semibold ${g.tint}`}>{g.initials}</span>
               <span className="min-w-0 flex-1 leading-tight">
                 <span className="block truncate text-[14px] font-semibold text-ink">{g.name}</span>
                 <span className="block truncate text-[12px] text-ink-tertiary">Room {g.room} · {STATUS_LABEL[g.status]}</span>
@@ -449,7 +449,7 @@ export default function GuestProfile() {
           <div className="mx-auto max-w-[1400px] space-y-4">
             <Card className="p-5">
               <div className="flex items-start gap-4">
-                <span className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-full text-[20px] font-semibold ${guest.tint}`}>{guest.initials}</span>
+                <span className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-full font-display text-[20px] font-semibold ${guest.tint}`}>{guest.initials}</span>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <h1 className="text-[22px] font-bold leading-tight text-ink">{guest.name}</h1>
@@ -554,7 +554,7 @@ export default function GuestProfile() {
                         placeholder="Add an internal note…"
                         className="w-full rounded-lg bg-subtle p-2.5 text-[13px] outline-none placeholder:text-ink-tertiary focus:ring-1 focus:ring-brand"
                       />
-                      <button onClick={addNote} disabled={!draft.trim()} className="mt-2 rounded-lg bg-brand px-3.5 py-1.5 text-[12px] font-semibold text-white disabled:opacity-40">Add Note</button>
+                      <button onClick={addNote} disabled={!draft.trim()} className="mt-2 rounded-control bg-brand px-[18px] py-2.5 text-[14px] font-semibold text-white transition-colors duration-200 hover:bg-brand-hover disabled:opacity-40">Add Note</button>
                     </div>
                   )}
                   <div className="space-y-2">

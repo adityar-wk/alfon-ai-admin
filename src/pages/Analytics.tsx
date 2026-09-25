@@ -644,7 +644,7 @@ function SatisfactionChart({ values }: { values: number[] }) {
       </defs>
       {[5, 4.5, 4, 3.5].map((t) => (
         <g key={t}>
-          <line x1={L} x2={W - R} y1={y(t)} y2={y(t)} stroke="#EDEDED" />
+          <line x1={L} x2={W - R} y1={y(t)} y2={y(t)} stroke="#F0F0F0" />
           <text x={L - 8} y={y(t) + 3} textAnchor="end" fontSize="10" fill="#9CA3AF">{t}</text>
         </g>
       ))}

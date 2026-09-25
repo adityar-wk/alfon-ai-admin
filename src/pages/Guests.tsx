@@ -185,7 +185,7 @@ export default function Guests() {
                   >
                     <td className="py-3.5 pl-6 pr-3">
                       <div className="flex items-center gap-3">
-                        <span className={`flex h-9 w-9 items-center justify-center rounded-full text-[11px] font-semibold ${g.tint}`}>
+                        <span className={`flex h-9 w-9 items-center justify-center rounded-full font-display text-[11px] font-semibold ${g.tint}`}>
                           {g.initials}
                         </span>
                         <span className="text-[13px] font-semibold text-ink">{g.name}</span>

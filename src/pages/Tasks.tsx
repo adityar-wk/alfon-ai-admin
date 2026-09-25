@@ -257,7 +257,7 @@ export default function Tasks() {
             <button
               key={s.label}
               onClick={() => setView(s.go)}
-              className="rounded-card border border-line bg-white p-4 text-left hover:border-brand/40"
+              className="rounded-card border border-line bg-white p-4 text-left shadow-card transition duration-200 hover:-translate-y-0.5 hover:shadow-lift"
             >
               <div className="text-[13px] text-ink-secondary">{s.label}</div>
               <div className={`mt-1 text-[26px] font-bold leading-tight ${s.label === "Escalated" ? "text-red-600" : s.label === "Complaints" ? "text-violet-600" : "text-ink"}`}>{s.value}</div>
@@ -1098,7 +1098,7 @@ function ManagerTaskWindow({
                   settleHelp();
                   setPanel(null);
                 }}
-                className="flex-1 rounded-lg bg-brand py-2.5 text-[13px] font-semibold text-white hover:bg-brand-hover disabled:opacity-40"
+                className="flex-1 rounded-control bg-brand py-2.5 text-[14px] font-semibold text-white transition-colors duration-200 hover:bg-brand-hover disabled:opacity-40"
               >
                 Reassign
               </button>

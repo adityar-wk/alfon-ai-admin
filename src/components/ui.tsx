@@ -253,7 +253,7 @@ export function Modal({
         onClick={onClose}
         className="absolute inset-0 bg-ink/40"
       />
-      <div className="relative w-full max-w-md rounded-xl bg-white shadow-xl">
+      <div className="relative w-full max-w-md rounded-card bg-white shadow-xl">
         <div className="flex items-center justify-between border-b border-line px-5 py-4">
           <h3 className="text-[15px] font-semibold text-ink">{title}</h3>
           <button

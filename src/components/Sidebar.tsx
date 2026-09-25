@@ -99,7 +99,7 @@ export function Sidebar() {
               to={to}
               className={({ isActive }) =>
                 [
-                  "group flex items-center gap-3 rounded-control px-3 py-2.5 text-[14px] font-medium transition-colors duration-200",
+                  "group flex items-center gap-2.5 rounded-control px-3 py-2.5 text-[14px] font-medium transition-colors duration-200",
                   isActive || forced ? "bg-brand-tint font-semibold text-brand" : "text-ink-secondary hover:bg-subtle hover:text-ink",
                 ].join(" ")
               }
@@ -151,7 +151,7 @@ export function Sidebar() {
           aria-expanded={open}
           className="flex w-full items-center gap-3 rounded-lg px-1.5 py-1.5 text-left hover:bg-subtle"
         >
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-tint text-xs font-semibold text-brand">
+          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-tint font-display text-xs font-semibold text-brand">
             {me.initials}
           </div>
           <div className="flex-1 leading-tight">
