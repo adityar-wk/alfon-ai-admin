@@ -9,16 +9,15 @@ import {
   Clock,
   MinusCircle,
   MoreVertical,
-  Filter,
+  SlidersHorizontal,
+  Search,
   Download,
-  Printer,
   RefreshCw,
-  Save,
 } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { SetupTabs } from "../components/SetupTabs";
 import { Drawer } from "../components/Drawer";
-import { Page, Card, Badge, Button, Tabs, Field, Input, Select } from "../components/ui";
+import { Page, Card, Badge, Button, Field, Input, Select } from "../components/ui";
 import { FakeQR } from "../components/FakeQR";
 
 type QR = "Generated" | "Pending" | "None";
@@ -62,8 +61,37 @@ function QrCell({ qr }: { qr: QR }) {
   );
 }
 
+type Room = (typeof ROOMS)[number];
+
 export default function RoomsQrSetup({ onboarding = false }: { onboarding?: boolean }) {
-  const [addOpen, setAddOpen] = useState(false);
+  const [drawer, setDrawer] = useState<Room | "new" | null>(null);
+  const [query, setQuery] = useState("");
+  const [floor, setFloor] = useState("all");
+  const [type, setType] = useState("all");
+  const [status, setStatus] = useState("all");
+  const [qr, setQr] = useState("all");
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [menuFor, setMenuFor] = useState<string | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
+
+  const flash = (m: string) => {
+    setToast(m);
+    window.setTimeout(() => setToast(null), 1800);
+  };
+
+  const floors = Array.from(new Set(ROOMS.map((r) => r.floor)));
+  const types = Array.from(new Set(ROOMS.map((r) => r.type)));
+  const rows = ROOMS.filter(
+    (r) =>
+      (!query.trim() || r.no.includes(query.trim())) &&
+      (floor === "all" || String(r.floor) === floor) &&
+      (type === "all" || r.type === type) &&
+      (status === "all" || r.status === status) &&
+      (qr === "all" || r.qr === qr),
+  );
+  const activeFilters = [floor, type, status, qr].filter((v) => v !== "all").length;
+  const clear = () => { setFloor("all"); setType("all"); setStatus("all"); setQr("all"); };
+
   return (
     <div className="flex min-h-0 flex-1">
       <div className="flex min-w-0 flex-1 flex-col">
@@ -75,54 +103,95 @@ export default function RoomsQrSetup({ onboarding = false }: { onboarding?: bool
           </p>
 
           <div className="flex flex-wrap gap-3">
-            <Button onClick={() => setAddOpen(true)}>
+            <Button onClick={() => setDrawer("new")}>
               <Plus className="h-4 w-4" /> Add Room
             </Button>
             <Button variant="outline">
               <Upload className="h-4 w-4" /> Upload Room List
             </Button>
-            <Button variant="outline">
+            <Button variant="outline" onClick={() => flash("QR codes generated for all rooms")}>
               <QrCode className="h-4 w-4" /> Generate All QR Codes
             </Button>
           </div>
 
           <Card className="mt-5 p-6">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <Tabs tabs={["All Rooms  152", "By Floor", "By Room Type"]} active="All Rooms  152" />
-              <div className="flex items-center gap-2">
-                <button className="flex items-center gap-1.5 rounded-lg border border-line px-2.5 py-1.5 text-[12px] text-ink-secondary">
-                  <Filter className="h-3.5 w-3.5" />
-                </button>
-                <div className="w-36">
-                  <Select className="h-9" defaultValue="all">
-                    <option value="all">All Floors</option>
-                  </Select>
-                </div>
-                <div className="w-40">
-                  <Select className="h-9" defaultValue="all">
-                    <option value="all">All Room Types</option>
-                  </Select>
-                </div>
+            <div className="relative flex flex-wrap items-center gap-3">
+              <div className="relative w-full max-w-xs">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-tertiary" />
+                <input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Search room number…"
+                  className="h-10 w-full rounded-lg border border-line bg-white pl-9 pr-3 text-[13px] outline-none placeholder:text-ink-tertiary focus:border-brand"
+                />
               </div>
+              <div className="relative shrink-0">
+                <button
+                  aria-label="Filters"
+                  onClick={() => setFilterOpen((o) => !o)}
+                  className={`relative flex h-10 w-10 items-center justify-center rounded-lg border ${filterOpen || activeFilters ? "border-brand bg-brand-tint text-brand" : "border-line bg-white text-ink-secondary hover:bg-subtle"}`}
+                >
+                  <SlidersHorizontal className="h-4 w-4" />
+                  {activeFilters > 0 && <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-brand px-1 text-[10px] font-semibold text-white">{activeFilters}</span>}
+                </button>
+                {filterOpen && (
+                  <div className="absolute left-0 top-12 z-20 w-[280px] space-y-3 rounded-xl border border-line bg-white p-4 shadow-lg">
+                    <Field label="Floor">
+                      <Select value={floor} onChange={(e) => setFloor(e.target.value)}>
+                        <option value="all">All floors</option>
+                        {floors.map((f) => <option key={f} value={f}>Floor {f}</option>)}
+                      </Select>
+                    </Field>
+                    <Field label="Room type">
+                      <Select value={type} onChange={(e) => setType(e.target.value)}>
+                        <option value="all">All room types</option>
+                        {types.map((t) => <option key={t}>{t}</option>)}
+                      </Select>
+                    </Field>
+                    <Field label="Status">
+                      <Select value={status} onChange={(e) => setStatus(e.target.value)}>
+                        <option value="all">All</option>
+                        <option>Active</option>
+                        <option>Out of Service</option>
+                      </Select>
+                    </Field>
+                    <Field label="QR status">
+                      <Select value={qr} onChange={(e) => setQr(e.target.value)}>
+                        <option value="all">All</option>
+                        <option value="Generated">QR Generated</option>
+                        <option value="Pending">QR Pending</option>
+                        <option value="None">QR Not Generated</option>
+                      </Select>
+                    </Field>
+                    <div className="flex items-center justify-between text-[12px] text-ink-secondary">
+                      <span>{rows.length} rooms match</span>
+                      <button onClick={() => setFilterOpen(false)} className="font-semibold text-brand">Done</button>
+                    </div>
+                  </div>
+                )}
+              </div>
+              {activeFilters > 0 && <button onClick={clear} className="text-[13px] font-medium text-brand">Clear filters</button>}
+              <span className="ml-auto text-[12px] text-ink-tertiary">{rows.length} of 152 rooms</span>
             </div>
 
-            <table className="mt-4 w-full text-left">
+            <table className="mt-5 w-full table-fixed text-left">
+              <colgroup><col /><col /><col /><col /><col /><col className="w-16" /></colgroup>
               <thead>
                 <tr className="border-b border-line text-[11px] uppercase tracking-wide text-ink-secondary">
-                  <th className="pb-2 font-medium">Room Number</th>
-                  <th className="pb-2 font-medium">Floor</th>
-                  <th className="pb-2 font-medium">Room Type</th>
-                  <th className="pb-2 font-medium">Status</th>
-                  <th className="pb-2 font-medium">QR Status</th>
-                  <th className="pb-2 font-medium">Actions</th>
+                  <th className="pb-3 font-medium">Room Number</th>
+                  <th className="pb-3 font-medium">Floor</th>
+                  <th className="pb-3 font-medium">Room Type</th>
+                  <th className="pb-3 font-medium">Status</th>
+                  <th className="pb-3 font-medium">QR Status</th>
+                  <th className="pb-3" aria-label="Actions" />
                 </tr>
               </thead>
               <tbody>
-                {ROOMS.map((r) => (
-                  <tr key={r.no} className="border-b border-line/70">
-                    <td className="py-3 text-[13px] font-medium text-ink">{r.no}</td>
-                    <td className="py-3 text-[13px] text-ink-secondary">{r.floor}</td>
-                    <td className="py-3">
+                {rows.map((r) => (
+                  <tr key={r.no} onClick={() => setDrawer(r)} className="cursor-pointer border-b border-line/70 hover:bg-subtle/50">
+                    <td className="py-4 text-[13px] font-medium text-ink">{r.no}</td>
+                    <td className="py-4 text-[13px] text-ink-secondary">{r.floor}</td>
+                    <td className="py-4">
                       <span className="flex items-center gap-2 text-[13px] text-ink">
                         {r.type === "Suite" ? (
                           <Crown className="h-4 w-4 text-amber-500" />
@@ -132,30 +201,35 @@ export default function RoomsQrSetup({ onboarding = false }: { onboarding?: bool
                         {r.type}
                       </span>
                     </td>
-                    <td className="py-3">
-                      <Badge tone={r.status === "Active" ? "success" : "neutral"}>
-                        {r.status}
-                      </Badge>
+                    <td className="py-4">
+                      <Badge tone={r.status === "Active" ? "success" : "neutral"}>{r.status}</Badge>
                     </td>
-                    <td className="py-3">
-                      <QrCell qr={r.qr} />
-                    </td>
-                    <td className="py-3">
-                      <div className="flex items-center gap-3 text-[13px] font-medium text-brand">
-                        <button onClick={() => setAddOpen(true)}>Edit</button>
-                        <button onClick={() => setAddOpen(true)}>
-                          {r.qr === "Generated" ? "View QR" : "Generate QR"}
-                        </button>
-                        <MoreVertical className="h-4 w-4 text-ink-tertiary" />
-                      </div>
+                    <td className="py-4"><QrCell qr={r.qr} /></td>
+                    <td className="relative py-4 text-right" onClick={(e) => e.stopPropagation()}>
+                      <button
+                        onClick={() => setMenuFor((m) => (m === r.no ? null : r.no))}
+                        aria-label={`Actions for room ${r.no}`}
+                        className="rounded-md p-1 text-ink-tertiary hover:bg-subtle hover:text-ink"
+                      >
+                        <MoreVertical className="h-4 w-4" />
+                      </button>
+                      {menuFor === r.no && (
+                        <div className="absolute right-0 top-10 z-20 w-36 rounded-lg border border-line bg-white p-1 text-left shadow-lg">
+                          <button onClick={() => { setDrawer(r); setMenuFor(null); }} className="block w-full rounded-md px-3 py-2 text-left text-[13px] text-ink hover:bg-subtle">Edit</button>
+                          <button onClick={() => { setDrawer(r); setMenuFor(null); }} className="block w-full rounded-md px-3 py-2 text-left text-[13px] text-ink hover:bg-subtle">{r.qr === "Generated" ? "View QR" : "Generate QR"}</button>
+                        </div>
+                      )}
                     </td>
                   </tr>
                 ))}
+                {!rows.length && (
+                  <tr><td colSpan={6} className="py-10 text-center text-[13px] text-ink-tertiary">No rooms match these filters.</td></tr>
+                )}
               </tbody>
             </table>
 
             <div className="mt-3 flex items-center justify-between text-[12px] text-ink-tertiary">
-              <span>Showing 1 to 10 of 152 rooms</span>
+              <span>Showing {rows.length} of 152 rooms</span>
               <span className="flex items-center gap-1">
                 <button className="rounded border border-line px-2 py-0.5">‹</button>
                 <button className="rounded border border-brand px-2 py-0.5 text-brand">1</button>
@@ -170,75 +244,74 @@ export default function RoomsQrSetup({ onboarding = false }: { onboarding?: bool
         </Page>
       </div>
 
-      {addOpen && (
-      <Drawer title="Add Room & Generate QR" onClose={() => setAddOpen(false)}>
-        <h4 className="text-[13px] font-semibold text-ink">Room Details</h4>
-        <Field className="mt-3" label="Room Number" required>
-          <Input defaultValue="1401" />
-        </Field>
-        <Field className="mt-3" label="Floor" required>
-          <Select defaultValue="14">
-            <option>14</option>
-            <option>13</option>
-            <option>12</option>
-          </Select>
-        </Field>
-        <Field className="mt-3" label="Room Type" required>
-          <Select defaultValue="Executive Suite">
-            <option>Executive Suite</option>
-            <option>Deluxe Room</option>
-            <option>Suite</option>
-          </Select>
-        </Field>
-        <div className="mt-3 grid grid-cols-2 gap-3">
-          <Field label="Status" required>
-            <Select defaultValue="Active">
-              <option>Active</option>
-              <option>Out of Service</option>
-            </Select>
-          </Field>
-          <Field label="QR Access Status" required>
-            <Select defaultValue="QR Generated">
-              <option>QR Generated</option>
-              <option>QR Pending</option>
-            </Select>
-          </Field>
-        </div>
+      {drawer && (
+        <RoomDrawer
+          key={drawer === "new" ? "new" : drawer.no}
+          room={drawer === "new" ? null : drawer}
+          onClose={() => setDrawer(null)}
+          onDone={(m) => { flash(m); setDrawer(null); }}
+        />
+      )}
 
-        <h4 className="mt-5 text-[13px] font-semibold text-ink">QR Preview</h4>
-        <Card className="mt-2 p-4">
-          <div className="flex gap-4">
-            <FakeQR seed="room-1401" size={104} className="rounded-md" />
-            <div className="text-[12px]">
-              <div className="text-[14px] font-semibold text-ink">Prime Hotel</div>
-              <div className="text-ink-secondary">Room 1401</div>
-              <div className="text-ink-secondary">Executive Suite</div>
-              <p className="mt-2 text-[11px] text-ink-tertiary">
-                Guest scans this QR to open WhatsApp and start a room-linked conversation.
-              </p>
-            </div>
-          </div>
-        </Card>
-
-        <Button className="mt-4 w-full">
-          <Save className="h-4 w-4" /> Save Room
-        </Button>
-        <div className="mt-2 grid grid-cols-2 gap-2">
-          <Button variant="outline">
-            <Download className="h-4 w-4" /> Download QR
-          </Button>
-          <Button variant="outline">
-            <Printer className="h-4 w-4" /> Print QR Card
-          </Button>
+      {toast && (
+        <div className="pointer-events-none fixed inset-x-0 bottom-6 z-50 flex justify-center">
+          <span className="rounded-full bg-ink px-4 py-2 text-[13px] font-medium text-white shadow-lg">{toast}</span>
         </div>
-        <Button variant="outline" className="mt-2 w-full">
-          <RefreshCw className="h-4 w-4" /> Regenerate QR
-        </Button>
-        <p className="mt-3 text-[11px] text-ink-tertiary">
-          QR will link to the hotel&apos;s WhatsApp number and room context.
-        </p>
-      </Drawer>
       )}
     </div>
+  );
+}
+
+function RoomDrawer({ room, onClose, onDone }: { room: Room | null; onClose: () => void; onDone: (msg: string) => void }) {
+  const [no, setNo] = useState(room?.no ?? "");
+  const [floor, setFloor] = useState(room ? String(room.floor) : "");
+  const [type, setType] = useState(room?.type ?? "");
+  const [status, setStatus] = useState<Room["status"]>(room?.status ?? "Active");
+  const [version, setVersion] = useState(1);
+
+  return (
+    <Drawer title={room ? `Room ${room.no}` : "Add Room"} onClose={onClose}>
+      <div className="space-y-4">
+        <Field label="Room number" required>
+          <Input value={no} onChange={(e) => setNo(e.target.value)} placeholder="e.g. 1401" />
+        </Field>
+        <Field label="Floor" required>
+          <Input value={floor} onChange={(e) => setFloor(e.target.value)} placeholder="e.g. 14" />
+        </Field>
+        <Field label="Room type" required>
+          <Input value={type} onChange={(e) => setType(e.target.value)} placeholder="e.g. Deluxe Room" />
+        </Field>
+        <Field label="Status" required>
+          <Select value={status} onChange={(e) => setStatus(e.target.value as Room["status"])}>
+            <option>Active</option>
+            <option>Out of Service</option>
+          </Select>
+        </Field>
+      </div>
+
+      <h4 className="mt-6 text-[13px] font-semibold text-ink">QR code</h4>
+      <Card className="mt-2 p-4">
+        <div className="flex gap-4">
+          <FakeQR seed={`room-${no || "new"}-${version}`} size={104} className="rounded-md" />
+          <div className="text-[12px]">
+            <div className="text-[14px] font-semibold text-ink">Prime Hotel</div>
+            <div className="text-ink-secondary">{no ? `Room ${no}` : "Room —"}</div>
+            <div className="text-ink-secondary">{type || "Room type"}</div>
+            <p className="mt-2 text-[11px] text-ink-tertiary">
+              Guest scans this QR to open WhatsApp and start a room-linked conversation.
+            </p>
+          </div>
+        </div>
+      </Card>
+
+      <div className="mt-4 grid grid-cols-2 gap-2">
+        <Button disabled={!no.trim()} onClick={() => onDone(`QR saved for room ${no}`)} className="disabled:opacity-40">
+          <Download className="h-4 w-4" /> Save QR
+        </Button>
+        <Button variant="outline" onClick={() => setVersion((v) => v + 1)}>
+          <RefreshCw className="h-4 w-4" /> Regenerate
+        </Button>
+      </div>
+    </Drawer>
   );
 }
