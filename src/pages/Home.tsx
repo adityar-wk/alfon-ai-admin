@@ -42,7 +42,6 @@ const HOTEL = "Layana Resort & Spa";
 const PILLARS = [
   { label: "Guest Satisfaction", value: "88%", tag: "Excellent", trend: "up", icon: Smile, spark: [60, 62, 61, 64, 66, 68] },
   { label: "Response Time", value: "2m 45s", tag: "Excellent", trend: "up", icon: Timer, spark: [50, 48, 52, 47, 46, 45] },
-  { label: "Task Completion", value: "86%", tag: "Good", trend: "flat", icon: CheckCircle2, spark: [58, 59, 57, 58, 58, 59] },
   { label: "Service Quality", value: "79%", tag: "Good", trend: "flat", icon: Heart, spark: [55, 54, 56, 55, 56, 55] },
   { label: "Team Performance", value: "84%", tag: "Excellent", trend: "up", icon: Users, spark: [58, 59, 60, 60, 61, 62] },
 ] as const;
@@ -138,11 +137,11 @@ export default function Home() {
 
   return (
     <>
-      <Topbar title={`${greeting}, ${me.name.split(" ")[0]} 👋`} subtitle={`Here's what's happening at ${HOTEL}`} />
+      <Topbar title={HOTEL} />
       <Page>
         {/* health score */}
         {/* score pillars */}
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-5">
+        <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
           {PILLARS.map((p) => (
                 <div key={p.label} className="rounded-xl border border-line p-3.5">
                   <div className="flex items-center justify-between">
@@ -216,7 +215,7 @@ export default function Home() {
                         <td className="py-3 pl-5 pr-3">
                           <div className="flex items-center gap-2 text-[13px] font-semibold text-ink">
                             {t.title}
-                            {t.tag && <span className="text-[11px] font-medium text-red-600">{t.tag}</span>}
+                            {t.tag === "Complaint" && <span className="rounded-full bg-violet-100 px-2 py-0.5 text-[11px] font-semibold text-violet-700">Complaint</span>}
                           </div>
                           <div className="text-[12px] text-ink-tertiary">{t.guest} · Room {t.room}</div>
                         </td>
@@ -231,10 +230,16 @@ export default function Home() {
                             <span className="font-medium text-brand">Unassigned</span>
                           )}
                         </td>
-                        <td className="whitespace-nowrap py-3 pr-5">
-                          <div className="text-[13px] text-ink-secondary">{t.status === "Yet to Assign" ? (t.owner ? "Assigned" : "Unassigned") : t.status}</div>
-                          <div className={`mt-0.5 flex items-center gap-1 text-[12px] ${t.sla.kind === "overdue" ? "font-medium text-red-600" : t.sla.kind === "due" ? "font-medium text-brand" : "text-ink-secondary"}`}>
-                            <Clock className="h-3.5 w-3.5" />{t.sla.text}
+                        <td className="py-3 pr-5">
+                          <div className="flex flex-wrap items-center gap-x-2.5 gap-y-0.5">
+                            {t.status === "Escalated" ? (
+                              <span className="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-[12px] font-semibold text-red-700">Escalated</span>
+                            ) : (
+                              <span className="text-[13px] text-ink-secondary">{t.status === "Yet to Assign" ? (t.owner ? "Assigned" : "Unassigned") : t.status}</span>
+                            )}
+                            <span className={`flex items-center gap-1 whitespace-nowrap text-[12px] ${t.sla.kind === "overdue" ? "font-medium text-red-600" : t.sla.kind === "due" ? "font-medium text-brand" : "text-ink-secondary"}`}>
+                              <Clock className="h-3.5 w-3.5" />{t.sla.text}
+                            </span>
                           </div>
                         </td>
                       </tr>

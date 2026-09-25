@@ -116,9 +116,19 @@ function statusText(t: Pick<Task, "status" | "owner">): string {
   return t.status === "Yet to Assign" ? (t.owner ? "Assigned" : "Unassigned") : t.status;
 }
 
+/** escalations read red, complaints read violet, everywhere they appear */
+const ESC_PILL = "bg-red-100 text-red-700";
+const COMPLAINT_PILL = "bg-violet-100 text-violet-700";
+
+function ComplaintPill({ className = "" }: { className?: string }) {
+  return <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${COMPLAINT_PILL} ${className}`}>Complaint</span>;
+}
+
 function StatusLabel({ t }: { t: Pick<Task, "status" | "owner"> }) {
   const s = t.status;
-  const dot = s === "Void" ? "bg-gray-400" : s === "Unable to Complete" ? "bg-amber-400" : s === "Completed" ? "bg-emerald-500" : s === "Escalated" ? "bg-red-500" : s === "In Progress" ? "bg-brand" : "bg-gray-300";
+  if (s === "Escalated")
+    return <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[12px] font-semibold ${ESC_PILL}`}>Escalated</span>;
+  const dot = s === "Void" ? "bg-gray-400" : s === "Unable to Complete" ? "bg-amber-400" : s === "Completed" ? "bg-emerald-500" : s === "In Progress" ? "bg-brand" : "bg-gray-300";
   return (
     <span className="inline-flex items-center gap-1.5 text-[13px] text-ink-secondary">
       <span className={`h-1.5 w-1.5 rounded-full ${dot}`} /> {statusText(t)}
@@ -129,7 +139,7 @@ function StatusLabel({ t }: { t: Pick<Task, "status" | "owner"> }) {
 function SlaText({ sla }: { sla: Task["sla"] }) {
   const tone = sla.kind === "overdue" ? "text-red-600 font-medium" : sla.kind === "due" ? "text-brand font-medium" : "text-ink-secondary";
   return (
-    <span className={`inline-flex items-center gap-1 text-[13px] ${tone}`}>
+    <span className={`inline-flex items-center gap-1 text-[12px] ${tone}`}>
       <Clock className="h-3.5 w-3.5" /> {sla.text}
     </span>
   );
@@ -224,12 +234,14 @@ export default function Tasks() {
   const stats = manager
     ? [
         { label: "Escalated", value: counts.escalated, foot: "Waiting on you", go: "escalated" as View },
+        { label: "Complaints", value: counts.complaints, foot: "Guest complaints open", go: "complaints" as View },
         { label: "SLA at risk", value: counts.risk, foot: "Due within the hour", go: "risk" as View },
         { label: "Overdue / breached", value: counts.overdue, foot: "Past SLA window", go: "overdue" as View },
         { label: "Unassigned", value: counts.unassigned, foot: "Awaiting an owner", go: "unassigned" as View },
       ]
     : [
         { label: "Escalated", value: counts.escalated, foot: "Needs a decision", go: "escalated" as View },
+        { label: "Complaints", value: counts.complaints, foot: "Guest complaints open", go: "complaints" as View },
         { label: "SLA at risk", value: counts.risk, foot: "Due within the hour", go: "risk" as View },
         { label: "Unassigned", value: counts.unassigned, foot: "Awaiting an owner", go: "unassigned" as View },
         { label: "Completed today", value: counts.completed, foot: "Across all departments", go: "completed" as View },
@@ -264,7 +276,7 @@ export default function Tasks() {
           {manager ? `Escalations, SLA risks and requests for ${scopeDepts.join(" + ")}.` : "Monitor escalations, SLA risks and operational requests across departments."}
         </p>
 
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
           {stats.map((s) => (
             <button
               key={s.label}
@@ -272,7 +284,7 @@ export default function Tasks() {
               className="rounded-card border border-line bg-white p-4 text-left hover:border-brand/40"
             >
               <div className="text-[13px] text-ink-secondary">{s.label}</div>
-              <div className="mt-1 text-[26px] font-bold leading-tight text-ink">{s.value}</div>
+              <div className={`mt-1 text-[26px] font-bold leading-tight ${s.label === "Escalated" ? "text-red-600" : s.label === "Complaints" ? "text-violet-600" : "text-ink"}`}>{s.value}</div>
               <div className="text-[12px] text-ink-tertiary">{s.foot}</div>
             </button>
           ))}
@@ -379,6 +391,7 @@ export default function Tasks() {
                           <div className="min-w-0">
                             <div className="text-[13px] font-semibold leading-snug text-ink">{t.title}</div>
                             <div className="mt-0.5 text-[12px] text-ink-tertiary">{t.guest} · Room {t.room}</div>
+                            {cap(t) && <ComplaintPill className="mt-1.5" />}
                           </div>
                         </div>
                         <div className="mt-3 flex items-center justify-between gap-2">
@@ -423,10 +436,8 @@ export default function Tasks() {
                       <div className="flex items-center gap-3">
                         {manager && <DeptIcon dept={t.dept} />}
                         <div className="min-w-0">
-                          <div className="flex items-center gap-2 text-[13px] font-semibold text-ink">
-                            {t.title}
-                          </div>
-                          {cap(t) && <div className="text-[11px] text-ink-tertiary">{cap(t)}</div>}
+                          <div className="text-[13px] font-semibold text-ink">{t.title}</div>
+                          {cap(t) && <ComplaintPill className="mt-1" />}
                         </div>
                       </div>
                     </td>
@@ -439,9 +450,11 @@ export default function Tasks() {
                       {t.owner ? <span className="text-ink-secondary">{t.owner}</span> : <span className="text-ink-tertiary">—</span>}
                     </td>
                     {manager && <td className="py-5 pr-3"><PriorityLabel p={t.priority} /></td>}
-                    <td className="py-4 pr-5">
-                      <StatusLabel t={t} />
-                      <div className="mt-1 text-[12px]"><SlaText sla={t.sla} /></div>
+                    <td className="py-5 pr-5">
+                      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
+                        <StatusLabel t={t} />
+                        <SlaText sla={t.sla} />
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -559,14 +572,10 @@ function TaskWindow({
       </div>
 
       <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-6 py-5">
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 gap-4">
           <div>
             <div className="text-[11px] text-ink-tertiary">Assigned to</div>
             <div className="mt-1 text-[13px] font-medium text-ink">{task.owner ?? <span className="text-brand">Unassigned</span>}</div>
-          </div>
-          <div>
-            <div className="text-[11px] text-ink-tertiary">Priority</div>
-            <div className="mt-1"><PriorityLabel p={task.priority} /></div>
           </div>
           <div>
             <div className="text-[11px] text-ink-tertiary">SLA</div>
@@ -662,7 +671,7 @@ const APPROVERS = ["Sophia Carter (General Manager)", "Duty Manager", "Daniel Re
 const STATUS_PILL: Record<Status, string> = {
   "Yet to Assign": "bg-amber-50 text-amber-700",
   "In Progress": "bg-blue-50 text-blue-600",
-  Escalated: "bg-red-50 text-red-600",
+  Escalated: ESC_PILL,
   Completed: "bg-emerald-50 text-emerald-600",
   "Unable to Complete": "bg-slate-100 text-slate-600",
   Void: "bg-gray-100 text-gray-500",
@@ -829,8 +838,7 @@ function ManagerTaskWindow({
           </div>
           <div className="mt-3 flex flex-wrap items-center gap-2">
             <span className={`rounded-full px-2.5 py-1 text-[12px] font-semibold ${STATUS_PILL[task.status]}`}>{statusText(task)}</span>
-            <PriorityLabel p={task.priority} />
-            {task.tag === "Complaint" && <span className="rounded-full bg-red-50 px-2.5 py-1 text-[12px] font-semibold text-red-600">Complaint</span>}
+            {task.tag === "Complaint" && <span className={`rounded-full px-2.5 py-1 text-[12px] font-semibold ${COMPLAINT_PILL}`}>Complaint</span>}
           </div>
         </div>
 
