@@ -13,9 +13,6 @@ function Shell() {
   if (manager && pathname.startsWith("/housekeeping") && !me.depts.includes("Housekeeping")) {
     return <Navigate to={PERSONAS.mid.home} replace />;
   }
-  if (!manager && pathname === "/team") {
-    return <Navigate to="/team/roles" replace />;
-  }
   if (!manager && pathname === "/department") {
     return <Navigate to={PERSONAS.gm.home} replace />;
   }

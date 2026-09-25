@@ -4,6 +4,7 @@ import { Topbar } from "../components/Topbar";
 import { SetupTabs } from "../components/SetupTabs";
 import { Drawer } from "../components/Drawer";
 import { Page, Card, Button, Field, Input, Select } from "../components/ui";
+import RolesPermissions from "./RolesPermissions";
 
 type Member = {
   id: number;
@@ -33,6 +34,7 @@ export default function StaffTeamManagement() {
   const [query, setQuery] = useState("");
   const [drawer, setDrawer] = useState<DrawerState>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [tab, setTab] = useState<"members" | "roles">("members");
 
   const rows = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -53,6 +55,21 @@ export default function StaffTeamManagement() {
         <Topbar title="Team Members" backTo="/onboarding" />
         <Page>
           <SetupTabs />
+          <div className="mb-5 flex gap-6 border-b border-line">
+            {([["members", "Team Members"], ["roles", "Roles & Permissions"]] as const).map(([k, l]) => (
+              <button
+                key={k}
+                onClick={() => setTab(k)}
+                className={`-mb-px border-b-2 pb-2.5 text-[14px] font-medium ${tab === k ? "border-brand text-brand" : "border-transparent text-ink-secondary hover:text-ink"}`}
+              >
+                {l}
+              </button>
+            ))}
+          </div>
+          {tab === "roles" ? (
+            <RolesPermissions embedded />
+          ) : (
+          <>
           <p className="mb-6 text-[13px] text-ink-secondary">
             Import your hotel staff. Roles and access are assigned later from the Team page.
           </p>
@@ -135,6 +152,8 @@ export default function StaffTeamManagement() {
             </table>
             <p className="mt-3 text-[12px] text-ink-tertiary">Showing {rows.length} of {members.length} members</p>
           </Card>
+          </>
+          )}
         </Page>
       </div>
 

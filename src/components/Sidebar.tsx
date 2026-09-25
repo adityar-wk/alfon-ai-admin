@@ -34,7 +34,7 @@ const GM_NAV: Item[] = [
   { label: "Home", to: "/home", icon: LayoutGrid },
   { label: "Tasks", to: "/tasks", icon: CheckSquare, badge: 15 },
   { label: "Pre-Arrival", to: "/pre-arrival", icon: Plane, badge: 2 },
-  { label: "Team", to: "/team/roles", icon: Users, match: "/team" },
+  { label: "Team", to: "/team", icon: Users, match: "/team" },
   { label: "Housekeeping", to: "/housekeeping", icon: BedDouble },
   { label: "Guests", to: "/guests", icon: UserRound },
   { label: "Guest Chats", to: "/guest-chats", icon: MessageSquare },

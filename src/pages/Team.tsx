@@ -223,20 +223,10 @@ export default function Team() {
             <div>
               <h1 className="text-2xl font-bold text-ink">Team Management</h1>
               <p className="mt-1 text-[13px] text-ink-secondary">
-                {manager ? "Availability and workload for your department team." : "View and manage your team, workloads, and availability."}
+                {manager ? "Availability and workload for your department team." : "View your team, workloads and availability."}
               </p>
             </div>
             {manager && <ScopePicker />}
-            {!manager && (
-              <div className="flex shrink-0 overflow-hidden rounded-lg">
-                <Button className="rounded-none" onClick={() => setAdding(true)}>
-                  <Plus className="h-4 w-4" /> Add Staff
-                </Button>
-                <button className="flex items-center border-l border-white/25 bg-brand px-2 text-white hover:bg-brand-hover">
-                  <ChevronDown className="h-4 w-4" />
-                </button>
-              </div>
-            )}
           </div>
 
           <div className="mt-5 grid grid-cols-2 gap-4 xl:grid-cols-4">
@@ -445,7 +435,7 @@ export default function Team() {
           width={400}
           onClose={() => setSelected(null)}
         >
-          <StaffDetails key={selected.id} s={selected} perms={permsOf(selected)} onSaveAccess={(p) => saveAccess(selected, p)} manager={manager} />
+          <StaffDetails key={selected.id} s={selected} perms={permsOf(selected)} onSaveAccess={(p) => saveAccess(selected, p)} manager />
         </Drawer>
       )}
 

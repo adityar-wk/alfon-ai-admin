@@ -75,7 +75,11 @@ type EditTab = "basic" | "advanced" | "members";
 // week-over-week change in tasks handled, shown per user
 const TREND = [12, 8, 0, -5, 15, 3, 9, 6, 10, 2];
 
-export default function RolesPermissions() {
+function Shell({ embedded, children }: { embedded: boolean; children: React.ReactNode }) {
+  return embedded ? <div className="mt-2">{children}</div> : <Page>{children}</Page>;
+}
+
+export default function RolesPermissions({ embedded = false }: { embedded?: boolean }) {
   const [roles, setRoles] = useState<Role[]>(() => STORE.roles);
   const [users, setUsers] = useState<User[]>(() => STORE.users);
   const [tab, setTab] = useState<Tab>("roles");
@@ -167,22 +171,25 @@ export default function RolesPermissions() {
 
   return (
     <>
-      <Topbar title="" searchPlaceholder="Search rooms, guests, tasks, staff…" />
-      <Page>
-        <nav className="mb-2 flex items-center gap-2 text-[13px] text-ink-tertiary">
-          <span>Team</span>
-          <ChevronRight className="h-3.5 w-3.5" />
-          <span className="text-ink">Roles &amp; Permissions</span>
-        </nav>
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-[26px] font-bold text-ink">Roles &amp; Permissions</h1>
-            <p className="mt-1 text-[13px] text-ink-secondary">Define what each role can access and do, and who belongs to it.</p>
-          </div>
+      {!embedded && <Topbar title="" />}
+      <Shell embedded={embedded}>
+        {!embedded && (
+          <>
+            <nav className="mb-2 flex items-center gap-2 text-[13px] text-ink-tertiary">
+              <span>Settings</span>
+              <ChevronRight className="h-3.5 w-3.5" />
+              <span className="text-ink">Roles &amp; Permissions</span>
+            </nav>
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h1 className="text-[26px] font-bold text-ink">Roles &amp; Permissions</h1>
+                <p className="mt-1 text-[13px] text-ink-secondary">Define what each role can access and do, and who belongs to it.</p>
+              </div>
+            </div>
+          </>
+        )}
 
-        </div>
-
-        <div className="mt-5 flex gap-6 border-b border-line">
+        <div className={`${embedded ? "" : "mt-5 "}flex gap-6 border-b border-line`}>
           {([["roles", "Role Configuration"], ["users", "User Management"]] as const).map(([k, l]) => (
             <button
               key={k}
@@ -410,7 +417,7 @@ export default function RolesPermissions() {
         ) : (
           <UserManagement roles={roles} users={users} setUsers={setUsers} roleFilter={userRoleFilter} setRoleFilter={setUserRoleFilter} flash={flash} />
         )}
-      </Page>
+      </Shell>
 
       {createOpen && <CreateRole onClose={() => setCreateOpen(false)} onCreate={(r) => { addRole(r); setCreateOpen(false); flash(`Role “${r.name}” created`); }} />}
 

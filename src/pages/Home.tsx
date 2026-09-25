@@ -355,7 +355,7 @@ export default function Home() {
           <Card className="p-6">
             <div className="flex items-center justify-between">
               <h3 className="text-[16px] font-semibold text-ink">Team Performance</h3>
-              <Link to="/team/roles" className="text-[13px] font-semibold text-brand">Team</Link>
+              <Link to="/team" className="text-[13px] font-semibold text-brand">Team</Link>
             </div>
             <div className="mt-3 divide-y divide-line/70">
               {TEAM.map((t) => (
