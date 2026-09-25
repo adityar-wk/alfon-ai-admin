@@ -27,7 +27,7 @@ type Item = {
   icon: React.ComponentType<{ className?: string }>;
   badge?: number;
   /** also highlight when the current path starts with this */
-  match?: string;
+  match?: string | string[];
 };
 
 const GM_NAV: Item[] = [
@@ -38,11 +38,10 @@ const GM_NAV: Item[] = [
   { label: "Housekeeping", to: "/housekeeping", icon: BedDouble },
   { label: "Guests", to: "/guests", icon: UserRound },
   { label: "Guest Chats", to: "/guest-chats", icon: MessageSquare },
-  { label: "Departments", to: "/departments", icon: Building2 },
   { label: "Analytics", to: "/analytics", icon: BarChart3 },
   { label: "Reports", to: "/reports", icon: FileText },
   { label: "Mobile App", to: "/line-staff", icon: Smartphone },
-  { label: "Settings", to: "/onboarding", icon: Settings, match: "/settings" },
+  { label: "Settings", to: "/onboarding", icon: Settings, match: ["/settings", "/departments"] },
 ];
 
 const MID_NAV: Item[] = [
@@ -90,7 +89,7 @@ export function Sidebar() {
 
       <nav className="flex-1 space-y-0.5 overflow-y-auto px-3 no-scrollbar">
         {nav.map(({ label, to, icon: Icon, badge, match }) => {
-          const forced = !!match && pathname.startsWith(match);
+          const forced = !!match && (Array.isArray(match) ? match : [match]).some((m) => pathname.startsWith(m));
           const count = manager && label === "Tasks" ? escalated : badge;
           return (
             <NavLink
