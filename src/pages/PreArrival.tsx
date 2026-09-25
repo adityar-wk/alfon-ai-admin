@@ -222,6 +222,8 @@ export default function PreArrival() {
   const activeFilterCount =
     Number(tab !== "all") + Number(filters.loyalty) + Number(filters.returning) + [filters.wa, filters.consent, filters.room, filters.lang, filters.request, filters.ready].filter((v) => v !== "all").length;
 
+  const filterBadge = activeFilterCount + Number(dateOn);
+
   const hasRequest = (g: PreGuest, key: string) =>
     [...g.reqs.map((r) => r.name), ...g.prefs].some((v) => v.toLowerCase().includes(key.toLowerCase()));
 
@@ -279,31 +281,7 @@ export default function PreArrival() {
 
   return (
     <>
-      <Topbar
-        title="Pre-Arrival"
-        subtitle="Prepare arriving guests, capture preferences, and resolve requests before check-in."
-        actions={
-          <div className="flex items-center gap-3">
-            <input
-              ref={fileRef}
-              type="file"
-              accept=".csv"
-              className="hidden"
-              onChange={(e) => {
-                const f = e.target.files?.[0];
-                if (f) importReport(f);
-                e.target.value = "";
-              }}
-            />
-            <Button variant="outline" onClick={() => fileRef.current?.click()}>
-              <Upload className="h-4 w-4" /> Upload report
-            </Button>
-            <Button disabled={!unsent.length} onClick={() => setConfirmSend(true)} className="disabled:opacity-40">
-              <Send className="h-4 w-4" /> Send to all unsent{unsent.length ? ` (${unsent.length})` : ""}
-            </Button>
-          </div>
-        }
-      />
+      <Topbar title="Pre-Arrival" subtitle="Prepare arriving guests, capture preferences, and resolve requests before check-in." />
       <Page>
         {/* KPIs */}
         <div className="grid grid-cols-2 gap-5 lg:grid-cols-4">
@@ -313,28 +291,32 @@ export default function PreArrival() {
           <Kpi icon={AlertTriangle} tone="text-amber-700 bg-amber-100" label="Action Required" value={kpiAR} sub="Hotel intervention needed" emphasis onClick={() => goToday("ar")} />
         </div>
 
-        {/* search + date selector + filter, one line */}
-        <div className="relative mt-5 flex flex-wrap items-center gap-3">
-          <div className="relative w-full sm:w-[230px]">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-tertiary" />
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search guest, room…"
-              className="h-10 w-full rounded-lg border border-line bg-white pl-9 pr-3 text-[13px] outline-none placeholder:text-ink-tertiary focus:border-brand"
-            />
-          </div>
-
-          {dateOn && <DateStrip
-            selDay={selDay}
-            weekStart={weekStart}
-            perDay={perDay}
-            onSelect={setSelDay}
-            onShift={(n) => setWeekStart((w) => w + n)}
-            onToday={() => { setSelDay(24); setWeekStart(24); }}
-          />}
-
-          <div className="ml-auto flex items-center gap-3">
+        {/* search + filter | date strip | bulk actions */}
+        <div className="mt-5 flex flex-wrap items-center gap-3">
+          <div className="relative flex items-center gap-3">
+            <div className="relative w-full sm:w-[230px]">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-tertiary" />
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search guest, room…"
+                className="h-10 w-full rounded-lg border border-line bg-white pl-9 pr-3 text-[13px] outline-none placeholder:text-ink-tertiary focus:border-brand"
+              />
+            </div>
+            <button
+              onClick={() => setFiltersOpen((o) => !o)}
+              aria-label="Filters"
+              className={`relative flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border ${
+                filtersOpen || filterBadge ? "border-brand bg-brand-tint text-brand" : "border-line bg-white text-ink-secondary hover:bg-subtle"
+              }`}
+            >
+              <Filter className="h-4 w-4" />
+              {filterBadge > 0 && (
+                <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-brand px-1 text-[10px] font-semibold text-white">
+                  {filterBadge}
+                </span>
+              )}
+            </button>
             {(activeFilterCount > 0 || dateOn) && (
               <button
                 onClick={() => { setFilters(NO_FILTERS); setTab("all"); setDateOn(false); }}
@@ -343,36 +325,21 @@ export default function PreArrival() {
                 Clear
               </button>
             )}
-            <button
-              onClick={() => { setDateOn((o) => !o); setSelDay(24); setWeekStart(24); }}
-              aria-label="Filter by date"
-              aria-pressed={dateOn}
-              title="Filter by date"
-              className={`flex h-10 w-10 items-center justify-center rounded-lg border ${
-                dateOn ? "border-brand bg-brand-tint text-brand" : "border-line bg-white text-ink-secondary hover:bg-subtle"
-              }`}
-            >
-              <CalendarDays className="h-4 w-4" />
-            </button>
-            <button
-              onClick={() => setFiltersOpen((o) => !o)}
-              aria-label="Filters"
-              className={`relative flex h-10 w-10 items-center justify-center rounded-lg border ${
-                filtersOpen || activeFilterCount ? "border-brand bg-brand-tint text-brand" : "border-line bg-white text-ink-secondary hover:bg-subtle"
-              }`}
-            >
-              <Filter className="h-4 w-4" />
-              {activeFilterCount > 0 && (
-                <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-brand px-1 text-[10px] font-semibold text-white">
-                  {activeFilterCount}
-                </span>
-              )}
-            </button>
-          </div>
-
           {filtersOpen && (
-            <div className="absolute right-0 top-12 z-30 w-[440px] rounded-card border border-line bg-white p-4 shadow-lg">
+            <div className="absolute left-0 top-12 z-30 w-[440px] rounded-card border border-line bg-white p-4 shadow-lg">
               <div className="grid grid-cols-2 gap-3">
+                <FilterSelect
+                  label="Arrival date"
+                  value={dateOn ? String(selDay) : "all"}
+                  onChange={(v) => {
+                    if (v === "all") return setDateOn(false);
+                    const d = Number(v);
+                    setDateOn(true);
+                    setSelDay(d);
+                    if (d < weekStart || d > weekStart + 6) setWeekStart(d);
+                  }}
+                  options={[["all", "All dates"], ...Object.keys(perDay).map(Number).sort((x, y) => x - y).map((d) => [String(d), `${shortDay(d)}${d === 24 ? " (Today)" : d === 25 ? " (Tomorrow)" : ""} · ${perDay[d]}`] as [string, string])]}
+                />
                 <FilterSelect
                   label="Status"
                   value={tab}
@@ -401,6 +368,36 @@ export default function PreArrival() {
               </div>
             </div>
           )}
+          </div>
+
+          {dateOn && <DateStrip
+            selDay={selDay}
+            weekStart={weekStart}
+            perDay={perDay}
+            onSelect={setSelDay}
+            onShift={(n) => setWeekStart((w) => w + n)}
+            onToday={() => { setSelDay(24); setWeekStart(24); }}
+          />}
+
+          <div className="ml-auto flex items-center gap-3">
+            <input
+              ref={fileRef}
+              type="file"
+              accept=".csv"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) importReport(f);
+                e.target.value = "";
+              }}
+            />
+            <Button variant="outline" onClick={() => fileRef.current?.click()}>
+              <Upload className="h-4 w-4" /> Upload report
+            </Button>
+            <Button disabled={!unsent.length} onClick={() => setConfirmSend(true)} className="disabled:opacity-40">
+              <Send className="h-4 w-4" /> Send to all unsent{unsent.length ? ` (${unsent.length})` : ""}
+            </Button>
+          </div>
         </div>
 
         {/* table */}
@@ -497,6 +494,7 @@ export default function PreArrival() {
             <GuestDrawer
               g={selected}
               onClose={() => setSelectedId(null)}
+              onPrefs={(prefs) => setGuests((gs) => gs.map((x) => (x.id === selected.id ? { ...x, prefs } : x)))}
               onTransfer={() => navigate(`/guest-chats?name=${encodeURIComponent(selected.name)}&room=${selected.room ?? ""}`)}
               onViewChat={() => navigate(`/guest-chats?name=${encodeURIComponent(selected.name)}&room=${selected.room ?? ""}`)}
             />
@@ -656,10 +654,11 @@ function KV({ label, children }: { label: string; children: React.ReactNode }) {
 }
 
 function GuestDrawer({
-  g, onClose, onTransfer, onViewChat,
+  g, onClose, onPrefs, onTransfer, onViewChat,
 }: {
   g: PreGuest;
   onClose: () => void;
+  onPrefs: (prefs: string[]) => void;
   onTransfer: () => void;
   onViewChat: () => void;
 }) {
@@ -668,6 +667,13 @@ function GuestDrawer({
   const opened = g.eng === "Engaged" || g.eng === "Responded";
   const responded = opened;
   const prefsDone = g.ready === "Ready";
+  const [editPrefs, setEditPrefs] = useState(false);
+  const [newPref, setNewPref] = useState("");
+  const addPref = () => {
+    const v = newPref.trim();
+    if (v && !g.prefs.some((p) => p.toLowerCase() === v.toLowerCase())) onPrefs([...g.prefs, v]);
+    setNewPref("");
+  };
   const steps: { title: string; sub: string; done: boolean }[] = [
     { title: "Guest imported from arrival report", sub: `${shortDay(24)}, 08:45 AM`, done: true },
     { title: "Pre-arrival message sent", sub: contacted ? `${shortDay(24)}, 09:00 AM` : "Not sent yet", done: contacted },
@@ -715,14 +721,47 @@ function GuestDrawer({
         </div>
 
         <div className="mt-2 border-t border-line pt-5">
-          <div className="mb-3 text-[12px] font-semibold uppercase tracking-wide text-ink-tertiary">Preferences collected</div>
-          {g.prefs.length > 0 && prefsDone ? (
+          <div className="mb-3 flex items-center justify-between">
+            <div className="text-[12px] font-semibold uppercase tracking-wide text-ink-tertiary">Preferences collected</div>
+            <button onClick={() => { setEditPrefs((e) => !e); setNewPref(""); }} className="text-[13px] font-medium text-brand hover:underline">
+              {editPrefs ? "Done" : "Edit"}
+            </button>
+          </div>
+          {g.prefs.length > 0 || editPrefs ? (
             <div className="flex flex-wrap gap-1.5">
-              {g.prefs.map((pr) => <span key={pr} className="rounded-md bg-subtle px-2 py-1 text-[12px] text-ink-secondary">{pr}</span>)}
+              {g.prefs.map((pr) => (
+                <span key={pr} className="inline-flex items-center gap-1 rounded-md bg-subtle px-2 py-1 text-[12px] text-ink-secondary">
+                  {pr}
+                  {editPrefs && (
+                    <button onClick={() => onPrefs(g.prefs.filter((x) => x !== pr))} aria-label={`Remove ${pr}`} className="text-ink-tertiary hover:text-red-600">
+                      <X className="h-3 w-3" />
+                    </button>
+                  )}
+                </span>
+              ))}
+              {!editPrefs && (
+                <button onClick={() => setEditPrefs(true)} className="inline-flex items-center gap-1 rounded-md border border-dashed border-line px-2 py-1 text-[12px] text-ink-secondary hover:border-brand hover:text-brand">
+                  <Plus className="h-3 w-3" /> Add preference
+                </button>
+              )}
             </div>
           ) : (
-            <div className="flex items-center gap-2 text-[14px] text-ink-secondary">
-              <span className="h-2 w-2 rounded-full bg-brand/60" /> Awaiting guest response
+            <div className="flex items-center justify-between gap-2 text-[14px] text-ink-secondary">
+              <span className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-brand/60" /> {prefsDone ? "No preferences yet" : "Awaiting guest response"}</span>
+              <button onClick={() => setEditPrefs(true)} className="inline-flex items-center gap-1 text-[13px] font-medium text-brand hover:underline"><Plus className="h-3.5 w-3.5" /> Add</button>
+            </div>
+          )}
+          {editPrefs && (
+            <div className="mt-3 flex gap-2">
+              <input
+                autoFocus
+                value={newPref}
+                onChange={(e) => setNewPref(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") addPref(); }}
+                placeholder="e.g. Feather-free pillows"
+                className="h-9 min-w-0 flex-1 rounded-lg border border-line bg-white px-3 text-[13px] outline-none placeholder:text-ink-tertiary focus:border-brand"
+              />
+              <Button onClick={addPref} disabled={!newPref.trim()} className="h-9 disabled:opacity-40">Add</Button>
             </div>
           )}
         </div>
