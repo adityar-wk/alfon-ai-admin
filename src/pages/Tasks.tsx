@@ -390,7 +390,7 @@ export default function Tasks() {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[900px] table-fixed text-left">
               <colgroup>
-                {Array.from({ length: manager ? 5 : 6 }, (_, i) => <col key={i} />)}
+                {Array.from({ length: manager ? 5 : 6 }, (_, i) => <col key={i} className={!manager && i === 0 ? "w-[96px]" : undefined} />)}
               </colgroup>
               <thead>
                 <tr className="bg-[#F4F4F5] text-[12px] uppercase tracking-wide text-[#6B7280]">
