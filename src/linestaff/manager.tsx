@@ -655,7 +655,7 @@ export function ManagerPrototype() {
   /* ---------- guest communication ---------- */
   const Guests = shell("guests", (
     <>
-      <div className="flex items-center justify-between px-6 py-2">
+      <div className="sticky top-0 z-10 flex items-center justify-between bg-white px-6 py-2">
         <div className="flex items-center gap-3">
           {menuBtn}
           <div className="leading-tight">
