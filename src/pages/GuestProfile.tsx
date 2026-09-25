@@ -4,6 +4,7 @@ import { Search, Plus, User, Lightbulb, Bell, BedDouble, UtensilsCrossed, Target
 import { Topbar } from "../components/Topbar";
 import { Card, Modal, Button, Field, Input, Select } from "../components/ui";
 import { Flag } from "../components/Flag";
+import { SIDE_PANEL, SIDE_ROW, sideRowTone, SideSearch, SideFilterButton } from "../components/SidePanel";
 import { GUESTS, type Guest } from "../data/guests";
 import { type ChatMsg } from "../components/GuestChat";
 
@@ -312,45 +313,26 @@ function GuestList({ activeId }: { activeId: number }) {
     return (f === "All" || g.status === f) && (!t || [g.name, g.room, g.contact, g.country].some((v) => v.toLowerCase().includes(t)));
   });
   return (
-    <aside className="flex w-[300px] shrink-0 flex-col border-r border-line bg-white">
-      <div className="border-b border-line p-3">
-        <div className="relative flex items-center gap-2">
-          <div className="relative flex-1">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-tertiary" />
-            <input
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder="Search guests…"
-              className="h-9 w-full rounded-control border border-line bg-subtle pl-9 pr-3 text-[13px] outline-none placeholder:text-ink-tertiary focus:border-brand focus:bg-white"
-            />
+    <aside className={`${SIDE_PANEL} w-[320px]`}>
+      <SideSearch value={q} onChange={setQ} placeholder="Search guests…">
+        <SideFilterButton label="Filter guests" active={f !== "All"} open={filterOpen} count={1} onClick={() => setFilterOpen((o) => !o)} />
+        {filterOpen && (
+          <div className="absolute right-0 top-11 z-20 w-48 rounded-xl border border-line bg-white p-1.5 shadow-lg">
+            <div className="px-2.5 pb-1 pt-1.5 text-[11px] font-semibold uppercase tracking-wide text-ink-tertiary">Stay status</div>
+            {LIST_FILTERS.map((x) => (
+              <button key={x} onClick={() => { setF(x); setFilterOpen(false); }} className="flex w-full items-center justify-between rounded-control px-2.5 py-2 text-left text-[13px] text-ink hover:bg-subtle">
+                {x === "All" ? "All" : STATUS_LABEL[x]}
+                {f === x && <Check className="h-4 w-4 text-brand" />}
+              </button>
+            ))}
           </div>
-          <button
-            onClick={() => setFilterOpen((o) => !o)}
-            aria-label="Filter guests"
-            aria-expanded={filterOpen}
-            className={`relative flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${f !== "All" || filterOpen ? "bg-brand text-white" : "border border-line bg-white text-ink-secondary hover:bg-subtle"}`}
-          >
-            <SlidersHorizontal className="h-4 w-4" />
-            {f !== "All" && <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-ink px-1 text-[9px] font-bold text-white">1</span>}
-          </button>
-          {filterOpen && (
-            <div className="absolute right-0 top-11 z-20 w-48 rounded-xl border border-line bg-white p-1.5 shadow-lg">
-              <div className="px-2.5 pb-1 pt-1.5 text-[11px] font-semibold uppercase tracking-wide text-ink-tertiary">Stay status</div>
-              {LIST_FILTERS.map((x) => (
-                <button key={x} onClick={() => { setF(x); setFilterOpen(false); }} className="flex w-full items-center justify-between rounded-control px-2.5 py-2 text-left text-[13px] text-ink hover:bg-subtle">
-                  {x === "All" ? "All" : STATUS_LABEL[x]}
-                  {f === x && <Check className="h-4 w-4 text-brand" />}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
+        )}
+      </SideSearch>
       <div className="min-h-0 flex-1 overflow-y-auto">
         {list.map((g) => {
           const on = g.id === activeId;
           return (
-            <Link key={g.id} to={`/guests/${g.id}`} className={`flex items-center gap-3 border-b border-line/60 px-4 py-3 ${on ? "bg-brand-tint/50" : "hover:bg-subtle"}`}>
+            <Link key={g.id} to={`/guests/${g.id}`} className={`${SIDE_ROW} items-center gap-3 ${sideRowTone(on)}`}>
               <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full font-display text-[12px] font-semibold ${g.tint}`}>{g.initials}</span>
               <span className="min-w-0 flex-1 leading-tight">
                 <span className="block truncate text-[14px] font-semibold text-ink">{g.name}</span>
