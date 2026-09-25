@@ -14,6 +14,7 @@ import { SEED_TASKS, SEED_REQUESTS, STAFF, GUEST_STAYS, PRE_ARRIVAL_GUESTS, CHEC
 import {
   PhoneFrame, ScreenHeader, SectionTitle, TaskCard, StatCard, Avatar, Chips, Segmented, FloatingNav, PrimaryButton, GhostButton, SelectField, TextField, Label, Sheet,
   useNav, useToast, CARD_SHADOW, TextHeader, PriorityPill, SlaCountdown, fmtMins, CompensationSheet, type Priority,
+  ChatRow,
 } from "./mobile";
 import { StaffPicker, ReasonSheet, StatusTag, activeCount, atRiskCount, overdueCount, isOpen, isAtRisk, isOverdue } from "./parts";
 
@@ -685,20 +686,17 @@ export function ManagerPrototype() {
           )}
         </button>
       </div>
-      <div className="mt-3 space-y-3 px-6">
+      <div className="mt-2 px-6">
         {guestsFiltered.map((g) => (
-          <button key={g.name} onClick={() => nav.push({ name: "guestProfile", id: g.name })} className={`flex w-full items-center gap-3 rounded-2xl bg-white p-3.5 text-left ${CARD_SHADOW}`}>
-            <Avatar name={g.name} tone={g.complaint ? "bg-red-50 text-red-600" : undefined} />
-            <div className="min-w-0 flex-1 leading-tight">
-              <div className="flex items-center gap-2">
-                <span className="truncate text-[14px] font-semibold text-ink">{g.name}</span>
-                {g.complaint && <span className="shrink-0 rounded-full bg-red-50 px-1.5 py-0.5 text-[9px] font-bold text-red-600">Complaint</span>}
-              </div>
-              <div className="text-[12px] text-ink-tertiary">{g.room}</div>
-              <p className="mt-0.5 truncate text-[12px] text-ink-secondary">{g.convo !== "—" ? g.convo : "No messages yet"}</p>
-            </div>
-            <ChevronRight className="h-4 w-4 shrink-0 text-ink-tertiary" />
-          </button>
+          <ChatRow
+            key={g.name}
+            name={g.name}
+            room={g.room}
+            preview={g.convo !== "—" ? g.convo : "No messages yet"}
+            tone={g.complaint ? "bg-red-50 text-red-600" : undefined}
+            tag={g.complaint ? "Complaint" : undefined}
+            onOpen={() => nav.push({ name: "guestProfile", id: g.name })}
+          />
         ))}
         {!guestsFiltered.length && <p className="rounded-2xl bg-white p-6 text-center text-[13px] text-ink-tertiary">No guests match.</p>}
       </div>

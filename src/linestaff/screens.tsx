@@ -22,6 +22,7 @@ import {
   useToast,
   CARD_SHADOW,
   type Priority,
+  ChatRow,
 } from "./mobile";
 import { GuestProfileScreen, GuestChatScreen, type ChatMsg } from "./guestviews";
 import { ProfileScreen, NotificationSettingsScreen, SignedOutScreen } from "./profile";
@@ -315,23 +316,21 @@ export function LineStaffPrototype() {
             />
           </div>
         </div>
-        <div className="mt-3 space-y-3 px-6">
+        <div className="mt-2 px-6">
           {guestsFiltered.map((g) => {
             const th = threadOf(g.name);
+            let unread = 0;
+            for (let i = th.length - 1; i >= 0 && th[i].from === "guest"; i--) unread++;
             return (
-              <div key={g.name} className={`flex w-full items-center gap-3 rounded-2xl bg-white p-3.5 ${CARD_SHADOW}`}>
-                <button onClick={() => nav.push({ name: "guestProfile", id: g.name })} aria-label={`View ${g.name} profile`} className="shrink-0">
-                  <Avatar name={g.name} />
-                </button>
-                <button onClick={() => nav.push({ name: "guestChat", id: g.name })} className="flex min-w-0 flex-1 items-center gap-2 text-left">
-                  <div className="min-w-0 flex-1 leading-tight">
-                    <div className="truncate text-[14px] font-semibold text-ink">{g.name}</div>
-                    <div className="text-[12px] text-ink-tertiary">{g.room}</div>
-                    <p className="mt-0.5 truncate text-[12px] text-ink-secondary">{th.length ? th[th.length - 1].text : "No messages yet"}</p>
-                  </div>
-                  <ChevronRight className="h-4 w-4 shrink-0 text-ink-tertiary" />
-                </button>
-              </div>
+              <ChatRow
+                key={g.name}
+                name={g.name}
+                room={g.room}
+                preview={th.length ? th[th.length - 1].text : "No messages yet"}
+                unread={unread}
+                onAvatar={() => nav.push({ name: "guestProfile", id: g.name })}
+                onOpen={() => nav.push({ name: "guestChat", id: g.name })}
+              />
             );
           })}
           {!guestsFiltered.length && <p className="rounded-2xl bg-white p-6 text-center text-[13px] text-ink-tertiary">No guests match.</p>}

@@ -240,6 +240,44 @@ export function Avatar({ name, size = 40, tone = "bg-brand-tint text-brand" }: {
   );
 }
 
+/* ---------- flat chat list row: no card, no elevation ---------- */
+
+const CHAT_TIMES = ["19:45", "19:12", "18:30", "17:05", "15:48", "Yesterday", "Mon"];
+export const chatTime = (name: string) => CHAT_TIMES[name.split("").reduce((a, c) => a + c.charCodeAt(0), 0) % CHAT_TIMES.length];
+
+export function ChatRow({
+  name, room, preview, unread = 0, tone, tag, onOpen, onAvatar,
+}: {
+  name: string; room: string; preview: string; unread?: number; tone?: string; tag?: string; onOpen: () => void; onAvatar?: () => void;
+}) {
+  const body = (
+    <>
+      <span className="min-w-0 flex-1 leading-tight">
+        <span className="flex items-center gap-2">
+          <span className="truncate text-[15px] font-semibold text-ink">{name}</span>
+          <span className="shrink-0 text-[12px] text-ink-tertiary">{room}</span>
+          {tag && <span className="shrink-0 rounded-full bg-red-50 px-1.5 py-0.5 text-[9px] font-bold text-red-600">{tag}</span>}
+        </span>
+        <span className="mt-1 block truncate text-[13px] text-ink-secondary">{preview}</span>
+      </span>
+      <span className="flex shrink-0 flex-col items-end gap-1.5 self-stretch pt-0.5">
+        <span className="text-[12px] text-ink-tertiary">{chatTime(name)}</span>
+        {unread > 0 && <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-[11px] font-semibold text-white">{unread}</span>}
+      </span>
+    </>
+  );
+  return (
+    <div className="flex items-center gap-3.5 py-3">
+      {onAvatar ? (
+        <button onClick={onAvatar} aria-label={`View ${name} profile`} className="shrink-0"><Avatar name={name} size={52} tone={tone} /></button>
+      ) : (
+        <Avatar name={name} size={52} tone={tone} />
+      )}
+      <button onClick={onOpen} className="flex min-w-0 flex-1 items-center gap-3 text-left">{body}</button>
+    </div>
+  );
+}
+
 /* ---------- controls ---------- */
 
 export function Chips<T extends string>({ items, active, onChange, counts }: { items: readonly T[]; active: T; onChange: (v: T) => void; counts?: Partial<Record<T, number>> }) {
