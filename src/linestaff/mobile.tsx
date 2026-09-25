@@ -269,13 +269,13 @@ export function ChatRow({
       )}
     </>
   );
-  // complaint marker sits on the avatar's top-left corner
+  // complaint marker sits on the avatar's bottom-right corner
   const avatar = (
     <span className="relative block">
       <Avatar name={name} size={52} tone={tone} />
       {complaint && (
-        <span className="absolute -left-1 -top-1 flex h-[22px] w-[22px] items-center justify-center rounded-full bg-white">
-          <AlertCircle aria-label="Complaint" className="h-[20px] w-[20px] text-amber-500" />
+        <span className="absolute -bottom-1 -right-1 flex h-[22px] w-[22px] items-center justify-center rounded-full bg-white">
+          <AlertCircle aria-label="Complaint" className="h-[20px] w-[20px] text-red-500" />
         </span>
       )}
     </span>
