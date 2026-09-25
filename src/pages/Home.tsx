@@ -24,6 +24,7 @@ import { Page, Card, Select } from "../components/ui";
 import { TASKS } from "../data/tasks";
 import Orb from "../components/Orb";
 import { scoreBand } from "../data/scoreBand";
+import { taskStatus, STATUS_PILL, COMPLAINT_PILL, slaShort, type TaskStatusLabel } from "../data/attention";
 
 type Icon = React.ComponentType<{ className?: string }>;
 
@@ -78,16 +79,8 @@ function Trend({ t }: { t: "up" | "down" | "flat" }) {
   return <Minus className="h-3.5 w-3.5 text-ink-tertiary" />;
 }
 
-type Reason = "Escalated" | "SLA breached" | "SLA at risk" | "Complaint";
-const REASONS: Reason[] = ["Escalated", "SLA breached", "Complaint", "SLA at risk"];
-const REASON_PILL: Record<Reason, string> = {
-  Escalated: "bg-red-100 text-red-700",
-  "SLA breached": "bg-orange-100 text-orange-700",
-  "SLA at risk": "bg-amber-100 text-amber-700",
-  Complaint: "bg-violet-100 text-violet-700",
-};
-const reasonOf = (t: (typeof TASKS)[number]): Reason | null =>
-  t.status === "Escalated" ? "Escalated" : t.sla.kind === "overdue" ? "SLA breached" : t.tag === "Complaint" ? "Complaint" : t.sla.kind === "due" ? "SLA at risk" : null;
+// what needs attention: escalations, SLA breaches, SLA at risk and unassigned work
+const ATTENTION: TaskStatusLabel[] = ["Escalated", "SLA breached", "SLA at risk", "Unassigned"];
 
 export default function Home() {
   const navigate = useNavigate();
@@ -98,12 +91,12 @@ export default function Home() {
   const depts = Array.from(new Set(open.map((t) => t.dept))).sort();
   // a mix of what needs attention: escalations, SLA breaches, SLA at risk and complaints
   const pending = useMemo(() => {
-    const buckets = REASONS.map((r) => open.filter((t) => (dept === "all" || t.dept === dept) && reasonOf(t) === r));
+    const buckets = ATTENTION.map((r) => open.filter((t) => (dept === "all" || t.dept === dept) && taskStatus(t) === r));
     const picked: (typeof TASKS)[number][] = [];
     for (let i = 0; picked.length < 6 && buckets.some((b) => i < b.length); i++) {
       for (const b of buckets) if (i < b.length && picked.length < 6) picked.push(b[i]);
     }
-    return picked.sort((x, y) => REASONS.indexOf(reasonOf(x)!) - REASONS.indexOf(reasonOf(y)!));
+    return picked.sort((x, y) => ATTENTION.indexOf(taskStatus(x)) - ATTENTION.indexOf(taskStatus(y)));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [TASKS.length, dept]);
 
@@ -215,23 +208,23 @@ export default function Home() {
                 <tbody>
                   {pending.map((t) => {
                     const D = DEPT_ICON[t.dept] ?? Building2;
-                    const reason = reasonOf(t)!;
+                    const status = taskStatus(t);
                     return (
                       <tr key={t.id} onClick={() => navigate(`/tasks?open=${t.id}`)} className="cursor-pointer border-b border-line/70 last:border-0 hover:bg-subtle/60">
                         <td className="whitespace-nowrap py-3 pl-5 pr-3">
                           <span className={`flex items-center gap-1 text-[13px] ${t.sla.kind === "overdue" ? "font-medium text-red-600" : t.sla.kind === "due" ? "font-medium text-brand" : "text-ink-secondary"}`}>
-                            <Clock className="h-3.5 w-3.5" />{t.sla.text.replace(/^Overdue\s+/, "-")}
+                            <Clock className="h-3.5 w-3.5" />{slaShort(t.sla.text)}
                           </span>
                         </td>
                         <td className="py-3 pr-3">
                           <div className="flex items-center gap-2 text-[13px] font-semibold text-ink">
                             {t.title}
-                            {t.tag === "Complaint" && reason !== "Complaint" && <span className="rounded-full bg-violet-100 px-2 py-0.5 text-[11px] font-semibold text-violet-700">Complaint</span>}
+                            {t.tag === "Complaint" && <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${COMPLAINT_PILL}`}>Complaint</span>}
                           </div>
                           <div className="text-[12px] text-ink-tertiary">Room {t.room}</div>
                         </td>
                         <td className="whitespace-nowrap py-3 pr-3">
-                          <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[12px] font-semibold ${REASON_PILL[reason]}`}>{reason}</span>
+                          <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[12px] font-semibold ${STATUS_PILL[status]}`}>{status}</span>
                         </td>
                         <td className="whitespace-nowrap py-3 pr-3 text-[13px] text-ink-secondary"><span className="flex items-center gap-2"><D className="h-4 w-4 text-ink-tertiary" />{t.dept}</span></td>
                         <td className="whitespace-nowrap py-3 pr-5 text-[13px]">

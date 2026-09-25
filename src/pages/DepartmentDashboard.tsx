@@ -6,6 +6,7 @@ import { ScopePicker } from "../components/ScopePicker";
 import { TASKS, shortName } from "../data/tasks";
 import { INITIAL } from "../data/staff";
 import { usePersona } from "../persona";
+import { taskStatus, STATUS_PILL, COMPLAINT_PILL, slaShort } from "../data/attention";
 
 export default function DepartmentDashboard() {
   const navigate = useNavigate();
@@ -76,18 +77,16 @@ export default function DepartmentDashboard() {
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2 text-[13px] font-semibold text-ink">
                         {t.title}
-                        {(() => {
-                          const tag = t.status === "Escalated" ? ["Escalated", "text-red-600"] : t.tag === "Complaint" ? ["Complaint", "text-violet-600"] : t.sla.kind === "overdue" ? ["SLA breached", "text-red-600"] : ["Unassigned", "text-brand"];
-                          return <span className={`text-[11px] font-medium ${tag[1]}`}>{tag[0]}</span>;
-                        })()}
+                        {t.tag === "Complaint" && <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${COMPLAINT_PILL}`}>Complaint</span>}
                       </div>
                       <div className="text-[12px] text-ink-tertiary">
                         {scopeDepts.length > 1 && <>{t.dept} · </>}
                         Room {t.room}{t.owner && <> · {t.owner}</>}
                       </div>
                     </div>
-                    <span className={`flex shrink-0 items-center gap-1 text-[12px] ${t.sla.kind === "overdue" ? "font-medium text-red-600" : t.sla.kind === "due" ? "font-medium text-brand" : "text-ink-secondary"}`}>
-                      <Clock className="h-3.5 w-3.5" /> {t.sla.text}
+                    <span className={`shrink-0 rounded-full px-2 py-0.5 text-[12px] font-semibold ${STATUS_PILL[taskStatus(t)]}`}>{taskStatus(t)}</span>
+                    <span className={`flex w-20 shrink-0 items-center gap-1 text-[12px] ${t.sla.kind === "overdue" ? "font-medium text-red-600" : t.sla.kind === "due" ? "font-medium text-brand" : "text-ink-secondary"}`}>
+                      <Clock className="h-3.5 w-3.5" /> {slaShort(t.sla.text)}
                     </span>
                     <Link to={`/tasks?open=${t.id}`} className="shrink-0 rounded-lg border border-line px-3 py-1.5 text-[12px] font-semibold text-ink hover:bg-subtle">
                       View
@@ -150,7 +149,7 @@ export default function DepartmentDashboard() {
                   <div key={t.id} className="flex items-center gap-3 py-2.5">
                     <div className="min-w-0 flex-1 leading-tight">
                       <div className="truncate text-[13px] font-medium text-ink">{t.title}</div>
-                      <div className="text-[11px] text-ink-tertiary">{scopeDepts.length > 1 && <>{t.dept} · </>}Room {t.room} · {t.sla.text}</div>
+                      <div className="text-[11px] text-ink-tertiary">{scopeDepts.length > 1 && <>{t.dept} · </>}Room {t.room} · {slaShort(t.sla.text)}</div>
                     </div>
                     <Link to={`/tasks?open=${t.id}`} className="shrink-0 rounded-lg border border-line px-3 py-1.5 text-[12px] font-semibold text-ink hover:bg-subtle">
                       View

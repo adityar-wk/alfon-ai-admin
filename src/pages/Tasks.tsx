@@ -26,8 +26,9 @@ import {
 import { Topbar } from "../components/Topbar";
 import { GuestChat, type ChatMsg, type ChatMode } from "../components/GuestChat";
 import { Page, Card, Button, Field, Input, Select, Textarea } from "../components/ui";
-import { TASKS, HELP_REQUESTS, AI_DRAFTS, logAudit, pendingHelpFor, resolveHelp, shortName, type Task, type Priority, type Status } from "../data/tasks";
+import { TASKS, HELP_REQUESTS, AI_DRAFTS, logAudit, pendingHelpFor, resolveHelp, shortName, type Task, type Priority } from "../data/tasks";
 import { GUESTS } from "../data/guests";
+import { taskStatus, STATUS_PILL, COMPLAINT_PILL, slaShort } from "../data/attention";
 import { usePersona } from "../persona";
 import { ScopePicker } from "../components/ScopePicker";
 
@@ -111,36 +112,20 @@ function PriorityLabel({ p }: { p: Priority }) {
   );
 }
 
-/** what the status reads as: a task nobody owns is "Unassigned", an owned one that has not started is "Assigned" */
-function statusText(t: Pick<Task, "status" | "owner">): string {
-  return t.status === "Yet to Assign" ? (t.owner ? "Assigned" : "Unassigned") : t.status;
-}
-
-/** escalations read red, complaints read violet, everywhere they appear */
-const ESC_PILL = "bg-red-100 text-red-700";
-const COMPLAINT_PILL = "bg-violet-100 text-violet-700";
-
 function ComplaintPill({ className = "" }: { className?: string }) {
   return <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${COMPLAINT_PILL} ${className}`}>Complaint</span>;
 }
 
-function StatusLabel({ t }: { t: Pick<Task, "status" | "owner"> }) {
-  const s = t.status;
-  if (s === "Escalated")
-    return <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[12px] font-semibold ${ESC_PILL}`}>Escalated</span>;
-  const dot = s === "Void" ? "bg-gray-400" : s === "Unable to Complete" ? "bg-amber-400" : s === "Completed" ? "bg-emerald-500" : s === "In Progress" ? "bg-brand" : "bg-gray-300";
-  return (
-    <span className="inline-flex items-center gap-1.5 text-[13px] text-ink-secondary">
-      <span className={`h-1.5 w-1.5 rounded-full ${dot}`} /> {statusText(t)}
-    </span>
-  );
+function StatusLabel({ t }: { t: Pick<Task, "status" | "owner" | "sla"> }) {
+  const label = taskStatus(t);
+  return <span className={`inline-flex items-center whitespace-nowrap rounded-full px-2 py-0.5 text-[12px] font-semibold ${STATUS_PILL[label]}`}>{label}</span>;
 }
 
 function SlaText({ sla }: { sla: Task["sla"] }) {
   const tone = sla.kind === "overdue" ? "text-red-600 font-medium" : sla.kind === "due" ? "text-brand font-medium" : "text-ink-secondary";
   return (
     <span className={`inline-flex items-center gap-1 text-[12px] ${tone}`}>
-      <Clock className="h-3.5 w-3.5" /> {sla.text}
+      <Clock className="h-3.5 w-3.5" /> {slaShort(sla.text)}
     </span>
   );
 }
@@ -668,15 +653,6 @@ const COMP_TYPES = ["Chocolate Cake — $10", "Fruit Platter — $10", "Date Box
 const APPROVERS = ["Sophia Carter (General Manager)", "Duty Manager", "Daniel Reyes (Housekeeping Manager)"];
 
 
-const STATUS_PILL: Record<Status, string> = {
-  "Yet to Assign": "bg-amber-50 text-amber-700",
-  "In Progress": "bg-blue-50 text-blue-600",
-  Escalated: ESC_PILL,
-  Completed: "bg-emerald-50 text-emerald-600",
-  "Unable to Complete": "bg-slate-100 text-slate-600",
-  Void: "bg-gray-100 text-gray-500",
-};
-
 const SLA_TARGET: Record<Priority, number> = { Critical: 10, High: 20, Medium: 40, Low: 60 };
 const slaMinutes = (text: string) => {
   const h = text.match(/(\d+)\s*hr/);
@@ -837,7 +813,7 @@ function ManagerTaskWindow({
             </button>
           </div>
           <div className="mt-3 flex flex-wrap items-center gap-2">
-            <span className={`rounded-full px-2.5 py-1 text-[12px] font-semibold ${STATUS_PILL[task.status]}`}>{statusText(task)}</span>
+            <span className={`rounded-full px-2.5 py-1 text-[12px] font-semibold ${STATUS_PILL[taskStatus(task)]}`}>{taskStatus(task)}</span>
             {task.tag === "Complaint" && <span className={`rounded-full px-2.5 py-1 text-[12px] font-semibold ${COMPLAINT_PILL}`}>Complaint</span>}
           </div>
         </div>
