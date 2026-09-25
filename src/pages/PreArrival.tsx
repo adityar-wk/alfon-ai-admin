@@ -60,17 +60,24 @@ const ENG_LABEL: Record<string, string> = {
   Responded: "Responded",
 };
 
+const ENG_PILL: Record<string, string> = {
+  "Not Contacted": "bg-gray-100 text-gray-600",
+  "Awaiting Response": "bg-blue-50 text-blue-700",
+  Engaged: "bg-emerald-50 text-emerald-700",
+  Responded: "bg-emerald-50 text-emerald-700",
+};
+
 const ENG_DOT: Record<string, string> = {
   "Not Contacted": "bg-gray-300",
-  "Awaiting Response": "bg-amber-400",
-  Engaged: "bg-sky-400",
+  "Awaiting Response": "bg-blue-500",
+  Engaged: "bg-emerald-500",
   Responded: "bg-emerald-500",
 };
 
-function Avatar({ g, size = 36 }: { g: PreGuest; size?: number }) {
+function Avatar({ g, size = 36, soft = false }: { g: PreGuest; size?: number; soft?: boolean }) {
   return (
     <span
-      className={`flex shrink-0 items-center justify-center rounded-full font-semibold ${g.tint}`}
+      className={`flex shrink-0 items-center justify-center rounded-full font-semibold ${soft ? "bg-brand-tint text-brand" : g.tint}`}
       style={{ width: size, height: size, fontSize: size > 40 ? 16 : 12 }}
     >
       {g.name.split(" ").map((w) => w[0]).slice(0, 2).join("")}
@@ -359,17 +366,17 @@ export default function PreArrival() {
         </div>
 
         {/* table */}
-        <Card className="mt-4 overflow-hidden">
+        <div className="mt-4 overflow-hidden rounded-[20px] border border-line/40 bg-white shadow-[0_4px_20px_rgba(16,24,40,0.07)]">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[900px] text-left">
               <thead>
-                <tr className="border-b border-line bg-subtle/50 text-[11px] uppercase tracking-wide text-ink-secondary">
-                  <th className="py-3 pl-5 font-medium">Guest</th>
-                  <th className="py-3 font-medium">Stay</th>
-                  <th className="py-3 font-medium">Arrival</th>
-                  <th className="py-3 font-medium">Engagement</th>
-                  <th className="py-3 font-medium">Last Interaction</th>
-                  <th className="w-12 py-3 pr-5" aria-label="Actions" />
+                <tr className="bg-[#F4F4F5] text-[12px] uppercase tracking-wide text-[#6B7280]">
+                  <th className="py-3.5 pl-6 font-medium">Guest</th>
+                  <th className="py-3.5 font-medium">Stay</th>
+                  <th className="py-3.5 font-medium">Arrival</th>
+                  <th className="py-3.5 font-medium">Engagement</th>
+                  <th className="py-3.5 font-medium">Last Interaction</th>
+                  <th className="w-12 py-3.5 pr-6" aria-label="Actions" />
                 </tr>
               </thead>
               <tbody>
@@ -379,13 +386,13 @@ export default function PreArrival() {
                     <tr
                       key={g.id}
                       onClick={() => setSelectedId(g.id)}
-                      className={`cursor-pointer border-b border-line/70 ${active ? "bg-brand-tint/40" : "hover:bg-subtle/60"}`}
+                      className={`cursor-pointer border-b border-line/50 last:border-0 ${active ? "bg-brand-tint/40" : "hover:bg-subtle/60"}`}
                     >
-                      <td className="py-3.5 pl-5 pr-3">
+                      <td className="py-3.5 pl-6 pr-3">
                         <div className="flex items-center gap-3">
-                          <Avatar g={g} />
+                          <Avatar g={g} size={36} soft />
                           <div className="min-w-0">
-                            <div className="text-[13px] font-semibold text-ink">{g.name}</div>
+                            <div className="text-[14px] font-medium text-ink">{g.name}</div>
                             {g.tags.length > 0 && (
                               <div className="mt-1 flex flex-wrap gap-1">
                                 <TagChips g={g} />
@@ -395,22 +402,22 @@ export default function PreArrival() {
                         </div>
                       </td>
                       <td className="whitespace-nowrap py-3.5 pr-3">
-                        <div className="text-[13px] text-ink">{g.room ? `Room ${g.room}` : "Room not assigned"}</div>
+                        <div className="text-[14px] text-ink-secondary">{g.room ? `Room ${g.room}` : "Room not assigned"}</div>
                         <div className="text-[12px] text-ink-tertiary">
                           {g.type} · {g.nights} nights
                         </div>
                       </td>
                       <td className="whitespace-nowrap py-3.5 pr-3">
-                        <div className="text-[13px] font-medium text-ink">{arrivalLabel(g)}</div>
+                        <div className="text-[14px] text-ink-secondary">{arrivalLabel(g)}</div>
                         <div className="text-[12px] text-ink-tertiary">{g.time}</div>
                       </td>
                       <td className="py-3.5 pr-3">
-                        <span className="flex items-center gap-2 whitespace-nowrap text-[13px] text-ink">
-                          <span className={`h-2 w-2 rounded-full ${ENG_DOT[g.eng]}`} /> {ENG_LABEL[g.eng]}
+                        <span className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-[12px] font-medium ${ENG_PILL[g.eng]}`}>
+                          <span className={`h-1.5 w-1.5 rounded-full ${ENG_DOT[g.eng]}`} /> {ENG_LABEL[g.eng]}
                         </span>
                       </td>
-                      <td className="whitespace-nowrap py-3.5 pr-3 text-[13px] text-ink-secondary">{g.last}</td>
-                      <td className="py-3.5 pr-5 text-right">
+                      <td className="whitespace-nowrap py-3.5 pr-3 text-[14px] text-ink-secondary">{g.last}</td>
+                      <td className="py-3.5 pr-6 text-right">
                         <MoreHorizontal className="ml-auto h-5 w-5 text-ink-tertiary" aria-label="More actions" />
                       </td>
                     </tr>
@@ -429,7 +436,7 @@ export default function PreArrival() {
           <div className="px-5 py-3 text-[12px] text-ink-tertiary">
             Showing {rows.length} of {dayGuests.length} guests
           </div>
-        </Card>
+        </div>
       </Page>
 
       {selected && (
