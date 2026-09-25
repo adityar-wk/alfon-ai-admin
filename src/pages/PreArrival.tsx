@@ -291,8 +291,8 @@ export default function PreArrival() {
 
         {/* search + filter | date strip | bulk actions */}
         <div className="mt-5 flex flex-wrap items-center gap-3">
-          <div className="relative flex items-center gap-3">
-            <div className="relative w-full sm:w-[230px]">
+          <div className="relative flex shrink-0 items-center gap-3">
+            <div className="relative w-[230px] shrink-0">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-tertiary" />
               <input
                 value={query}
@@ -326,18 +326,18 @@ export default function PreArrival() {
           {filtersOpen && (
             <div className="absolute left-0 top-12 z-30 w-[440px] rounded-card border border-line bg-white p-4 shadow-lg">
               <div className="grid grid-cols-2 gap-3">
-                <FilterSelect
-                  label="Arrival date"
-                  value={dateOn ? String(selDay) : "all"}
-                  onChange={(v) => {
-                    if (v === "all") return setDateOn(false);
-                    const d = Number(v);
-                    setDateOn(true);
-                    setSelDay(d);
-                    if (d < weekStart || d > weekStart + 6) setWeekStart(d);
-                  }}
-                  options={[["all", "All dates"], ...Object.keys(perDay).map(Number).sort((x, y) => x - y).map((d) => [String(d), `${shortDay(d)}${d === 24 ? " (Today)" : d === 25 ? " (Tomorrow)" : ""} · ${perDay[d]}`] as [string, string])]}
-                />
+                <div className="col-span-2">
+                  <ArrivalCalendar
+                    selDay={dateOn ? selDay : null}
+                    perDay={perDay}
+                    onPick={(d) => {
+                      if (d === null) return setDateOn(false);
+                      setDateOn(true);
+                      setSelDay(d);
+                      if (d < weekStart || d > weekStart + 6) setWeekStart(d);
+                    }}
+                  />
+                </div>
                 <FilterSelect
                   label="Status"
                   value={tab}
@@ -368,15 +368,6 @@ export default function PreArrival() {
           )}
           </div>
 
-          {dateOn && <DateStrip
-            selDay={selDay}
-            weekStart={weekStart}
-            perDay={perDay}
-            onSelect={setSelDay}
-            onShift={(n) => setWeekStart((w) => w + n)}
-            onToday={() => { setSelDay(24); setWeekStart(24); }}
-          />}
-
           <div className="ml-auto flex items-center gap-3">
             <input
               ref={fileRef}
@@ -397,6 +388,19 @@ export default function PreArrival() {
             </Button>
           </div>
         </div>
+
+        {dateOn && (
+          <div className="mt-3">
+            <DateStrip
+            selDay={selDay}
+            weekStart={weekStart}
+            perDay={perDay}
+            onSelect={setSelDay}
+            onShift={(n) => setWeekStart((w) => w + n)}
+            onToday={() => { setSelDay(24); setWeekStart(24); }}
+          />
+          </div>
+        )}
 
         {/* table */}
         <div className="mt-5 overflow-hidden rounded-[20px] border border-line/40 bg-white shadow-[0_1px_3px_rgba(16,24,40,0.05)]">
@@ -533,6 +537,80 @@ function Kpi({
   );
 }
 
+/** Day numbers count from 1 May 2025 (today is the 24th); 32 is 1 June. */
+const DAY0 = new Date(2025, 4, 1).getTime();
+const dayNumber = (d: Date) => Math.round((d.getTime() - DAY0) / 86400000) + 1;
+
+function ArrivalCalendar({ selDay, perDay, onPick }: { selDay: number | null; perDay: Record<number, number>; onPick: (d: number | null) => void }) {
+  const [open, setOpen] = useState(false);
+  const [month, setMonth] = useState(() => (selDay ? new Date(2025, 4, selDay).getMonth() : 4));
+  const first = new Date(2025, month, 1);
+  const daysInMonth = new Date(2025, month + 1, 0).getDate();
+  const cells: (number | null)[] = [...Array(first.getDay()).fill(null), ...Array.from({ length: daysInMonth }, (_, i) => dayNumber(new Date(2025, month, i + 1)))];
+  const label = selDay === null ? "All dates" : `${shortDay(selDay)}${selDay === 24 ? " (Today)" : selDay === 25 ? " (Tomorrow)" : ""}`;
+
+  return (
+    <div>
+      <span className="mb-1 block text-[11px] text-ink-secondary">Arrival date</span>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className={`flex h-9 w-full items-center justify-between rounded-lg border bg-white px-3 text-[13px] ${open ? "border-brand" : "border-line"} ${selDay === null ? "text-ink-secondary" : "text-ink"}`}
+      >
+        <span className="flex items-center gap-2"><CalendarDays className="h-4 w-4 text-ink-tertiary" /> {label}</span>
+        {selDay !== null && (
+          <span
+            role="button"
+            aria-label="Clear date"
+            onClick={(e) => { e.stopPropagation(); onPick(null); }}
+            className="rounded p-0.5 text-ink-tertiary hover:text-ink"
+          >
+            <X className="h-3.5 w-3.5" />
+          </span>
+        )}
+      </button>
+
+      {open && (
+        <div className="mt-2 rounded-xl border border-line bg-white p-3">
+          <div className="mb-2 flex items-center justify-between">
+            <button type="button" aria-label="Previous month" onClick={() => setMonth((m) => m - 1)} className="rounded-md p-1 text-ink-secondary hover:bg-subtle"><ChevronLeft className="h-4 w-4" /></button>
+            <span className="text-[13px] font-semibold text-ink">{first.toLocaleDateString("en-US", { month: "long", year: "numeric" })}</span>
+            <button type="button" aria-label="Next month" onClick={() => setMonth((m) => m + 1)} className="rounded-md p-1 text-ink-secondary hover:bg-subtle"><ChevronRight className="h-4 w-4" /></button>
+          </div>
+          <div className="grid grid-cols-7 text-center text-[11px] text-ink-tertiary">
+            {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((d) => <span key={d} className="py-1">{d}</span>)}
+          </div>
+          <div className="grid grid-cols-7 gap-y-0.5 text-center">
+            {cells.map((d, i) => {
+              if (d === null) return <span key={`b${i}`} />;
+              const on = d === selDay;
+              const n = perDay[d] ?? 0;
+              return (
+                <button
+                  type="button"
+                  key={d}
+                  onClick={() => { onPick(d); setOpen(false); }}
+                  className={`relative mx-auto flex h-8 w-8 items-center justify-center rounded-full text-[13px] ${
+                    on ? "bg-brand font-semibold text-white" : d === 24 ? "font-semibold text-brand ring-1 ring-brand/40 hover:bg-brand-tint" : n ? "font-medium text-ink hover:bg-subtle" : "text-ink-tertiary hover:bg-subtle"
+                  }`}
+                  title={n ? `${n} arriving` : "No arrivals"}
+                >
+                  {new Date(DAY0 + (d - 1) * 86400000).getDate()}
+                  {n > 0 && !on && <span className="absolute bottom-0.5 h-1 w-1 rounded-full bg-brand/60" />}
+                </button>
+              );
+            })}
+          </div>
+          <div className="mt-2 flex items-center justify-between border-t border-line pt-2 text-[12px]">
+            <span className="text-ink-tertiary">Dots mark days with arrivals</span>
+            <button type="button" onClick={() => { onPick(null); setOpen(false); }} className="font-medium text-brand">All dates</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function FilterSelect({
   label, value, onChange, options,
 }: {
@@ -576,11 +654,11 @@ function DateStrip({
       : `${first.toLocaleDateString("en-US", { month: "short" })} – ${last.toLocaleDateString("en-US", { month: "short" })}`;
 
   return (
-    <div className="flex min-w-0 flex-1 items-center justify-center gap-1.5">
+    <div className="flex min-w-0 items-center gap-1.5 overflow-x-auto">
       <button onClick={() => onShift(-7)} aria-label="Previous week" className="flex h-10 w-7 items-center justify-center rounded-lg text-ink-secondary hover:bg-subtle">
         <ChevronLeft className="h-4 w-4" />
       </button>
-      <span className="w-[74px] text-center text-[13px] font-medium text-ink">{monthLabel}</span>
+      <span className="w-24 shrink-0 whitespace-nowrap text-center text-[13px] font-medium text-ink">{monthLabel}</span>
       <button onClick={() => onShift(7)} aria-label="Next week" className="flex h-10 w-7 items-center justify-center rounded-lg text-ink-secondary hover:bg-subtle">
         <ChevronRight className="h-4 w-4" />
       </button>
