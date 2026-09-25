@@ -6,8 +6,7 @@ import {
   AlertCircle,
   CircleSlash,
   Timer,
-  Pencil,
-  Search,
+  ArrowRight,
   SlidersHorizontal,
   Check,
   Wrench,
@@ -84,6 +83,14 @@ const STATUS_ICON: Record<RoomStatus, React.ComponentType<{ className?: string }
   ooo: Wrench,
 };
 
+const STATUS_ICON_TONE: Record<RoomStatus, string> = {
+  inspected: "bg-emerald-50 text-emerald-600",
+  progress: "bg-blue-50 text-blue-600",
+  inspection: "bg-amber-50 text-amber-600",
+  oos: "bg-gray-100 text-gray-500",
+  ooo: "bg-red-50 text-red-600",
+};
+
 const OPEN_TASK = "__open__";
 const STATUS_OPTIONS: RoomStatus[] = ["inspected", "progress", "inspection", "oos", "ooo"];
 const STAFF = getDepartment("housekeeping")?.members.map((m) => m.name) ?? [];
@@ -94,22 +101,20 @@ export default function HousekeepingBoard() {
   const [floor, setFloor] = useState<number | "all">("all");
   const [occ, setOcc] = useState<"all" | "occupied" | "vacant">("all");
   const [statuses, setStatuses] = useState<RoomStatus[]>([]);
-  const [query, setQuery] = useState("");
   const [filterOpen, setFilterOpen] = useState(false);
   const [assignFor, setAssignFor] = useState<Room | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const toastTimer = useRef<number>();
 
   const visible = useMemo(() => {
-    const q = query.trim().toLowerCase();
     return rooms.filter(
       (r) =>
         (floor === "all" || r.floor === floor) &&
         (occ === "all" || (occ === "occupied" ? !!r.guest : !r.guest)) &&
         (!statuses.length || statuses.includes(r.status)) &&
-        (!q || String(r.no).includes(q)),
+        true,
     );
-  }, [rooms, floor, occ, statuses, query]);
+  }, [rooms, floor, occ, statuses]);
   const activeFilters = (floor !== "all" ? 1 : 0) + (occ !== "all" ? 1 : 0) + (statuses.length ? 1 : 0);
   const clearFilters = () => { setFloor("all"); setOcc("all"); setStatuses([]); };
   const toggleStatus = (st: RoomStatus) => setStatuses((cur) => (cur.includes(st) ? cur.filter((x) => x !== st) : [...cur, st]));
@@ -164,7 +169,7 @@ export default function HousekeepingBoard() {
               onClick={() => setStatuses((cur) => (cur.length === 1 && cur[0] === h.status ? [] : [h.status]))}
               className={`rounded-card border bg-white p-4 text-left transition-colors hover:border-brand/40 ${statuses.length === 1 && statuses[0] === h.status ? "border-brand" : "border-line"}`}
             >
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-subtle text-ink-secondary">
+              <span className={`flex h-8 w-8 items-center justify-center rounded-lg ${STATUS_ICON_TONE[h.status]}`}>
                 <h.icon className="h-4 w-4" />
               </span>
               <div className="mt-3 text-[12px] font-medium text-ink-secondary">{STATUS_LABEL[h.status]}</div>
@@ -174,15 +179,6 @@ export default function HousekeepingBoard() {
         </div>
 
         <div className="relative mt-6 flex items-center gap-3">
-          <div className="relative min-w-0 max-w-md flex-1">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-tertiary" />
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search room number…"
-              className="h-10 w-full rounded-lg border border-line bg-white pl-9 pr-3 text-[13px] outline-none placeholder:text-ink-tertiary focus:border-brand"
-            />
-          </div>
           <div className="relative shrink-0">
             <button
               aria-label="Filters"
@@ -238,31 +234,28 @@ export default function HousekeepingBoard() {
           {visible.map((r) => {
             const occupied = !!r.guest;
             return (
-              <div key={r.no} className="flex h-[156px] flex-col rounded-xl border border-line bg-white p-4">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="text-[14px] font-bold text-ink">Room {r.no}</div>
-                </div>
+              <div
+                key={r.no}
+                role="button"
+                tabIndex={0}
+                aria-label={`Open room ${r.no}`}
+                onClick={() => setAssignFor(r)}
+                onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && setAssignFor(r)}
+                className="flex h-[156px] cursor-pointer flex-col rounded-xl border border-brand/25 bg-white p-4 transition-colors hover:border-brand/50"
+              >
+                <div className="text-[14px] font-bold text-ink">Room {r.no}</div>
                 <div className="mt-1 truncate text-[12px] text-ink-secondary">{r.type}</div>
                 <div className="truncate text-[12px] text-ink-tertiary">{occupied ? "Occupied" : "Vacant"}</div>
-                <div className="mt-2 flex items-center justify-between gap-2 text-[12px] font-medium text-ink">
-                  {(() => { const Icon = STATUS_ICON[r.status]; return <span title={STATUS_LABEL[r.status]} aria-label={STATUS_LABEL[r.status]} role="img" className="flex h-7 w-7 items-center justify-center rounded-lg bg-subtle text-ink-secondary"><Icon className="h-4 w-4" /></span>; })()}
+                <div className="mt-2 flex items-center gap-2.5 text-[12px] font-medium text-ink">
+                  {(() => { const Icon = STATUS_ICON[r.status]; return <span title={STATUS_LABEL[r.status]} aria-label={STATUS_LABEL[r.status]} role="img" className={`flex h-7 w-7 items-center justify-center rounded-lg ${STATUS_ICON_TONE[r.status]}`}><Icon className="h-4 w-4" /></span>; })()}
                   {r.mins != null && (
                     <span className="flex items-center gap-1 font-medium text-ink-secondary">
                       <Timer className="h-3 w-3" /> {r.mins} mins
                     </span>
                   )}
                 </div>
-                <div className="mt-auto flex items-end justify-between gap-2">
-                  <div className="min-w-0 text-[11px] leading-tight text-ink-secondary">
-                    {r.assignedTo ? <div className="truncate">{r.assignedTo}</div> : r.open && r.status === "progress" ? <div className="font-medium text-amber-600">Open task</div> : null}
-                  </div>
-                  <button
-                    onClick={() => setAssignFor(r)}
-                    aria-label={`Edit room ${r.no}`}
-                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-ink-secondary hover:bg-white hover:text-ink"
-                  >
-                    <Pencil className="h-3.5 w-3.5" />
-                  </button>
+                <div className="mt-auto flex justify-end">
+                  <ArrowRight className="h-4 w-4 text-ink-tertiary" />
                 </div>
               </div>
             );
