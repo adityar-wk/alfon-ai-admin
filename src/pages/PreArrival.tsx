@@ -250,20 +250,10 @@ export default function PreArrival() {
 
   return (
     <>
-      <Topbar title="" searchPlaceholder="Search guests, rooms, reservations…" />
+      <Topbar title="Pre-Arrival" subtitle="Prepare arriving guests, capture preferences, and resolve requests before check-in." />
       <Page>
-        {/* header */}
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-ink">Pre-Arrival</h1>
-            <p className="mt-1 text-[13px] text-ink-secondary">
-              Prepare arriving guests, capture preferences, and resolve requests before check-in.
-            </p>
-          </div>
-        </div>
-
         {/* KPIs */}
-        <div className="mt-5 grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           <Kpi icon={Plane} tone="text-ink-secondary bg-subtle" label="Arriving Today" value={today.length} sub={`${contacted} contacted · ${responded} responded`} onClick={() => goToday("all")} />
           <Kpi icon={Send} tone="text-gray-500 bg-gray-100" label="Not Contacted" value={kpiNC} sub="Requires attention" onClick={() => goToday("nc")} />
           <Kpi icon={Clock} tone="text-amber-600 bg-amber-50" label="Awaiting Response" value={kpiAW} sub="Messages already sent" onClick={() => goToday("aw")} />

@@ -65,19 +65,10 @@ export default function Guests() {
 
   return (
     <>
-      <Topbar title="Guests" />
+      <Topbar title="Guests" subtitle="View and manage guest profiles, stay details and preferences." />
       <Page>
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-ink">Guests</h1>
-            <p className="mt-1 text-[13px] text-ink-secondary">
-              View and manage guest profiles, stay details and preferences.
-            </p>
-          </div>
-        </div>
-
         {/* stats */}
-        <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
           {STATS.map((s) => (
             <Card key={s.label} className="p-4">
               <div className="flex items-start justify-between">

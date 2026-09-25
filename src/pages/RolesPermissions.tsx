@@ -171,25 +171,9 @@ export default function RolesPermissions({ embedded = false }: { embedded?: bool
 
   return (
     <>
-      {!embedded && <Topbar title="" />}
+      {!embedded && <Topbar title="Roles & Permissions" subtitle="Define what each role can access and do, and who belongs to it." />}
       <Shell embedded={embedded}>
-        {!embedded && (
-          <>
-            <nav className="mb-2 flex items-center gap-2 text-[13px] text-ink-tertiary">
-              <span>Settings</span>
-              <ChevronRight className="h-3.5 w-3.5" />
-              <span className="text-ink">Roles &amp; Permissions</span>
-            </nav>
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h1 className="text-[26px] font-bold text-ink">Roles &amp; Permissions</h1>
-                <p className="mt-1 text-[13px] text-ink-secondary">Define what each role can access and do, and who belongs to it.</p>
-              </div>
-            </div>
-          </>
-        )}
-
-        <div className={`${embedded ? "" : "mt-5 "}flex gap-6 border-b border-line`}>
+        <div className="flex gap-6 border-b border-line">
           {([["roles", "Role Configuration"], ["users", "User Management"]] as const).map(([k, l]) => (
             <button
               key={k}

@@ -55,16 +55,10 @@ export default function LineStaff() {
 
   return (
     <>
-      <Topbar title="Mobile App" />
+      <Topbar title="Mobile App" subtitle="Each role has its own mobile screens. Everything in the phone is clickable." />
       <main className="flex-1 overflow-y-auto bg-subtle/40">
         <div className="mx-auto max-w-[1180px] px-6 py-8">
-          <div className="flex flex-wrap items-center gap-3">
-            <h1 className="text-2xl font-bold text-ink">Mobile Experience</h1>
-            <span className="rounded-full bg-brand-tint px-2.5 py-1 text-[11px] font-semibold text-brand">Interactive prototype</span>
-          </div>
-          <p className="mt-1 max-w-2xl text-[13px] text-ink-secondary">Each role has its own mobile screens. Everything in the phone is clickable.</p>
-
-          <div className="mt-5 flex gap-6 border-b border-line">
+          <div className="flex gap-6 border-b border-line">
             {TABS.map((t) => (
               <button
                 key={t.key}

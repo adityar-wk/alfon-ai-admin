@@ -90,11 +90,8 @@ export default function DepartmentDetail() {
               <Icon className="h-7 w-7" />
             </span>
             <div className="min-w-0">
-              <h1 className="text-[28px] font-bold leading-tight tracking-tight text-ink">{dept.name}</h1>
-              <div className="mt-1 text-[15px] text-ink-secondary">
-                <span className="text-ink-tertiary">Head of Department</span>{" "}
-                <span className="font-semibold text-ink">{head?.name ?? "—"}</span>
-              </div>
+              <div className="text-[12px] text-ink-tertiary">Head of Department</div>
+              <div className="text-[18px] font-semibold text-ink">{head?.name ?? "—"}</div>
             </div>
           </div>
           <p className="mt-3 max-w-3xl text-[13px] leading-relaxed text-ink-tertiary">{dept.description}</p>
