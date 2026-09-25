@@ -4,6 +4,7 @@ import OnboardingOverview from "./pages/OnboardingOverview";
 import HotelPropertySetup from "./pages/HotelPropertySetup";
 import WhatsAppPmsSetup from "./pages/WhatsAppPmsSetup";
 import KnowledgeBaseSetup from "./pages/KnowledgeBaseSetup";
+import RolesSetup from "./pages/RolesSetup";
 import StaffTeamManagement from "./pages/StaffTeamManagement";
 import SlaSetup from "./pages/SlaSetup";
 import DepartmentsSetup from "./pages/DepartmentsSetup";
@@ -35,6 +36,7 @@ export const router = createBrowserRouter([
       { path: "/onboarding/whatsapp-pms", element: <WhatsAppPmsSetup /> },
       { path: "/onboarding/knowledge-base", element: <KnowledgeBaseSetup /> },
       { path: "/onboarding/staff", element: <StaffTeamManagement /> },
+      { path: "/onboarding/roles", element: <RolesSetup /> },
       { path: "/onboarding/sla", element: <SlaSetup /> },
       { path: "/onboarding/departments", element: <DepartmentsSetup onboarding /> },
       { path: "/onboarding/rooms-qr", element: <RoomsQrSetup onboarding /> },

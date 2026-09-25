@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Building2, Plug, FileText, Users, LayoutGrid, Timer, QrCode, Rocket, Lock, Check, ArrowRight } from "lucide-react";
+import { Building2, Plug, FileText, Users, ShieldCheck, LayoutGrid, Timer, QrCode, Rocket, Lock, Check, ArrowRight } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { Page, Card, Button } from "../components/ui";
 
@@ -19,9 +19,10 @@ const STEPS: {
   { id: 2, title: "WhatsApp & PMS", desc: "Connect WhatsApp Business and your PMS.", to: "/onboarding/whatsapp-pms", icon: Plug, status: "current", progress: 50, time: "10 min" },
   { id: 3, title: "Knowledge Base", desc: "Upload documents and reference links for the AI.", to: "/onboarding/knowledge-base", icon: FileText, status: "todo", progress: 0, time: "10 min" },
   { id: 4, title: "Departments", desc: "Create departments, members and services.", to: "/onboarding/departments", icon: LayoutGrid, status: "todo", progress: 0, time: "15 min" },
-  { id: 5, title: "Team Members", desc: "Import your staff. Roles are assigned later.", to: "/onboarding/staff", icon: Users, status: "todo", progress: 0, time: "8 min" },
-  { id: 6, title: "SLA & Escalation", desc: "Response times, service SLAs and escalation paths.", to: "/onboarding/sla", icon: Timer, status: "todo", progress: 0, time: "10 min" },
-  { id: 7, title: "Rooms & QR", desc: "Create rooms and generate guest QR codes.", to: "/onboarding/rooms-qr", icon: QrCode, status: "todo", progress: 0, time: "6 min" },
+  { id: 5, title: "Team Members", desc: "Import your staff with their name and department.", to: "/onboarding/staff", icon: Users, status: "todo", progress: 0, time: "8 min" },
+  { id: 6, title: "Roles & Permissions", desc: "Create roles and set what each one can access.", to: "/onboarding/roles", icon: ShieldCheck, status: "todo", progress: 0, time: "10 min" },
+  { id: 7, title: "SLA & Escalation", desc: "Response times, service SLAs and escalation paths.", to: "/onboarding/sla", icon: Timer, status: "todo", progress: 0, time: "10 min" },
+  { id: 8, title: "Rooms & QR", desc: "Create rooms and generate guest QR codes.", to: "/onboarding/rooms-qr", icon: QrCode, status: "todo", progress: 0, time: "6 min" },
 ];
 
 const STATS = [

@@ -4,7 +4,6 @@ import { Topbar } from "../components/Topbar";
 import { SetupTabs } from "../components/SetupTabs";
 import { Drawer } from "../components/Drawer";
 import { Page, Card, Button, Field, Input, Select } from "../components/ui";
-import RolesPermissions from "./RolesPermissions";
 
 type Member = {
   id: number;
@@ -113,9 +112,6 @@ export default function StaffTeamManagement() {
             </div>
           </Card>
 
-          <div className="mt-6">
-            <RolesPermissions embedded />
-          </div>
         </Page>
       </div>
 

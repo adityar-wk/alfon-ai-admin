@@ -6,6 +6,7 @@ const STEPS = [
   { label: "Knowledge Base", to: "/onboarding/knowledge-base" },
   { label: "Departments", to: "/onboarding/departments" },
   { label: "Team Members", to: "/onboarding/staff" },
+  { label: "Roles & Permissions", to: "/onboarding/roles" },
   { label: "SLA & Escalation", to: "/onboarding/sla" },
   { label: "Rooms & QR", to: "/onboarding/rooms-qr" },
 ];
