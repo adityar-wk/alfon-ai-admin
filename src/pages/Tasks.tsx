@@ -388,14 +388,14 @@ export default function Tasks() {
         ) : (
         <Card table className="overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[960px] table-fixed text-left">
+            <table className="w-full min-w-[1020px] table-fixed text-left">
               <colgroup>
                 <col className="w-[120px]" />
                 <col />
                 <col className="w-[150px]" />
                 <col className="w-[180px]" />
-                <col className="w-[100px]" />
-                <col className="w-[140px]" />
+                <col className="w-[130px]" />
+                <col className="w-[170px]" />
               </colgroup>
               <thead>
                 <tr className="bg-[#F4F4F5] text-[12px] uppercase tracking-wide text-[#6B7280]">
@@ -403,8 +403,8 @@ export default function Tasks() {
                   <th className="py-3.5 pl-6 font-medium">Task</th>
                   <th className="py-3.5 pl-6 font-medium">Status</th>
                   <th className="py-3.5 pl-6 font-medium">Department</th>
-                  <th className="py-3.5 pl-6 font-medium">Room</th>
-                  <th className="py-3.5 pl-6 font-medium">Assigned To</th>
+                  <th className="py-3.5 pl-10 font-medium">Room</th>
+                  <th className="py-3.5 pl-10 font-medium">Assigned To</th>
                 </tr>
               </thead>
               <tbody>
@@ -422,8 +422,8 @@ export default function Tasks() {
                       </td>
                       <td className="whitespace-nowrap py-3.5 pl-6 pr-3"><StatusLabel t={t} /></td>
                       <td className="whitespace-nowrap py-3.5 pl-6 pr-3 text-[14px] text-ink-secondary"><span className="flex items-center gap-2"><D className="h-4 w-4 text-ink-tertiary" />{t.dept}</span></td>
-                      <td className="whitespace-nowrap py-3.5 pl-6 pr-3 text-[14px] text-ink-secondary">{t.room}</td>
-                      <td className="whitespace-nowrap py-3.5 pl-6 pr-3 text-[14px]">
+                      <td className="whitespace-nowrap py-3.5 pl-10 pr-3 text-[14px] text-ink-secondary">{t.room}</td>
+                      <td className="whitespace-nowrap py-3.5 pl-10 pr-3 text-[14px]">
                         {t.owner ? <span className="text-ink">{t.owner}</span> : <span className="font-medium text-brand">Unassigned</span>}
                       </td>
                     </tr>
