@@ -17,6 +17,13 @@ import {
   Wine,
   Headset,
   Building2,
+  HeartPulse,
+  Activity,
+  Home as HomeIcon,
+  Scale,
+  Zap,
+  ChevronDown,
+  Check,
 } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { Page, Card, Select, RoomNo } from "../components/ui";
@@ -36,6 +43,14 @@ const PILLARS = [
   { label: "Service Quality", value: "79%", tag: "Good", trend: "flat", icon: Heart, spark: [55, 54, 56, 55, 56, 55] },
   { label: "Team Performance", value: "84%", tag: "Excellent", trend: "up", icon: Users, spark: [58, 59, 60, 60, 61, 62] },
 ] as const;
+
+const SCORE_PILLARS: { title: string; weight: number; icon: Icon; text: string }[] = [
+  { title: "Guest Pulse", weight: 30, icon: HeartPulse, text: "Tracks how guests feel throughout their stay — drawn from AI chat sentiment, complaint volume, and the tone and frequency of guest-initiated messages." },
+  { title: "Operations Heartbeat", weight: 25, icon: Activity, text: "Measures how efficiently the hotel runs day to day — task completion rates, average response time, SLA breaches, and whether requests are being closed or left open." },
+  { title: "Housekeeping Rhythm", weight: 20, icon: HomeIcon, text: "Evaluates room turnover speed, amenity fulfilment accuracy, and whether pre-arrival requests such as minibar preferences and room setup notes were actioned before the guest arrived." },
+  { title: "Workload Balance", weight: 15, icon: Scale, text: "Measures how evenly work is distributed across the team — whether tasks are being claimed by multiple staff members or concentrated on one person, and whether any department is understaffed relative to its open task volume." },
+  { title: "Recovery Rate", weight: 10, icon: Zap, text: "Scores how well the team turns a negative guest experience into a positive one — complaint-to-resolution time, compensation approvals, and whether a follow-up was made after the issue was closed." },
+];
 
 const DEPT_ICON: Record<string, Icon> = {
   Engineering: Wrench, Concierge: ConciergeBell, "Front Desk": KeyRound, "Room Service": UtensilsCrossed,
@@ -86,6 +101,7 @@ export default function Home() {
   useClock();
   const navigate = useNavigate();
   const [dept, setDept] = useState("all");
+  const [scoreOpen, setScoreOpen] = useState(false);
 
   const open = TASKS.filter((t) => t.status !== "Completed" && t.status !== "Unable to Complete" && t.status !== "Void");
 
@@ -148,6 +164,13 @@ export default function Home() {
                     ? "Several things need attention."
                     : "Urgent: resolve overdue and escalated tasks."}
             </p>
+            <button
+              onClick={() => setScoreOpen((o) => !o)}
+              aria-expanded={scoreOpen}
+              className="mt-4 inline-flex items-center gap-1 text-[13px] font-semibold text-brand hover:underline"
+            >
+              {scoreOpen ? "View less" : "View more"} <ChevronDown className={`h-4 w-4 transition-transform ${scoreOpen ? "rotate-180" : ""}`} />
+            </button>
           </Card>
 
           <div className="flex flex-col gap-5">
@@ -181,6 +204,32 @@ export default function Home() {
             </Card>
           </div>
         </div>
+
+        {scoreOpen && (
+          <Card className="mt-5 p-6">
+            <h3 className="text-[16px] font-semibold text-ink">How your score is calculated</h3>
+            <p className="mt-1 max-w-3xl text-[13px] leading-relaxed text-ink-secondary">
+              Alfon monitors your hotel&apos;s live operations around the clock and distils everything into one score. Five pillars are weighted by their impact on the guest experience and recalculated every night at midnight.
+            </p>
+            <div className="mt-5 grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2 xl:grid-cols-5 xl:divide-x xl:divide-line">
+              {SCORE_PILLARS.map((p, i) => (
+                <div key={p.title} className={i > 0 ? "xl:pl-6" : ""}>
+                  <div className="flex items-center justify-between">
+                    <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-line text-brand"><p.icon className="h-[18px] w-[18px]" /></span>
+                    <span className="text-[16px] font-bold text-brand">{p.weight}%</span>
+                  </div>
+                  <div className="mt-3 text-[14px] font-semibold text-ink">{p.title}</div>
+                  <p className="mt-1.5 text-[12.5px] leading-relaxed text-ink-secondary">{p.text}</p>
+                </div>
+              ))}
+            </div>
+            <div className="mt-6 flex flex-wrap gap-x-8 gap-y-2 border-t border-line pt-4 text-[13px] text-ink-secondary">
+              {["Recalculates automatically every midnight", "Benchmarks against your previous day's performance", "Surfaces the exact pillar pulling your score down"].map((t) => (
+                <span key={t} className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-500" />{t}</span>
+              ))}
+            </div>
+          </Card>
+        )}
 
         {/* needs attention */}
         <div className="mt-5">
