@@ -267,15 +267,15 @@ export function LineStaffPrototype() {
     <div className="relative h-full">
       <div className="h-full overflow-y-auto pb-28 no-scrollbar">
         <div className="flex items-center justify-between px-6 py-2">
-          <button onClick={() => nav.push({ name: "profile" })} aria-label="Menu" className="flex h-11 w-11 items-center justify-center rounded-full text-ink active:bg-black/5">
+          <button onClick={() => nav.push({ name: "profile" })} aria-label="Menu" className="flex h-11 w-11 items-center justify-center rounded-full text-ink active:bg-ink/5">
             <MenuIcon className="h-[22px] w-[22px]" />
           </button>
           <div className="flex items-center gap-2">
-            <button onClick={() => nav.push({ name: "notifications" })} aria-label="Notifications" className="relative flex h-11 w-11 items-center justify-center rounded-full text-ink active:bg-black/5">
+            <button onClick={() => nav.push({ name: "notifications" })} aria-label="Notifications" className="relative flex h-11 w-11 items-center justify-center rounded-full text-ink active:bg-ink/5">
               <Bell className="h-[22px] w-[22px] text-ink" />
               <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-red-500" />
             </button>
-            <button onClick={openCreate} aria-label="Create task" className="flex h-11 w-11 items-center justify-center rounded-full text-ink active:bg-black/5">
+            <button onClick={openCreate} aria-label="Create task" className="flex h-11 w-11 items-center justify-center rounded-full text-ink active:bg-ink/5">
               <Plus className="h-6 w-6" strokeWidth={2.25} />
             </button>
           </div>
@@ -540,7 +540,7 @@ export function LineStaffPrototype() {
 
   return (
     <div className="flex flex-col items-center gap-4">
-      <PhoneFrame white={!signedOut && (cur.name === "guests" || cur.name === "profile")}>
+      <PhoneFrame white={!signedOut && ["home", "guests", "profile"].includes(cur.name)}>
         {signedOut ? <SignedOutScreen onSignIn={() => { setSignedOut(false); nav.reset(); }} /> : VIEWS[cur.name]}
         {HelpSheet}
         {compOpen && (

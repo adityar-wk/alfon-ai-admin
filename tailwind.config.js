@@ -10,7 +10,7 @@ export default {
           hover: "#D94E1C",
         },
         ink: {
-          DEFAULT: "#111111",
+          DEFAULT: "#2B2E35",
           secondary: "#6B7280",
           tertiary: "#A0A4AB",
         },

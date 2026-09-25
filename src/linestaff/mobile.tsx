@@ -21,7 +21,7 @@ export const CARD_SHADOW = "shadow-[0_2px_10px_rgba(17,17,17,0.08)]";
 
 export function PhoneFrame({ children, white = false }: { children: ReactNode; white?: boolean }) {
   return (
-    <div className="relative h-[820px] w-[400px] shrink-0 rounded-[52px] border-[10px] border-[#1a1a1a] bg-[#1a1a1a] shadow-2xl">
+    <div className="relative h-[820px] w-[400px] shrink-0 rounded-[52px] border-[10px] border-[#2B2E35] bg-[#2B2E35] shadow-2xl">
       <div className={`relative flex h-full w-full flex-col overflow-hidden rounded-[42px] ${white ? "bg-white" : "bg-[#F6F6F8]"}`}>
         <StatusBar />
         <div className="relative min-h-0 flex-1">{children}</div>
@@ -78,7 +78,7 @@ export function ScreenHeader({ title, onBack, right }: { title?: string; onBack?
   return (
     <div className={`flex items-center gap-1 pb-1 pt-3 pr-4 ${onBack ? "pl-4" : "pl-6"}`}>
       {onBack && (
-        <button onClick={onBack} aria-label="Back" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-ink active:bg-black/5">
+        <button onClick={onBack} aria-label="Back" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-ink active:bg-ink/5">
           <ChevronLeft className="h-6 w-6" />
         </button>
       )}
@@ -379,7 +379,7 @@ export function Label({ children }: { children: ReactNode }) {
 export function Sheet({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
   return (
     <div className="absolute inset-0 z-40">
-      <button className="absolute inset-0 bg-black/45" onClick={onClose} aria-label="Dismiss" />
+      <button className="absolute inset-0 bg-ink/45" onClick={onClose} aria-label="Dismiss" />
       <div className="absolute inset-x-0 bottom-0 max-h-[86%] overflow-y-auto rounded-t-[28px] bg-white p-6 pb-7 shadow-2xl no-scrollbar">
         <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-[#DADADA]" />
         <div className="flex items-center justify-between">

@@ -268,7 +268,7 @@ export default function GuestChats() {
       </div>
 
       {tplOpen && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/30 p-4" onMouseDown={(e) => e.target === e.currentTarget && setTplOpen(false)}>
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-ink/30 p-4" onMouseDown={(e) => e.target === e.currentTarget && setTplOpen(false)}>
           <div role="dialog" aria-label="Send template" className="w-full max-w-[460px] rounded-2xl bg-white p-6 shadow-2xl">
             <div className="flex items-start justify-between gap-3">
               <div>

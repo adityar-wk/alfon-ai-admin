@@ -375,13 +375,13 @@ export function ManagerPrototype() {
   );
 
   const menuBtn = (
-    <button onClick={() => nav.push({ name: "menu" })} aria-label="Menu" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-ink active:bg-black/5">
+    <button onClick={() => nav.push({ name: "menu" })} aria-label="Menu" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-ink active:bg-ink/5">
       <MenuIcon className="h-[22px] w-[22px]" />
     </button>
   );
 
   const bellBtn = (
-    <button onClick={() => nav.push({ name: "notifications" })} aria-label="Notifications" className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-ink active:bg-black/5">
+    <button onClick={() => nav.push({ name: "notifications" })} aria-label="Notifications" className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-ink active:bg-ink/5">
       <Bell className="h-[22px] w-[22px]" /><span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-red-500" />
     </button>
   );
@@ -405,7 +405,7 @@ export function ManagerPrototype() {
       </div>
 
       <div className="mt-7"><SectionTitle tone="bg-red-500">Escalations</SectionTitle></div>
-      <div className="mt-3"><Chips items={ESC_FILTERS} active={filter} onChange={setFilter} counts={chipCounts} /></div>
+      <div className="mt-3"><Chips flat items={ESC_FILTERS} active={filter} onChange={setFilter} counts={chipCounts} /></div>
       <div className="mt-3 space-y-3 px-6">
         {filtered.map(card)}
         {!filtered.length && <p className="rounded-2xl bg-white p-6 text-center text-[13px] text-ink-tertiary">Nothing escalated in this view.</p>}
@@ -425,7 +425,7 @@ export function ManagerPrototype() {
         </div>
         <div className="flex items-center gap-2">
           {bellBtn}
-          <button onClick={openCreate} aria-label="Create task" className="flex h-11 w-11 items-center justify-center rounded-full text-ink active:bg-black/5">
+          <button onClick={openCreate} aria-label="Create task" className="flex h-11 w-11 items-center justify-center rounded-full text-ink active:bg-ink/5">
             <Plus className="h-6 w-6" strokeWidth={2.25} />
           </button>
         </div>
@@ -437,11 +437,11 @@ export function ManagerPrototype() {
             value={taskQuery}
             onChange={(e) => setTaskQuery(e.target.value)}
             placeholder="Search room, guest or task"
-            className="h-11 w-full rounded-full bg-white pl-10 pr-3 text-[14px] shadow-sm outline-none placeholder:text-ink-tertiary focus:ring-2 focus:ring-brand/30"
+            className="h-11 w-full rounded-full bg-[#F4F4F6] pl-10 pr-3 text-[14px] outline-none placeholder:text-ink-tertiary focus:ring-2 focus:ring-brand/30"
           />
         </div>
       </div>
-      <div className="mt-3"><Chips items={TASK_FILTERS} active={taskFilter} onChange={setTaskFilter} counts={taskChipCounts} /></div>
+      <div className="mt-3"><Chips flat items={TASK_FILTERS} active={taskFilter} onChange={setTaskFilter} counts={taskChipCounts} /></div>
       <div className="mt-3 space-y-3 px-6">
         {tasksFiltered.map(genericCard)}
         {!tasksFiltered.length && <p className="rounded-2xl bg-white p-6 text-center text-[13px] text-ink-tertiary">No tasks match.</p>}
@@ -909,7 +909,7 @@ export function ManagerPrototype() {
       <ScreenHeader
         title="Notifications"
         onBack={nav.back}
-        right={<button onClick={() => nav.push({ name: "notifSettings" })} aria-label="Notification settings" className="flex h-11 w-11 items-center justify-center rounded-full text-ink active:bg-black/5"><SlidersHorizontal className="h-[18px] w-[18px]" /></button>}
+        right={<button onClick={() => nav.push({ name: "notifSettings" })} aria-label="Notification settings" className="flex h-11 w-11 items-center justify-center rounded-full text-ink active:bg-ink/5"><SlidersHorizontal className="h-[18px] w-[18px]" /></button>}
       />
       <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-6 pt-2 no-scrollbar">
         {NOTIFS.map((n, i) => {
@@ -1270,7 +1270,7 @@ export function ManagerPrototype() {
 
   return (
     <div className="flex flex-col items-center gap-4">
-      <PhoneFrame white={!signedOut && (cur.name === "guests" || cur.name === "menu")}>
+      <PhoneFrame white={!signedOut && ["home", "tasks", "guests", "menu"].includes(cur.name)}>
         {signedOut ? <SignedOutScreen onSignIn={() => { setSignedOut(false); nav.reset(); }} /> : VIEWS[cur.name]}
         {sheetNode}
         {TeamFilterSheet}

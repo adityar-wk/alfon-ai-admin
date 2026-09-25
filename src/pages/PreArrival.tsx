@@ -491,7 +491,7 @@ export default function PreArrival() {
 
       {selected && (
         <>
-          <button className="fixed inset-0 z-30 bg-black/10" aria-label="Close" onClick={() => setSelectedId(null)} />
+          <button className="fixed inset-0 z-30 bg-ink/10" aria-label="Close" onClick={() => setSelectedId(null)} />
           <div className="fixed inset-y-0 right-0 z-40 flex shadow-2xl">
             <GuestDrawer
               g={selected}

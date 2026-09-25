@@ -366,7 +366,7 @@ function Overlay({ title, onClose, wide, children }: { title: string; onClose: (
     return () => window.removeEventListener("keydown", h);
   }, [onClose]);
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/30 p-4" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
       <div role="dialog" className={`flex max-h-[90vh] w-full flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ${wide ? "max-w-[880px]" : "max-w-[600px]"}`}>
         <div className="flex items-center justify-between border-b border-line px-6 py-4">
           <h2 className="text-[16px] font-semibold text-ink">{title}</h2>

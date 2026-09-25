@@ -560,7 +560,7 @@ function BreakdownModal({ title, items: raw, total, onClose }: { title: string; 
   const colors = ramp(items.length);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/30 p-4" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
       <div role="dialog" className="w-full max-w-[680px] overflow-hidden rounded-2xl bg-white shadow-2xl">
         <div className="flex items-center justify-between border-b border-line px-6 py-4">
           <h2 className="text-[16px] font-semibold text-ink">{title}</h2>
@@ -657,7 +657,7 @@ function SatisfactionChart({ values }: { values: number[] }) {
           <circle cx={px} cy={py} r={hover === i ? 5 : 3} fill="#fff" stroke="#7FA8E0" strokeWidth="2" />
           {hover === i && (
             <g>
-              <rect x={px - 22} y={py - 30} width="44" height="20" rx="5" fill="#111" />
+              <rect x={px - 22} y={py - 30} width="44" height="20" rx="5" fill="#2B2E35" />
               <text x={px} y={py - 16} textAnchor="middle" fontSize="11" fontWeight="600" fill="#fff">{values[i].toFixed(2)}</text>
             </g>
           )}

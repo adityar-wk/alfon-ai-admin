@@ -490,7 +490,7 @@ function Overlay({ children, onClose, wide = false }: { children: React.ReactNod
     return () => window.removeEventListener("keydown", h);
   }, [onClose]);
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/30 p-4" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
       <div
         role="dialog"
         className={`flex max-h-[90vh] w-full flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ${wide ? "max-w-[760px]" : "max-w-[560px]"}`}
@@ -782,7 +782,7 @@ function ManagerTaskWindow({
   );
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/20" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+    <div className="fixed inset-0 z-50 bg-ink/20" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
       <aside role="dialog" aria-label="Task details" className="absolute inset-y-0 right-0 flex w-[460px] max-w-full flex-col bg-white shadow-2xl">
         <div className="border-b border-line px-6 pb-4 pt-5">
           <div className="flex items-start justify-between gap-3">
@@ -1050,7 +1050,7 @@ function ManagerTaskWindow({
         </CenterDialog>
       )}
       {panel === "reassign" && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/30 p-4" onMouseDown={(e) => e.target === e.currentTarget && setPanel(null)}>
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-ink/30 p-4" onMouseDown={(e) => e.target === e.currentTarget && setPanel(null)}>
           <div role="dialog" aria-label="Reassign task" className="w-full max-w-[420px] rounded-2xl bg-white p-6 shadow-2xl">
             <div className="flex items-start justify-between gap-3">
               <div>
@@ -1108,7 +1108,7 @@ function ManagerTaskWindow({
       )}
 
       {modal && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/30 p-4" onMouseDown={(e) => e.target === e.currentTarget && setModal(null)}>
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-ink/30 p-4" onMouseDown={(e) => e.target === e.currentTarget && setModal(null)}>
           <div role="dialog" className="w-full max-w-[400px] rounded-2xl bg-white p-6 shadow-2xl">
             {modal === "help" ? (
               <>
@@ -1220,7 +1220,7 @@ function CenterDialog({
   children: React.ReactNode;
 }) {
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/30 p-4" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-ink/30 p-4" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
       <div role="dialog" aria-label={title} className="w-full max-w-[420px] rounded-2xl bg-white p-6 shadow-2xl">
         <div className="flex items-start justify-between gap-3">
           <div>

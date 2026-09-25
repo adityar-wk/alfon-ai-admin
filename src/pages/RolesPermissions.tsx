@@ -667,7 +667,7 @@ function UserManagement({
 
       {selected && selStaff && (
         <div className="fixed inset-0 z-40 flex justify-end">
-          <button aria-label="Close details" onClick={() => setSelectedId(null)} className="absolute inset-0 bg-black/10" />
+          <button aria-label="Close details" onClick={() => setSelectedId(null)} className="absolute inset-0 bg-ink/10" />
           <div className="relative flex h-full">
             <Drawer
               title="Staff Details"
@@ -719,7 +719,7 @@ function Dialog({ title, onClose, children, footer }: { title: string; onClose: 
     return () => window.removeEventListener("keydown", h);
   }, [onClose]);
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/30 p-4" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
       <div role="dialog" className="flex max-h-[90vh] w-full max-w-[520px] flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
         <div className="flex items-center justify-between border-b border-line px-6 py-4">
           <h2 className="text-[16px] font-semibold text-ink">{title}</h2>
