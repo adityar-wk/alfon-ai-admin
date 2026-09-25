@@ -17,6 +17,7 @@ import {
   PhoneFrame, ScreenHeader, SectionTitle, TaskCard, StatCard, Avatar, Chips, Segmented, FloatingNav, SelectField, TextField, Label, Sheet,
   useNav, useToast, CARD_SHADOW, TextHeader, SlaCountdown, fmtMins, CompensationSheet, type Priority,
   ChatRow,
+  NotifRow,
   PersonRow,
   SearchField,
   sampleUnread,
@@ -117,13 +118,13 @@ const rampColors = (n: number) =>
 const HK_DONUT_COLORS = pastel(HK_DEPT.items.length);
 
 const NOTIFS = [
-  { text: "Supervisor escalation — Room 1204 deep clean (staffing risk)", time: "10:20 AM", to: "t5" },
-  { text: "Critical SLA breach — Room 1103 stained bedding, 14 min over", time: "10:10 AM", to: "t6" },
-  { text: "High-priority complaint — Michael Johnson, negative sentiment", time: "10:15 AM", to: "t6" },
-  { text: "Repeated unresolved task — Room 908 extra pillows, breached twice today", time: "10:25 AM", to: "t10" },
-  { text: "Workload issue — Aanya Khan has 2 tasks, 1 overdue", time: "10:28 AM", to: "team" },
-  { text: "Unassigned critical request — Room 2104 extra towels (High)", time: "10:31 AM", to: "t12" },
-  { text: "AI escalated a guest conversation — Room 1103", time: "10:14 AM", to: "t6" },
+  { label: "Escalation", tone: "text-red-600", task: "Deep clean", sub: "Room 1204 · Staffing risk", time: "10:20 AM", to: "t5" },
+  { label: "SLA breach", tone: "text-orange-600", task: "Stained bedding", sub: "Room 1103 · 14 min over", time: "10:10 AM", to: "t6" },
+  { label: "Complaint", tone: "text-violet-600", task: "Guest complaint", sub: "Michael Johnson · Negative sentiment", time: "10:15 AM", to: "t6" },
+  { label: "SLA breach", tone: "text-orange-600", task: "Extra pillows", sub: "Room 908 · Breached twice today", time: "10:25 AM", to: "t10" },
+  { label: "Help request", tone: "text-emerald-600", task: "Aanya Khan is overloaded", sub: "2 tasks, 1 overdue", time: "10:28 AM", to: "team" },
+  { label: "Unassigned", tone: "text-sky-600", task: "Extra towels", sub: "Room 2104 · High priority", time: "10:31 AM", to: "t12" },
+  { label: "Escalation", tone: "text-red-600", task: "Guest conversation", sub: "Room 1103 · Escalated by AI", time: "10:14 AM", to: "t6" },
 ];
 
 const escSort = (a: MTask, b: MTask) => a.slaLeft - b.slaLeft;
@@ -217,7 +218,7 @@ export function ManagerPrototype() {
     const escalated = !!t.escType || !!t.escalated;
     // never both: an escalation is an escalation, a complaint stays a complaint
     const flags = escalated
-      ? [{ label: "Escalated", tone: "text-red-600" }]
+      ? [{ label: "Escalation", tone: "text-red-600" }]
       : t.complaint
         ? [{ label: "Complaint", tone: "text-violet-600" }]
         : [];
@@ -805,24 +806,9 @@ export function ManagerPrototype() {
         right={<button onClick={() => nav.push({ name: "notifSettings" })} aria-label="Notification settings" className="flex h-11 w-11 items-center justify-center rounded-full text-ink active:bg-ink/5"><SlidersHorizontal className="h-[18px] w-[18px]" /></button>}
       />
       <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-6 pt-2 no-scrollbar">
-        {NOTIFS.map((n, i) => {
-          const nt = n.to !== "team" ? tasks.find((x) => x.id === n.to) : undefined;
-          return (
-            <button key={i} onClick={() => (n.to === "team" ? nav.push({ name: "team" }) : open(n.to))} className="relative flex w-full flex-col border-b border-dashed border-ink/20 py-3.5 pr-14 text-left last:border-0">
-              <p className="text-[14px] leading-snug text-ink">{n.text}</p>
-              {nt && (
-                <div className="mt-1.5 flex items-center gap-2">
-                  {nt.status !== "completed" && (
-                    <span className={`text-[12px] font-semibold ${nt.slaLeft < 0 ? "text-red-600" : "text-ink-secondary"}`}>
-                      {fmtMins(nt.slaLeft)}{nt.slaLeft < 0 ? " over" : " left"}
-                    </span>
-                  )}
-                </div>
-              )}
-              <span className="absolute right-0 top-3.5 text-[11px] text-ink-tertiary">{n.time}</span>
-            </button>
-          );
-        })}
+        {NOTIFS.map((n, i) => (
+          <NotifRow key={i} label={n.label} tone={n.tone} time={n.time} task={n.task} sub={n.sub} unread={i < 3} onOpen={() => (n.to === "team" ? nav.push({ name: "team" }) : open(n.to))} />
+        ))}
       </div>
     </div>
   );

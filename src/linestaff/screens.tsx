@@ -23,6 +23,7 @@ import {
   CARD_SHADOW,
   type Priority,
   ChatRow,
+  NotifRow,
   SearchField,
   Chips,
   sampleUnread,
@@ -118,10 +119,10 @@ const INITIAL: Task[] = [
 ];
 
 const NOTIFS = [
-  { title: "Full towel change & linens", room: "Room 501", state: "Completed", tone: "text-emerald-600", time: "10:31 AM", id: "t1" },
-  { title: "Extra pillows", room: "Room 908", state: "Overdue by 8 mins", tone: "text-red-600", time: "10:28 AM", id: "t10" },
-  { title: "Baby cot setup", room: "Room 704", state: "New task", tone: "text-brand", time: "10:26 AM", id: "t7" },
-  { title: "Rollaway bed & pillows", room: "Room 812", state: "New task", tone: "text-brand", time: "10:22 AM", id: "t3" },
+  { label: "Completed", tone: "text-emerald-600", task: "Full towel change & linens", sub: "Room 501", time: "10:31 AM", id: "t1" },
+  { label: "SLA breach", tone: "text-orange-600", task: "Extra pillows", sub: "Room 908 · Overdue by 8 mins", time: "10:28 AM", id: "t10" },
+  { label: "New task", tone: "text-sky-600", task: "Baby cot setup", sub: "Room 704", time: "10:26 AM", id: "t7" },
+  { label: "New task", tone: "text-sky-600", task: "Rollaway bed & pillows", sub: "Room 812", time: "10:22 AM", id: "t3" },
 ];
 
 const DEFAULT_SLA = 40;
@@ -137,7 +138,7 @@ function LsCard({ t, onOpen, onAccept }: { t: Task; onOpen?: () => void; onAccep
       left={done ? undefined : t.left}
       total={t.total}
       done={done}
-      flags={!done && t.escalatedTo ? [{ label: `Escalated to ${t.escalatedTo}`, tone: "text-red-600" }] : []}
+      flags={!done && t.escalatedTo ? [{ label: "Escalation", tone: "text-red-600" }] : []}
       meta={done && t.time ? <span className="font-medium text-emerald-600">✓ {t.time}</span> : undefined}
       onClick={onOpen}
       footer={onAccept ? <Button className="w-full" onClick={onAccept}>Accept</Button> : undefined}
@@ -395,11 +396,7 @@ export function LineStaffPrototype() {
       <ScreenHeader title="Notifications" onBack={nav.back} />
       <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-6 pt-2 no-scrollbar">
         {NOTIFS.map((n, i) => (
-          <button key={i} onClick={() => openTask(n.id)} className="relative block w-full border-b border-dashed border-ink/20 py-3.5 pr-16 text-left last:border-0">
-            <div className="text-[14px] font-semibold text-ink">{n.title}</div>
-            <div className="mt-0.5 text-[12px]"><span className="text-ink-secondary">{n.room}</span> <span className="text-ink-tertiary">·</span> <span className={`font-semibold ${n.tone}`}>{n.state}</span></div>
-            <span className="absolute bottom-3.5 right-0 text-[11px] text-ink-tertiary">{n.time}</span>
-          </button>
+          <NotifRow key={i} label={n.label} tone={n.tone} time={n.time} task={n.task} sub={n.sub} unread={i < 2} onOpen={() => openTask(n.id)} />
         ))}
       </div>
     </div>

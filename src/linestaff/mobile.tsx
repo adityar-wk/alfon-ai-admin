@@ -355,6 +355,23 @@ export function SearchField({ value, onChange, placeholder }: { value: string; o
   );
 }
 
+/** notification row, same format as the web bell: coloured label + time, task name, then the room / context */
+export function NotifRow({ label, tone, time, task, sub, unread, onOpen }: { label: string; tone: string; time: string; task: string; sub: string; unread?: boolean; onOpen: () => void }) {
+  return (
+    <button onClick={onOpen} className="flex w-full items-start gap-3 border-b border-[#EEEEF1] py-4 text-left last:border-b-0">
+      <span className="min-w-0 flex-1">
+        <span className="block text-[12px]">
+          <span className={`font-semibold ${tone}`}>{label}</span>
+          <span className="text-ink-tertiary"> · {time}</span>
+        </span>
+        <span className={`mt-1 block text-[15px] text-ink ${unread ? "font-semibold" : "font-medium"}`}>{task}</span>
+        <span className="mt-0.5 block text-[13px] text-ink-secondary">{sub}</span>
+      </span>
+      {unread && <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-brand" />}
+    </button>
+  );
+}
+
 /* ---------- controls ---------- */
 
 export function Chips<T extends string>({ items, active, onChange, counts, flat = false }: { items: readonly T[]; active: T; onChange: (v: T) => void; counts?: Partial<Record<T, number>>; flat?: boolean }) {
