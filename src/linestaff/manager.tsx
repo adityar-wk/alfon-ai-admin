@@ -3,7 +3,7 @@ import { Logo } from "../components/Logo";
 import { useMemo, useState } from "react";
 import {
   Bell, Home as HomeIcon, Plus, Users, UserCog, UserPlus, ArrowUpRight, MessageCircle, Send, Filter, ChevronRight, ChevronLeft, Search,
-  Menu as MenuIcon, ListChecks, BarChart3, AlertTriangle, User, BedDouble, DoorClosed, Building2, FileText, Download, Lock, UtensilsCrossed, Languages, Thermometer, AlarmClock, Wine, Phone, Mail, Sparkles, SlidersHorizontal, LogOut,
+  Menu as MenuIcon, ListChecks, BarChart3, AlertTriangle, User, BedDouble, DoorOpen, Building2, FileText, Download, Lock, UtensilsCrossed, Languages, Thermometer, AlarmClock, Wine, Phone, Mail, Sparkles, SlidersHorizontal, LogOut,
 } from "lucide-react";
 import { DEPARTMENTS } from "../data/departments";
 import { DetailRow, ProfileSection, GuestProfileScreen } from "./guestviews";
@@ -67,7 +67,7 @@ const KvRow = ({ label, children }: { label: string; children: React.ReactNode }
 
 const MENU_ITEMS = [
   { key: "team" as const, label: "Team Management", icon: Users },
-  { key: "housekeeping" as const, label: "Housekeeping", icon: DoorClosed },
+  { key: "housekeeping" as const, label: "Housekeeping", icon: DoorOpen },
   { key: "analytics" as const, label: "Analytics", icon: BarChart3 },
   { key: "guestsRoster" as const, label: "Guests", icon: BedDouble },
   { key: "reports" as const, label: "Reports", icon: FileText },

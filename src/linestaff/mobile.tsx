@@ -1,7 +1,7 @@
 import { Button } from "../components/ui";
 import { useClock, secsFromMinutes, formatClock } from "../data/attention";
 import { useEffect, useState, type ReactNode } from "react";
-import { AlertCircle, DoorClosed, User, Signal, Wifi, BatteryFull, ChevronLeft, ChevronRight, ChevronDown, X, Clock } from "lucide-react";
+import { AlertCircle, DoorOpen, User, Signal, Wifi, BatteryFull, ChevronLeft, ChevronRight, ChevronDown, X, Clock } from "lucide-react";
 
 /* ============================================================
    Shared mobile kit — used by the Line Staff, Supervisor and
@@ -213,7 +213,7 @@ export function TaskCard({
         <div className="font-display text-[16px] font-semibold leading-snug text-ink">{note}</div>
         <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[13px]">
           <span className="flex items-center gap-1 font-medium text-ink-secondary">
-            {/^Room\s/i.test(room) ? <><DoorClosed className="h-[15px] w-[15px]" />{room.replace(/^Room\s+/i, "")}</> : room}
+            {/^Room\s/i.test(room) ? <><DoorOpen className="h-[15px] w-[15px]" />{room.replace(/^Room\s+/i, "")}</> : room}
           </span>
           {status && <span className={`text-[12px] font-medium ${status.tone}`}>{status.label}</span>}
           {flags.map((f) => <span key={f.label} className={`text-[12px] font-medium ${f.tone}`}>{f.label}</span>)}
@@ -283,7 +283,7 @@ export function ChatRow({
       <span className="min-w-0 flex-1 leading-tight">
         <span className="block truncate text-[15px] font-semibold text-ink">{name}</span>
         <span className="mt-1 flex items-center gap-1 text-[12px] text-ink-tertiary">
-          {/^Room\s/i.test(room) ? <><DoorClosed className="h-3.5 w-3.5" />{room.replace(/^Room\s+/i, "")}</> : room}
+          {/^Room\s/i.test(room) ? <><DoorOpen className="h-3.5 w-3.5" />{room.replace(/^Room\s+/i, "")}</> : room}
         </span>
         <span className="mt-1.5 block truncate text-[13px] text-ink-secondary">{preview}</span>
       </span>
