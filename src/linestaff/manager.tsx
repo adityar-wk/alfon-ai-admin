@@ -386,13 +386,9 @@ export function ManagerPrototype() {
 
   const Home = shell("home", (
     <>
-      <div className="flex items-center justify-between px-6 py-2">
-        <div className="flex items-center gap-3">
-          {menuBtn}
-          <div className="leading-tight">
-            <Logo />
-          </div>
-        </div>
+      <div className="grid grid-cols-[44px_1fr_44px] items-center px-6 py-2">
+        {menuBtn}
+        <div className="flex justify-center"><Logo /></div>
         {bellBtn}
       </div>
 
