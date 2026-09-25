@@ -138,7 +138,7 @@ export function SlaClockChip({ left, total }: { left: number; total: number }) {
   const secs = secsFromMinutes(left);
   const tone = slaTone(secs / 60, total);
   return (
-    <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap font-display text-[14px] font-semibold tabular-nums" style={{ color: tone.color }}>
+    <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap font-display text-[14px] font-medium tabular-nums" style={{ color: tone.color }}>
       <Clock className="h-4 w-4" strokeWidth={2.5} />
       {formatClock(secs)}
     </span>
@@ -211,13 +211,13 @@ export function TaskCard({
   return (
     <div className={`relative rounded-2xl border border-[#E6E4DF] bg-white px-5 py-4`}>
       <div onClick={onClick} role={onClick ? "button" : undefined} className={onClick ? "cursor-pointer active:scale-[0.99]" : ""}>
-        <div className={`font-display text-[16px] font-semibold leading-snug ${done ? "text-ink-secondary" : "text-ink"}`}>{note}</div>
+        <div className={`font-display text-[16px] font-medium leading-snug ${done ? "text-ink-secondary" : "text-ink"}`}>{note}</div>
         <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px]">
-          <span className="flex items-center gap-1 font-medium text-ink-secondary">
+          <span className="flex items-center gap-1 text-ink-secondary">
             {/^Room\s/i.test(room) ? <><DoorOpen className="h-[15px] w-[15px]" />{room.replace(/^Room\s+/i, "")}</> : room}
           </span>
-          {status && <span className={`text-[12px] font-medium ${status.tone}`}>{status.label}</span>}
-          {flags.map((f) => <span key={f.label} className={`text-[12px] font-medium ${f.tone}`}>{f.label}</span>)}
+          {status && <span className={`text-[12px] ${status.tone}`}>{status.label}</span>}
+          {flags.map((f) => <span key={f.label} className={`text-[12px] ${f.tone}`}>{f.label}</span>)}
         </div>
         {meta && <div className="mt-2 text-[12px] text-ink-tertiary">{meta}</div>}
         <div className="mt-3.5 flex min-h-[26px] items-center justify-between gap-3">

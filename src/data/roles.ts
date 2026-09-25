@@ -25,13 +25,10 @@ export const SPECIAL_RULES = [
   { key: "reassign", label: "Reassign tasks", desc: "Move a task to another staff member" },
   { key: "support", label: "Add support staff", desc: "Bring extra people onto a task" },
   { key: "override", label: "Close / override tasks", desc: "With a reason recorded in the audit trail" },
-  { key: "unable", label: "Mark tasks unable to complete", desc: "With a mandatory reason" },
-  { key: "escalate", label: "Escalate to General Manager", desc: "Send serious issues upward" },
   { key: "takeover", label: "Take over guest conversations", desc: "Switch a chat from Auto to Manual" },
   { key: "notes", label: "Add management notes", desc: "Notes visible to managers only" },
   { key: "audit", label: "View audit trail", desc: "Escalations, overrides and task changes" },
   { key: "export", label: "Export reports", desc: "Download CSV / PDF reports" },
-  { key: "users", label: "Manage users & roles", desc: "Invite users and change roles" },
 ] as const;
 export type RuleKey = (typeof SPECIAL_RULES)[number]["key"];
 
@@ -73,9 +70,9 @@ export const newRole = (p: Partial<Role> & { name: string }): Role => ({
 export const TEMPLATES: Role[] = [
   newRole({ id: "t-line", name: "Line Staff", desc: "Execute assigned tasks", persona: "Line Staff", modules: mods(["tasks"]), guestData: "Basic Information" }),
   newRole({ id: "t-front", name: "Front Desk Agent", desc: "Handle guest check-in, requests and basic service tasks", persona: "Line Staff", dept: "Front Office", modules: mods(["tasks", "chats", "profiles", "prearrival"]), guestData: "Basic Information", convo: "View and Respond", reports: "Department Only" }),
-  newRole({ id: "t-sup", name: "Team Supervisor", desc: "Lead a shift and resolve day-to-day issues", persona: "Supervisor", modules: mods(["tasks", "chats", "profiles", "housekeeping", "analytics"]), guestData: "Basic Information", taskVis: "My Department", convo: "View and Respond", reports: "Department Only", rules: rules(["reassign", "support", "notes", "takeover", "escalate"]) }),
-  newRole({ id: "t-mid", name: "Department Manager", desc: "Own SLAs and daily service quality for a department", persona: "Mid Manager", modules: mods(["tasks", "chats", "profiles", "prearrival", "housekeeping", "analytics", "reports"]), guestData: "Full Profile", taskVis: "My Department", convo: "View and Respond", reports: "Department Only", rules: rules(["reassign", "support", "override", "unable", "escalate", "takeover", "notes", "audit", "export"]) }),
-  newRole({ id: "t-gm", name: "General Manager", desc: "Hotel-wide oversight and analytics", persona: "High Management", dept: "Management", modules: mods(["tasks", "chats", "profiles", "prearrival", "housekeeping", "analytics", "reports", "settings"]), guestData: "Full Profile", taskVis: "All Departments", convo: "View and Respond", reports: "All Reports", rules: rules(["reassign", "support", "override", "unable", "escalate", "takeover", "notes", "audit", "export", "users"]) }),
+  newRole({ id: "t-sup", name: "Team Supervisor", desc: "Lead a shift and resolve day-to-day issues", persona: "Supervisor", modules: mods(["tasks", "chats", "profiles", "housekeeping", "analytics"]), guestData: "Basic Information", taskVis: "My Department", convo: "View and Respond", reports: "Department Only", rules: rules(["reassign", "support", "notes", "takeover"]) }),
+  newRole({ id: "t-mid", name: "Department Manager", desc: "Own SLAs and daily service quality for a department", persona: "Mid Manager", modules: mods(["tasks", "chats", "profiles", "prearrival", "housekeeping", "analytics", "reports"]), guestData: "Full Profile", taskVis: "My Department", convo: "View and Respond", reports: "Department Only", rules: rules(["reassign", "support", "override", "takeover", "notes", "audit", "export"]) }),
+  newRole({ id: "t-gm", name: "General Manager", desc: "Hotel-wide oversight and analytics", persona: "High Management", dept: "Management", modules: mods(["tasks", "chats", "profiles", "prearrival", "housekeeping", "analytics", "reports", "settings"]), guestData: "Full Profile", taskVis: "All Departments", convo: "View and Respond", reports: "All Reports", rules: rules(["reassign", "support", "override", "takeover", "notes", "audit", "export"]) }),
 ];
 
 const R = (name: string, desc: string, persona: Role["persona"], dept: Role["dept"], base: Role) =>

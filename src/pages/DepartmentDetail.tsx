@@ -6,7 +6,7 @@ import {
   Check,
 } from "lucide-react";
 import { Topbar } from "../components/Topbar";
-import { Page, Card, Button, Field, Input, Select } from "../components/ui";
+import { Page, Card, Button, Field, Input, Modal } from "../components/ui";
 import { getDepartment, type DeptMember, type DeptService } from "../data/departments";
 import { deptIcon } from "../data/deptIcons";
 
@@ -21,6 +21,9 @@ export default function DepartmentDetail() {
   const [addingService, setAddingService] = useState(false);
   const [newService, setNewService] = useState({ name: "", description: "" });
   const [toast, setToast] = useState<string | null>(null);
+  const [managerName, setManagerName] = useState<string | null>(null); // set once the manager is edited or added
+  const [editingManager, setEditingManager] = useState(false);
+  const [managerDraft, setManagerDraft] = useState("");
 
   useEffect(() => {
     if (!dept) return;
@@ -40,7 +43,7 @@ export default function DepartmentDetail() {
 
   if (!dept) return <Navigate to={listPath} replace />;
 
-  const head = members.find((m) => m.role === "Department Head");
+  const head = managerName ?? members.find((m) => m.role === "Department Head")?.name ?? "";
   const Icon = deptIcon(dept.name);
 
   const addService = () => {
@@ -72,7 +75,15 @@ export default function DepartmentDetail() {
             </span>
             <div className="min-w-0">
               <div className="text-[20px] font-semibold leading-tight text-ink">{dept.name}</div>
-              <div className="mt-0.5 text-[13px] text-ink-secondary">Department Head · {head?.name ?? "—"}</div>
+              <div className="mt-0.5 flex items-center gap-2 text-[13px] text-ink-secondary">
+                <span>Department Manager · {head || "—"}</span>
+                <button
+                  onClick={() => { setManagerDraft(head); setEditingManager(true); }}
+                  className="text-[12px] font-semibold text-brand hover:underline"
+                >
+                  {head ? "Edit" : "Add manager"}
+                </button>
+              </div>
             </div>
           </div>
           <p className="mt-3 max-w-3xl text-[13px] leading-relaxed text-ink-tertiary">{dept.description}</p>
@@ -108,6 +119,29 @@ export default function DepartmentDetail() {
           </div>
         </Page>
       </div>
+
+      {editingManager && (
+        <Modal
+          title={head ? "Edit department manager" : "Add department manager"}
+          onClose={() => setEditingManager(false)}
+          footer={
+            <>
+              <Button variant="outline" onClick={() => setEditingManager(false)}>Cancel</Button>
+              <Button
+                disabled={!managerDraft.trim()}
+                onClick={() => { setManagerName(managerDraft.trim()); setEditingManager(false); setToast("Department manager updated"); }}
+              >
+                Save
+              </Button>
+            </>
+          }
+        >
+          <Field label="Manager name" required>
+            <Input list="dept-staff" autoFocus value={managerDraft} onChange={(e) => setManagerDraft(e.target.value)} placeholder="Pick from the team or type a name" />
+            <datalist id="dept-staff">{members.map((m) => <option key={m.name} value={m.name} />)}</datalist>
+          </Field>
+        </Modal>
+      )}
 
       {toast && (
         <div className="pointer-events-none fixed inset-x-0 bottom-6 z-50 flex justify-center">
