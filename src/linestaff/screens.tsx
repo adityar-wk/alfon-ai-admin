@@ -160,7 +160,6 @@ export function LineStaffPrototype() {
   const nav = useNav<Screen>({ name: "home" });
   const { flash, node: toast } = useToast();
   const [tasks, setTasks] = useState<Task[]>(INITIAL);
-  const [available, setAvailable] = useState(true);
   const [incoming, setIncoming] = useState<{ id: string; title: string; room: string; total: number; by: string } | null>(null);
   const [bannerIn, setBannerIn] = useState(false);
   const [assignCount, setAssignCount] = useState(0);
@@ -268,7 +267,6 @@ export function LineStaffPrototype() {
         <div className="flex items-center justify-between px-6 py-2">
           <button onClick={() => nav.push({ name: "profile" })} aria-label="Profile" className="relative flex h-10 w-10 items-center justify-center rounded-full bg-brand text-[13px] font-semibold text-white">
             AK
-            <span className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white ${available ? "bg-emerald-500" : "bg-[#C8C8C8]"}`} />
           </button>
           <div className="flex items-center gap-2">
             <button onClick={() => nav.push({ name: "notifications" })} aria-label="Notifications" className="relative flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-sm">
@@ -530,8 +528,7 @@ export function LineStaffPrototype() {
 
   const Profile = (
     <ProfileScreen
-      name="Aanya Khan" role="Line Staff" dept="Housekeeping" available={available}
-      onToggleAvailable={() => { setAvailable((a) => !a); flash(available ? "You're now off work" : "You're available"); }}
+      name="Aanya Khan" role="Line Staff" dept="Housekeeping"
       onNotifSettings={() => nav.push({ name: "notifSettings" })}
       onSignOut={() => setSignedOut(true)}
       onBack={nav.back}
@@ -591,7 +588,7 @@ export function LineStaffPrototype() {
         <button className="rounded-lg bg-brand px-3 py-1.5 text-[12px] font-semibold text-white" onClick={simulateAssigned}>Simulate assigned task</button>
         <button
           className="rounded-lg border border-line bg-white px-3 py-1.5 text-[12px] font-medium text-ink-secondary"
-          onClick={() => { nav.reset(); setIncoming(null); setAssignCount(0); setTasks(INITIAL); setAvailable(true); setChat({}); setManual({}); setAiDrafts({}); }}
+          onClick={() => { nav.reset(); setIncoming(null); setAssignCount(0); setTasks(INITIAL); setChat({}); setManual({}); setAiDrafts({}); }}
         >
           Reset
         </button>

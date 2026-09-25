@@ -10,7 +10,7 @@ import { NotificationSettingsScreen, SignedOutScreen } from "./profile";
 import { DEPTS, METRICS, COMPLAINT_DETAIL } from "../pages/Analytics";
 import { Donut } from "../components/Donut";
 import { BarChart } from "../components/BarChart";
-import { SEED_TASKS, SEED_REQUESTS, STAFF, PRESENCE_DOT, GUEST_STAYS, PRE_ARRIVAL_GUESTS, CHECKED_OUT_GUESTS, GUEST_PROFILES, ROOMS, type MTask, type Presence, type Staffer, type HkRoom, type RoomStatus, type EscType } from "./data";
+import { SEED_TASKS, SEED_REQUESTS, STAFF, GUEST_STAYS, PRE_ARRIVAL_GUESTS, CHECKED_OUT_GUESTS, GUEST_PROFILES, ROOMS, type MTask, type Presence, type Staffer, type HkRoom, type RoomStatus, type EscType } from "./data";
 import {
   PhoneFrame, ScreenHeader, SectionTitle, TaskCard, StatCard, Avatar, Chips, Segmented, FloatingNav, PrimaryButton, GhostButton, SelectField, TextField, Label, Sheet,
   useNav, useToast, CARD_SHADOW, TextHeader, PriorityPill, SlaCountdown, fmtMins, CompensationSheet, type Priority,
@@ -27,12 +27,8 @@ const ME = "Daniel Reyes";
 const ESC_FILTERS = ["All", "SLA breach", "SLA at risk", "Guest complaint", "Unable to complete", "Staffing issue", "Supervisor escalation", "High priority"] as const;
 const DEFAULT_SLA = 40;
 type EscFilter = (typeof ESC_FILTERS)[number];
-const AVAIL_ORDER: Presence[] = ["Available", "On Break", "Off work"];
-const teamStatus = (s: Staffer): Presence => (s.status === "Busy" ? "Available" : s.status);
 const ROLE_FILTERS = ["All", "Supervisor", "Line Staff"] as const;
 type RoleFilter = (typeof ROLE_FILTERS)[number];
-const AVAIL_FILTERS = ["All", "Available", "On Break", "Off work"] as const;
-type AvailFilter = (typeof AVAIL_FILTERS)[number];
 const GUEST_FILTERS = ["All", "Complaints", "Open requests"] as const;
 type GuestFilter = (typeof GUEST_FILTERS)[number];
 const ROSTER_STAGE_FILTERS = ["All", "In-house", "Pre-arrival", "Checked out"] as const;
@@ -148,7 +144,6 @@ export function ManagerPrototype() {
   const [tasks, setTasks] = useState<MTask[]>(SEED_TASKS);
   const [filter, setFilter] = useState<EscFilter>("All");
   const [roleFilter, setRoleFilter] = useState<RoleFilter>("All");
-  const [availFilter, setAvailFilter] = useState<AvailFilter>("All");
   const [teamFilterOpen, setTeamFilterOpen] = useState(false);
   const [guestQuery, setGuestQuery] = useState("");
   const [guestFilter, setGuestFilter] = useState<GuestFilter>("All");
@@ -170,7 +165,6 @@ export function ManagerPrototype() {
   const [manual, setManual] = useState<Record<string, boolean>>({});
   const [draft, setDraft] = useState("");
   const [aiDrafts, setAiDrafts] = useState<Record<string, string>>({});
-  const [available, setAvailable] = useState(true);
   const [signedOut, setSignedOut] = useState(false);
   const [editingDraft, setEditingDraft] = useState(false);
   // create task
@@ -459,11 +453,11 @@ export function ManagerPrototype() {
   ));
 
   /* ---------- team ---------- */
-  const teamActiveFilters = (roleFilter !== "All" ? 1 : 0) + (availFilter !== "All" ? 1 : 0);
+  const teamActiveFilters = roleFilter !== "All" ? 1 : 0;
   const filteredTeam = STAFF.filter((s) => {
     const q = teamQuery.trim().toLowerCase();
-    return (roleFilter === "All" || s.role === roleFilter) && (availFilter === "All" || teamStatus(s) === availFilter) && (!q || s.name.toLowerCase().includes(q));
-  }).sort((a, b) => AVAIL_ORDER.indexOf(teamStatus(a)) - AVAIL_ORDER.indexOf(teamStatus(b)));
+    return (roleFilter === "All" || s.role === roleFilter) && (!q || s.name.toLowerCase().includes(q));
+  });
 
   const filterBtn = (active: number, onClick: () => void) => (
     <button
@@ -495,15 +489,6 @@ export function ManagerPrototype() {
       <ScreenHeader onBack={nav.back} title="Team" />
       {searchRow(teamQuery, setTeamQuery, "Search team member", filterBtn(teamActiveFilters, () => setTeamFilterOpen(true)))}
       <div className="min-h-0 flex-1 overflow-y-auto pb-6 pt-3 no-scrollbar">
-        <div className="grid grid-cols-3 gap-2 px-6">
-          {AVAIL_ORDER.map((s) => (
-            <div key={s} className={`rounded-2xl bg-white p-2.5 text-center ${CARD_SHADOW}`}>
-              <div className="text-[20px] font-bold text-ink">{STAFF.filter((x) => teamStatus(x) === s).length}</div>
-              <div className="mt-0.5 flex items-center justify-center gap-1 text-[10px] font-medium text-ink-secondary"><span className={`h-1.5 w-1.5 rounded-full ${PRESENCE_DOT[s]}`} />{s}</div>
-            </div>
-          ))}
-        </div>
-
         <div className="mt-4 space-y-3 px-6">
           {filteredTeam.map((s) => (
             <button key={s.name} onClick={() => nav.push({ name: "staffDetail", id: s.name })} className={`flex w-full items-center gap-3 rounded-2xl bg-white p-3.5 text-left ${CARD_SHADOW}`}>
@@ -511,10 +496,6 @@ export function ManagerPrototype() {
               <div className="min-w-0 flex-1 leading-tight">
                 <div className="text-[14px] font-semibold text-ink">{s.name}</div>
                 <div className="text-[12px] text-ink-secondary">{s.role}</div>
-                <div className="mt-0.5 flex items-center gap-1.5 text-[12px] text-ink-secondary">
-                  <span className={`h-2 w-2 rounded-full ${PRESENCE_DOT[teamStatus(s)]}`} />
-                  {teamStatus(s)}
-                </div>
               </div>
               <ChevronRight className="h-4 w-4 shrink-0 text-ink-tertiary" />
             </button>
@@ -533,9 +514,7 @@ export function ManagerPrototype() {
           <Avatar name={staffEntry.name} size={56} tone={staffEntry.role === "Supervisor" ? "bg-violet-50 text-violet-600" : undefined} />
           <div className="leading-tight">
             <div className="text-[17px] font-bold text-ink">{staffEntry.name}</div>
-            <div className="mt-0.5 flex items-center gap-1.5 text-[12px] text-ink-secondary">
-              <span className={`h-2 w-2 rounded-full ${PRESENCE_DOT[teamStatus(staffEntry)]}`} />{teamStatus(staffEntry)} · {staffEntry.role}
-            </div>
+            <div className="mt-0.5 text-[12px] text-ink-secondary">{staffEntry.role}</div>
           </div>
         </div>
 
@@ -996,20 +975,6 @@ export function ManagerPrototype() {
               <div className="text-[12px] text-ink-secondary">Housekeeping · Department Head</div>
             </div>
           </div>
-          <div className="mt-3.5 flex items-center justify-between rounded-xl bg-[#F6F6F8] px-3.5 py-2.5">
-            <div className="leading-tight">
-              <div className="text-[13px] font-semibold text-ink">Availability</div>
-              <div className={`text-[11px] ${available ? "text-emerald-600" : "text-ink-tertiary"}`}>{available ? "Available" : "Off work"}</div>
-            </div>
-            <button
-              onClick={() => { setAvailable((a) => !a); flash(available ? "You're now off work" : "You're available"); }}
-              aria-pressed={available}
-              aria-label="Availability"
-              className={`flex h-6 w-11 shrink-0 items-center rounded-full p-0.5 transition-colors ${available ? "bg-emerald-500" : "bg-[#C8C8C8]"}`}
-            >
-              <span className={`h-5 w-5 rounded-full bg-white shadow transition-transform ${available ? "translate-x-5" : ""}`} />
-            </button>
-          </div>
         </div>
         <button onClick={() => nav.push({ name: "notifSettings" })} className={`flex w-full items-center gap-3 rounded-2xl bg-white p-4 text-left ${CARD_SHADOW}`}>
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#F1F1F3] text-ink-secondary"><SlidersHorizontal className="h-[18px] w-[18px]" /></div>
@@ -1103,7 +1068,7 @@ export function ManagerPrototype() {
   const reportRows = (name: string): (string | number)[][] => {
     const taskRow = (t: MTask) => [t.room, t.title, t.priority, t.status, t.owner ?? "Unassigned", t.slaLeft];
     const taskHead = ["Room", "Task", "Priority", "Status", "Owner", "SLA left (min)"];
-    if (name === "Team Performance Report") return [["Name", "Role", "Status"], ...STAFF.map((x) => [x.name, x.role, teamStatus(x)])];
+    if (name === "Team Performance Report") return [["Name", "Role"], ...STAFF.map((x) => [x.name, x.role])];
     if (name === "Pre-Arrival Preference Report") return [["Guest", "Room", "Arrival", "Preferences"], ...PRE_ARRIVAL_GUESTS.map((g) => [g.name, g.room, g.eta, g.prefs.map((p) => `${p.label}: ${p.value}`).join("; ")])];
     if (name === "Complaint Report") return [taskHead, ...tasks.filter((t) => t.complaint).map(taskRow)];
     if (name === "SLA Breach Report") return [taskHead, ...tasks.filter(isOverdue).map(taskRow)];
@@ -1257,12 +1222,9 @@ export function ManagerPrototype() {
     <Sheet title="Filter team" onClose={() => setTeamFilterOpen(false)}>
       <Label>Role</Label>
       <Chips items={ROLE_FILTERS} active={roleFilter} onChange={setRoleFilter} />
-      <div className="mt-5" />
-      <Label>Availability</Label>
-      <Chips items={AVAIL_FILTERS} active={availFilter} onChange={setAvailFilter} />
       <PrimaryButton className="mt-6 w-full" onClick={() => setTeamFilterOpen(false)}>Done</PrimaryButton>
       {teamActiveFilters > 0 && (
-        <GhostButton className="mt-2 w-full" onClick={() => { setRoleFilter("All"); setAvailFilter("All"); }}>Clear filters</GhostButton>
+        <GhostButton className="mt-2 w-full" onClick={() => setRoleFilter("All")}>Clear filters</GhostButton>
       )}
     </Sheet>
   );
@@ -1312,7 +1274,7 @@ export function ManagerPrototype() {
           className="rounded-lg border border-line bg-white px-3 py-1.5 text-[12px] font-medium text-ink-secondary"
           onClick={() => {
             nav.reset(); setTasks(SEED_TASKS); setRooms(ROOMS); setSheet(null); setNeedHelpReason(""); setChat({}); setManual({});
-            setFilter("All"); setRoleFilter("All"); setAvailFilter("All"); setGuestFilter("All"); setGuestQuery("");
+            setFilter("All"); setRoleFilter("All"); setGuestFilter("All"); setGuestQuery("");
             setTaskFilter("All"); setTaskQuery(""); setStageFilter("All"); setRosterQuery(""); setTeamQuery(""); setStaffTab("Overview"); setRoomFilter("All"); setRoomSheet(null);
           }}
         >

@@ -10,9 +10,9 @@ const Toggle = ({ on, onChange, label }: { on: boolean; onChange: () => void; la
 
 /** Own profile: name, role, department, availability, notification settings and sign out. */
 export function ProfileScreen({
-  name, role, dept, available, onToggleAvailable, onNotifSettings, onSignOut, onBack,
+  name, role, dept, onNotifSettings, onSignOut, onBack,
 }: {
-  name: string; role: string; dept: string; available: boolean; onToggleAvailable: () => void; onNotifSettings: () => void; onSignOut: () => void; onBack: () => void;
+  name: string; role: string; dept: string; onNotifSettings: () => void; onSignOut: () => void; onBack: () => void;
 }) {
   return (
     <div className="flex h-full flex-col">
@@ -25,14 +25,6 @@ export function ProfileScreen({
             <div className="mt-0.5 text-[13px] font-medium text-brand">{role}</div>
             <div className="text-[12px] text-ink-secondary">{dept}</div>
           </div>
-        </div>
-
-        <div className={`flex items-center justify-between rounded-2xl bg-white p-4 ${CARD_SHADOW}`}>
-          <div>
-            <div className="text-[14px] font-semibold text-ink">Availability</div>
-            <div className={`text-[12px] ${available ? "text-emerald-600" : "text-ink-tertiary"}`}>{available ? "Available for tasks" : "Off work"}</div>
-          </div>
-          <Toggle on={available} onChange={onToggleAvailable} label="Availability" />
         </div>
 
         <button onClick={onNotifSettings} className={`flex w-full items-center gap-3 rounded-2xl bg-white p-4 text-left ${CARD_SHADOW}`}>
