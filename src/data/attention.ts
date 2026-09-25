@@ -60,6 +60,12 @@ export function slaSecs(sla: Task["sla"]): number | null {
   return sla.kind === "overdue" ? -(base + elapsed) : base - elapsed;
 }
 
+/** live seconds for a task that has `left` minutes on its SLA (negative when already over) */
+export function secsFromMinutes(left: number): number {
+  const elapsed = Math.floor((Date.now() - EPOCH) / 1000);
+  return Math.round(left * 60) - elapsed;
+}
+
 /** 4:05, 1:04:05, or -12:34 once breached */
 export function formatClock(secs: number): string {
   const abs = Math.abs(secs);

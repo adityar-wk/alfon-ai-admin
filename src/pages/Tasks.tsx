@@ -273,7 +273,7 @@ export default function Tasks() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search tasks, guests, rooms…"
-              className="h-10 w-full rounded-lg border border-line bg-white pl-9 pr-3 text-[13px] outline-none placeholder:text-ink-tertiary focus:border-brand"
+              className="h-10 w-full rounded-control border border-line bg-white pl-9 pr-3 text-[13px] outline-none placeholder:text-ink-tertiary focus:border-brand"
             />
           </div>
           <div className="relative shrink-0">
@@ -975,7 +975,7 @@ function ManagerTaskWindow({
               value={assignQuery}
               onChange={(e) => setAssignQuery(e.target.value)}
               placeholder="Search team members"
-              className="h-10 w-full rounded-lg bg-subtle pl-9 pr-3 text-[13px] outline-none placeholder:text-ink-tertiary focus:ring-1 focus:ring-brand"
+              className="h-10 w-full rounded-control bg-subtle pl-9 pr-3 text-[13px] outline-none placeholder:text-ink-tertiary focus:ring-1 focus:ring-brand"
             />
           </div>
           <div className="mt-2 max-h-64 divide-y divide-line/60 overflow-y-auto">
@@ -1090,7 +1090,7 @@ function ManagerTaskWindow({
               </div>
             </div>
             <div className="mt-5 flex gap-2">
-              <button onClick={() => setPanel(null)} className="flex-1 rounded-lg border border-line py-2.5 text-[13px] font-semibold text-ink-secondary hover:bg-subtle">Cancel</button>
+              <button onClick={() => setPanel(null)} className="flex-1 rounded-control border border-line py-2.5 text-[13px] font-semibold text-ink-secondary hover:bg-subtle">Cancel</button>
               <button
                 disabled={!person}
                 onClick={() => {
@@ -1159,7 +1159,7 @@ function ManagerTaskWindow({
                   </div>
                 </div>
                 <div className="mt-5 flex gap-2">
-                  <button onClick={() => setModal(null)} className="flex-1 rounded-lg border border-line py-2.5 text-[13px] font-semibold text-ink-secondary hover:bg-subtle">Cancel</button>
+                  <button onClick={() => setModal(null)} className="flex-1 rounded-control border border-line py-2.5 text-[13px] font-semibold text-ink-secondary hover:bg-subtle">Cancel</button>
                   <button
                     disabled={!compType || (compType === "Other" && !compOther.trim()) || !compReason.trim() || !compBy}
                     onClick={() => {
@@ -1190,7 +1190,7 @@ function ManagerTaskWindow({
                   ))}
                 </div>
                 <div className="mt-5 flex gap-2">
-                  <button onClick={() => setModal(null)} className="flex-1 rounded-lg border border-line py-2.5 text-[13px] font-semibold text-ink-secondary hover:bg-subtle">Cancel</button>
+                  <button onClick={() => setModal(null)} className="flex-1 rounded-control border border-line py-2.5 text-[13px] font-semibold text-ink-secondary hover:bg-subtle">Cancel</button>
                   <button
                     disabled={!voidReason}
                     onClick={() => { onApply({ status: "Void", resolution: voidReason }, "Marked void", `Reason: ${voidReason}`, "Task marked void", true); setModal(null); }}
@@ -1233,8 +1233,8 @@ function CenterDialog({
         </div>
         <div className="mt-4">{children}</div>
         <div className="mt-5 flex gap-2">
-          <button onClick={onClose} className="flex-1 rounded-lg border border-line py-2.5 text-[13px] font-semibold text-ink-secondary hover:bg-subtle">Cancel</button>
-          <button onClick={onOk} disabled={disabled} className="flex-1 rounded-lg bg-brand py-2.5 text-[13px] font-semibold text-white hover:bg-brand-hover disabled:opacity-40">{ok}</button>
+          <button onClick={onClose} className="flex-1 rounded-control border border-line py-2.5 text-[13px] font-semibold text-ink-secondary hover:bg-subtle">Cancel</button>
+          <button onClick={onOk} disabled={disabled} className="flex-1 rounded-control bg-brand py-2.5 text-[13px] font-semibold text-white hover:bg-brand-hover disabled:opacity-40">{ok}</button>
         </div>
       </div>
     </div>

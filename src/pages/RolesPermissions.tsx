@@ -203,7 +203,7 @@ export default function RolesPermissions({ embedded = false }: { embedded?: bool
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     placeholder="Search roles…"
-                    className="h-10 w-full rounded-lg border border-line bg-subtle pl-9 pr-3 text-[13px] outline-none placeholder:text-ink-tertiary focus:border-brand focus:bg-white"
+                    className="h-10 w-full rounded-control border border-line bg-subtle pl-9 pr-3 text-[13px] outline-none placeholder:text-ink-tertiary focus:border-brand focus:bg-white"
                   />
                 </div>
                 <div className="mt-3">
@@ -242,15 +242,15 @@ export default function RolesPermissions({ embedded = false }: { embedded?: bool
                     <p className="truncate text-[13px] text-ink-secondary">{draft.desc || "No description"}</p>
                   </div>
                   <div className="relative">
-                    <button onClick={() => setActionsOpen((o) => !o)} className="flex items-center gap-2 rounded-lg border border-line bg-white px-3 py-2 text-[13px] font-medium text-ink hover:bg-subtle">
+                    <button onClick={() => setActionsOpen((o) => !o)} className="flex items-center gap-2 rounded-control border border-line bg-white px-3 py-2 text-[13px] font-medium text-ink hover:bg-subtle">
                       Actions <ChevronDown className="h-4 w-4" />
                     </button>
                     {actionsOpen && (
                       <div className="absolute right-0 top-11 z-20 w-48 rounded-xl border border-line bg-white p-1.5 shadow-lg">
-                        <button onClick={() => { duplicate(); setActionsOpen(false); }} className="block w-full rounded-lg px-3 py-2 text-left text-[13px] text-ink hover:bg-subtle">Duplicate role</button>
-                        <button onClick={() => { viewUsers(); setActionsOpen(false); }} className="block w-full rounded-lg px-3 py-2 text-left text-[13px] text-ink hover:bg-subtle">View users</button>
-                        <button onClick={() => { setDraft(structuredClone(saved)); setActionsOpen(false); flash("Changes discarded"); }} className="block w-full rounded-lg px-3 py-2 text-left text-[13px] text-ink hover:bg-subtle">Discard changes</button>
-                        <button onClick={() => { remove(); setActionsOpen(false); }} className="block w-full rounded-lg px-3 py-2 text-left text-[13px] text-red-600 hover:bg-red-50">Delete role</button>
+                        <button onClick={() => { duplicate(); setActionsOpen(false); }} className="block w-full rounded-control px-3 py-2 text-left text-[13px] text-ink hover:bg-subtle">Duplicate role</button>
+                        <button onClick={() => { viewUsers(); setActionsOpen(false); }} className="block w-full rounded-control px-3 py-2 text-left text-[13px] text-ink hover:bg-subtle">View users</button>
+                        <button onClick={() => { setDraft(structuredClone(saved)); setActionsOpen(false); flash("Changes discarded"); }} className="block w-full rounded-control px-3 py-2 text-left text-[13px] text-ink hover:bg-subtle">Discard changes</button>
+                        <button onClick={() => { remove(); setActionsOpen(false); }} className="block w-full rounded-control px-3 py-2 text-left text-[13px] text-red-600 hover:bg-red-50">Delete role</button>
                       </div>
                     )}
                   </div>
@@ -445,7 +445,7 @@ function RoleMembers({
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder={`Search ${role.name} members…`}
-            className="h-10 w-full rounded-lg border border-line bg-white pl-9 pr-3 text-[13px] outline-none placeholder:text-ink-tertiary focus:border-brand"
+            className="h-10 w-full rounded-control border border-line bg-white pl-9 pr-3 text-[13px] outline-none placeholder:text-ink-tertiary focus:border-brand"
           />
         </div>
         <Button variant="outline" onClick={onInvite}><Plus className="h-4 w-4" /> Invite</Button>
@@ -561,7 +561,7 @@ function UserManagement({
               value={q}
               onChange={(e) => { setQ(e.target.value); setPage(0); }}
               placeholder="Search by name, email, role, department…"
-              className="h-10 w-full rounded-lg border border-line bg-white pl-9 pr-3 text-[13px] outline-none placeholder:text-ink-tertiary focus:border-brand"
+              className="h-10 w-full rounded-control border border-line bg-white pl-9 pr-3 text-[13px] outline-none placeholder:text-ink-tertiary focus:border-brand"
             />
           </div>
           <div className="ml-auto flex items-center gap-3">

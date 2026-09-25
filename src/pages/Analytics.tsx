@@ -208,7 +208,7 @@ export default function Analytics() {
           )}
 
           <div className="ml-auto flex items-center gap-3">
-            <button onClick={exportData} className="flex h-10 items-center gap-2 rounded-lg border border-line bg-white px-3.5 text-[13px] font-semibold text-ink hover:bg-subtle">
+            <button onClick={exportData} className="flex h-10 items-center gap-2 rounded-control border border-line bg-white px-3.5 text-[13px] font-semibold text-ink hover:bg-subtle">
               <Download className="h-4 w-4" /> Export Data
             </button>
             <button

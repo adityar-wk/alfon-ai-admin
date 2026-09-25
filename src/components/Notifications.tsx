@@ -128,7 +128,7 @@ export function NotificationBell() {
                   {KINDS.map((k) => {
                     const on = enabled.includes(k.key);
                     return (
-                      <button key={k.key} onClick={() => toggle(k.key)} className="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left hover:bg-white">
+                      <button key={k.key} onClick={() => toggle(k.key)} className="flex w-full items-center gap-3 rounded-control px-2 py-2 text-left hover:bg-white">
                         <span className={`flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded border ${on ? "border-brand bg-brand text-white" : "border-line bg-white"}`}>
                           {on && <Check className="h-3 w-3" strokeWidth={3} />}
                         </span>

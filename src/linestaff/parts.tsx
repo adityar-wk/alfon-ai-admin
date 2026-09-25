@@ -2,7 +2,7 @@ import { Button } from "../components/ui";
 import { useState, type ReactNode } from "react";
 import { Phone, MessageSquare, AlertTriangle, Sparkles, User, Clock, Lock } from "lucide-react";
 import { STAFF, PRESENCE_DOT, type MTask, type Presence, type Staffer } from "./data";
-import { Avatar, PriorityPill, SlaRing, Sheet, SelectField, TextField, Label, slaTone, fmtMins, CARD_SHADOW } from "./mobile";
+import { Avatar, PriorityPill, SlaClockChip, Sheet, SelectField, TextField, Label, slaTone, fmtMins, CARD_SHADOW } from "./mobile";
 
 export const activeCount = (tasks: MTask[], name: string) =>
   tasks.filter((t) => (t.owner === name || t.support.includes(name)) && (t.status === "progress" || t.status === "assigned")).length;
@@ -168,7 +168,7 @@ export function DetailBody({ task, viewer }: { task: MTask; viewer: "supervisor"
               {task.escType && <span className="rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-semibold text-red-600">{task.escType}</span>}
             </div>
           </div>
-          {task.status !== "completed" && <SlaRing left={task.slaLeft} total={task.slaTotal} size={68} />}
+          {task.status !== "completed" && <SlaClockChip left={task.slaLeft} total={task.slaTotal} />}
         </div>
         <div className="mt-4 grid grid-cols-2 gap-3 border-t border-line pt-3 text-[12px]">
           <div><div className="text-ink-tertiary">Owner</div><div className="mt-0.5 flex items-center gap-1.5 text-[13px] font-semibold text-ink"><User className="h-3.5 w-3.5 text-ink-tertiary" />{task.owner ?? <span className="text-red-600">Unassigned</span>}</div></div>

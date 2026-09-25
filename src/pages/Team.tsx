@@ -250,7 +250,7 @@ export default function Team() {
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Search staff by name, role, department…"
-                  className="h-10 w-full rounded-lg border border-line bg-white pl-9 pr-3 text-[13px] outline-none placeholder:text-ink-tertiary focus:border-brand"
+                  className="h-10 w-full rounded-control border border-line bg-white pl-9 pr-3 text-[13px] outline-none placeholder:text-ink-tertiary focus:border-brand"
                 />
               </div>
 

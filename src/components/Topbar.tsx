@@ -10,7 +10,7 @@ export function SearchBar({ placeholder = "Search anything..." }: { placeholder?
       <input
         readOnly
         placeholder={placeholder}
-        className="h-9 w-full rounded-lg border border-line bg-subtle pl-9 pr-12 text-[13px] text-ink-secondary outline-none placeholder:text-ink-tertiary focus:border-brand"
+        className="h-9 w-full rounded-control border border-line bg-subtle pl-9 pr-12 text-[13px] text-ink-secondary outline-none placeholder:text-ink-tertiary focus:border-brand"
       />
       <kbd className="absolute right-3 top-1/2 -translate-y-1/2 rounded border border-line bg-white px-1.5 py-0.5 text-[10px] font-medium text-ink-tertiary">
         ⌘K

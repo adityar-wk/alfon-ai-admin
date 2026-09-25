@@ -242,7 +242,7 @@ export default function Reports() {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {list.map((r) => (
             <div key={r.key} className="relative flex flex-col rounded-card border border-line bg-white p-5 transition-colors hover:border-brand/40">
-              <span className="flex h-10 w-10 items-center justify-center rounded-lg border border-brand/30 bg-brand-tint/40 text-brand">
+              <span className="flex h-10 w-10 items-center justify-center rounded-control border border-brand/30 bg-brand-tint/40 text-brand">
                 <r.icon className="h-5 w-5" />
               </span>
               <h3 className="mt-4 text-[15px] font-semibold text-ink">{r.title}</h3>

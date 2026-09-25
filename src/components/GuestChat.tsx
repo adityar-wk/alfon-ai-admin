@@ -109,7 +109,7 @@ export function GuestChat({
             <p className="text-[14px] leading-relaxed text-ink">{aiDraft}</p>
           )}
           <div className="mt-3 flex justify-end gap-2">
-            <button onClick={() => setEditing((v) => !v)} className="rounded-lg border border-line bg-white px-3.5 py-2 text-[13px] font-medium text-ink hover:bg-subtle">
+            <button onClick={() => setEditing((v) => !v)} className="rounded-control border border-line bg-white px-3.5 py-2 text-[13px] font-medium text-ink hover:bg-subtle">
               {editing ? "Done" : "Edit"}
             </button>
             <button

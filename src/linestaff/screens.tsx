@@ -7,7 +7,8 @@ import {
   ScreenHeader,
   TextHeader,
   SectionTitle,
-  SlaRing,
+  SlaClockChip,
+  TaskCard,
   SlaCountdown,
   CompensationSheet,
   FloatingNav,
@@ -121,29 +122,26 @@ const NOTIFS = [
 
 const DEFAULT_SLA = 40;
 
-/** task card: task name first, room second, SLA timer on the right, actions inside the card */
+/** Line Staff task card: the shared TaskCard with its tags and an Accept action */
 function LsCard({ t, onOpen, onAccept }: { t: Task; onOpen?: () => void; onAccept?: () => void }) {
   const done = t.status === "completed";
   return (
-    <div className={`rounded-2xl bg-white p-4 ${CARD_SHADOW}`}>
-      <div onClick={onOpen} role={onOpen ? "button" : undefined} className={`flex items-start gap-3 ${onOpen ? "cursor-pointer" : ""}`}>
-        <div className="min-w-0 flex-1">
-          <div className="text-[14px] font-semibold leading-snug text-ink">{t.title}</div>
-          <div className="mt-0.5 text-[12px] font-medium text-ink-secondary">{t.room}</div>
-          {t.assignedBy && !done && <span className="mt-1.5 mr-1.5 inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-semibold text-blue-600">Assigned by {t.assignedBy.split(" · ")[1]}</span>}
-          {t.escalatedTo && !done && <span className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-semibold text-red-600"><ArrowUpRight className="h-3 w-3" /> Escalated to {t.escalatedTo}</span>}
-          {done && t.time && <div className="mt-1.5 text-[11px] font-medium text-emerald-600">✓ {t.time}</div>}
-        </div>
-        {!done && <SlaRing left={t.left} total={t.total} size={50} />}
-      </div>
-      {onAccept && (
-        <div className="mt-3.5 border-t border-line pt-3.5">
-          <button onClick={onAccept} className="flex h-10 w-full items-center justify-center rounded-xl bg-brand text-[13px] font-semibold text-white shadow-[0_2px_6px_rgba(232,98,58,0.16)]">
-            Accept
-          </button>
-        </div>
-      )}
-    </div>
+    <TaskCard
+      room={t.room}
+      note={t.title}
+      left={done ? undefined : t.left}
+      total={t.total}
+      done={done}
+      tag={
+        <>
+          {t.assignedBy && !done && <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-semibold text-blue-600">Assigned by {t.assignedBy.split(" · ")[1]}</span>}
+          {t.escalatedTo && !done && <span className="inline-flex items-center gap-1 rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-semibold text-red-600"><ArrowUpRight className="h-3 w-3" /> Escalated to {t.escalatedTo}</span>}
+        </>
+      }
+      meta={done && t.time ? <span className="font-medium text-emerald-600">✓ {t.time}</span> : undefined}
+      onClick={onOpen}
+      footer={onAccept ? <Button className="w-full" onClick={onAccept}>Accept</Button> : undefined}
+    />
   );
 }
 

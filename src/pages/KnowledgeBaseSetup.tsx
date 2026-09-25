@@ -138,7 +138,7 @@ export default function KnowledgeBaseSetup() {
             <div className="divide-y divide-line">
               {items.map((it) => (
                 <div key={it.id} className="flex items-center gap-3 py-3">
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-subtle text-ink-secondary">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-control bg-subtle text-ink-secondary">
                     {it.kind === "file" ? (
                       <FileText className="h-4 w-4" />
                     ) : (

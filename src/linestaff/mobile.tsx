@@ -1,4 +1,5 @@
 import { Button } from "../components/ui";
+import { useClock, secsFromMinutes, formatClock } from "../data/attention";
 import { useEffect, useState, type ReactNode } from "react";
 import { AlertCircle, DoorClosed, Signal, Wifi, BatteryFull, ChevronLeft, ChevronRight, ChevronDown, X, Clock } from "lucide-react";
 
@@ -131,21 +132,16 @@ export function slaTone(left: number, total: number) {
   return { color: "#16A34A", label: "left", text: "text-emerald-600" };
 }
 
-export function SlaRing({ left, total, size = 54 }: { left: number; total: number; size?: number }) {
-  const tone = slaTone(left, total);
-  const r = (size - 7) / 2;
-  const c = 2 * Math.PI * r;
-  const frac = left < 0 ? 1 : Math.max(0.04, Math.min(1, left / total));
+/** live SLA clock for task cards: counts down, turns red and counts up once breached */
+export function SlaClockChip({ left, total }: { left: number; total: number }) {
+  useClock();
+  const secs = secsFromMinutes(left);
+  const tone = slaTone(secs / 60, total);
   return (
-    <div className="relative shrink-0" style={{ width: size, height: size }} title="SLA timer">
-      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="-rotate-90">
-        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#E7E7EA" strokeWidth="5" />
-        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={tone.color} strokeWidth="5" strokeLinecap="round" strokeDasharray={`${frac * c} ${c}`} />
-      </svg>
-      <div className="absolute inset-0 flex items-center justify-center">
-        <span className="text-[12px] font-bold text-ink">{fmtMins(left)}</span>
-      </div>
-    </div>
+    <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap text-[15px] font-semibold tabular-nums" style={{ color: tone.color, fontFamily: '"Poppins", "Sora", "Inter", sans-serif' }}>
+      <Clock className="h-[15px] w-[15px]" />
+      {formatClock(secs)}
+    </span>
   );
 }
 
@@ -183,6 +179,7 @@ export function TaskCard({
   total,
   meta,
   tag,
+  footer,
   onClick,
   done,
 }: {
@@ -193,16 +190,14 @@ export function TaskCard({
   total?: number;
   meta?: ReactNode;
   tag?: ReactNode;
+  /** actions inside the card, under a hairline */
+  footer?: ReactNode;
   onClick?: () => void;
   done?: boolean;
 }) {
   return (
-    <div
-      onClick={onClick}
-      role={onClick ? "button" : undefined}
-      className={`relative rounded-2xl bg-white p-4 ${CARD_SHADOW} ${onClick ? "cursor-pointer active:scale-[0.99]" : ""} ${done ? "opacity-55 grayscale-[0.5]" : ""}`}
-    >
-      <div className="flex items-start gap-3">
+    <div className={`relative rounded-2xl bg-white p-4 ${CARD_SHADOW} ${done ? "opacity-55 grayscale-[0.5]" : ""}`}>
+      <div onClick={onClick} role={onClick ? "button" : undefined} className={`flex items-start gap-3 ${onClick ? "cursor-pointer active:scale-[0.99]" : ""}`}>
         <div className="min-w-0 flex-1">
           <div className="text-[15px] font-semibold leading-snug text-ink">{note}</div>
           <div className="mt-1 text-[12px] font-medium text-ink-secondary">{room}</div>
@@ -214,8 +209,9 @@ export function TaskCard({
           )}
           {meta && <div className="mt-2 text-[12px] text-ink-tertiary">{meta}</div>}
         </div>
-        {!done && left !== undefined && total !== undefined && <SlaRing left={left} total={total} />}
+        {!done && left !== undefined && total !== undefined && <SlaClockChip left={left} total={total} />}
       </div>
+      {footer && <div className="mt-3.5 border-t border-line pt-3.5">{footer}</div>}
     </div>
   );
 }

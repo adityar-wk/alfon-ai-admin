@@ -321,7 +321,7 @@ function GuestList({ activeId }: { activeId: number }) {
               value={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder="Search guests…"
-              className="h-9 w-full rounded-lg border border-line bg-subtle pl-9 pr-3 text-[13px] outline-none placeholder:text-ink-tertiary focus:border-brand focus:bg-white"
+              className="h-9 w-full rounded-control border border-line bg-subtle pl-9 pr-3 text-[13px] outline-none placeholder:text-ink-tertiary focus:border-brand focus:bg-white"
             />
           </div>
           <button
@@ -337,7 +337,7 @@ function GuestList({ activeId }: { activeId: number }) {
             <div className="absolute right-0 top-11 z-20 w-48 rounded-xl border border-line bg-white p-1.5 shadow-lg">
               <div className="px-2.5 pb-1 pt-1.5 text-[11px] font-semibold uppercase tracking-wide text-ink-tertiary">Stay status</div>
               {LIST_FILTERS.map((x) => (
-                <button key={x} onClick={() => { setF(x); setFilterOpen(false); }} className="flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-left text-[13px] text-ink hover:bg-subtle">
+                <button key={x} onClick={() => { setF(x); setFilterOpen(false); }} className="flex w-full items-center justify-between rounded-control px-2.5 py-2 text-left text-[13px] text-ink hover:bg-subtle">
                   {x === "All" ? "All" : STATUS_LABEL[x]}
                   {f === x && <Check className="h-4 w-4 text-brand" />}
                 </button>
@@ -466,7 +466,7 @@ export default function GuestProfile() {
                   </div>
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
-                  <button onClick={() => setEditOpen(true)} className="rounded-lg border border-line px-3.5 py-2 text-[13px] font-semibold text-ink hover:bg-subtle">
+                  <button onClick={() => setEditOpen(true)} className="rounded-control border border-line px-3.5 py-2 text-[13px] font-semibold text-ink hover:bg-subtle">
                     Edit profile
                   </button>
                   <Link to={`/guest-chats?guest=${guest.id}`} className="rounded-lg border border-line px-3.5 py-2 text-[13px] font-semibold text-ink hover:bg-subtle">

@@ -298,7 +298,7 @@ export default function PreArrival() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search guest, room…"
-                className="h-10 w-full rounded-lg border border-line bg-white pl-9 pr-3 text-[13px] outline-none placeholder:text-ink-tertiary focus:border-brand"
+                className="h-10 w-full rounded-control border border-line bg-white pl-9 pr-3 text-[13px] outline-none placeholder:text-ink-tertiary focus:border-brand"
               />
             </div>
             <button
@@ -655,11 +655,11 @@ function DateStrip({
 
   return (
     <div className="flex min-w-0 items-center gap-1.5 overflow-x-auto">
-      <button onClick={() => onShift(-7)} aria-label="Previous week" className="flex h-10 w-7 items-center justify-center rounded-lg text-ink-secondary hover:bg-subtle">
+      <button onClick={() => onShift(-7)} aria-label="Previous week" className="flex h-10 w-7 items-center justify-center rounded-control text-ink-secondary hover:bg-subtle">
         <ChevronLeft className="h-4 w-4" />
       </button>
       <span className="w-24 shrink-0 whitespace-nowrap text-center text-[13px] font-medium text-ink">{monthLabel}</span>
-      <button onClick={() => onShift(7)} aria-label="Next week" className="flex h-10 w-7 items-center justify-center rounded-lg text-ink-secondary hover:bg-subtle">
+      <button onClick={() => onShift(7)} aria-label="Next week" className="flex h-10 w-7 items-center justify-center rounded-control text-ink-secondary hover:bg-subtle">
         <ChevronRight className="h-4 w-4" />
       </button>
 
@@ -687,7 +687,7 @@ function DateStrip({
       </div>
 
       {selDay !== 24 && (
-        <button onClick={onToday} className="ml-1 flex h-10 items-center rounded-lg px-2 text-[12px] font-semibold text-brand hover:bg-brand-tint">
+        <button onClick={onToday} className="ml-1 flex h-10 items-center rounded-control px-2 text-[12px] font-semibold text-brand hover:bg-brand-tint">
           Today
         </button>
       )}
@@ -846,7 +846,7 @@ function GuestDrawer({
 
 function FooterBtn({ icon: Icon, label, onClick }: { icon: React.ComponentType<{ className?: string }>; label: string; onClick: () => void }) {
   return (
-    <button onClick={onClick} className="flex items-center justify-center gap-1.5 rounded-lg border border-line bg-white py-2 text-[12px] font-semibold text-ink-secondary hover:bg-subtle">
+    <button onClick={onClick} className="flex items-center justify-center gap-1.5 rounded-control border border-line bg-white py-2 text-[12px] font-semibold text-ink-secondary hover:bg-subtle">
       <Icon className="h-3.5 w-3.5" /> {label}
     </button>
   );

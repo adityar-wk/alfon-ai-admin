@@ -12,7 +12,7 @@ import { SlaClock } from "../components/SlaClock";
 import { ArrivalCalendar } from "./PreArrival";
 import { STATUS_PILL, COMPLAINT_PILL, useClock, type TaskStatusLabel } from "../data/attention";
 import {
-  ScreenHeader, ChatRow, Chips, StatCard, SlaRing, Avatar, Segmented, FloatingNav, TaskCard,
+  ScreenHeader, ChatRow, Chips, StatCard, SlaClockChip, Avatar, Segmented, FloatingNav, TaskCard,
 } from "../linestaff/mobile";
 
 /* ------------------------------------------------------------------ inventory */
@@ -46,7 +46,7 @@ const INVENTORY: Item[] = [
   { id: "m-header", name: "Mobile header", group: "Mobile app", note: "Back arrow, 20px semibold title, plain icon buttons" },
   { id: "m-chat", name: "Chat row", group: "Mobile app", note: "Name, room, message; time, unread dot, complaint marker" },
   { id: "m-chips", name: "Chips & segmented", group: "Mobile app", note: "Filter chips under the search bar" },
-  { id: "m-cards", name: "Task card, stat card, SLA ring", group: "Mobile app", note: "Cards with the soft shadow" },
+  { id: "m-cards", name: "Task card, stat card, SLA clock", group: "Mobile app", note: "Cards with the soft shadow" },
   { id: "m-list", name: "Menu line item", group: "Mobile app", note: "Flat row with hairline divider (More screen)" },
   { id: "m-nav", name: "Bottom navigation", group: "Mobile app", note: "Icon tabs; active tab is a pill with its label" },
 ];
@@ -407,11 +407,11 @@ export default function ComponentDesign() {
             </div>
           </Section>
 
-          <Section id="m-cards" title="Task card, stat card, SLA ring" note="White cards with the soft phone shadow; the ring shows time left.">
+          <Section id="m-cards" title="Task card, stat card, SLA clock" note="White cards with the soft phone shadow; the live SLA clock sits at the right of each task card.">
             <Phone grey>
               <div className="mb-3 grid grid-cols-3 gap-3"><StatCard label="Open" value={9} /><StatCard label="At risk" value={2} tone="text-amber-600" /><StatCard label="Overdue" value={2} tone="text-red-600" /></div>
               <TaskCard room="Room 1108" note="Dirty bathroom complaint" priority="High" left={24} total={45} />
-              <div className="mt-3 flex items-center gap-4"><SlaRing left={40} total={45} /><SlaRing left={12} total={45} /><SlaRing left={-8} total={45} /></div>
+              <div className="mt-3 flex items-center gap-5"><SlaClockChip left={40} total={45} /><SlaClockChip left={12} total={45} /><SlaClockChip left={-8} total={45} /></div>
             </Phone>
           </Section>
 
