@@ -380,9 +380,10 @@ export default function Tasks() {
         </Card>
       </Page>
 
-      {selected && manager && (
+      {selected && (
         <ManagerTaskWindow
           key={selected.id}
+          gm={!manager}
           task={selected}
           allTasks={tasks}
           msgs={chats[selected.id]}
@@ -396,30 +397,6 @@ export default function Tasks() {
           onApply={(patch, action, detail, msg, close) => {
             applyUpdate(selected, patch, action, detail, msg);
             if (close) setSelectedId(null);
-          }}
-        />
-      )}
-
-      {selected && !manager && (
-        <TaskWindow
-          key={selected.id}
-          task={selected}
-          msgs={chats[selected.id]}
-          onSend={(text) =>
-            setChats((c) => ({
-              ...c,
-              [selected.id]: [...(c[selected.id] ?? seedThread(selected)), { from: "staff", text, time: "Now" }],
-            }))
-          }
-          onClose={() => setSelectedId(null)}
-          onReassign={(owner) => {
-            update(selected.id, { owner });
-            flash(`Reassigned to ${owner}`);
-          }}
-          onResolve={() => {
-            update(selected.id, { status: "Completed", sla: { kind: "met", text: "Met" } });
-            setSelectedId(null);
-            flash(`“${selected.title}” resolved`);
           }}
         />
       )}
@@ -660,8 +637,10 @@ const clockText = (mins: number) => {
 };
 
 function ManagerTaskWindow({
-  task, onClose, onApply,
+  task, onClose, onApply, gm = false,
 }: {
+  /** general manager: same panel, but nothing to escalate to */
+  gm?: boolean;
   task: Task;
   allTasks: Task[];
   msgs?: ChatMsg[];
@@ -904,13 +883,15 @@ function ManagerTaskWindow({
             </button>
           )}
           <div className="flex gap-2">
-            <button
-              onClick={() => { setText(""); setPanel("escalate"); }}
-              disabled={closed}
-              className="flex-1 rounded-lg border border-line bg-white px-3 py-2.5 text-[13px] font-semibold text-ink hover:bg-subtle disabled:opacity-40"
-            >
-              Escalate
-            </button>
+            {!gm && (
+              <button
+                onClick={() => { setText(""); setPanel("escalate"); }}
+                disabled={closed}
+                className="flex-1 rounded-lg border border-line bg-white px-3 py-2.5 text-[13px] font-semibold text-ink hover:bg-subtle disabled:opacity-40"
+              >
+                Escalate
+              </button>
+            )}
             {smallBtn("note", "Add Note")}
           </div>
           <button

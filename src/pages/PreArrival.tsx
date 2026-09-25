@@ -401,11 +401,6 @@ export default function PreArrival() {
                           <Avatar g={g} size={36} soft />
                           <div className="min-w-0">
                             <div className="text-[14px] font-medium text-ink">{g.name}</div>
-                            {g.tags.length > 0 && (
-                              <div className="mt-1 flex flex-wrap gap-1">
-                                <TagChips g={g} />
-                              </div>
-                            )}
                           </div>
                         </div>
                       </td>
@@ -656,11 +651,6 @@ function GuestDrawer({
         <Avatar g={g} size={52} />
         <div className="min-w-0 flex-1">
           <div className="text-[18px] font-bold leading-tight text-ink">{g.name}</div>
-          {g.tags.length > 0 && (
-            <div className="mt-1 flex flex-wrap gap-1">
-              <TagChips g={g} />
-            </div>
-          )}
           <div className="mt-1.5 text-[13px] text-ink-secondary">
             {g.room ? `Room ${g.room}` : "Room not assigned"} · {g.type} · {g.nights} nights
           </div>
