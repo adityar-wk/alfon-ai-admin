@@ -81,7 +81,6 @@ function Trend({ t }: { t: "up" | "down" | "flat" }) {
 export default function Home() {
   const navigate = useNavigate();
   const [dept, setDept] = useState("all");
-  const [prio, setPrio] = useState("all");
 
   const open = TASKS.filter((t) => t.status !== "Completed" && t.status !== "Unable to Complete" && t.status !== "Void");
 
@@ -90,11 +89,11 @@ export default function Home() {
   const pending = useMemo(
     () =>
       open
-        .filter((t) => (dept === "all" || t.dept === dept) && (prio === "all" || t.priority === prio))
+        .filter((t) => dept === "all" || t.dept === dept)
         .sort((a, b) => rank(a) - rank(b))
         .slice(0, 6),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [TASKS.length, dept, prio],
+    [TASKS.length, dept],
   );
 
   const score = Math.max(0, Math.min(100, Math.round(82 + BASELINE - penalty(TASKS))));
@@ -165,7 +164,7 @@ export default function Home() {
               </div>
             </Card>
             <Card className="p-6">
-              <h3 className="text-[16px] font-semibold text-ink">{HOTEL}</h3>
+              <h3 className="text-[16px] font-semibold text-ink">Occupancy Today</h3>
               <dl className="mt-4 space-y-3.5 text-[13px]">
                 {[["Occupancy", "87%"], ["Check-ins Today", "34"], ["Check-outs Today", "28"], ["Total Rooms", "245"]].map(([l, v]) => (
                   <div key={l} className="flex items-center justify-between">
@@ -178,18 +177,15 @@ export default function Home() {
           </div>
         </div>
 
-        {/* pending tasks */}
+        {/* needs attention */}
         <div className="mt-5">
           <Card className="overflow-hidden">
             <div className="flex flex-wrap items-center gap-3 px-5 py-4">
               <ListChecks className="h-[18px] w-[18px] text-brand" />
-              <h3 className="text-[16px] font-semibold text-ink">Pending Tasks</h3>
+              <h3 className="text-[16px] font-semibold text-ink">Needs Your Attention</h3>
               <div className="ml-auto flex items-center gap-2">
                 <div className="w-40"><Select className="h-9 text-[12px]" value={dept} onChange={(e) => setDept(e.target.value)} aria-label="Department">
                   <option value="all">All Departments</option>{depts.map((d) => <option key={d}>{d}</option>)}
-                </Select></div>
-                <div className="w-32"><Select className="h-9 text-[12px]" value={prio} onChange={(e) => setPrio(e.target.value)} aria-label="Priority">
-                  <option value="all">All Priority</option>{(["Critical", "High", "Medium", "Low"] as const).map((p) => <option key={p}>{p}</option>)}
                 </Select></div>
                 <Link to="/tasks" className="ml-2 text-[13px] font-semibold text-brand">View all</Link>
               </div>
@@ -218,7 +214,7 @@ export default function Home() {
                               <span className="text-[13px] text-ink-secondary">{t.status === "Yet to Assign" ? (t.owner ? "Assigned" : "Unassigned") : t.status}</span>
                             )}
                             <span className={`flex items-center gap-1 whitespace-nowrap text-[12px] ${t.sla.kind === "overdue" ? "font-medium text-red-600" : t.sla.kind === "due" ? "font-medium text-brand" : "text-ink-secondary"}`}>
-                              <Clock className="h-3.5 w-3.5" />{t.sla.text}
+                              <Clock className="h-3.5 w-3.5" />{t.sla.text.replace(/^Overdue\s+/, "-")}
                             </span>
                           </div>
                         </td>
@@ -232,10 +228,7 @@ export default function Home() {
                         <td className="whitespace-nowrap py-3 pr-3 text-[13px] text-ink-secondary"><span className="flex items-center gap-2"><D className="h-4 w-4 text-ink-tertiary" />{t.dept}</span></td>
                         <td className="whitespace-nowrap py-3 pr-3 text-[13px]">
                           {t.owner ? (
-                            <span className="flex items-center gap-2 text-ink">
-                              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-brand-tint text-[9px] font-bold text-brand">{t.owner.split(" ").map((w) => w[0]).join("")}</span>
-                              {t.owner}
-                            </span>
+                            <span className="text-ink">{t.owner}</span>
                           ) : (
                             <span className="font-medium text-brand">Unassigned</span>
                           )}
