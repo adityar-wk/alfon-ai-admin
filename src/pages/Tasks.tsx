@@ -388,9 +388,14 @@ export default function Tasks() {
         ) : (
         <Card table className="overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[1040px] table-fixed text-left">
+            <table className="w-full min-w-[960px] table-fixed text-left">
               <colgroup>
-                <col /><col /><col /><col /><col /><col />
+                <col className="w-[120px]" />
+                <col />
+                <col className="w-[150px]" />
+                <col className="w-[180px]" />
+                <col className="w-[100px]" />
+                <col className="w-[140px]" />
               </colgroup>
               <thead>
                 <tr className="bg-[#F4F4F5] text-[12px] uppercase tracking-wide text-[#6B7280]">
