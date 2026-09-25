@@ -23,12 +23,15 @@ import {
   CARD_SHADOW,
   type Priority,
   ChatRow,
+  Chips,
   sampleUnread,
 } from "./mobile";
 import { GuestProfileScreen, GuestChatScreen, type ChatMsg } from "./guestviews";
 import { ProfileScreen, NotificationSettingsScreen, SignedOutScreen } from "./profile";
 
 type Screen = { name: "home" | "notifications" | "taskDetail" | "create" | "guests" | "guestChat" | "guestProfile" | "profile" | "notifSettings"; id?: string };
+
+const CHAT_FILTERS = ["All", "Unread", "Open tasks"] as const;
 
 type HelpKind = "escalate" | "support" | "reassign";
 const HELP_OPTIONS: { key: HelpKind; label: string; sub: string; cta: string; placeholder: string }[] = [
@@ -165,6 +168,8 @@ export function LineStaffPrototype() {
   const [chat, setChat] = useState<Record<string, ChatMsg[]>>({});
   const [manual, setManual] = useState<Record<string, boolean>>({});
   const [guestQuery, setGuestQuery] = useState("");
+  const [guestFilter, setGuestFilter] = useState<(typeof CHAT_FILTERS)[number]>("All");
+  const [newChatOpen, setNewChatOpen] = useState(false);
   const [aiDrafts, setAiDrafts] = useState<Record<string, string>>({});
   const [signedOut, setSignedOut] = useState(false);
 
@@ -186,10 +191,12 @@ export function LineStaffPrototype() {
   const services = DEPARTMENTS.find((d) => d.name === dept)?.services.filter((s) => s.active).map((s) => s.name) ?? [];
 
   const guests = useMemo(() => {
-    const map = new Map<string, { name: string; room: string; title: string }>();
+    const map = new Map<string, { name: string; room: string; title: string; open: boolean }>();
     for (const t of tasks) {
       if (!t.guest || t.guest === "—" || t.guest === "Guest") continue;
-      if (!map.has(t.guest)) map.set(t.guest, { name: t.guest, room: t.room, title: t.title });
+      const cur = map.get(t.guest);
+      if (!cur) map.set(t.guest, { name: t.guest, room: t.room, title: t.title, open: t.status !== "completed" });
+      else if (t.status !== "completed") cur.open = true;
     }
     return Array.from(map.values());
   }, [tasks]);
@@ -198,7 +205,27 @@ export function LineStaffPrototype() {
     { from: "ai", text: "Thanks for letting us know — I've passed this to housekeeping and they're on it." },
   ];
   const threadOf = (name: string) => chat[name] ?? seedThread(guests.find((g) => g.name === name) ?? { title: "a request", room: "my room" });
-  const guestsFiltered = guests.filter((g) => `${g.name} ${g.room}`.toLowerCase().includes(guestQuery.trim().toLowerCase()));
+  const guestsFiltered = guests.filter(
+    (g) =>
+      `${g.name} ${g.room}`.toLowerCase().includes(guestQuery.trim().toLowerCase()) &&
+      (guestFilter === "All" || (guestFilter === "Unread" ? sampleUnread(g.name) > 0 : g.open)),
+  );
+  const NewChatSheet = newChatOpen && (
+    <Sheet title="New chat" onClose={() => setNewChatOpen(false)}>
+      <div className="-mx-1 max-h-[420px] overflow-y-auto">
+        {guests.map((g) => (
+          <ChatRow
+            key={g.name}
+            name={g.name}
+            room={g.room}
+            plain
+            preview="Start a conversation"
+            onOpen={() => { setNewChatOpen(false); nav.push({ name: "guestChat", id: g.name }); }}
+          />
+        ))}
+      </div>
+    </Sheet>
+  );
   const lsNav = (
     <FloatingNav
       items={[
@@ -299,8 +326,8 @@ export function LineStaffPrototype() {
     <div className="relative h-full">
       <div className="h-full overflow-y-auto pb-28 no-scrollbar">
         <h1 className="px-6 pb-2 pt-4 text-[20px] font-semibold text-ink">Chats</h1>
-        <div className="px-6">
-          <div className="relative">
+        <div className="flex items-center gap-2 px-6">
+          <div className="relative flex-1">
             <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-tertiary" />
             <input
               value={guestQuery}
@@ -309,8 +336,16 @@ export function LineStaffPrototype() {
               className="h-11 w-full rounded-full bg-[#F4F4F6] pl-10 pr-3 text-[14px] outline-none placeholder:text-ink-tertiary focus:ring-2 focus:ring-brand/30"
             />
           </div>
+          <button
+            onClick={() => setNewChatOpen(true)}
+            aria-label="New chat"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand text-white active:bg-brand-hover"
+          >
+            <Plus className="h-6 w-6" strokeWidth={2.25} />
+          </button>
         </div>
-        <div className="mt-2 px-6">
+        <div className="mt-3"><Chips flat items={CHAT_FILTERS} active={guestFilter} onChange={setGuestFilter} /></div>
+        <div className="mt-1 px-6">
           {guestsFiltered.map((g) => {
             const th = threadOf(g.name);
             let unread = 0;
@@ -536,6 +571,7 @@ export function LineStaffPrototype() {
       <PhoneFrame white={!signedOut && ["home", "guests", "profile"].includes(cur.name)}>
         {signedOut ? <SignedOutScreen onSignIn={() => { setSignedOut(false); nav.reset(); }} /> : VIEWS[cur.name]}
         {HelpSheet}
+        {NewChatSheet}
         {compOpen && (
           <CompensationSheet
             subtitle={`${active.title} · ${active.room}`}

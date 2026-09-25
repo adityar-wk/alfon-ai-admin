@@ -422,7 +422,7 @@ export function FloatingNav<K extends string>({
 }) {
   return (
     <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20">
-      <div className="pointer-events-auto flex items-center justify-around border-t border-line bg-white px-4 pb-5 pt-3">
+      <div className="pointer-events-auto flex items-center justify-around border-t border-line bg-white px-4 pb-3.5 pt-2">
         {items.map((it) => {
           const on = it.key === active;
           return (
@@ -431,9 +431,9 @@ export function FloatingNav<K extends string>({
               aria-label={it.label}
               aria-current={on ? "page" : undefined}
               onClick={() => onChange(it.key)}
-              className={`relative flex h-12 items-center justify-center gap-2 rounded-full transition-all duration-200 ${on ? "bg-brand-tint px-5 text-brand" : "w-12 text-ink"}`}
+              className={`relative flex h-11 items-center justify-center gap-2 rounded-full transition-all duration-200 ${on ? "bg-brand-tint px-5 text-brand" : "w-11 text-ink"}`}
             >
-              <it.icon className="h-[24px] w-[24px]" />
+              <it.icon className="h-[22px] w-[22px]" />
               {on && <span className="text-[14px] font-semibold">{it.label}</span>}
               {!!it.badge && !on && (
                 <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white">{it.badge}</span>
