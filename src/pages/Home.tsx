@@ -104,50 +104,82 @@ export default function Home() {
     <>
       <Topbar title={HOTEL} />
       <Page>
-        {/* health score */}
-        {/* score pillars */}
-        <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
-          {PILLARS.map((p) => (
-                <div key={p.label} className="rounded-xl border border-line p-3.5">
-                  <div className="flex items-center justify-between">
+        {/* pillars | orb | department performance + occupancy */}
+        <div className="grid grid-cols-1 items-stretch gap-5 xl:grid-cols-[260px_minmax(0,1fr)_320px]">
+          <div className="grid grid-cols-2 gap-4 xl:grid-cols-1">
+            {PILLARS.map((p) => (
+              <div key={p.label} className="flex flex-col justify-between rounded-card border border-line bg-white p-4">
+                <div className="flex items-center justify-between">
+                  <span className="flex items-center gap-2 text-[12px] text-ink-secondary">
                     <span className="flex h-7 w-7 items-center justify-center rounded-lg border border-line text-brand"><p.icon className="h-3.5 w-3.5" /></span>
-                    <Trend t={p.trend} />
-                  </div>
-                  <div className="mt-2.5 text-[12px] text-ink-secondary">{p.label}</div>
-                  <div className="text-[20px] font-bold leading-tight text-ink">{p.value}</div>
-                  <div className={`text-[12px] font-medium ${p.tag === "Excellent" ? "text-emerald-600" : "text-amber-600"}`}>{p.tag}</div>
-                  <Spark data={p.spark} />
+                    {p.label}
+                  </span>
+                  <Trend t={p.trend} />
                 </div>
-              ))}
-            </div>
-
-        <div className="mt-5">
-          <Card className="overflow-hidden px-8 pb-8 pt-4">
-            <div className="flex flex-col items-center">
-              <div className="relative h-[340px] w-[340px] max-w-full">
-                <Orb hue={band.hue} hoverIntensity={0.2} rotateOnHover backgroundColor="#ffffff" />
-                <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                  <span className={`text-[60px] font-bold leading-none tracking-tight transition-colors duration-700 ${band.text}`}>{score}%</span>
+                <div className="mt-2 flex items-end justify-between gap-3">
+                  <div>
+                    <div className="text-[22px] font-bold leading-tight text-ink">{p.value}</div>
+                    <div className={`text-[12px] font-medium ${p.tag === "Excellent" ? "text-emerald-600" : "text-amber-600"}`}>{p.tag}</div>
+                  </div>
+                  <div className="w-24 shrink-0"><Spark data={p.spark} /></div>
                 </div>
               </div>
-              <div className="mt-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-ink-tertiary">Hotel Health Score</div>
-              <p className="mt-2 text-[14px] text-ink-secondary">
-                {band.key === "excellent"
-                  ? "Your hotel is performing strong."
-                  : band.key === "good"
-                    ? "Your hotel is doing well, with room to improve."
-                    : band.key === "attention"
-                      ? "Several things need attention."
-                      : "Urgent: resolve overdue and escalated tasks."}
-              </p>
-            </div>
+            ))}
+          </div>
 
+          <Card className="flex flex-col items-center justify-center overflow-hidden px-6 pb-8 pt-4">
+            <div className="relative h-[340px] w-[340px] max-w-full">
+              <Orb hue={band.hue} hoverIntensity={0.2} rotateOnHover backgroundColor="#ffffff" />
+              <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                <span className={`text-[60px] font-bold leading-none tracking-tight transition-colors duration-700 ${band.text}`}>{score}%</span>
+              </div>
+            </div>
+            <div className="mt-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-ink-tertiary">Hotel Health Score</div>
+            <p className="mt-2 text-center text-[14px] text-ink-secondary">
+              {band.key === "excellent"
+                ? "Your hotel is performing strong."
+                : band.key === "good"
+                  ? "Your hotel is doing well, with room to improve."
+                  : band.key === "attention"
+                    ? "Several things need attention."
+                    : "Urgent: resolve overdue and escalated tasks."}
+            </p>
           </Card>
 
+          <div className="flex flex-col gap-5">
+            <Card className="p-6">
+              <div className="flex items-center justify-between">
+                <h3 className="text-[16px] font-semibold text-ink">Department Performance</h3>
+                <Link to="/analytics" className="text-[13px] font-semibold text-brand">Analytics</Link>
+              </div>
+              <div className="mt-3 divide-y divide-line/70">
+                {DEPT_PERF.map((d) => (
+                  <div key={d.name} className="flex items-center gap-3 py-3">
+                    <div className="min-w-0 flex-1 text-[13px] font-semibold text-ink">{d.name}</div>
+                    <div className="text-right leading-tight">
+                      <div className="text-[13px] font-semibold text-ink">{d.tasks} tasks</div>
+                      <div className="text-[11px] text-ink-tertiary">{d.onTime}% on time</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+            <Card className="p-6">
+              <h3 className="text-[16px] font-semibold text-ink">{HOTEL}</h3>
+              <dl className="mt-4 space-y-3.5 text-[13px]">
+                {[["Occupancy", "87%"], ["Check-ins Today", "34"], ["Check-outs Today", "28"], ["Total Rooms", "245"]].map(([l, v]) => (
+                  <div key={l} className="flex items-center justify-between">
+                    <dt className="text-ink-secondary">{l}</dt>
+                    <dd className="font-semibold text-ink">{v}</dd>
+                  </div>
+                ))}
+              </dl>
+            </Card>
+          </div>
         </div>
 
-        {/* pending tasks + hotel info */}
-        <div className="mt-5 grid grid-cols-1 gap-5 xl:grid-cols-[1fr_320px]">
+        {/* pending tasks */}
+        <div className="mt-5">
           <Card className="overflow-hidden">
             <div className="flex flex-wrap items-center gap-3 px-5 py-4">
               <ListChecks className="h-[18px] w-[18px] text-brand" />
@@ -216,39 +248,8 @@ export default function Home() {
             </div>
           </Card>
 
-          <Card className="self-start p-6">
-            <h3 className="text-[16px] font-semibold text-ink">{HOTEL}</h3>
-            <dl className="mt-4 space-y-3.5 text-[13px]">
-              {[["Occupancy", "87%"], ["Check-ins Today", "34"], ["Check-outs Today", "28"], ["Total Rooms", "245"]].map(([l, v]) => (
-                <div key={l} className="flex items-center justify-between">
-                  <dt className="text-ink-secondary">{l}</dt>
-                  <dd className="font-semibold text-ink">{v}</dd>
-                </div>
-              ))}
-            </dl>
-          </Card>
         </div>
 
-        {/* department performance */}
-        <div className="mt-5">
-          <Card className="p-6">
-            <div className="flex items-center justify-between">
-              <h3 className="text-[16px] font-semibold text-ink">Department Performance</h3>
-              <Link to="/analytics" className="text-[13px] font-semibold text-brand">Analytics</Link>
-            </div>
-            <div className="mt-3 divide-y divide-line/70">
-              {DEPT_PERF.map((d) => (
-                <div key={d.name} className="flex items-center gap-3 py-3">
-                  <div className="min-w-0 flex-1 text-[13px] font-semibold text-ink">{d.name}</div>
-                  <div className="text-right leading-tight">
-                    <div className="text-[13px] font-semibold text-ink">{d.tasks} tasks</div>
-                    <div className="text-[11px] text-ink-tertiary">{d.onTime}% on time</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </Card>
-        </div>
       </Page>
     </>
   );
