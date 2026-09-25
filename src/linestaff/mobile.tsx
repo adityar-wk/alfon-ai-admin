@@ -394,7 +394,7 @@ export function FloatingNav<K extends string>({
 }) {
   return (
     <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20">
-      <div className="pointer-events-auto flex items-center border-t border-line bg-white px-4 pb-4 pt-1.5">
+      <div className="pointer-events-auto flex items-center justify-around border-t border-line bg-white px-4 pb-5 pt-3">
         {items.map((it) => {
           const on = it.key === active;
           return (
@@ -403,12 +403,12 @@ export function FloatingNav<K extends string>({
               aria-label={it.label}
               aria-current={on ? "page" : undefined}
               onClick={() => onChange(it.key)}
-              className={`relative flex h-12 flex-1 flex-col items-center justify-center gap-1 ${on ? "text-brand" : "text-ink-tertiary"}`}
+              className={`relative flex h-12 items-center justify-center gap-2 rounded-full transition-all duration-200 ${on ? "bg-brand-tint px-5 text-brand" : "w-12 text-ink"}`}
             >
-              <it.icon className="h-[22px] w-[22px]" />
-              <span className={`h-[3px] w-6 rounded-full transition-colors ${on ? "bg-brand" : "bg-transparent"}`} />
+              <it.icon className="h-[24px] w-[24px]" />
+              {on && <span className="text-[14px] font-semibold">{it.label}</span>}
               {!!it.badge && !on && (
-                <span className="absolute right-[calc(50%-20px)] top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white">{it.badge}</span>
+                <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white">{it.badge}</span>
               )}
             </button>
           );

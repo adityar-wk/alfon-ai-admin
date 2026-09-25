@@ -48,7 +48,7 @@ const INVENTORY: Item[] = [
   { id: "m-chips", name: "Chips & segmented", group: "Mobile app", note: "Filter chips under the search bar" },
   { id: "m-cards", name: "Task card, stat card, SLA ring", group: "Mobile app", note: "Cards with the soft shadow" },
   { id: "m-list", name: "Menu line item", group: "Mobile app", note: "Flat row with hairline divider (More screen)" },
-  { id: "m-nav", name: "Bottom navigation", group: "Mobile app", note: "Floating nav with active underline" },
+  { id: "m-nav", name: "Bottom navigation", group: "Mobile app", note: "Icon tabs; active tab is a pill with its label" },
 ];
 
 const GROUPS = Array.from(new Set(INVENTORY.map((i) => i.group)));
@@ -425,7 +425,7 @@ export default function ComponentDesign() {
             </Phone>
           </Section>
 
-          <Section id="m-nav" title="Bottom navigation" note="Icon tabs with an orange underline on the active one.">
+          <Section id="m-nav" title="Bottom navigation" note="Icons only; the active tab expands into an orange-tint pill with its label.">
             <Phone grey>
               <div className="relative h-20">
                 <FloatingNav items={[{ key: "home", label: "Home", icon: HomeIcon }, { key: "tasks", label: "Tasks", icon: ListChecks }, { key: "chats", label: "Chats", icon: MessageCircle }]} active={navKey} onChange={setNavKey} />
