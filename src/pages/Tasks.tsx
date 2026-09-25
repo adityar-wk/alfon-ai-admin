@@ -612,12 +612,11 @@ function SlaTimer({ task }: { task: Task }) {
   const over = !met && secs < 0;
   const frac = met ? 1 : over ? 1 : Math.max(0.03, Math.min(1, secs / total));
   const tone = met ? "text-emerald-600" : over ? "text-red-600" : frac < 0.25 ? "text-brand" : "text-emerald-600";
-  const bg = met ? "bg-emerald-50" : over ? "bg-red-50" : frac < 0.25 ? "bg-orange-50" : "bg-emerald-50";
   const bar = met ? "bg-emerald-500" : over ? "bg-red-500" : frac < 0.25 ? "bg-brand" : "bg-emerald-500";
   const abs = Math.abs(secs);
   const clock = `${over ? "-" : ""}${String(Math.floor(abs / 60)).padStart(2, "0")}:${String(abs % 60).padStart(2, "0")}`;
   return (
-    <div className={`rounded-xl px-4 py-3.5 ${bg}`}>
+    <div className="rounded-xl border border-line px-4 py-3.5">
       <div className="flex items-center justify-between">
         <div>
           <div className="text-[12px] font-medium text-ink-secondary">{met ? "SLA met" : over ? "SLA breached" : "Time remaining"}</div>
@@ -625,7 +624,7 @@ function SlaTimer({ task }: { task: Task }) {
         </div>
         <div className={`text-[34px] font-semibold leading-none tracking-tight tabular-nums ${tone}`} style={{ fontFamily: '"Poppins", "Sora", "Inter", sans-serif' }}>{met ? "Met" : clock}</div>
       </div>
-      <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/70"><div className={`h-full rounded-full ${bar}`} style={{ width: `${frac * 100}%` }} /></div>
+      <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-subtle"><div className={`h-full rounded-full ${bar}`} style={{ width: `${frac * 100}%` }} /></div>
     </div>
   );
 }
@@ -926,17 +925,26 @@ function ManagerTaskWindow({
         >
           <div className="relative">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-tertiary" />
-            <Input autoFocus value={assignQuery} onChange={(e) => setAssignQuery(e.target.value)} placeholder="Search team members" className="pl-9" />
+            <input
+              autoFocus
+              value={assignQuery}
+              onChange={(e) => setAssignQuery(e.target.value)}
+              placeholder="Search team members"
+              className="h-10 w-full rounded-lg bg-subtle pl-9 pr-3 text-[13px] outline-none placeholder:text-ink-tertiary focus:ring-1 focus:ring-brand"
+            />
           </div>
-          <div className="mt-1 mb-2 px-0.5 pt-2 text-[12px] text-ink-secondary">Select one or more. The first is the owner, the rest support.</div>
-          <div className="max-h-64 space-y-1.5 overflow-y-auto">
+          <div className="mt-2 max-h-64 divide-y divide-line/60 overflow-y-auto">
             {(STAFF[task.dept] ?? []).filter((m) => m.toLowerCase().includes(assignQuery.trim().toLowerCase())).map((m) => {
               const idx = assignSel.indexOf(m);
+              const av = availabilityOf(m);
               return (
-                <label key={m} className={`flex cursor-pointer items-center gap-3 rounded-xl border px-3.5 py-2.5 text-[13px] text-ink ${idx >= 0 ? "border-brand bg-brand-tint/40" : "border-line hover:bg-subtle"}`}>
+                <label key={m} className="flex cursor-pointer items-center gap-3 py-3 text-[14px] text-ink">
                   <input type="checkbox" className="h-4 w-4 accent-brand" checked={idx >= 0} onChange={(e) => setAssignSel((cur) => (e.target.checked ? [...cur, m] : cur.filter((x) => x !== m)))} />
-                  <span className="min-w-0 flex-1 font-medium">{m}{idx === 0 && <span className="ml-2 rounded-full bg-brand px-1.5 py-0.5 text-[10px] font-semibold text-white">Owner</span>}</span>
-                  <AvailabilityTag name={m} />
+                  <span className="min-w-0 flex-1">
+                    {m}
+                    {idx === 0 && assignSel.length > 1 && <span className="ml-2 text-[12px] text-ink-tertiary">Owner</span>}
+                  </span>
+                  <span className={`text-[12px] ${av.text}`}>{av.label}</span>
                 </label>
               );
             })}
@@ -944,6 +952,7 @@ function ManagerTaskWindow({
               <p className="py-6 text-center text-[13px] text-ink-tertiary">No team members match.</p>
             )}
           </div>
+          {assignSel.length > 1 && <p className="mt-1 text-[12px] text-ink-tertiary">The first person selected is the owner, the rest support.</p>}
           {task.owner && (
             <button
               onClick={() => { onApply({ owner: null, support: [], status: "Yet to Assign" }, "Reopened", "Reopened for anyone to pick up", "Task reopened for others to pick up"); settleHelp(); setAssignOpen(false); }}
