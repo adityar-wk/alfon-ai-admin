@@ -10,7 +10,6 @@ import {
   Building2,
   BarChart3,
   FileText,
-  ClipboardList,
   Settings,
   Smartphone,
   LayoutDashboard,
@@ -42,9 +41,8 @@ const GM_NAV: Item[] = [
   { label: "Departments", to: "/departments", icon: Building2 },
   { label: "Analytics", to: "/analytics", icon: BarChart3 },
   { label: "Reports", to: "/reports", icon: FileText },
-  { label: "Onboarding", to: "/onboarding", icon: ClipboardList },
   { label: "Mobile App", to: "/line-staff", icon: Smartphone },
-  { label: "Settings", to: "/settings/rooms-qr", icon: Settings },
+  { label: "Settings", to: "/onboarding", icon: Settings, match: "/settings" },
 ];
 
 const MID_NAV: Item[] = [

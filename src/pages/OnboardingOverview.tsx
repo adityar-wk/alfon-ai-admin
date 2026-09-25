@@ -104,7 +104,7 @@ function StepCard({ s }: { s: (typeof STEPS)[number] }) {
 export default function OnboardingOverview() {
   return (
     <>
-      <Topbar title="Hotel Onboarding" actions={<Button variant="outline">Save Draft</Button>} />
+      <Topbar title="Settings" actions={<Button variant="outline">Save Draft</Button>} />
       <Page>
         <Card className="flex flex-wrap items-center gap-x-8 gap-y-6 p-6">
           <Ring value={pct} />
