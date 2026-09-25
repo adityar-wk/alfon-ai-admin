@@ -15,7 +15,7 @@ import { BarChart } from "../components/BarChart";
 import { SEED_TASKS, SEED_REQUESTS, STAFF, GUEST_STAYS, PRE_ARRIVAL_GUESTS, CHECKED_OUT_GUESTS, GUEST_PROFILES, ROOMS, type MTask, type Presence, type Staffer, type HkRoom, type RoomStatus, type EscType } from "./data";
 import {
   PhoneFrame, ScreenHeader, SectionTitle, TaskCard, StatCard, Avatar, Chips, Segmented, FloatingNav, SelectField, TextField, Label, Sheet,
-  useNav, useToast, CARD_SHADOW, TextHeader, PriorityPill, SlaCountdown, fmtMins, CompensationSheet, type Priority,
+  useNav, useToast, CARD_SHADOW, TextHeader, SlaCountdown, fmtMins, CompensationSheet, type Priority,
   ChatRow,
   sampleUnread,
 } from "./mobile";
@@ -218,7 +218,6 @@ export function ManagerPrototype() {
       key={t.id}
       room={t.room}
       note={t.title}
-      priority={t.priority}
       left={t.status === "completed" ? undefined : t.slaLeft}
       total={t.slaTotal}
       done={t.status === "completed"}
@@ -255,7 +254,6 @@ export function ManagerPrototype() {
       key={t.id}
       room={t.room}
       note={t.title}
-      priority={t.priority}
       left={t.status === "completed" ? undefined : t.slaLeft}
       total={t.slaTotal}
       done={t.status === "completed"}
@@ -806,7 +804,6 @@ export function ManagerPrototype() {
           <div className="min-w-0">
             <h2 className="text-[18px] font-bold leading-snug text-ink">{task.title}</h2>
             <div className="mt-1 flex flex-wrap items-center gap-1.5">
-              <PriorityPill p={task.priority} />
               <StatusTag s={task.status} />
             </div>
           </div>
@@ -920,7 +917,6 @@ export function ManagerPrototype() {
               <p className="text-[14px] leading-snug text-ink">{n.text}</p>
               {nt && (
                 <div className="mt-1.5 flex items-center gap-2">
-                  <PriorityPill p={nt.priority} />
                   {nt.status !== "completed" && (
                     <span className={`text-[12px] font-semibold ${nt.slaLeft < 0 ? "text-red-600" : "text-ink-secondary"}`}>
                       {fmtMins(nt.slaLeft)}{nt.slaLeft < 0 ? " over" : " left"}
