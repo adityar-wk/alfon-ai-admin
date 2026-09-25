@@ -1,6 +1,7 @@
+import { Button } from "../components/ui";
 import { useState } from "react";
 import { ChevronRight, LogOut, SlidersHorizontal } from "lucide-react";
-import { Avatar, ScreenHeader, PrimaryButton, CARD_SHADOW } from "./mobile";
+import { Avatar, ScreenHeader, CARD_SHADOW } from "./mobile";
 
 const Toggle = ({ on, onChange, label }: { on: boolean; onChange: () => void; label: string }) => (
   <button onClick={onChange} aria-pressed={on} aria-label={label} className={`flex h-6 w-11 shrink-0 items-center rounded-full p-0.5 transition-colors ${on ? "bg-emerald-500" : "bg-[#C8C8C8]"}`}>
@@ -82,7 +83,7 @@ export function SignedOutScreen({ onSignIn }: { onSignIn: () => void }) {
       <span className="flex h-16 w-16 items-center justify-center rounded-full bg-brand-tint text-brand"><SlidersHorizontal className="h-7 w-7" /></span>
       <h2 className="mt-5 text-[20px] font-bold text-ink">You&apos;re signed out</h2>
       <p className="mt-1.5 text-[13px] text-ink-secondary">Sign in again to see your tasks and guest messages.</p>
-      <PrimaryButton className="mt-6 w-full" onClick={onSignIn}>Sign in</PrimaryButton>
+      <Button className="mt-6 w-full" onClick={onSignIn}>Sign in</Button>
     </div>
   );
 }

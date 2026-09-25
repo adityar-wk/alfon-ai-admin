@@ -12,7 +12,7 @@ import { SlaClock } from "../components/SlaClock";
 import { ArrivalCalendar } from "./PreArrival";
 import { STATUS_PILL, COMPLAINT_PILL, useClock, type TaskStatusLabel } from "../data/attention";
 import {
-  ScreenHeader, ChatRow, Chips, StatCard, SlaRing, Avatar, PrimaryButton, GhostButton, Segmented, FloatingNav, TaskCard,
+  ScreenHeader, ChatRow, Chips, StatCard, SlaRing, Avatar, Segmented, FloatingNav, TaskCard,
 } from "../linestaff/mobile";
 
 /* ------------------------------------------------------------------ inventory */
@@ -47,7 +47,6 @@ const INVENTORY: Item[] = [
   { id: "m-chat", name: "Chat row", group: "Mobile app", note: "Name, room, message; time, unread dot, complaint marker" },
   { id: "m-chips", name: "Chips & segmented", group: "Mobile app", note: "Filter chips under the search bar" },
   { id: "m-cards", name: "Task card, stat card, SLA ring", group: "Mobile app", note: "Cards with the soft shadow" },
-  { id: "m-buttons", name: "Mobile buttons", group: "Mobile app", note: "Primary and ghost full-width buttons" },
   { id: "m-list", name: "Menu line item", group: "Mobile app", note: "Flat row with hairline divider (More screen)" },
   { id: "m-nav", name: "Bottom navigation", group: "Mobile app", note: "Floating nav with active underline" },
 ];
@@ -388,10 +387,6 @@ export default function ComponentDesign() {
               <TaskCard room="Room 1108" note="Dirty bathroom complaint" priority="High" left={24} total={45} />
               <div className="mt-3 flex items-center gap-4"><SlaRing left={40} total={45} /><SlaRing left={12} total={45} /><SlaRing left={-8} total={45} /></div>
             </Phone>
-          </Section>
-
-          <Section id="m-buttons" title="Mobile buttons" note="Full-width primary and ghost buttons.">
-            <Phone><div className="space-y-3"><PrimaryButton className="w-full">Accept</PrimaryButton><GhostButton className="w-full">Reject</GhostButton></div></Phone>
           </Section>
 
           <Section id="m-list" title="Menu line item" note="Icon, label and chevron on a flat row with a hairline divider.">

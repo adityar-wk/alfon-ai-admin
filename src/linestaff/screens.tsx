@@ -1,3 +1,4 @@
+import { Button } from "../components/ui";
 import { useEffect, useMemo, useState } from "react";
 import { Bell, Menu as MenuIcon, Send, Plus, BedDouble, User, Building2, ChevronLeft, ChevronRight, ArrowUpRight, ListChecks, MessageCircle, Search } from "lucide-react";
 import { DEPARTMENTS } from "../data/departments";
@@ -12,8 +13,6 @@ import {
   FloatingNav,
   Avatar,
   Sheet,
-  PrimaryButton,
-  GhostButton,
   SelectField,
   TextField,
   Segmented,
@@ -448,17 +447,17 @@ export function LineStaffPrototype() {
 
       <div className="flex shrink-0 gap-3 px-6 pb-6 pt-3">
         {active.status === "pending" ? (
-          <PrimaryButton className="w-full" onClick={() => accept(active.id)}>Accept</PrimaryButton>
+          <Button className="w-full" onClick={() => accept(active.id)}>Accept</Button>
         ) : (
           <>
-            <GhostButton className="flex-1" disabled={active.status === "completed"} onClick={() => { setHelpKind("escalate"); setHelpNote(""); setHelpOpen(true); }}>Need help</GhostButton>
-            <PrimaryButton
+            <Button variant="outline" className="flex-1" disabled={active.status === "completed"} onClick={() => { setHelpKind("escalate"); setHelpNote(""); setHelpOpen(true); }}>Need help</Button>
+            <Button
               className="flex-[1.3]"
               disabled={active.status === "completed"}
               onClick={() => completeTask(active)}
             >
               {active.status === "completed" ? "Completed" : "Mark complete"}
-            </PrimaryButton>
+            </Button>
           </>
         )}
       </div>
@@ -499,9 +498,9 @@ export function LineStaffPrototype() {
       </div>
       <Label>Add details (optional)</Label>
       <TextField rows={4} value={helpNote} onChange={setHelpNote} placeholder={HELP_OPTIONS.find((o) => o.key === helpKind)!.placeholder} />
-      <PrimaryButton className="mt-5 w-full" onClick={helpSubmit}>
+      <Button className="mt-5 w-full" onClick={helpSubmit}>
         <Send className="h-4 w-4" /> {HELP_OPTIONS.find((o) => o.key === helpKind)!.cta}
-      </PrimaryButton>
+      </Button>
     </Sheet>
   );
 
@@ -521,7 +520,7 @@ export function LineStaffPrototype() {
         <TextField rows={5} value={details} onChange={setDetails} placeholder="Enter more details" />
       </div>
       <div className="shrink-0 px-6 pb-6 pt-2">
-        <PrimaryButton className="w-full" disabled={!dept || !service} onClick={createTask}>Create Task</PrimaryButton>
+        <Button className="w-full" disabled={!dept || !service} onClick={createTask}>Create Task</Button>
       </div>
     </div>
   );

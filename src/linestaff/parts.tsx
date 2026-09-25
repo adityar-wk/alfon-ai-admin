@@ -1,7 +1,8 @@
+import { Button } from "../components/ui";
 import { useState, type ReactNode } from "react";
 import { Phone, MessageSquare, AlertTriangle, Sparkles, User, Clock, Lock } from "lucide-react";
 import { STAFF, PRESENCE_DOT, type MTask, type Presence, type Staffer } from "./data";
-import { Avatar, PriorityPill, SlaRing, Sheet, PrimaryButton, GhostButton, SelectField, TextField, Label, slaTone, fmtMins, CARD_SHADOW } from "./mobile";
+import { Avatar, PriorityPill, SlaRing, Sheet, SelectField, TextField, Label, slaTone, fmtMins, CARD_SHADOW } from "./mobile";
 
 export const activeCount = (tasks: MTask[], name: string) =>
   tasks.filter((t) => (t.owner === name || t.support.includes(name)) && (t.status === "progress" || t.status === "assigned")).length;
@@ -115,7 +116,7 @@ export function ReasonSheet({
       )}
       <Label>{noteLabel ?? (requireNote ? "Note (required)" : "Note")}</Label>
       <TextField rows={4} value={note} onChange={setNote} placeholder={placeholder} />
-      <PrimaryButton className="mt-5 w-full" tone={tone} disabled={!ok} onClick={() => onSubmit(reason, note.trim())}>{cta}</PrimaryButton>
+      <Button className="mt-5 w-full" tone={tone} disabled={!ok} onClick={() => onSubmit(reason, note.trim())}>{cta}</Button>
     </Sheet>
   );
 }
@@ -130,8 +131,8 @@ export function ContactSheet({ name, phone, onClose, onDone }: { name: string; p
         <div><div className="text-[15px] font-semibold text-ink">{name}</div><div className="text-[13px] text-ink-secondary">{phone}</div></div>
       </div>
       <div className="mt-4 grid grid-cols-2 gap-3">
-        <PrimaryButton tone="bg-emerald-600" onClick={() => onDone(`Calling ${name}…`)}><Phone className="h-4 w-4" /> Call</PrimaryButton>
-        <GhostButton onClick={() => onDone(`Message sent to ${name}`)}><MessageSquare className="h-4 w-4" /> Message</GhostButton>
+        <Button tone="bg-emerald-600" onClick={() => onDone(`Calling ${name}…`)}><Phone className="h-4 w-4" /> Call</Button>
+        <Button variant="outline" onClick={() => onDone(`Message sent to ${name}`)}><MessageSquare className="h-4 w-4" /> Message</Button>
       </div>
     </Sheet>
   );

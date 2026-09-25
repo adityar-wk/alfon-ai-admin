@@ -1,3 +1,4 @@
+import { Button } from "../components/ui";
 import { Logo } from "../components/Logo";
 import { useMemo, useState } from "react";
 import {
@@ -13,7 +14,7 @@ import { Donut } from "../components/Donut";
 import { BarChart } from "../components/BarChart";
 import { SEED_TASKS, SEED_REQUESTS, STAFF, GUEST_STAYS, PRE_ARRIVAL_GUESTS, CHECKED_OUT_GUESTS, GUEST_PROFILES, ROOMS, type MTask, type Presence, type Staffer, type HkRoom, type RoomStatus, type EscType } from "./data";
 import {
-  PhoneFrame, ScreenHeader, SectionTitle, TaskCard, StatCard, Avatar, Chips, Segmented, FloatingNav, PrimaryButton, GhostButton, SelectField, TextField, Label, Sheet,
+  PhoneFrame, ScreenHeader, SectionTitle, TaskCard, StatCard, Avatar, Chips, Segmented, FloatingNav, SelectField, TextField, Label, Sheet,
   useNav, useToast, CARD_SHADOW, TextHeader, PriorityPill, SlaCountdown, fmtMins, CompensationSheet, type Priority,
   ChatRow,
   sampleUnread,
@@ -628,9 +629,9 @@ export function ManagerPrototype() {
           <div className="mt-5" />
           {roomEntry.status === "In Progress" && !roomEntry.open && (
             <>
-              <GhostButton className="w-full" onClick={() => { setRooms((rs) => rs.map((r) => (r.number === roomEntry.number ? { ...r, open: true } : r))); flash(`${roomEntry.number} is now open for line staff to pick up`); }}>
+              <Button variant="outline" className="w-full" onClick={() => { setRooms((rs) => rs.map((r) => (r.number === roomEntry.number ? { ...r, open: true } : r))); flash(`${roomEntry.number} is now open for line staff to pick up`); }}>
                 Make it an open task — anyone can pick it up
-              </GhostButton>
+              </Button>
               <div className="my-4 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wide text-ink-tertiary">
                 <span className="h-px flex-1 bg-line" /> or assign to someone <span className="h-px flex-1 bg-line" />
               </div>
@@ -750,8 +751,8 @@ export function ManagerPrototype() {
             <p className="text-[13px] leading-snug text-ink">{aiDrafts[guestName]}</p>
           )}
           <div className="mt-3 flex gap-2">
-            <GhostButton className="flex-1" onClick={() => setEditingDraft((v) => !v)}>{editingDraft ? "Done" : "Edit"}</GhostButton>
-            <PrimaryButton className="flex-[1.4]" disabled={!aiDrafts[guestName].trim()} onClick={approveDraft}>Approve &amp; send</PrimaryButton>
+            <Button variant="outline" className="flex-1" onClick={() => setEditingDraft((v) => !v)}>{editingDraft ? "Done" : "Edit"}</Button>
+            <Button className="flex-[1.4]" disabled={!aiDrafts[guestName].trim()} onClick={approveDraft}>Approve &amp; send</Button>
           </div>
         </div>
       )}
@@ -883,21 +884,21 @@ export function ManagerPrototype() {
 
       {task.status !== "completed" && (
         <div className="flex shrink-0 gap-3 px-6 pb-6 pt-3">
-          <GhostButton className="flex-1" onClick={() => setSheet({ k: "needHelp", taskId: task.id })}>Assist</GhostButton>
+          <Button variant="outline" className="flex-1" onClick={() => setSheet({ k: "needHelp", taskId: task.id })}>Assist</Button>
           {task.owner === ME || task.status === "progress" ? (
-            <PrimaryButton
+            <Button
               className="flex-[1.3]"
               onClick={() => completeTask(task)}
             >
               Complete
-            </PrimaryButton>
+            </Button>
           ) : (
-            <PrimaryButton
+            <Button
               className="flex-[1.3]"
               onClick={() => { patch(task.id, { owner: ME, status: "progress" }, `${ME} accepted the task`); flash("Task assigned to you"); }}
             >
               Accept
-            </PrimaryButton>
+            </Button>
           )}
         </div>
       )}
@@ -947,7 +948,7 @@ export function ManagerPrototype() {
         <TextField rows={4} value={details} onChange={setDetails} placeholder="Enter more details" />
       </div>
       <div className="shrink-0 px-6 pb-6 pt-2">
-        <PrimaryButton
+        <Button
           className="w-full"
           disabled={!service || !room.trim()}
           onClick={() => {
@@ -962,7 +963,7 @@ export function ManagerPrototype() {
           }}
         >
           Create Task
-        </PrimaryButton>
+        </Button>
       </div>
     </div>
   );
@@ -1193,12 +1194,12 @@ export function ManagerPrototype() {
           <Label>Reason (optional)</Label>
           <TextField rows={2} value={needHelpReason} onChange={setNeedHelpReason} placeholder="Why does this need to be reassigned?" />
           <div className="mt-4">
-            <GhostButton
+            <Button variant="outline"
               className="w-full"
               onClick={() => { patch(t0.id, { owner: null, status: "unassigned" }, `${ME} reopened the task for anyone${needHelpReason.trim() ? ` — ${needHelpReason.trim()}` : ""}`); closeHelpSheet(); flash("Reopened for anyone to pick up"); }}
             >
               Reopen — let anyone pick it up
-            </GhostButton>
+            </Button>
             <div className="my-4 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wide text-ink-tertiary">
               <span className="h-px flex-1 bg-line" /> or assign to someone <span className="h-px flex-1 bg-line" />
             </div>
@@ -1226,9 +1227,9 @@ export function ManagerPrototype() {
     <Sheet title="Filter team" onClose={() => setTeamFilterOpen(false)}>
       <Label>Role</Label>
       <Chips items={ROLE_FILTERS} active={roleFilter} onChange={setRoleFilter} />
-      <PrimaryButton className="mt-6 w-full" onClick={() => setTeamFilterOpen(false)}>Done</PrimaryButton>
+      <Button className="mt-6 w-full" onClick={() => setTeamFilterOpen(false)}>Done</Button>
       {teamActiveFilters > 0 && (
-        <GhostButton className="mt-2 w-full" onClick={() => setRoleFilter("All")}>Clear filters</GhostButton>
+        <Button variant="outline" className="mt-2 w-full" onClick={() => setRoleFilter("All")}>Clear filters</Button>
       )}
     </Sheet>
   );
@@ -1263,8 +1264,8 @@ export function ManagerPrototype() {
   const RosterFilterSheet = rosterFilterOpen && (
     <Sheet title="Filter guests" onClose={() => setRosterFilterOpen(false)}>
       <Chips items={ROSTER_STAGE_FILTERS} active={stageFilter} onChange={setStageFilter} />
-      <PrimaryButton className="mt-6 w-full" onClick={() => setRosterFilterOpen(false)}>Done</PrimaryButton>
-      {rosterActiveFilters > 0 && <GhostButton className="mt-2 w-full" onClick={() => setStageFilter("All")}>Clear filter</GhostButton>}
+      <Button className="mt-6 w-full" onClick={() => setRosterFilterOpen(false)}>Done</Button>
+      {rosterActiveFilters > 0 && <Button variant="outline" className="mt-2 w-full" onClick={() => setStageFilter("All")}>Clear filter</Button>}
     </Sheet>
   );
 

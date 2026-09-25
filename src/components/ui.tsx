@@ -62,16 +62,19 @@ export function Badge({
 
 export function Button({
   variant = "primary",
+  tone,
   children,
   className = "",
   ...rest
 }: {
   variant?: "primary" | "outline" | "ghost";
+  /** custom fill for a coloured primary action, e.g. "bg-emerald-600" */
+  tone?: string;
   children: ReactNode;
   className?: string;
 } & React.ButtonHTMLAttributes<HTMLButtonElement>) {
   const styles = {
-    primary: "bg-brand text-white hover:bg-brand-hover",
+    primary: tone ? `${tone} text-white hover:opacity-90` : "bg-brand text-white hover:bg-brand-hover",
     outline: "border border-line bg-white text-ink hover:bg-subtle",
     ghost: "text-ink-secondary hover:bg-subtle",
   }[variant];

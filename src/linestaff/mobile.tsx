@@ -1,3 +1,4 @@
+import { Button } from "../components/ui";
 import { useEffect, useState, type ReactNode } from "react";
 import { AlertCircle, DoorClosed, Signal, Wifi, BatteryFull, ChevronLeft, ChevronRight, ChevronDown, X, Clock } from "lucide-react";
 
@@ -326,22 +327,6 @@ export function Segmented<T extends string>({ items, active, onChange, colors }:
   );
 }
 
-export function PrimaryButton({ children, onClick, disabled, tone = "bg-brand", className = "" }: { children: ReactNode; onClick?: () => void; disabled?: boolean; tone?: string; className?: string }) {
-  return (
-    <button onClick={onClick} disabled={disabled} className={`flex h-12 items-center justify-center gap-2 rounded-2xl text-[15px] font-semibold text-white shadow-[0_2px_6px_rgba(241,90,36,0.16)] disabled:opacity-40 disabled:shadow-none ${tone} ${className}`}>
-      {children}
-    </button>
-  );
-}
-
-export function GhostButton({ children, onClick, disabled, className = "" }: { children: ReactNode; onClick?: () => void; disabled?: boolean; className?: string }) {
-  return (
-    <button onClick={onClick} disabled={disabled} className={`flex h-12 items-center justify-center gap-2 rounded-2xl border border-line bg-white text-[14px] font-semibold text-ink disabled:opacity-40 ${className}`}>
-      {children}
-    </button>
-  );
-}
-
 export function SelectField({ value, onChange, placeholder, options, disabled }: { value: string; onChange: (v: string) => void; placeholder: string; options: string[]; disabled?: boolean }) {
   return (
     <div className="relative">
@@ -481,9 +466,9 @@ export function CompensationSheet({ subtitle, approvers, onClose, onSubmit }: { 
       <TextField rows={3} value={reason} onChange={setReason} placeholder="Why is this compensation being given?" />
       <Label>Approved by</Label>
       <SelectField value={by} onChange={setBy} placeholder="Select approver" options={approvers} />
-      <PrimaryButton className="mt-5 w-full" disabled={!type || (type === "Other" && !other.trim()) || !reason.trim() || !by} onClick={() => onSubmit(type === "Other" ? `Other — ${other.trim()}` : type, reason.trim(), by)}>
+      <Button className="mt-5 w-full" disabled={!type || (type === "Other" && !other.trim()) || !reason.trim() || !by} onClick={() => onSubmit(type === "Other" ? `Other — ${other.trim()}` : type, reason.trim(), by)}>
         Submit compensation
-      </PrimaryButton>
+      </Button>
     </Sheet>
   );
 }

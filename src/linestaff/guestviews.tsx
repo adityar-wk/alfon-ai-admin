@@ -1,6 +1,7 @@
+import { Button } from "../components/ui";
 import { useEffect, useRef, useState } from "react";
 import { Sparkles, Pencil, Plus, X, ChevronLeft, User, BedDouble, UtensilsCrossed, Languages, Thermometer, AlarmClock, Wine, Phone, Mail, MessageCircle, Send } from "lucide-react";
-import { Avatar, CARD_SHADOW, GhostButton, PrimaryButton } from "./mobile";
+import { Avatar, CARD_SHADOW } from "./mobile";
 import { GUEST_PROFILES, PRE_ARRIVAL_GUESTS, CHECKED_OUT_GUESTS } from "./data";
 
 export const DetailRow = ({ icon: Icon, label, children }: { icon: React.ComponentType<{ className?: string }>; label: string; children: React.ReactNode }) => (
@@ -273,8 +274,8 @@ export function AiDraftCard({ draft, onChange, onApprove }: { draft: string; onC
         <p className="text-[13px] leading-snug text-ink">{draft}</p>
       )}
       <div className="mt-3 flex gap-2">
-        <GhostButton className="flex-1" onClick={() => setEditing((v) => !v)}>{editing ? "Done" : "Edit"}</GhostButton>
-        <PrimaryButton className="flex-[1.4]" disabled={!draft.trim()} onClick={() => { setEditing(false); onApprove(); }}>Approve &amp; send</PrimaryButton>
+        <Button variant="outline" className="flex-1" onClick={() => setEditing((v) => !v)}>{editing ? "Done" : "Edit"}</Button>
+        <Button className="flex-[1.4]" disabled={!draft.trim()} onClick={() => { setEditing(false); onApprove(); }}>Approve &amp; send</Button>
       </div>
     </div>
   );
