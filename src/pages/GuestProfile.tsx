@@ -426,7 +426,7 @@ export default function GuestProfile() {
     setDraft("");
   }, [id]);
 
-  if (!guest) return <Navigate to="/guests" replace />;
+  if (!guest) return <Navigate to={`/guests/${GUESTS[0].id}`} replace />;
 
   const p = buildProfile(guest);
   const notes = [...(extraNotes[guest.id] ?? []), ...p.notes];
@@ -447,8 +447,8 @@ export default function GuestProfile() {
 
         <div className="min-w-0 flex-1 overflow-y-auto bg-subtle/40 p-5">
           <div className="mx-auto max-w-[1400px] space-y-4">
-            <Card className="p-5">
-              <div className="flex items-start gap-4">
+            <Card className="overflow-hidden">
+              <div className="flex items-start gap-4 p-6">
                 <span className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-full font-display text-[20px] font-semibold ${guest.tint}`}>{guest.initials}</span>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
@@ -474,29 +474,28 @@ export default function GuestProfile() {
                   </Link>
                 </div>
               </div>
-            </Card>
 
-            {/* everything at a glance: three columns, no tabs, no long scroll */}
-            <div className="grid grid-cols-1 items-start gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_320px]">
-              <div className="min-w-0 space-y-4">
-                <Card className="p-5">
+            {/* everything at a glance in one card: three columns divided by hairlines */}
+            <div className="grid grid-cols-1 items-start border-t border-line xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_320px] xl:divide-x xl:divide-line">
+              <div className="min-w-0 divide-y divide-line">
+                <div className="p-6">
                   <Heading icon={User} tone="text-ink-tertiary">Guest profile</Heading>
                   <p className="text-[14px] leading-relaxed text-ink">{p.summary}</p>
-                </Card>
-                <Card className="p-5">
+                </div>
+                <div className="p-6">
                   <Heading icon={Lightbulb} tone="text-ink-tertiary">Anticipated needs</Heading>
                   <p className="text-[14px] leading-relaxed text-ink">{p.anticipated}</p>
-                </Card>
-                <Card className="p-5">
+                </div>
+                <div className="p-6">
                   <Heading icon={History} tone="text-ink-tertiary">Stay history</Heading>
                   <div className="space-y-2">
                     {p.history.map((h) => <div key={h} className="rounded-lg bg-subtle/70 px-3 py-2 text-[13px] text-ink">{h}</div>)}
                     {!p.history.length && <p className="text-[13px] text-ink-tertiary">No previous stays.</p>}
                   </div>
-                </Card>
+                </div>
               </div>
 
-              <Card className="min-w-0 p-5">
+              <div className="min-w-0 p-6">
                 <div className="mb-3 text-[11px] font-bold uppercase tracking-wide text-ink-tertiary">Preferences</div>
                 <div className="divide-y divide-line/70">
                   {PREF_CARDS.map(({ key, label, icon: Icon }) => (
@@ -508,10 +507,10 @@ export default function GuestProfile() {
                     </div>
                   ))}
                 </div>
-              </Card>
+              </div>
 
-              <div className="min-w-0 space-y-4">
-                <Card className="p-5">
+              <div className="min-w-0 divide-y divide-line">
+                <div className="p-6">
                   <Heading icon={Bell} tone="text-red-700">Actions</Heading>
                   <div className="divide-y divide-line/70">
                     {actions.map((a, i) => {
@@ -537,9 +536,9 @@ export default function GuestProfile() {
                     })}
                     {!actions.length && <p className="py-3 text-[13px] text-ink-tertiary">No open actions for this guest.</p>}
                   </div>
-                </Card>
+                </div>
 
-                <Card className="p-5">
+                <div className="p-6">
                   <div className="mb-3 flex items-center justify-between">
                     <div className="text-[11px] font-bold uppercase tracking-wide text-ink-tertiary">Notes</div>
                     <button onClick={() => setNoteOpen((o) => !o)} className="flex items-center gap-1 text-[12px] font-medium text-brand"><Plus className="h-3.5 w-3.5" /> Add note</button>
@@ -565,9 +564,10 @@ export default function GuestProfile() {
                       </div>
                     ))}
                   </div>
-                </Card>
+                </div>
               </div>
             </div>
+            </Card>
           </div>
         </div>
       </div>

@@ -6,7 +6,7 @@ import {
   Menu as MenuIcon, ListChecks, BarChart3, AlertTriangle, User, BedDouble, DoorOpen, Building2, FileText, Download, Lock, UtensilsCrossed, Languages, Thermometer, AlarmClock, Wine, Phone, Mail, Sparkles, SlidersHorizontal, LogOut,
 } from "lucide-react";
 import { DEPARTMENTS } from "../data/departments";
-import { DetailRow, ProfileSection, GuestProfileScreen } from "./guestviews";
+import { DetailRow, ProfileSection, GuestProfileScreen, GuestChatScreen } from "./guestviews";
 import { pastel } from "../data/pastel";
 import { NotificationSettingsScreen, SignedOutScreen } from "./profile";
 import { DEPTS, METRICS, COMPLAINT_DETAIL } from "../pages/Analytics";
@@ -39,14 +39,15 @@ const GUEST_FILTERS = ["All", "Unread", "Complaints", "Open requests", "Pre-arri
 type GuestFilter = (typeof GUEST_FILTERS)[number];
 const ROSTER_STAGE_FILTERS = ["All", "In-house", "Pre-arrival", "Checked out"] as const;
 type RosterStage = (typeof ROSTER_STAGE_FILTERS)[number];
-const ROOM_STATUS_FILTERS = ["All", "Cleaning", "Needs Inspection", "Out of Service", "Clean"] as const;
+const ROOM_STATUS_FILTERS = ["All", "Cleaning", "Needs Inspection", "Out of Service", "Out of Order", "Clean"] as const;
 type RoomStatusFilter = (typeof ROOM_STATUS_FILTERS)[number];
-const ROOM_STATUSES = ["Clean", "Cleaning", "Needs Inspection", "Out of Service"] as const;
+const ROOM_STATUSES = ["Clean", "Cleaning", "Needs Inspection", "Out of Service", "Out of Order"] as const;
 const ROOM_STATUS_TONE: Record<RoomStatus, string> = {
   Clean: "text-emerald-600",
   "Cleaning": "text-blue-600",
   "Needs Inspection": "text-amber-600",
   "Out of Service": "text-red-600",
+  "Out of Order": "text-red-800",
 };
 const TASK_FILTERS = ["All", "Unassigned", "At Risk", "Overdue", "Completed"] as const;
 type TaskFilter = (typeof TASK_FILTERS)[number];
@@ -163,6 +164,7 @@ export function ManagerPrototype() {
   const [compOpen, setCompOpen] = useState(false);
   const [rooms, setRooms] = useState<HkRoom[]>(ROOMS);
   const [roomFilter, setRoomFilter] = useState<RoomStatusFilter>("All");
+  const [roomQuery, setRoomQuery] = useState("");
   const [roomSheet, setRoomSheet] = useState<string | null>(null);
   const [sheet, setSheet] = useState<SheetState>(null);
   const [needHelpReason, setNeedHelpReason] = useState("");
@@ -308,7 +310,7 @@ export function ManagerPrototype() {
   }, [guestsSorted, stageFilter, rosterQuery]);
   const rosterActiveFilters = stageFilter !== "All" ? 1 : 0;
 
-  const roomsFiltered = rooms.filter((r) => roomFilter === "All" || r.status === roomFilter);
+  const roomsFiltered = rooms.filter((r) => (roomFilter === "All" || r.status === roomFilter) && (!roomQuery.trim() || r.number.toLowerCase().includes(roomQuery.trim().toLowerCase()) || (r.assignee ?? "").toLowerCase().includes(roomQuery.trim().toLowerCase())));
   const roomChipCounts = Object.fromEntries(ROOM_STATUS_FILTERS.map((f) => [f, f === "All" ? rooms.length : rooms.filter((r) => r.status === f).length])) as Record<RoomStatusFilter, number>;
   const roomEntry = roomSheet ? rooms.find((r) => r.number === roomSheet) : undefined;
 
@@ -321,8 +323,10 @@ export function ManagerPrototype() {
 
   const guestName = cur.name === "guestDetail" || cur.name === "guestProfile" ? cur.id : undefined;
   const guestEntry = guestName ? guestMap.get(guestName) : undefined;
-  const seedGuestChat = (g?: GuestEntry) => (g && g.convo !== "—" ? [{ from: "guest" as const, text: g.convo }, { from: "ai" as const, text: "Thanks for letting us know — I've flagged this to the team." }] : []);
-  const guestThread = guestName ? chat[guestName] ?? seedGuestChat(guestEntry) : [];
+  const preGuest = guestName && !guestEntry ? PRE_ARRIVAL_GUESTS.find((g) => g.name === guestName) : undefined;
+  const chatSeed = guestEntry?.convo ?? preGuest?.notes;
+  const seedGuestChat = () => (chatSeed && chatSeed !== "—" ? [{ from: "guest" as const, text: chatSeed }, { from: "ai" as const, text: "Thanks for letting us know — I've flagged this to the team." }] : []);
+  const guestThread = guestName ? chat[guestName] ?? seedGuestChat() : [];
   const guestManual = guestName ? !!manual[guestName] : false;
   const completeTask = (task: MTask) => {
     patch(task.id, { status: "completed", escalated: false }, `${ME} marked complete`);
@@ -532,7 +536,8 @@ export function ManagerPrototype() {
   const Housekeeping = (
     <div className="flex h-full flex-col">
       <ScreenHeader onBack={nav.back} title="Housekeeping" />
-      <div><Chips items={ROOM_STATUS_FILTERS} active={roomFilter} onChange={setRoomFilter} counts={roomChipCounts} /></div>
+      <div className="flex px-6"><SearchField value={roomQuery} onChange={setRoomQuery} placeholder="Search room or staff" /></div>
+      <div className="mt-3"><Chips flat items={ROOM_STATUS_FILTERS} active={roomFilter} onChange={setRoomFilter} counts={roomChipCounts} /></div>
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-6 pb-6 pt-3 no-scrollbar">
         {roomsFiltered.map((r) => (
           <button key={r.number} onClick={() => setRoomSheet(r.number)} className="block w-full rounded-2xl border border-[#E6E4DF] bg-white px-5 py-4 text-left active:scale-[0.99]">
@@ -636,7 +641,7 @@ export function ManagerPrototype() {
             tone={g.complaint ? "bg-red-50 text-red-600" : undefined}
             complaint={!!g.complaint}
             unread={sampleUnread(g.name)}
-            onOpen={() => nav.push({ name: "guestProfile", id: g.name })}
+            onOpen={() => nav.push({ name: "guestDetail", id: g.name })}
           />
         ))}
         {(guestFilter === "All" || guestFilter === "Pre-arrival" || guestFilter === "Unread") && PRE_ARRIVAL_GUESTS
@@ -649,7 +654,7 @@ export function ManagerPrototype() {
               room="Pre-arrival"
               preview={g.notes}
               unread={sampleUnread(g.name)}
-              onOpen={() => nav.push({ name: "guestProfile", id: g.name })}
+              onOpen={() => nav.push({ name: "guestDetail", id: g.name })}
             />
           ))}
         {!guestsFiltered.length && <p className="rounded-2xl bg-white p-6 text-center text-[13px] text-ink-tertiary">No guests match.</p>}
@@ -657,84 +662,26 @@ export function ManagerPrototype() {
     </>
   ));
 
-  const GuestDetail = guestEntry && (
-    <div className="flex h-full flex-col bg-white">
-      <div className="flex shrink-0 items-center gap-3 px-6 pb-3 pt-4">
-        <button onClick={nav.back} aria-label="Back" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-ink shadow-sm">
-          <ChevronLeft className="h-5 w-5" />
-        </button>
-        <button onClick={() => nav.push({ name: "guestProfile", id: guestName })} className="flex min-w-0 flex-1 items-center gap-2.5 text-left">
-          <Avatar name={guestEntry.name} size={34} tone={guestEntry.complaint ? "bg-red-50 text-red-600" : undefined} />
-          <div className="min-w-0 leading-tight">
-            <div className="truncate text-[18px] font-bold text-ink">{guestEntry.name}</div>
-            <div className="text-[12px] text-ink-secondary">{guestEntry.room}</div>
-          </div>
-        </button>
-      </div>
-      <div className="min-h-0 flex-1 space-y-2.5 overflow-y-auto px-6 py-4">
-        {!guestThread.length && <p className="py-6 text-center text-[12px] text-ink-tertiary">No messages yet.</p>}
-        {guestThread.map((m, i) => (
-          <div key={i} className={`flex ${m.from === "guest" ? "justify-start" : "justify-end"}`}>
-            <div className={`max-w-[82%] rounded-2xl px-3.5 py-2.5 text-[13px] leading-snug ${m.from === "guest" ? "bg-[#F1F1F3] text-ink" : m.from === "ai" ? "bg-brand-tint text-ink" : "bg-[#FBDCCB] text-ink"}`}>
-              {m.text}
-              <div className="mt-1 text-[10px] font-semibold text-ink-tertiary">{m.from === "ai" ? "ALFON AI" : m.from === "me" ? "You" : "Guest"}</div>
-            </div>
-          </div>
-        ))}
-      </div>
-      {guestName && aiDrafts[guestName] !== undefined && (
-        <div className="mx-6 mb-3 shrink-0 rounded-2xl border border-brand/25 bg-brand-tint/60 p-3.5">
-          <div className="mb-2 flex items-center gap-1.5 text-[12px] font-semibold text-brand"><Sparkles className="h-3.5 w-3.5" /> ALFON AI drafted a reply</div>
-          {editingDraft ? (
-            <textarea
-              value={aiDrafts[guestName]}
-              onChange={(e) => setAiDrafts((d) => ({ ...d, [guestName]: e.target.value }))}
-              rows={4}
-              autoFocus
-              className="w-full resize-none rounded-xl border border-line bg-white p-2.5 text-[13px] leading-snug text-ink outline-none focus:border-brand"
-            />
-          ) : (
-            <p className="text-[13px] leading-snug text-ink">{aiDrafts[guestName]}</p>
-          )}
-          <div className="mt-3 flex gap-2">
-            <Button variant="outline" className="flex-1" onClick={() => setEditingDraft((v) => !v)}>{editingDraft ? "Done" : "Edit"}</Button>
-            <Button className="flex-[1.4]" disabled={!aiDrafts[guestName].trim()} onClick={approveDraft}>Approve &amp; send</Button>
-          </div>
-        </div>
-      )}
-      <div className={`flex shrink-0 items-center justify-between gap-3 border-t border-line px-6 py-2.5 text-[12px] ${guestManual ? "bg-brand-tint/50 text-brand" : "bg-brand-tint text-brand"}`}>
-        <span className="font-medium">{guestManual ? "You're replying — AI is paused" : "ALFON AI is replying automatically"}</span>
-        <button
-          onClick={() => { setManual((m) => ({ ...m, [guestName!]: !guestManual })); flash(guestManual ? "Handed back to AI" : "AI paused — you're now replying"); }}
-          aria-pressed={guestManual}
-          aria-label="Take over"
-          className="flex items-center gap-2"
-        >
-          <span className="text-[11px] font-semibold">Take over</span>
-          <span className={`flex h-6 w-11 items-center rounded-full p-0.5 transition-colors ${guestManual ? "bg-brand" : "bg-[#D8D8DC]"}`}>
-            <span className={`h-5 w-5 rounded-full bg-white shadow transition-transform ${guestManual ? "translate-x-5" : ""}`} />
-          </span>
-        </button>
-      </div>
-      <div className="flex shrink-0 items-center gap-2 px-6 py-3">
-        <input
-          value={draft}
-          disabled={!guestManual}
-          onChange={(e) => setDraft(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && sendGuestChat()}
-          placeholder={guestManual ? "Reply as hotel staff…" : "Take over to reply"}
-          className="h-11 flex-1 rounded-2xl border border-line px-4 text-[14px] outline-none focus:border-brand disabled:bg-[#F6F6F8]"
-        />
-        <button onClick={sendGuestChat} disabled={!guestManual || !draft.trim()} aria-label="Send" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-brand text-white disabled:opacity-40">
-          <Send className="h-4 w-4" />
-        </button>
-      </div>
-    </div>
+  const GuestDetail = guestName && (guestEntry || preGuest) && (
+    <GuestChatScreen
+      name={guestName}
+      room={guestEntry?.room ?? "Pre-arrival"}
+      complaint={!!guestEntry?.complaint}
+      thread={guestThread}
+      manual={guestManual}
+      onToggle={() => { setManual((m) => ({ ...m, [guestName]: !guestManual })); flash(guestManual ? "Handed back to AI" : "AI paused — you're now replying"); }}
+      onSend={(text) => setChat((c) => ({ ...c, [guestName]: [...guestThread, { from: "me", text }] }))}
+      onBack={nav.back}
+      onProfile={() => nav.push({ name: "guestProfile", id: guestName })}
+      aiDraft={aiDrafts[guestName]}
+      onDraftChange={(text) => setAiDrafts((d) => ({ ...d, [guestName]: text }))}
+      onApproveDraft={approveDraft}
+    />
   );
 
   const profileName = cur.name === "guestProfile" ? cur.id : undefined;
   const GuestProfile = profileName && (
-    <GuestProfileScreen name={profileName} author="Daniel Reyes · Mid Manager" onBack={nav.back} onMessage={guestMap.has(profileName) ? () => nav.push({ name: "guestDetail", id: profileName }) : undefined} />
+    <GuestProfileScreen name={profileName} author="Daniel Reyes · Mid Manager" onBack={nav.back} onMessage={() => nav.push({ name: "guestDetail", id: profileName })} />
   );
 
   const Detail = task ? (
@@ -1196,7 +1143,7 @@ export function ManagerPrototype() {
 
   return (
     <div className="flex flex-col items-center gap-4">
-      <PhoneFrame white={!signedOut && ["guests", "menu", "team", "guestsRoster"].includes(cur.name)}>
+      <PhoneFrame white={!signedOut && ["guests", "menu", "team", "guestsRoster", "housekeeping"].includes(cur.name)}>
         {signedOut ? <SignedOutScreen onSignIn={() => { setSignedOut(false); nav.reset(); }} /> : VIEWS[cur.name]}
         {sheetNode}
         {TeamFilterSheet}
@@ -1223,7 +1170,7 @@ export function ManagerPrototype() {
           onClick={() => {
             nav.reset(); setTasks(SEED_TASKS); setRooms(ROOMS); setSheet(null); setNeedHelpReason(""); setChat({}); setManual({});
             setFilter("All"); setRoleFilter("All"); setGuestFilter("All"); setGuestQuery("");
-            setTaskFilter("All"); setTaskQuery(""); setStageFilter("All"); setRosterQuery(""); setTeamQuery(""); setStaffTab("Overview"); setRoomFilter("All"); setRoomSheet(null);
+            setTaskFilter("All"); setTaskQuery(""); setStageFilter("All"); setRosterQuery(""); setTeamQuery(""); setStaffTab("Overview"); setRoomFilter("All"); setRoomQuery(""); setRoomSheet(null);
           }}
         >
           Reset

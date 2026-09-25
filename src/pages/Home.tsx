@@ -68,7 +68,7 @@ function Spark({ data }: { data: readonly number[] }) {
   const pts = data.map((v, i) => `${(i / (data.length - 1)) * 100},${28 - ((v - min) / Math.max(max - min, 1)) * 22}`).join(" ");
   return (
     <svg viewBox="0 0 100 32" className="mt-3 h-8 w-full" preserveAspectRatio="none">
-      <polyline points={pts} fill="none" stroke="#8DB4EE" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+      <polyline points={pts} fill="none" stroke="#E8623A" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
     </svg>
   );
 }
@@ -112,7 +112,7 @@ export default function Home() {
         <div className="grid grid-cols-1 items-stretch gap-5 xl:grid-cols-[260px_minmax(0,1fr)_320px]">
           <div className="grid grid-cols-2 gap-4 xl:grid-cols-1">
             {PILLARS.map((p) => (
-              <div key={p.label} className="flex flex-col justify-between rounded-card border border-line bg-white p-4">
+              <Card key={p.label} className="flex flex-col justify-between p-5">
                 <div className="flex items-center justify-between">
                   <span className="flex items-center gap-2 text-[12px] text-ink-secondary">
                     <span className="flex h-7 w-7 items-center justify-center rounded-lg border border-line text-brand"><p.icon className="h-3.5 w-3.5" /></span>
@@ -127,7 +127,7 @@ export default function Home() {
                   </div>
                   <div className="w-24 shrink-0"><Spark data={p.spark} /></div>
                 </div>
-              </div>
+              </Card>
             ))}
           </div>
 

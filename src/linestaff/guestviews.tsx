@@ -1,6 +1,6 @@
 import { Button } from "../components/ui";
 import { useEffect, useRef, useState } from "react";
-import { Sparkles, Pencil, Plus, X, ChevronLeft, User, BedDouble, UtensilsCrossed, Languages, Thermometer, AlarmClock, Wine, Phone, Mail, MessageCircle, Send } from "lucide-react";
+import { Sparkles, Pencil, Plus, X, ChevronLeft, User, BedDouble, UtensilsCrossed, Languages, Thermometer, AlarmClock, Wine, Phone, Mail, MessageSquare, Send } from "lucide-react";
 import { Avatar, CARD_SHADOW } from "./mobile";
 import { GUEST_PROFILES, PRE_ARRIVAL_GUESTS, CHECKED_OUT_GUESTS } from "./data";
 
@@ -56,7 +56,7 @@ export function GuestProfileScreen({ name, onBack, onMessage, author = "Staff" }
   const profileName = name;
   const profileInfo = GUEST_PROFILES[profileName];
   const profileStage = PRE_ARRIVAL_GUESTS.some((g) => g.name === profileName) ? "Pre-arrival" : CHECKED_OUT_GUESTS.some((g) => g.name === profileName) ? "Checked out" : "In-house";
-  const profileTone = profileStage === "Pre-arrival" ? "bg-blue-50 text-blue-700" : profileStage === "Checked out" ? "bg-slate-100 text-slate-600" : "bg-emerald-50 text-emerald-700";
+  const profileTone = profileStage === "Pre-arrival" ? "text-sky-600" : profileStage === "Checked out" ? "text-slate-500" : "text-emerald-600";
   const preEntry = PRE_ARRIVAL_GUESTS.find((g) => g.name === profileName);
   const nav = { back: onBack };
 
@@ -157,15 +157,14 @@ export function GuestProfileScreen({ name, onBack, onMessage, author = "Staff" }
   return (
     <div className="relative flex h-full flex-col">
       <div className="flex shrink-0 items-center justify-between px-6 pb-2 pt-4">
-        <button onClick={nav.back} aria-label="Back" className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-ink shadow-sm">
+        <button onClick={nav.back} aria-label="Back" className="flex h-10 w-10 items-center justify-center rounded-full border border-[#E6E4DF] bg-white text-ink">
           <ChevronLeft className="h-5 w-5" />
         </button>
         <div className="flex items-center gap-2">
-          <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${profileTone}`}>{profileStage}</span>
           {editing ? (
             <button onClick={save} aria-label="Save changes" className="flex h-9 items-center rounded-full bg-brand px-4 text-[13px] font-semibold text-white">Save</button>
           ) : (
-            <button onClick={startEdit} aria-label="Edit profile" className="flex h-9 items-center gap-1.5 rounded-full bg-white px-3.5 text-[13px] font-semibold text-ink shadow-sm">
+            <button onClick={startEdit} aria-label="Edit profile" className="flex h-9 items-center gap-1.5 rounded-full border border-[#E6E4DF] bg-white px-3.5 text-[13px] font-semibold text-ink">
               <Pencil className="h-3.5 w-3.5" /> Edit
             </button>
           )}
@@ -175,6 +174,7 @@ export function GuestProfileScreen({ name, onBack, onMessage, author = "Staff" }
         {!profileInfo && (
           <>
             <h1 className="text-[22px] font-bold text-ink">{profileName}</h1>
+            <p className={`-mt-2 text-[13px] font-medium ${profileTone}`}>{profileStage}</p>
             <p className="rounded-2xl bg-white p-6 text-center text-[13px] text-ink-tertiary">No profile details available.</p>
             {extraCard}
             {notesCard}
@@ -188,7 +188,7 @@ export function GuestProfileScreen({ name, onBack, onMessage, author = "Staff" }
                 <div className="min-w-0 leading-tight">
                   <div className="truncate text-[19px] font-bold text-ink">{profileName}</div>
                   <div className="mt-1 text-[13px] text-ink-secondary">{profileInfo.room} · {profileInfo.roomType}</div>
-                  <div className="mt-0.5 text-[12px] text-ink-tertiary">{profileInfo.country}</div>
+                  <div className="mt-0.5 text-[12px] text-ink-tertiary">{profileInfo.country} · <span className={`font-medium ${profileTone}`}>{profileStage}</span></div>
                 </div>
               </div>
               <div className="mt-4 grid grid-cols-3 divide-x divide-line rounded-xl bg-[#F6F6F8] py-2.5 text-center">
@@ -245,9 +245,9 @@ export function GuestProfileScreen({ name, onBack, onMessage, author = "Staff" }
         <button
           onClick={onMessage}
           aria-label="Message guest"
-          className="absolute bottom-6 right-5 z-10 flex h-14 w-14 items-center justify-center rounded-full bg-brand text-white shadow-[0_6px_18px_rgba(232,98,58,0.4)]"
+          className="absolute bottom-6 right-5 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-brand text-white shadow-[0_1px_4px_rgba(26,26,26,0.14)] active:bg-brand-hover"
         >
-          <MessageCircle className="h-6 w-6" />
+          <MessageSquare className="h-5 w-5" strokeWidth={1.75} />
         </button>
       )}
     </div>
@@ -283,39 +283,51 @@ export function AiDraftCard({ draft, onChange, onApprove }: { draft: string; onC
 
 /** Guest conversation with the ALFON AI / take-over toggle. */
 export function GuestChatScreen({
-  name, room, thread, manual, onToggle, onSend, onBack, onProfile, aiDraft, onDraftChange, onApproveDraft,
+  name, room, thread, manual, onToggle, onSend, onBack, onProfile, aiDraft, onDraftChange, onApproveDraft, complaint,
 }: {
-  aiDraft?: string; onDraftChange?: (t: string) => void; onApproveDraft?: () => void;
+  aiDraft?: string; onDraftChange?: (t: string) => void; onApproveDraft?: () => void; complaint?: boolean;
   name: string; room: string; thread: ChatMsg[]; manual: boolean; onToggle: () => void; onSend: (text: string) => void; onBack: () => void; onProfile: () => void;
 }) {
   const [draft, setDraft] = useState("");
   const endRef = useRef<HTMLDivElement>(null);
   useEffect(() => { endRef.current?.scrollIntoView({ block: "end" }); }, [thread.length, aiDraft !== undefined]);
   const send = () => { if (!manual || !draft.trim()) return; onSend(draft.trim()); setDraft(""); };
+  const sender = (f: ChatMsg["from"]) => (f === "ai" ? "ALFON AI" : f === "me" ? "You" : name.split(" ")[0]);
   return (
     <div className="flex h-full flex-col bg-white">
-      <div className="flex shrink-0 items-center gap-3 px-6 pb-3 pt-4">
-        <button onClick={onBack} aria-label="Back" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-ink shadow-sm">
+      <div className="flex shrink-0 items-center gap-3 border-b border-[#ECEAE5] bg-white px-6 pb-3 pt-4">
+        <button onClick={onBack} aria-label="Back" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#E6E4DF] bg-white text-ink">
           <ChevronLeft className="h-5 w-5" />
         </button>
         <button onClick={onProfile} aria-label="View profile" className="flex min-w-0 flex-1 items-center gap-2.5 text-left">
-          <Avatar name={name} size={34} />
+          <Avatar name={name} size={36} tone={complaint ? "bg-red-50 text-red-600" : undefined} />
           <div className="min-w-0 leading-tight">
-            <div className="truncate text-[18px] font-bold text-ink">{name}</div>
-            <div className="text-[12px] text-ink-secondary">{room}</div>
+            <div className="truncate font-display text-[17px] font-semibold text-ink">{name}</div>
+            <div className="mt-0.5 text-[12px] text-ink-secondary">{room}</div>
           </div>
         </button>
       </div>
-      <div className="min-h-0 flex-1 space-y-2.5 overflow-y-auto px-6 py-4">
+      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto bg-[#F6F5F1] px-5 py-5">
         {!thread.length && <p className="py-6 text-center text-[12px] text-ink-tertiary">No messages yet.</p>}
-        {thread.map((m, i) => (
-          <div key={i} className={`flex ${m.from === "guest" ? "justify-start" : "justify-end"}`}>
-            <div className={`max-w-[82%] rounded-2xl px-3.5 py-2.5 text-[13px] leading-snug ${m.from === "guest" ? "bg-[#F1F1F3] text-ink" : m.from === "ai" ? "bg-brand-tint text-ink" : "bg-[#FBDCCB] text-ink"}`}>
-              {m.text}
-              <div className="mt-1 text-[10px] font-semibold text-ink-tertiary">{m.from === "ai" ? "ALFON AI" : m.from === "me" ? "You" : "Guest"}</div>
+        {thread.map((m, i) => {
+          const mine = m.from !== "guest";
+          return (
+            <div key={i} className={`flex flex-col ${mine ? "items-end" : "items-start"}`}>
+              <span className={`mb-1 px-1 text-[11px] font-medium ${m.from === "ai" ? "text-brand" : "text-ink-tertiary"}`}>{sender(m.from)}</span>
+              <div
+                className={`max-w-[82%] px-4 py-2.5 text-[14px] leading-[1.45] ${
+                  m.from === "guest"
+                    ? "rounded-[18px] rounded-tl-md border border-[#E6E4DF] bg-white text-ink"
+                    : m.from === "ai"
+                      ? "rounded-[18px] rounded-tr-md bg-brand-tint text-ink"
+                      : "rounded-[18px] rounded-tr-md bg-brand text-white"
+                }`}
+              >
+                {m.text}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
         <div ref={endRef} />
       </div>
       {aiDraft !== undefined && <AiDraftCard draft={aiDraft} onChange={(t) => onDraftChange?.(t)} onApprove={() => onApproveDraft?.()} />}
@@ -328,16 +340,16 @@ export function GuestChatScreen({
           </span>
         </button>
       </div>
-      <div className="flex shrink-0 items-center gap-2 px-6 py-3">
+      <div className="flex shrink-0 items-center gap-2 bg-white px-6 py-3">
         <input
           value={draft}
           disabled={!manual}
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && send()}
           placeholder={manual ? "Reply as hotel staff…" : "Take over to reply"}
-          className="h-11 flex-1 rounded-2xl border border-line px-4 text-[14px] outline-none focus:border-brand disabled:bg-[#F6F6F8]"
+          className="h-11 flex-1 rounded-full border border-[#DAD7CF] px-4 text-[14px] outline-none focus:border-brand disabled:bg-[#F6F6F8]"
         />
-        <button onClick={send} disabled={!manual || !draft.trim()} aria-label="Send" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-brand text-white disabled:opacity-40">
+        <button onClick={send} disabled={!manual || !draft.trim()} aria-label="Send" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand text-white disabled:opacity-40">
           <Send className="h-4 w-4" />
         </button>
       </div>

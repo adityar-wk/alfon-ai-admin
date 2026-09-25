@@ -13,10 +13,10 @@ import NewDepartment from "./pages/NewDepartment";
 import RoomsQrSetup from "./pages/RoomsQrSetup";
 import ComponentDesign from "./pages/ComponentDesign";
 import NotificationSettings from "./pages/NotificationSettings";
-import Guests from "./pages/Guests";
 import GuestChats from "./pages/GuestChats";
 import PreArrival from "./pages/PreArrival";
 import GuestProfile from "./pages/GuestProfile";
+import { GUESTS } from "./data/guests";
 import LineStaff from "./pages/LineStaff";
 import Team from "./pages/Team";
 import RolesPermissions from "./pages/RolesPermissions";
@@ -48,7 +48,7 @@ export const router = createBrowserRouter([
       { path: "/team/roles", element: <RolesPermissions /> },
       { path: "/housekeeping", element: <HousekeepingBoard /> },
       { path: "/pre-arrival", element: <PreArrival /> },
-      { path: "/guests", element: <Guests /> },
+      { path: "/guests", element: <Navigate to={`/guests/${GUESTS[0].id}`} replace /> },
       { path: "/guest-chats", element: <GuestChats /> },
       { path: "/guests/:id", element: <GuestProfile /> },
       { path: "/departments", element: <DepartmentsSetup /> },
