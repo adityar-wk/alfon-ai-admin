@@ -308,9 +308,13 @@ function EditRoomModal({
     setStaff(initialStaff(s));
   };
 
+  const unchanged = status === room.status;
+  const showAssignment = unchanged && (room.status === "progress" || room.status === "inspection");
+  const sectionLabel = "mb-2 text-[11px] font-semibold uppercase tracking-wide text-ink-tertiary";
+
   return (
     <Modal
-      title={`Edit Room ${room.no}`}
+      title={`Room ${room.no}`}
       onClose={onClose}
       footer={
         <>
@@ -321,63 +325,83 @@ function EditRoomModal({
         </>
       }
     >
-      <div className="mb-4 flex items-center justify-between text-[12px] text-ink-secondary">
-        <span>
-          {room.type} · {occupied ? "Occupied" : "Vacant"}
-        </span>
-      </div>
-
-      {occupied && status !== "inspected" && (
-        <div className="mb-4 rounded-lg bg-blue-50 px-3 py-2.5 text-[12px] text-blue-700">
-          <span className="font-semibold">Room is occupied.</span> Coordinate timing with the guest
-          before entering.
+      <div className="space-y-5">
+        <div className="grid grid-cols-3 divide-x divide-line rounded-xl bg-subtle/70 py-3 text-center">
+          <div><div className="text-[11px] text-ink-tertiary">Room type</div><div className="mt-0.5 px-1 text-[13px] font-medium text-ink">{room.type}</div></div>
+          <div><div className="text-[11px] text-ink-tertiary">Occupancy</div><div className="mt-0.5 text-[13px] font-medium text-ink">{occupied ? "Occupied" : "Vacant"}</div></div>
+          <div><div className="text-[11px] text-ink-tertiary">Floor</div><div className="mt-0.5 text-[13px] font-medium text-ink">{room.floor}</div></div>
         </div>
-      )}
 
-      <div className="mb-1.5 text-xs font-medium text-ink-secondary">Status</div>
-      <div className="grid grid-cols-2 gap-2">
-        {STATUS_OPTIONS.map((s) => {
-          const active = s === status;
-          return (
-            <button
-              key={s}
-              onClick={() => pickStatus(s)}
-              className={`flex items-center gap-2 rounded-lg border px-3 py-2.5 text-left text-[13px] font-medium ${
-                active ? "border-brand bg-brand-tint/40 text-ink" : "border-line bg-white text-ink-secondary hover:bg-subtle"
-              }`}
-            >
-              {STATUS_LABEL[s]}
-            </button>
-          );
-        })}
-      </div>
+        {occupied && status !== "inspected" && (
+          <p className="text-[12px] text-ink-secondary">A guest is in this room. Coordinate timing with them before entering.</p>
+        )}
 
-      {status === "progress" && cleaner && (
-        <p className="mt-5 rounded-lg bg-subtle px-3 py-2.5 text-[13px] text-ink-secondary">
-          Cleaning in progress by {cleaner}. Change the status to Needs Inspection to assign someone to inspect it.
-        </p>
-      )}
+        {showAssignment && (
+          <div>
+            <div className={sectionLabel}>{room.status === "progress" ? "Cleaning" : "Inspection"}</div>
+            <div className="divide-y divide-line rounded-xl border border-line">
+              <div className="flex items-center justify-between px-4 py-3 text-[13px]">
+                <span className="text-ink-secondary">Assigned to</span>
+                <span className="font-medium text-ink">
+                  {room.assignedTo ?? (room.open ? "Open task — anyone can pick it up" : "Not assigned")}
+                </span>
+              </div>
+              <div className="flex items-center justify-between px-4 py-3 text-[13px]">
+                <span className="text-ink-secondary">SLA</span>
+                <span className="flex items-center gap-1.5 font-medium text-ink">
+                  <Timer className="h-3.5 w-3.5 text-ink-tertiary" /> {room.mins != null ? `${room.mins} mins left` : "—"}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
 
-      {canAssign && (
-        <div className="mt-5 border-t border-line pt-4">
-          <Field label={status === "progress" ? "Assign cleaner" : "Assign inspector"}>
+        <div>
+          <div className={sectionLabel}>Status</div>
+          <div className="grid grid-cols-2 gap-2">
+            {STATUS_OPTIONS.map((st) => {
+              const active = st === status;
+              const Icon = STATUS_ICON[st];
+              return (
+                <button
+                  key={st}
+                  onClick={() => pickStatus(st)}
+                  className={`flex items-center gap-2.5 rounded-xl border px-3 py-2.5 text-left text-[13px] font-medium ${
+                    active ? "border-brand bg-brand-tint/40 text-ink" : "border-line bg-white text-ink-secondary hover:bg-subtle"
+                  }`}
+                >
+                  <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${STATUS_ICON_TONE[st]}`}><Icon className="h-4 w-4" /></span>
+                  {STATUS_LABEL[st]}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {status === "progress" && cleaner && (
+          <p className="text-[12px] text-ink-secondary">Cleaning in progress. Change the status to Needs Inspection to assign someone to inspect it.</p>
+        )}
+
+        {canAssign && (
+          <div>
+            <div className={sectionLabel}>{status === "progress" ? "Assign cleaner" : "Assign inspector"}</div>
             <Select value={staff} onChange={(e) => setStaff(e.target.value)}>
               <option value="">Unassigned</option>
               {status === "progress" && <option value={OPEN_TASK}>Open task — anyone can pick it up</option>}
-              {STAFF.map((s) => (
-                <option key={s}>{s}</option>
+              {STAFF.map((st) => (
+                <option key={st}>{st}</option>
               ))}
             </Select>
-          </Field>
-          <Field className="mt-3" label="Notes (optional)">
-            <Input
-              placeholder="e.g. Guest requested extra pillows"
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-            />
-          </Field>
-        </div>
-      )}
+            <div className="mt-3">
+              <Input
+                placeholder="Add a note (optional)"
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+              />
+            </div>
+          </div>
+        )}
+      </div>
     </Modal>
   );
 }
