@@ -557,32 +557,13 @@ function UserManagement({
 
   const update = (id: number, patch: Partial<User>) => setUsers((us) => us.map((u) => (u.id === id ? { ...u, ...patch } : u)));
 
-  const count = (a: string) => users.filter((u) => u.avail === a).length;
-  const stats = [
-    { label: "Total users", value: users.length },
-    { label: "On duty", value: count("On Duty"), dot: "bg-emerald-500" },
-    { label: "On break", value: count("On Break"), dot: "bg-amber-400" },
-    { label: "Off duty", value: count("Off Duty"), dot: "bg-gray-300" },
-  ];
-
   const selected = users.find((u) => u.id === selectedId) ?? null;
   const selStaff = selected ? toStaff(selected, roleOf(selected.roleId)?.name ?? "Staff") : null;
   const permsOf = (u: User): Perms => access[u.id] ?? PRESETS[presetFor(toStaff(u, roleOf(u.roleId)?.name ?? "Staff"))];
 
   return (
     <div className="mt-6">
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        {stats.map((s) => (
-          <div key={s.label} className="rounded-card border border-line bg-white p-4">
-            <div className="flex items-center gap-2 text-[13px] text-ink-secondary">
-              {s.dot && <span className={`h-2 w-2 rounded-full ${s.dot}`} />} {s.label}
-            </div>
-            <div className="mt-1 text-[26px] font-bold leading-tight text-ink">{s.value}</div>
-          </div>
-        ))}
-      </div>
-
-      <Card className="mt-5">
+      <Card>
         <div className="relative flex items-center gap-3 border-b border-line px-4 py-3">
           <div className="relative w-full max-w-sm">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-tertiary" />
