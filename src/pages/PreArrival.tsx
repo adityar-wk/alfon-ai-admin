@@ -35,7 +35,7 @@ const PRE_ARRIVAL_TEMPLATES: MessageTemplate[] = [
 ];
 import { Drawer } from "../components/Drawer";
 import { Page, Card, Button, Modal, Select } from "../components/ui";
-import { PRE_GUESTS, type PreGuest, type Ready, type ReqStatus } from "../data/preArrival";
+import { PRE_GUESTS, mk, type PreGuest, type Ready, type ReqStatus } from "../data/preArrival";
 
 /* ---------- small pieces ---------- */
 
@@ -177,6 +177,39 @@ export default function PreArrival() {
     navigate(`/tasks?new=1&guest=${encodeURIComponent(g.name)}&room=${encodeURIComponent(g.room ?? "")}`);
   const goToday = (t: Tab) => { setDateOn(true); setSelDay(24); setWeekStart(24); setTab(t); };
 
+  // guests nobody has messaged yet
+  const unsent = guests.filter((g) => g.eng === "Not Contacted");
+  const [confirmSend, setConfirmSend] = useState(false);
+
+  const sendAll = () => {
+    const ids = new Set(unsent.map((g) => g.id));
+    setGuests((gs) => gs.map((g) => (ids.has(g.id) ? { ...g, eng: "Awaiting Response", ready: "Awaiting Guest", last: "Just now" } : g)));
+    setConfirmSend(false);
+    flash(`Pre-arrival message sent to ${unsent.length} guests`);
+  };
+
+  // arrival report: Name, Room Type, Nights (header row optional; only the first column is required)
+  const importReport = async (file: File) => {
+    const lines = (await file.text()).split(/\r?\n/).map((l) => l.split(",").map((c) => c.trim().replace(/^"|"$/g, ""))).filter((r) => r.some(Boolean));
+    if (!lines.length) return flash("That file is empty");
+    const head = lines[0].map((c) => c.toLowerCase());
+    const hasHeader = head.some((c) => /name|guest|room|night/.test(c));
+    const col = (re: RegExp, fallback: number) => { const i = head.findIndex((c) => re.test(c)); return hasHeader && i >= 0 ? i : fallback; };
+    const iName = col(/name|guest/, 0), iType = col(/room|type/, 1), iNights = col(/night/, 2);
+    const known = new Set(guests.map((g) => g.name.toLowerCase()));
+    let id = Math.max(0, ...guests.map((g) => g.id));
+    const fresh: PreGuest[] = [];
+    for (const r of hasHeader ? lines.slice(1) : lines) {
+      const name = r[iName];
+      if (!name || known.has(name.toLowerCase())) continue;
+      known.add(name.toLowerCase());
+      fresh.push(mk(++id, name, null, r[iType] || "Deluxe King", Math.max(1, parseInt(r[iNights], 10) || 2), "today", "3:00 PM", "Not Contacted", "Not Contacted", "—"));
+    }
+    if (!fresh.length) return flash("No new guests found in that file");
+    setGuests((gs) => [...gs, ...fresh]);
+    flash(`${fresh.length} arrivals imported from ${file.name}`);
+  };
+
   const contacted = today.filter((g) => g.eng !== "Not Contacted").length;
   const responded = today.filter((g) => g.eng === "Engaged" || g.eng === "Responded").length;
   const kpiNC = today.filter((g) => g.eng === "Not Contacted").length;
@@ -246,7 +279,31 @@ export default function PreArrival() {
 
   return (
     <>
-      <Topbar title="Pre-Arrival" subtitle="Prepare arriving guests, capture preferences, and resolve requests before check-in." />
+      <Topbar
+        title="Pre-Arrival"
+        subtitle="Prepare arriving guests, capture preferences, and resolve requests before check-in."
+        actions={
+          <div className="flex items-center gap-3">
+            <input
+              ref={fileRef}
+              type="file"
+              accept=".csv"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) importReport(f);
+                e.target.value = "";
+              }}
+            />
+            <Button variant="outline" onClick={() => fileRef.current?.click()}>
+              <Upload className="h-4 w-4" /> Upload report
+            </Button>
+            <Button disabled={!unsent.length} onClick={() => setConfirmSend(true)} className="disabled:opacity-40">
+              <Send className="h-4 w-4" /> Send to all unsent{unsent.length ? ` (${unsent.length})` : ""}
+            </Button>
+          </div>
+        }
+      />
       <Page>
         {/* KPIs */}
         <div className="grid grid-cols-2 gap-5 lg:grid-cols-4">
@@ -415,6 +472,23 @@ export default function PreArrival() {
           </div>
         </div>
       </Page>
+
+      {confirmSend && (
+        <Modal
+          title="Send pre-arrival message?"
+          onClose={() => setConfirmSend(false)}
+          footer={
+            <>
+              <Button variant="outline" onClick={() => setConfirmSend(false)}>Cancel</Button>
+              <Button onClick={sendAll}>Send to {unsent.length}</Button>
+            </>
+          }
+        >
+          <p className="text-[13px] leading-relaxed text-ink-secondary">
+            {unsent.length} guests have not been messaged yet. The standard pre-arrival message will be sent to all of them now.
+          </p>
+        </Modal>
+      )}
 
       {selected && (
         <>

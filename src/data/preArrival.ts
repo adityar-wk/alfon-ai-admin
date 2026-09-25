@@ -62,7 +62,7 @@ type Opts = {
   lang?: string;
 };
 
-function mk(
+export function mk(
   id: number,
   name: string,
   room: string | null,
