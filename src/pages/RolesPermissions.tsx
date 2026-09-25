@@ -190,12 +190,12 @@ export default function RolesPermissions({ embedded = false }: { embedded?: bool
             <div className={`${embedded ? "mt-0" : "mt-6"} grid grid-cols-1 gap-6 xl:grid-cols-[minmax(340px,0.9fr)_1.4fr]`}>
               {/* roles list */}
               <Card className="p-5">
-                <div className="flex items-start justify-between gap-3">
+                <div className={`flex justify-between gap-3 ${embedded ? "items-center" : "items-start"}`}>
                   <div>
                     <h2 className="text-[17px] font-semibold text-ink">{embedded ? "Create role" : "Roles"}</h2>
-                    <p className="text-[12px] text-ink-secondary">{embedded ? "Add a new role, or pick an existing one to configure." : "Select a role to view or edit its permissions."}</p>
+                    {!embedded && <p className="text-[12px] text-ink-secondary">Select a role to view or edit its permissions.</p>}
                   </div>
-                  <Button onClick={() => setCreateOpen(true)}><Plus className="h-4 w-4" /> Create Role</Button>
+                  <Button onClick={() => setCreateOpen(true)} className="shrink-0 whitespace-nowrap"><Plus className="h-4 w-4" /> Create Role</Button>
                 </div>
                 <div className="relative mt-4">
                   <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-tertiary" />
