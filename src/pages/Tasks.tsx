@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { GuestChat, type ChatMsg, type ChatMode } from "../components/GuestChat";
-import { Page, Card, Button, Field, Input, Select, Textarea } from "../components/ui";
+import { Page, Card, Button, Field, Input, Select, Textarea, RoomNo } from "../components/ui";
 import { TASKS, HELP_REQUESTS, AI_DRAFTS, logAudit, pendingHelpFor, resolveHelp, shortName, type Task, type Priority } from "../data/tasks";
 import { GUESTS } from "../data/guests";
 import { taskStatus, STATUS_PILL, COMPLAINT_PILL, slaSecs, useClock } from "../data/attention";
@@ -366,7 +366,7 @@ export default function Tasks() {
                           <DeptIcon dept={t.dept} />
                           <div className="min-w-0">
                             <div className="text-[13px] font-semibold leading-snug text-ink">{t.title}</div>
-                            <div className="mt-0.5 text-[12px] text-ink-tertiary">{t.guest} · Room {t.room}</div>
+                            <div className="mt-0.5 text-[12px] text-ink-tertiary">{t.guest} · <RoomNo room={t.room} /></div>
                             {cap(t) && <ComplaintPill className="mt-1.5" />}
                           </div>
                         </div>
@@ -532,7 +532,7 @@ function TaskWindow({
           </div>
           <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-ink-secondary">
             <span>{task.dept}</span>
-            <span>Room {task.room}</span>
+            <span><RoomNo room={task.room} /></span>
             <span>via {task.source}</span>
             <StatusLabel t={task} />
           </div>

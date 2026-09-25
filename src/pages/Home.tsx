@@ -19,7 +19,7 @@ import {
   Building2,
 } from "lucide-react";
 import { Topbar } from "../components/Topbar";
-import { Page, Card, Select } from "../components/ui";
+import { Page, Card, Select, RoomNo } from "../components/ui";
 import { TASKS } from "../data/tasks";
 import Orb from "../components/Orb";
 import { scoreBand } from "../data/scoreBand";
@@ -227,7 +227,7 @@ export default function Home() {
                             {t.title}
                             {t.tag === "Complaint" && <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${COMPLAINT_PILL}`}>Complaint</span>}
                           </div>
-                          <div className="text-[12px] text-ink-tertiary">Room {t.room}</div>
+                          <div className="text-[12px] text-ink-tertiary"><RoomNo room={t.room} /></div>
                         </td>
                         <td className="whitespace-nowrap py-3.5 pl-6 pr-3">
                           <span className={`text-[13px] font-medium ${STATUS_PILL[status]}`}>{status}</span>

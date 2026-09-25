@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
 import { Search, Plus, User, Lightbulb, Bell, BedDouble, UtensilsCrossed, Target, MessageCircle, AlarmClock, Thermometer, Wine, Newspaper, Calendar, Hourglass, History, SlidersHorizontal, Check } from "lucide-react";
 import { Topbar } from "../components/Topbar";
-import { Card, Modal, Button, Field, Input, Select } from "../components/ui";
+import { Card, Modal, Button, Field, Input, Select, RoomNo } from "../components/ui";
 import { Flag } from "../components/Flag";
 import { SIDE_PANEL, SIDE_ROW, sideRowTone, SideSearch, SideFilterButton } from "../components/SidePanel";
 import { GUESTS, type Guest } from "../data/guests";
@@ -336,7 +336,7 @@ function GuestList({ activeId }: { activeId: number }) {
               <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full font-display text-[12px] font-semibold ${g.tint}`}>{g.initials}</span>
               <span className="min-w-0 flex-1 leading-tight">
                 <span className="block truncate text-[14px] font-semibold text-ink">{g.name}</span>
-                <span className="block truncate text-[12px] text-ink-tertiary">Room {g.room} · {STATUS_LABEL[g.status]}</span>
+                <span className="block truncate text-[12px] text-ink-tertiary"><RoomNo room={g.room} /> · {STATUS_LABEL[g.status]}</span>
               </span>
               <Flag country={g.country} />
             </Link>
@@ -438,7 +438,7 @@ export default function GuestProfile() {
                     <span className={`text-[13px] font-medium ${STATUS_PILL[guest.status]}`}>{STATUS_LABEL[guest.status]}</span>
                   </div>
                   <div className="mt-1.5 flex flex-wrap items-center gap-x-2 text-[13px] text-ink-secondary">
-                    <Flag country={guest.country} /> {guest.country} <span>·</span> Room {guest.room} <span>·</span> {guest.roomType}
+                    <Flag country={guest.country} /> {guest.country} <span>·</span> <RoomNo room={guest.room} /> <span>·</span> {guest.roomType}
                   </div>
                   <div className="mt-3 flex flex-wrap items-center gap-x-6 gap-y-1 text-[13px] text-ink-secondary">
                     <span className="flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5 text-ink-tertiary" /> Check-in <b className="text-ink">{guest.from}, 2025</b></span>

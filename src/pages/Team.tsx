@@ -18,7 +18,7 @@ import { Topbar } from "../components/Topbar";
 import { Breadcrumb } from "../components/Breadcrumb";
 import { Drawer } from "../components/Drawer";
 import { BarChart } from "../components/BarChart";
-import { Page, Card, Button, Field, Input, Select, Modal } from "../components/ui";
+import { Page, Card, Button, Field, Input, Select, Modal, RoomNo } from "../components/ui";
 import { TASKS, assignTask, shortName } from "../data/tasks";
 import { usePersona, canonDept } from "../persona";
 import { ScopePicker } from "../components/ScopePicker";
@@ -602,7 +602,7 @@ export function AddTaskModal({
               <div className="min-w-0 flex-1 leading-tight">
                 <div className="truncate text-[13px] font-medium text-ink">{t.title}</div>
                 <div className="truncate text-[11px] text-ink-tertiary">
-                  {t.dept} · {t.guest} · Room {t.room}
+                  {t.dept} · {t.guest} · <RoomNo room={t.room} />
                   {t.dept === deptKey(staff.dept) && <span className="ml-1.5 font-medium text-brand">Same department</span>}
                 </div>
               </div>

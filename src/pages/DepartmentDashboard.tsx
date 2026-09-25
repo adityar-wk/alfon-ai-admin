@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
 import { Topbar } from "../components/Topbar";
-import { Page, Card } from "../components/ui";
+import { Page, Card, RoomNo } from "../components/ui";
 import { ScopePicker } from "../components/ScopePicker";
 import { TASKS, shortName } from "../data/tasks";
 import { INITIAL } from "../data/staff";
@@ -83,7 +83,7 @@ export default function DepartmentDashboard() {
                       </div>
                       <div className="text-[12px] text-ink-tertiary">
                         {scopeDepts.length > 1 && <>{t.dept} · </>}
-                        Room {t.room}{t.owner && <> · {t.owner}</>}
+                        <RoomNo room={t.room} />{t.owner && <> · {t.owner}</>}
                       </div>
                     </div>
                     <span className={`w-24 shrink-0 text-[13px] font-medium ${STATUS_PILL[taskStatus(t)]}`}>{taskStatus(t)}</span>
@@ -149,7 +149,7 @@ export default function DepartmentDashboard() {
                   <div key={t.id} className="flex items-center gap-3 py-2.5">
                     <div className="min-w-0 flex-1 leading-tight">
                       <div className="truncate text-[13px] font-medium text-ink">{t.title}</div>
-                      <div className="text-[11px] text-ink-tertiary">{scopeDepts.length > 1 && <>{t.dept} · </>}Room {t.room} · {slaLabel(t.sla)}</div>
+                      <div className="text-[11px] text-ink-tertiary">{scopeDepts.length > 1 && <>{t.dept} · </>}<RoomNo room={t.room} /> · {slaLabel(t.sla)}</div>
                     </div>
                     <Link to={`/tasks?open=${t.id}`} className="shrink-0 rounded-lg border border-line px-3 py-1.5 text-[12px] font-semibold text-ink hover:bg-subtle">
                       View

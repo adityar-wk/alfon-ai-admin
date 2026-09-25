@@ -1,5 +1,15 @@
 import { useState, type ReactNode } from "react";
-import { X } from "lucide-react";
+import { DoorOpen, X } from "lucide-react";
+
+/** room number shown as the open-door icon plus the number, instead of the word "Room" */
+export function RoomNo({ room }: { room: string | number }) {
+  return (
+    <span className="inline-flex items-center gap-1 align-middle">
+      <DoorOpen className="h-3.5 w-3.5 shrink-0" />
+      {String(room).replace(/^Room\s+/i, "")}
+    </span>
+  );
+}
 
 export function Page({ children }: { children: ReactNode }) {
   return (
