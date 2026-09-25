@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Bell, ChevronRight, LogOut, SlidersHorizontal } from "lucide-react";
+import { ChevronRight, LogOut, SlidersHorizontal } from "lucide-react";
 import { Avatar, ScreenHeader, PrimaryButton, CARD_SHADOW } from "./mobile";
 
 const Toggle = ({ on, onChange, label }: { on: boolean; onChange: () => void; label: string }) => (
@@ -8,38 +8,37 @@ const Toggle = ({ on, onChange, label }: { on: boolean; onChange: () => void; la
   </button>
 );
 
-/** Own profile: name, role, department, availability, notification settings and sign out. */
+/** The hamburger menu ("More"): who you are, notification settings, sign out. */
 export function ProfileScreen({
-  name, role, dept, onNotifSettings, onSignOut, onBack,
+  name, role, onNotifSettings, onSignOut, onBack,
 }: {
-  name: string; role: string; dept: string; onNotifSettings: () => void; onSignOut: () => void; onBack: () => void;
+  name: string; role: string; dept?: string; onNotifSettings: () => void; onSignOut: () => void; onBack: () => void;
 }) {
   return (
     <div className="flex h-full flex-col">
-      <ScreenHeader title="Profile" onBack={onBack} />
-      <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-6 pb-6 pt-2 no-scrollbar">
-        <div className={`flex items-center gap-3.5 rounded-2xl bg-white p-4 ${CARD_SHADOW}`}>
-          <Avatar name={name} size={56} tone="bg-brand text-white" />
-          <div className="min-w-0 leading-tight">
-            <div className="truncate text-[17px] font-bold text-ink">{name}</div>
-            <div className="mt-0.5 text-[13px] font-medium text-brand">{role}</div>
-            <div className="text-[12px] text-ink-secondary">{dept}</div>
+      <ScreenHeader title="More" onBack={onBack} />
+      <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-6 pt-2 no-scrollbar">
+        <div className="-mx-6 bg-[#F6F6F8] px-6 py-6">
+          <div className="flex items-center gap-4">
+            <Avatar name={name} size={64} tone="bg-brand text-white" />
+            <div className="min-w-0 leading-tight">
+              <div className="truncate text-[18px] font-bold text-ink">{name}</div>
+              <div className="mt-1 text-[13px] text-ink-secondary">{role}</div>
+            </div>
           </div>
         </div>
 
-        <button onClick={onNotifSettings} className={`flex w-full items-center gap-3 rounded-2xl bg-white p-4 text-left ${CARD_SHADOW}`}>
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#F1F1F3] text-ink-secondary"><Bell className="h-[18px] w-[18px]" /></span>
-          <span className="min-w-0 flex-1 leading-tight">
-            <span className="block text-[14px] font-semibold text-ink">Notification settings</span>
-            <span className="block text-[12px] text-ink-tertiary">Choose which alerts you get</span>
-          </span>
-          <ChevronRight className="h-4 w-4 shrink-0 text-ink-tertiary" />
-        </button>
-
-        <button onClick={onSignOut} className={`flex w-full items-center gap-3 rounded-2xl bg-white p-4 text-left ${CARD_SHADOW}`}>
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-50 text-red-600"><LogOut className="h-[18px] w-[18px]" /></span>
-          <span className="text-[14px] font-semibold text-red-600">Sign out</span>
-        </button>
+        <div className="mt-2">
+          <button onClick={onNotifSettings} className="flex w-full items-center gap-4 border-b border-[#EEEEF1] py-4 text-left">
+            <SlidersHorizontal className="h-[22px] w-[22px] shrink-0 text-ink" />
+            <span className="min-w-0 flex-1 text-[15px] font-semibold text-ink">Notification settings</span>
+            <ChevronRight className="h-4 w-4 shrink-0 text-ink-tertiary" />
+          </button>
+          <button onClick={onSignOut} className="flex w-full items-center gap-4 py-4 text-left">
+            <LogOut className="h-[22px] w-[22px] shrink-0 text-red-600" />
+            <span className="text-[15px] font-semibold text-red-600">Sign out</span>
+          </button>
+        </div>
       </div>
     </div>
   );

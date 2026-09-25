@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Bell, Send, Plus, BedDouble, User, Building2, ChevronLeft, ChevronRight, ArrowUpRight, ListChecks, MessageCircle, Search } from "lucide-react";
+import { Bell, Menu as MenuIcon, Send, Plus, BedDouble, User, Building2, ChevronLeft, ChevronRight, ArrowUpRight, ListChecks, MessageCircle, Search } from "lucide-react";
 import { DEPARTMENTS } from "../data/departments";
 import {
   PhoneFrame,
@@ -266,8 +266,8 @@ export function LineStaffPrototype() {
     <div className="relative h-full">
       <div className="h-full overflow-y-auto pb-28 no-scrollbar">
         <div className="flex items-center justify-between px-6 py-2">
-          <button onClick={() => nav.push({ name: "profile" })} aria-label="Profile" className="relative flex h-10 w-10 items-center justify-center rounded-full bg-brand text-[13px] font-semibold text-white">
-            AK
+          <button onClick={() => nav.push({ name: "profile" })} aria-label="Menu" className="flex h-11 w-11 items-center justify-center rounded-full text-ink active:bg-black/5">
+            <MenuIcon className="h-[22px] w-[22px]" />
           </button>
           <div className="flex items-center gap-2">
             <button onClick={() => nav.push({ name: "notifications" })} aria-label="Notifications" className="relative flex h-11 w-11 items-center justify-center rounded-full text-ink active:bg-black/5">
@@ -539,7 +539,7 @@ export function LineStaffPrototype() {
 
   return (
     <div className="flex flex-col items-center gap-4">
-      <PhoneFrame white={!signedOut && cur.name === "guests"}>
+      <PhoneFrame white={!signedOut && (cur.name === "guests" || cur.name === "profile")}>
         {signedOut ? <SignedOutScreen onSignIn={() => { setSignedOut(false); nav.reset(); }} /> : VIEWS[cur.name]}
         {HelpSheet}
         {compOpen && (
