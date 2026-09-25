@@ -730,16 +730,10 @@ function GuestDrawer({
                   )}
                 </span>
               ))}
-              {!editPrefs && (
-                <button onClick={() => setEditPrefs(true)} className="inline-flex items-center gap-1 rounded-md border border-dashed border-line px-2 py-1 text-[12px] text-ink-secondary hover:border-brand hover:text-brand">
-                  <Plus className="h-3 w-3" /> Add preference
-                </button>
-              )}
             </div>
           ) : (
-            <div className="flex items-center justify-between gap-2 text-[14px] text-ink-secondary">
-              <span className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-brand/60" /> {prefsDone ? "No preferences yet" : "Awaiting guest response"}</span>
-              <button onClick={() => setEditPrefs(true)} className="inline-flex items-center gap-1 text-[13px] font-medium text-brand hover:underline"><Plus className="h-3.5 w-3.5" /> Add</button>
+            <div className="flex items-center gap-2 text-[14px] text-ink-secondary">
+              <span className="h-2 w-2 rounded-full bg-brand/60" /> {prefsDone ? "No preferences yet" : "Awaiting guest response"}
             </div>
           )}
           {editPrefs && (
