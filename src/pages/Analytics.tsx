@@ -80,7 +80,8 @@ const SATISFACTION = [4.3, 4.45, 4.2, 4.6, 4.55, 4.75];
 const HEAT_DEPTS = ["Front Desk", "Concierge", "Housekeeping", "Food & Bev", "Engineering", "Guest Rel."];
 // deterministic 0..1 intensity per dept/hour
 const heat = (d: number, h: number) => {
-  const peaks = [[9, 15], [10, 18], [9, 17], [8, 13, 19], [10, 14], [10, 15]][d];
+  const base = [[9, 15], [10, 18], [9, 17], [8, 13, 19], [10, 14], [10, 15]][d % 6];
+  const peaks = base.map((p) => p + Math.floor(d / 6));
   if (h < 5) return 0.03 + (d === 0 && h === 0 ? 0.12 : 0);
   const near = Math.max(...peaks.map((p) => 1 - Math.min(Math.abs(h - p), 4) / 4));
   const wobble = ((h * 7 + d * 13) % 5) / 25;
@@ -460,14 +461,14 @@ export default function Analytics() {
           <p className="text-[12px] text-ink-tertiary">Request volume per hour — darker = higher demand</p>
           <div className="mt-4 overflow-x-auto">
             <div className="min-w-[720px]">
-              <div className="ml-[92px] grid grid-cols-24 text-[10px] text-ink-tertiary" style={{ gridTemplateColumns: "repeat(24, 1fr)" }}>
+              <div className="ml-[156px] grid grid-cols-24 text-[10px] text-ink-tertiary" style={{ gridTemplateColumns: "repeat(24, 1fr)" }}>
                 {Array.from({ length: 24 }, (_, h) => (
                   <span key={h}>{h % 3 === 0 ? (h === 0 ? "12a" : h < 12 ? `${h}a` : h === 12 ? "12p" : `${h - 12}p`) : ""}</span>
                 ))}
               </div>
-              {(manager ? scopeDepts.map((n) => [n, HEAT_INDEX[n] ?? 0] as [string, number]) : HEAT_DEPTS.map((n, i) => [n, i] as [string, number])).map(([name, d]) => (
+              {(manager ? scopeDepts.map((n) => [n, Math.max(0, DEPTS.findIndex((x) => x.name === n))] as [string, number]) : DEPTS.map((x, i) => [x.name, i] as [string, number])).map(([name, d]) => (
                 <div key={name} className="mt-1.5 flex items-center gap-3">
-                  <span className="w-20 shrink-0 text-[12px] text-ink-secondary">{name}</span>
+                  <span className="w-36 shrink-0 truncate text-[12px] text-ink-secondary">{name}</span>
                   <div className="grid flex-1 gap-1" style={{ gridTemplateColumns: "repeat(24, 1fr)" }}>
                     {Array.from({ length: 24 }, (_, h) => {
                       const v = heat(d, h);
@@ -476,7 +477,7 @@ export default function Analytics() {
                           key={h}
                           title={`${name} · ${h}:00 — ${Math.round(v * 100)}% of peak`}
                           className="h-7 rounded"
-                          style={{ background: `rgba(241,90,36,${0.06 + v * 0.7})` }}
+                          style={{ background: `rgba(120,150,235,${0.08 + v * 0.62})` }}
                         />
                       );
                     })}
@@ -486,7 +487,7 @@ export default function Analytics() {
               <div className="mt-3 flex items-center justify-end gap-1.5 text-[11px] text-ink-tertiary">
                 Low
                 {[0.1, 0.3, 0.5, 0.7, 0.9].map((v) => (
-                  <span key={v} className="h-3.5 w-3.5 rounded" style={{ background: `rgba(241,90,36,${0.06 + v * 0.7})` }} />
+                  <span key={v} className="h-3.5 w-3.5 rounded" style={{ background: `rgba(120,150,235,${0.08 + v * 0.62})` }} />
                 ))}
                 High
               </div>

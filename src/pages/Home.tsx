@@ -93,7 +93,7 @@ function Spark({ data }: { data: readonly number[] }) {
   const pts = data.map((v, i) => `${(i / (data.length - 1)) * 100},${28 - ((v - min) / Math.max(max - min, 1)) * 22}`).join(" ");
   return (
     <svg viewBox="0 0 100 32" className="mt-3 h-8 w-full" preserveAspectRatio="none">
-      <polyline points={pts} fill="none" stroke="#F15A24" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+      <polyline points={pts} fill="none" stroke="#8DB4EE" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
     </svg>
   );
 }
@@ -134,11 +134,9 @@ export default function Home() {
   const band = scoreBand(score);
 
   const kpis = [
-    { label: "Open Tasks", value: String(open.length), foot: `${inProgress} in progress`, footTone: "text-brand", icon: ListChecks },
-    { label: "Guest Chats", value: "11", foot: "Active conversations", footTone: "text-ink-tertiary", icon: MessageCircle },
-    { label: "Avg Response", value: "2m 45s", foot: "↓ 18%", footTone: "text-emerald-600", icon: Timer },
-    { label: "Hotel Health Score", value: `${score}%`, foot: band.label, footTone: band.text, icon: Activity },
-    { label: "Occupancy", value: "87%", foot: "34 arriving today", footTone: "text-ink-tertiary", icon: BedDouble },
+    { label: "Open Tasks", value: String(open.length), foot: `${inProgress} in progress`, footTone: "text-ink-secondary", icon: ListChecks, chip: "bg-sky-100 text-sky-700" },
+    { label: "Avg Response", value: "2m 45s", foot: "↓ 18%", footTone: "text-emerald-600", icon: Timer, chip: "bg-violet-100 text-violet-700" },
+    { label: "Occupancy", value: "87%", foot: "34 arriving today", footTone: "text-ink-tertiary", icon: BedDouble, chip: "bg-emerald-100 text-emerald-700" },
   ];
 
 
@@ -146,22 +144,8 @@ export default function Home() {
     <>
       <Topbar title={`${greeting}, ${me.name.split(" ")[0]} 👋`} subtitle={`Here's what's happening at ${HOTEL}`} />
       <Page>
-        {/* KPIs */}
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
-          {kpis.map((k) => (
-            <Card key={k.label} className="p-5">
-              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-tint text-brand">
-                <k.icon className="h-[18px] w-[18px]" />
-              </span>
-              <div className="mt-3 text-[13px] text-ink-secondary">{k.label}</div>
-              <div className="text-[28px] font-bold leading-tight text-ink">{k.value}</div>
-              <div className={`mt-1 text-[12px] font-medium ${k.footTone}`}>{k.foot}</div>
-            </Card>
-          ))}
-        </div>
-
         {/* health score */}
-        <div className="mt-5 grid grid-cols-1 gap-5 xl:grid-cols-[1fr_400px]">
+        <div className="grid grid-cols-1 gap-5 xl:grid-cols-[1fr_400px]">
           <Card className="p-8">
             <div className="flex flex-col items-center">
               <HealthOrb score={score} size={300}>
@@ -174,7 +158,7 @@ export default function Home() {
                   <span>Needs Attention</span>
                   <span>Thriving</span>
                 </div>
-                <div className="relative mt-1.5 h-2 rounded-full" style={{ background: "linear-gradient(90deg,#ef4444 0%,#f97316 45%,#f59e0b 65%,#22c55e 85%)" }}>
+                <div className="relative mt-1.5 h-2 rounded-full" style={{ background: "linear-gradient(90deg,#F5A0AF 0%,#F7BC7A 45%,#F3DC9B 65%,#7FDDBB 90%)" }}>
                   <span className="absolute top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-ink shadow" style={{ left: `${score}%` }} />
                 </div>
                 <div className="mt-1.5 flex justify-between text-[11px] text-ink-tertiary">
@@ -234,6 +218,20 @@ export default function Home() {
               ))}
             </ul>
           </Card>
+        </div>
+
+        {/* KPIs */}
+        <div className="mt-5 grid grid-cols-2 gap-4 lg:grid-cols-3">
+          {kpis.map((k) => (
+            <Card key={k.label} className="p-5">
+              <span className={`flex h-9 w-9 items-center justify-center rounded-lg ${k.chip}`}>
+                <k.icon className="h-[18px] w-[18px]" />
+              </span>
+              <div className="mt-3 text-[13px] text-ink-secondary">{k.label}</div>
+              <div className="text-[28px] font-bold leading-tight text-ink">{k.value}</div>
+              <div className={`mt-1 text-[12px] font-medium ${k.footTone}`}>{k.foot}</div>
+            </Card>
+          ))}
         </div>
 
         {/* pending tasks + hotel info */}
@@ -348,7 +346,7 @@ export default function Home() {
             <div className="mt-3 grid grid-cols-3 text-center">
               <div><div className="text-[22px] font-bold text-ink">{TASKS.length}</div><div className="text-[12px] text-ink-tertiary">Total Tasks</div></div>
               <div><div className="text-[22px] font-bold text-emerald-600">{completed}</div><div className="text-[12px] text-ink-tertiary">Completed</div></div>
-              <div><div className="text-[22px] font-bold text-brand">{overdue}</div><div className="text-[12px] text-ink-tertiary">Overdue</div></div>
+              <div><div className="text-[22px] font-bold text-rose-500">{overdue}</div><div className="text-[12px] text-ink-tertiary">Overdue</div></div>
             </div>
           </Card>
 
@@ -395,13 +393,13 @@ function DailyChart({ data }: { data: number[] }) {
       {[1, 5, 9, 13, 17, 21, 25, 29].map((day) => (
         <text key={day} x={x(day - 1)} y={H - 6} textAnchor="middle" fontSize="9" fill="#9CA3AF">{day}</text>
       ))}
-      <path d={d} fill="none" stroke="#F15A24" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
+      <path d={d} fill="none" stroke="#7FA8E0" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
       {data.map((v, i) => (
         <g key={i} onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)}>
           <circle cx={x(i)} cy={y(v)} r="8" fill="transparent" />
           {hover === i && (
             <>
-              <circle cx={x(i)} cy={y(v)} r="3.5" fill="#fff" stroke="#F15A24" strokeWidth="2" />
+              <circle cx={x(i)} cy={y(v)} r="3.5" fill="#fff" stroke="#7FA8E0" strokeWidth="2" />
               <rect x={x(i) - 34} y={y(v) - 30} width="68" height="20" rx="5" fill="#111" />
               <text x={x(i)} y={y(v) - 16} textAnchor="middle" fontSize="10" fontWeight="600" fill="#fff">May {i + 1} · {v}%</text>
             </>
