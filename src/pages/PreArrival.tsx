@@ -366,7 +366,7 @@ export default function PreArrival() {
         </div>
 
         {/* table */}
-        <div className="mt-4 overflow-hidden rounded-[20px] border border-line/40 bg-white shadow-[0_4px_20px_rgba(16,24,40,0.07)]">
+        <div className="mt-4 overflow-hidden rounded-[20px] border border-line/40 bg-white shadow-[0_1px_3px_rgba(16,24,40,0.05)]">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[900px] text-left">
               <thead>

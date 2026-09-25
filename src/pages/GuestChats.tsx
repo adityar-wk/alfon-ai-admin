@@ -11,7 +11,7 @@ import { GUESTS as BASE_GUESTS, type Guest } from "../data/guests";
 import { buildProfile, seedChat } from "./GuestProfile";
 import { AI_DRAFTS, TASKS } from "../data/tasks";
 
-const CARD = "rounded-[20px] border border-line/60 bg-white shadow-[0_4px_20px_rgba(16,24,40,0.06)]";
+const CARD = "rounded-[20px] border border-line/60 bg-white shadow-[0_1px_3px_rgba(16,24,40,0.05)]";
 
 const chip = (status: string) =>
   status === "Checked Out"
