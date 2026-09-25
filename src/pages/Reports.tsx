@@ -67,8 +67,8 @@ const REPORTS: Report[] = [
   {
     key: "compensation", title: "Compensation Report", icon: DollarSign, action: "generate",
     desc: "Compensation issued to guests with reason and approval trail.",
-    cols: ["Guest", "Room", "Reason", "Amount", "Approved by"],
-    rows: [["James Wilson", "2205", "AC outage", "$120", "Sophia Carter"], ["Liam Anderson", "1802", "Plumbing issue", "$80", "Sophia Carter"], ["Ava Thompson", "2501", "Noise", "$40", "Noah B."]],
+    cols: ["Guest", "Room", "Reason", "Amount", "Approved by", "Status"],
+    rows: [["James Wilson", "2205", "AC outage", "$120", "Sophia Carter", "Completed"], ["Liam Anderson", "1802", "Plumbing issue", "$80", "Sophia Carter", "Completed"], ["Ava Thompson", "2501", "Noise", "$40", "Noah B.", "Not completed"], ["Emma Davis", "1608", "Late breakfast", "$25", "Sophia Carter", "Completed"], ["Robert Brown", "905", "Room not cleaned", "$60", "Noah B.", "Not completed"]],
   },
   {
     key: "team", title: "Team Performance Report", icon: Users, action: "generate",
@@ -199,13 +199,15 @@ export default function Reports() {
   const list = manager ? [...REPORTS.filter((r) => r.key !== "language" && r.key !== "compensation"), AUDIT_REPORT] : REPORTS;
   const scopeLabel = manager ? scopeDepts.join(", ") : "All departments";
   const [active, setActive] = useState<Report | null>(null);
-  const [step, setStep] = useState<"filter" | "report">("filter");
   const deptOptions = manager ? scopeDepts : ["Housekeeping", "Front Desk", "Room Service", "Engineering", "Concierge", "Guest Services", "Food & Beverage"];
   const [filters, setFilters] = useState<Filters>({ from: daysAgo(6), to: daysAgo(0), depts: deptOptions });
+  const [applied, setApplied] = useState<Filters>({ from: daysAgo(6), to: daysAgo(0), depts: deptOptions });
   const [toast, setToast] = useState<string | null>(null);
   const [deptOpen, setDeptOpen] = useState(false);
   const allSelected = deptOptions.every((d) => filters.depts.includes(d));
-  const deptLabel = allSelected ? "All departments" : filters.depts.join(", ");
+  const labelOf = (f: Filters) => (deptOptions.every((d) => f.depts.includes(d)) ? "All departments" : f.depts.join(", "));
+  const deptLabel = labelOf(filters);
+  const appliedLabel = labelOf(applied);
 
   const flash = (m: string) => {
     setToast(m);
@@ -222,14 +224,15 @@ export default function Reports() {
         }).map((a) => [a.time, a.who, a.action, a.task, a.detail]),
       };
     }
-    setFilters({ from: daysAgo(6), to: daysAgo(0), depts: deptOptions });
-    setStep("filter");
+    const fresh = { from: daysAgo(6), to: daysAgo(0), depts: deptOptions };
+    setFilters(fresh);
+    setApplied(fresh);
     setDeptOpen(false);
     setActive(r);
   };
 
-  const reportRows = active ? filterRows(active, filters) : [];
-  const meta = [`Period: ${niceDate(filters.from)} - ${niceDate(filters.to)}`, `Department: ${deptLabel}`, `Generated for: ${scopeLabel}`];
+  const reportRows = active ? filterRows(active, applied) : [];
+  const meta = [`Period: ${niceDate(applied.from)} - ${niceDate(applied.to)}`, `Department: ${appliedLabel}`, `Generated for: ${scopeLabel}`];
   const rangeOk = !!filters.from && !!filters.to && filters.from <= filters.to && filters.depts.length > 0;
 
   return (
@@ -254,84 +257,69 @@ export default function Reports() {
       </Page>
 
       {active && (
-        <Overlay onClose={() => setActive(null)} title={active.title} wide={step === "report"}>
-          {step === "filter" ? (
-            <>
-              <div className="space-y-5 p-6">
-                <p className="text-[13px] text-ink-secondary">{active.desc}</p>
-                <div>
-                  <div className="mb-1.5 flex items-center justify-between">
-                    <span className="text-[13px] font-medium text-ink">Date range</span>
-                    <div className="flex gap-1.5">
-                      {RANGE_PRESETS.map((pr) => (
-                        <button key={pr.label} onClick={() => setFilters((f) => ({ ...f, from: pr.from(), to: pr.to() }))} className="rounded-full bg-subtle px-2.5 py-1 text-[11px] font-medium text-ink-secondary hover:bg-line/60">{pr.label}</button>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <Field label="From"><Input type="date" value={filters.from} max={filters.to || undefined} onChange={(e) => setFilters((f) => ({ ...f, from: e.target.value }))} /></Field>
-                    <Field label="To"><Input type="date" value={filters.to} min={filters.from || undefined} onChange={(e) => setFilters((f) => ({ ...f, to: e.target.value }))} /></Field>
-                  </div>
-                </div>
-                <div>
-                  <div className="mb-1.5 text-[13px] font-medium text-ink">Departments</div>
-                  <button
-                    type="button"
-                    aria-expanded={deptOpen}
-                    onClick={() => setDeptOpen((o) => !o)}
-                    className={`flex h-10 w-full items-center justify-between gap-2 rounded-lg border bg-white px-3 text-left text-[13px] ${deptOpen ? "border-brand" : "border-line"}`}
-                  >
-                    <span className="min-w-0 flex-1 truncate text-ink">{filters.depts.length ? deptLabel : <span className="text-ink-tertiary">Select departments</span>}</span>
-                    <ChevronDown className={`h-4 w-4 shrink-0 text-ink-tertiary transition-transform ${deptOpen ? "rotate-180" : ""}`} />
-                  </button>
-                  {deptOpen && (
-                    <div className="mt-1.5 max-h-56 overflow-y-auto rounded-xl border border-line bg-white p-1.5 shadow-sm">
-                      <label className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-[13px] font-semibold text-ink hover:bg-subtle">
-                        <input type="checkbox" className="h-4 w-4 accent-brand" checked={allSelected} onChange={(e) => setFilters((f) => ({ ...f, depts: e.target.checked ? deptOptions : [] }))} />
-                        All departments
+        <Overlay onClose={() => setActive(null)} title={active.title} wide>
+          <div className="border-b border-line bg-subtle/40 px-6 py-4">
+            <div className="mb-2.5 flex items-center justify-between">
+              <span className="text-[11px] font-semibold uppercase tracking-wide text-ink-tertiary">Filters</span>
+              <div className="flex gap-1.5">
+                {RANGE_PRESETS.map((pr) => (
+                  <button key={pr.label} onClick={() => setFilters((f) => ({ ...f, from: pr.from(), to: pr.to() }))} className="rounded-full bg-white px-2.5 py-1 text-[11px] font-medium text-ink-secondary ring-1 ring-inset ring-line hover:bg-subtle">{pr.label}</button>
+                ))}
+              </div>
+            </div>
+            <div className="grid grid-cols-[1fr_1fr_1.3fr_auto] items-end gap-3">
+              <Field label="From"><Input type="date" value={filters.from} max={filters.to || undefined} onChange={(e) => setFilters((f) => ({ ...f, from: e.target.value }))} /></Field>
+              <Field label="To"><Input type="date" value={filters.to} min={filters.from || undefined} onChange={(e) => setFilters((f) => ({ ...f, to: e.target.value }))} /></Field>
+              <div className="relative">
+                <div className="mb-1.5 text-[13px] font-medium text-ink">Departments</div>
+                <button
+                  type="button"
+                  aria-expanded={deptOpen}
+                  onClick={() => setDeptOpen((o) => !o)}
+                  className={`flex h-10 w-full items-center justify-between gap-2 rounded-lg border bg-white px-3 text-left text-[13px] ${deptOpen ? "border-brand" : "border-line"}`}
+                >
+                  <span className="min-w-0 flex-1 truncate text-ink">{filters.depts.length ? deptLabel : <span className="text-ink-tertiary">Select departments</span>}</span>
+                  <ChevronDown className={`h-4 w-4 shrink-0 text-ink-tertiary transition-transform ${deptOpen ? "rotate-180" : ""}`} />
+                </button>
+                {deptOpen && (
+                  <div className="absolute left-0 right-0 top-full z-20 mt-1.5 max-h-56 overflow-y-auto rounded-xl border border-line bg-white p-1.5 shadow-lg">
+                    <label className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-[13px] font-semibold text-ink hover:bg-subtle">
+                      <input type="checkbox" className="h-4 w-4 accent-brand" checked={allSelected} onChange={(e) => setFilters((f) => ({ ...f, depts: e.target.checked ? deptOptions : [] }))} />
+                      All departments
+                    </label>
+                    <div className="my-1 border-t border-line/70" />
+                    {deptOptions.map((d) => (
+                      <label key={d} className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-[13px] text-ink hover:bg-subtle">
+                        <input type="checkbox" className="h-4 w-4 accent-brand" checked={filters.depts.includes(d)} onChange={(e) => setFilters((f) => ({ ...f, depts: e.target.checked ? [...f.depts, d] : f.depts.filter((x) => x !== d) }))} />
+                        {d}
                       </label>
-                      <div className="my-1 border-t border-line/70" />
-                      {deptOptions.map((d) => (
-                        <label key={d} className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-[13px] text-ink hover:bg-subtle">
-                          <input type="checkbox" className="h-4 w-4 accent-brand" checked={filters.depts.includes(d)} onChange={(e) => setFilters((f) => ({ ...f, depts: e.target.checked ? [...f.depts, d] : f.depts.filter((x) => x !== d) }))} />
-                          {d}
-                        </label>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                    ))}
+                  </div>
+                )}
               </div>
-              <div className="flex justify-end gap-2 border-t border-line px-6 py-3.5">
-                <Button variant="outline" onClick={() => setActive(null)}>Cancel</Button>
-                <Button onClick={() => setStep("report")} disabled={!rangeOk} className="disabled:opacity-40">Apply filter</Button>
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="p-6">
-                <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px] text-ink-secondary">
-                  <span><span className="text-ink-tertiary">Period</span> {niceDate(filters.from)} – {niceDate(filters.to)}</span>
-                  <span><span className="text-ink-tertiary">{filters.depts.length === 1 ? "Department" : "Departments"}</span> {deptLabel}</span>
-                  <span className="text-ink-tertiary">{reportRows.length} {reportRows.length === 1 ? "row" : "rows"}</span>
-                </div>
-                <div className="overflow-x-auto">
-                  <ReportTable r={{ ...active, rows: reportRows }} />
-                </div>
-                {!reportRows.length && <p className="pt-4 text-center text-[13px] text-ink-tertiary">Nothing to report for this filter.</p>}
-              </div>
-              <div className="flex items-center justify-between gap-2 border-t border-line px-6 py-3.5">
-                <Button variant="outline" onClick={() => setStep("filter")}><ChevronLeft className="h-4 w-4" /> Change filter</Button>
-                <div className="flex gap-2">
-                  <Button variant="outline" onClick={() => { downloadCsv(active, reportRows, meta); flash("CSV downloaded"); }}>
-                    <Download className="h-4 w-4" /> CSV
-                  </Button>
-                  <Button onClick={() => { downloadPdf(active, reportRows, meta); flash("PDF downloaded"); }}>
-                    <FileText className="h-4 w-4" /> PDF
-                  </Button>
-                </div>
-              </div>
-            </>
-          )}
+              <Button onClick={() => { setApplied(filters); setDeptOpen(false); }} disabled={!rangeOk} className="disabled:opacity-40">Apply filter</Button>
+            </div>
+          </div>
+
+          <div className="p-6">
+            <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px] text-ink-secondary">
+              <span><span className="text-ink-tertiary">Period</span> {niceDate(applied.from)} – {niceDate(applied.to)}</span>
+              <span><span className="text-ink-tertiary">{applied.depts.length === 1 ? "Department" : "Departments"}</span> {appliedLabel}</span>
+              <span className="text-ink-tertiary">{reportRows.length} {reportRows.length === 1 ? "row" : "rows"}</span>
+            </div>
+            <div className="overflow-x-auto">
+              <ReportTable r={{ ...active, rows: reportRows }} />
+            </div>
+            {!reportRows.length && <p className="pt-4 text-center text-[13px] text-ink-tertiary">Nothing to report for this filter.</p>}
+          </div>
+          <div className="flex justify-end gap-2 border-t border-line px-6 py-3.5">
+            <Button variant="outline" onClick={() => { downloadCsv(active, reportRows, meta); flash("CSV downloaded"); }}>
+              <Download className="h-4 w-4" /> CSV
+            </Button>
+            <Button onClick={() => { downloadPdf(active, reportRows, meta); flash("PDF downloaded"); }}>
+              <FileText className="h-4 w-4" /> PDF
+            </Button>
+          </div>
         </Overlay>
       )}
 
@@ -357,7 +345,11 @@ function ReportTable({ r }: { r: Report }) {
           {r.rows.map((row, i) => (
             <tr key={i} className="border-b border-line/70 last:border-0">
               {row.map((c, j) => (
-                <td key={j} className={`px-3 py-2.5 ${j === 0 ? "font-medium text-ink" : "text-ink-secondary"}`}>{c}</td>
+                <td key={j} className={`px-3 py-2.5 ${j === 0 ? "font-medium text-ink" : "text-ink-secondary"}`}>
+                  {r.cols[j] === "Status" ? (
+                    <span className={`inline-flex rounded-full px-2.5 py-0.5 text-[12px] font-medium ${c === "Completed" ? "bg-emerald-50 text-emerald-700" : c === "In progress" ? "bg-blue-50 text-blue-700" : "bg-amber-50 text-amber-700"}`}>{c}</span>
+                  ) : c}
+                </td>
               ))}
             </tr>
           ))}
@@ -375,7 +367,7 @@ function Overlay({ title, onClose, wide, children }: { title: string; onClose: (
   }, [onClose]);
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div role="dialog" className={`flex max-h-[90vh] w-full flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ${wide ? "max-w-[760px]" : "max-w-[600px]"}`}>
+      <div role="dialog" className={`flex max-h-[90vh] w-full flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ${wide ? "max-w-[880px]" : "max-w-[600px]"}`}>
         <div className="flex items-center justify-between border-b border-line px-6 py-4">
           <h2 className="text-[16px] font-semibold text-ink">{title}</h2>
           <button onClick={onClose} aria-label="Close" className="rounded-md p-1 text-ink-tertiary hover:bg-subtle hover:text-ink">
