@@ -541,7 +541,7 @@ function Kpi({
 const DAY0 = new Date(2025, 4, 1).getTime();
 const dayNumber = (d: Date) => Math.round((d.getTime() - DAY0) / 86400000) + 1;
 
-function ArrivalCalendar({ selDay, perDay, onPick }: { selDay: number | null; perDay: Record<number, number>; onPick: (d: number | null) => void }) {
+export function ArrivalCalendar({ selDay, perDay, onPick }: { selDay: number | null; perDay: Record<number, number>; onPick: (d: number | null) => void }) {
   const [open, setOpen] = useState(false);
   const [month, setMonth] = useState(() => (selDay ? new Date(2025, 4, selDay).getMonth() : 4));
   const first = new Date(2025, month, 1);

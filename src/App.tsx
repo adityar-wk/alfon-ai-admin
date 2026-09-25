@@ -11,6 +11,7 @@ import DepartmentsSetup from "./pages/DepartmentsSetup";
 import DepartmentDetail from "./pages/DepartmentDetail";
 import NewDepartment from "./pages/NewDepartment";
 import RoomsQrSetup from "./pages/RoomsQrSetup";
+import ComponentDesign from "./pages/ComponentDesign";
 import Guests from "./pages/Guests";
 import GuestChats from "./pages/GuestChats";
 import PreArrival from "./pages/PreArrival";
@@ -56,6 +57,7 @@ export const router = createBrowserRouter([
       { path: "/reports", element: <Reports /> },
       { path: "/department", element: <DepartmentDashboard /> },
       { path: "/line-staff", element: <LineStaff /> },
+      { path: "/components", element: <ComponentDesign /> },
       { path: "*", element: <Navigate to="/onboarding" replace /> },
     ],
   },

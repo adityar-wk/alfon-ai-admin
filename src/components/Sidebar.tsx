@@ -12,6 +12,7 @@ import {
   FileText,
   Settings,
   Smartphone,
+  Shapes,
   LayoutDashboard,
   Check,
   ChevronsUpDown,
@@ -41,6 +42,7 @@ const GM_NAV: Item[] = [
   { label: "Analytics", to: "/analytics", icon: BarChart3 },
   { label: "Reports", to: "/reports", icon: FileText },
   { label: "Mobile App", to: "/line-staff", icon: Smartphone },
+  { label: "Component Design", to: "/components", icon: Shapes },
   { label: "Settings", to: "/onboarding", icon: Settings, match: ["/settings", "/departments"] },
 ];
 
