@@ -243,18 +243,16 @@ export default function HousekeepingBoard() {
                 onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && setAssignFor(r)}
                 className="flex h-[156px] cursor-pointer flex-col rounded-xl border border-brand/25 bg-white p-4 transition-colors hover:border-brand/50"
               >
-                <div className="text-[14px] font-bold text-ink">Room {r.no}</div>
-                <div className="mt-1 truncate text-[12px] text-ink-secondary">{r.type}</div>
+                {(() => { const Icon = STATUS_ICON[r.status]; return <span title={STATUS_LABEL[r.status]} aria-label={STATUS_LABEL[r.status]} role="img" className={`flex h-8 w-8 items-center justify-center rounded-lg ${STATUS_ICON_TONE[r.status]}`}><Icon className="h-[18px] w-[18px]" /></span>; })()}
+                <div className="mt-3 text-[14px] font-bold text-ink">Room {r.no}</div>
+                <div className="mt-0.5 truncate text-[12px] text-ink-secondary">{r.type}</div>
                 <div className="truncate text-[12px] text-ink-tertiary">{occupied ? "Occupied" : "Vacant"}</div>
-                <div className="mt-2 flex items-center gap-2.5 text-[12px] font-medium text-ink">
-                  {(() => { const Icon = STATUS_ICON[r.status]; return <span title={STATUS_LABEL[r.status]} aria-label={STATUS_LABEL[r.status]} role="img" className={`flex h-7 w-7 items-center justify-center rounded-lg ${STATUS_ICON_TONE[r.status]}`}><Icon className="h-4 w-4" /></span>; })()}
-                  {r.mins != null && (
-                    <span className="flex items-center gap-1 font-medium text-ink-secondary">
+                <div className="mt-auto flex items-center justify-between">
+                  {r.mins != null ? (
+                    <span className="flex items-center gap-1 text-[12px] font-medium text-ink-secondary">
                       <Timer className="h-3 w-3" /> {r.mins} mins
                     </span>
-                  )}
-                </div>
-                <div className="mt-auto flex justify-end">
+                  ) : <span />}
                   <ArrowRight className="h-4 w-4 text-ink-tertiary" />
                 </div>
               </div>
