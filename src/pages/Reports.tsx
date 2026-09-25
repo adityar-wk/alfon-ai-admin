@@ -17,6 +17,7 @@ import {
   Download,
   FileText,
   ChevronLeft,
+  ChevronDown,
   X,
 } from "lucide-react";
 import { Topbar } from "../components/Topbar";
@@ -202,6 +203,7 @@ export default function Reports() {
   const deptOptions = manager ? scopeDepts : ["Housekeeping", "Front Desk", "Room Service", "Engineering", "Concierge", "Guest Services", "Food & Beverage"];
   const [filters, setFilters] = useState<Filters>({ from: daysAgo(6), to: daysAgo(0), depts: deptOptions });
   const [toast, setToast] = useState<string | null>(null);
+  const [deptOpen, setDeptOpen] = useState(false);
   const allSelected = deptOptions.every((d) => filters.depts.includes(d));
   const deptLabel = allSelected ? "All departments" : filters.depts.join(", ");
 
@@ -222,6 +224,7 @@ export default function Reports() {
     }
     setFilters({ from: daysAgo(6), to: daysAgo(0), depts: deptOptions });
     setStep("filter");
+    setDeptOpen(false);
     setActive(r);
   };
 
@@ -271,27 +274,31 @@ export default function Reports() {
                   </div>
                 </div>
                 <div>
-                  <div className="mb-1.5 flex items-center justify-between">
-                    <span className="text-[13px] font-medium text-ink">Departments</span>
-                    <span className="text-[11px] text-ink-tertiary">{allSelected ? "All selected" : `${filters.depts.length} selected`}</span>
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className={`flex cursor-pointer items-center gap-3 rounded-xl border px-3.5 py-2.5 text-[13px] font-medium text-ink ${allSelected ? "border-brand bg-brand-tint/40" : "border-line hover:bg-subtle"}`}>
-                      <input type="checkbox" className="h-4 w-4 accent-brand" checked={allSelected} onChange={(e) => setFilters((f) => ({ ...f, depts: e.target.checked ? deptOptions : [] }))} />
-                      All departments
-                    </label>
-                    <div className="grid grid-cols-2 gap-1.5">
-                      {deptOptions.map((d) => {
-                        const on = filters.depts.includes(d);
-                        return (
-                          <label key={d} className={`flex cursor-pointer items-center gap-3 rounded-xl border px-3.5 py-2.5 text-[13px] text-ink ${on ? "border-brand bg-brand-tint/40" : "border-line hover:bg-subtle"}`}>
-                            <input type="checkbox" className="h-4 w-4 accent-brand" checked={on} onChange={(e) => setFilters((f) => ({ ...f, depts: e.target.checked ? [...f.depts, d] : f.depts.filter((x) => x !== d) }))} />
-                            {d}
-                          </label>
-                        );
-                      })}
+                  <div className="mb-1.5 text-[13px] font-medium text-ink">Departments</div>
+                  <button
+                    type="button"
+                    aria-expanded={deptOpen}
+                    onClick={() => setDeptOpen((o) => !o)}
+                    className={`flex h-10 w-full items-center justify-between gap-2 rounded-lg border bg-white px-3 text-left text-[13px] ${deptOpen ? "border-brand" : "border-line"}`}
+                  >
+                    <span className="min-w-0 flex-1 truncate text-ink">{filters.depts.length ? deptLabel : <span className="text-ink-tertiary">Select departments</span>}</span>
+                    <ChevronDown className={`h-4 w-4 shrink-0 text-ink-tertiary transition-transform ${deptOpen ? "rotate-180" : ""}`} />
+                  </button>
+                  {deptOpen && (
+                    <div className="mt-1.5 max-h-56 overflow-y-auto rounded-xl border border-line bg-white p-1.5 shadow-sm">
+                      <label className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-[13px] font-semibold text-ink hover:bg-subtle">
+                        <input type="checkbox" className="h-4 w-4 accent-brand" checked={allSelected} onChange={(e) => setFilters((f) => ({ ...f, depts: e.target.checked ? deptOptions : [] }))} />
+                        All departments
+                      </label>
+                      <div className="my-1 border-t border-line/70" />
+                      {deptOptions.map((d) => (
+                        <label key={d} className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-[13px] text-ink hover:bg-subtle">
+                          <input type="checkbox" className="h-4 w-4 accent-brand" checked={filters.depts.includes(d)} onChange={(e) => setFilters((f) => ({ ...f, depts: e.target.checked ? [...f.depts, d] : f.depts.filter((x) => x !== d) }))} />
+                          {d}
+                        </label>
+                      ))}
                     </div>
-                  </div>
+                  )}
                 </div>
               </div>
               <div className="flex justify-end gap-2 border-t border-line px-6 py-3.5">
