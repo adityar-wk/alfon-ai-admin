@@ -9,6 +9,7 @@ const STEPS = [
   { label: "Roles & Permissions", to: "/onboarding/roles" },
   { label: "SLA & Escalation", to: "/onboarding/sla" },
   { label: "Rooms & QR", to: "/onboarding/rooms-qr" },
+  { label: "Notifications", to: "/onboarding/notifications" },
 ];
 
 /** Horizontal tab strip so any onboarding-step screen can jump directly to another step. */

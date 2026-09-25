@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Bell, SlidersHorizontal, Check } from "lucide-react";
+import { Bell } from "lucide-react";
 import { usePersona } from "../persona";
 
-type Kind = "Escalations" | "SLA breaches" | "Complaints" | "Guest requests" | "Pre-arrival" | "Staff & system";
+export type Kind = "Escalations" | "SLA breaches" | "Complaints" | "Guest requests" | "Pre-arrival" | "Staff & system";
 
-const KINDS: { key: Kind; hint: string; dot: string }[] = [
+export const NOTIF_KINDS: { key: Kind; hint: string; dot: string }[] = [
   { key: "Escalations", hint: "Tasks escalated to you", dot: "bg-red-400" },
   { key: "SLA breaches", hint: "Overdue or about to breach", dot: "bg-amber-400" },
   { key: "Complaints", hint: "Guest complaints and compensation", dot: "bg-rose-400" },
@@ -39,10 +39,10 @@ const LABEL_TONE: Record<Kind, string> = {
   "Staff & system": "text-emerald-600",
 };
 
-const LS_KINDS = "alfon.notifKinds";
+export const LS_KINDS = "alfon.notifKinds";
 const LS_READ = "alfon.notifRead";
 
-function load<T>(key: string, fallback: T): T {
+export function load<T>(key: string, fallback: T): T {
   try {
     const v = localStorage.getItem(key);
     return v ? (JSON.parse(v) as T) : fallback;
@@ -50,7 +50,7 @@ function load<T>(key: string, fallback: T): T {
     return fallback;
   }
 }
-function save(key: string, v: unknown) {
+export function save(key: string, v: unknown) {
   try {
     localStorage.setItem(key, JSON.stringify(v));
   } catch {
@@ -62,21 +62,16 @@ export function NotificationBell() {
   const navigate = useNavigate();
   const { manager, inScope } = usePersona();
   const [open, setOpen] = useState(false);
-  const [filterOpen, setFilterOpen] = useState(false);
-  const [enabled, setEnabled] = useState<Kind[]>(() => load(LS_KINDS, KINDS.map((k) => k.key)));
+  const [enabled] = useState<Kind[]>(() => load(LS_KINDS, NOTIF_KINDS.map((k) => k.key)));
   const [read, setRead] = useState<number[]>(() => load(LS_READ, []));
 
-  useEffect(() => save(LS_KINDS, enabled), [enabled]);
   useEffect(() => save(LS_READ, read), [read]);
 
   const visible = NOTES.filter((n) => enabled.includes(n.kind) && (!manager || !n.dept || inScope(n.dept)));
   const unread = visible.filter((n) => !read.includes(n.id));
-  const toggle = (k: Kind) => setEnabled((e) => (e.includes(k) ? e.filter((x) => x !== k) : [...e, k]));
   const close = () => {
     setOpen(false);
-    setFilterOpen(false);
   };
-  const filtered = enabled.length < KINDS.length;
 
   return (
     <div className="relative">
@@ -108,50 +103,8 @@ export function NotificationBell() {
                     Mark all read
                   </button>
                 )}
-                <button
-                  aria-label="Filter notifications"
-                  onClick={() => setFilterOpen((f) => !f)}
-                  className={`relative flex h-8 w-8 items-center justify-center rounded-lg border ${
-                    filterOpen || filtered ? "border-brand bg-brand-tint text-brand" : "border-line text-ink-secondary hover:bg-subtle"
-                  }`}
-                >
-                  <SlidersHorizontal className="h-4 w-4" />
-                  {filtered && (
-                    <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-brand px-1 text-[10px] font-semibold text-white">
-                      {enabled.length}
-                    </span>
-                  )}
-                </button>
               </div>
             </div>
-
-            {filterOpen && (
-              <div className="border-y border-line bg-subtle/50 px-5 py-4">
-                <div className="mb-2 flex items-center justify-between">
-                  <span className="text-[11px] font-semibold uppercase tracking-wide text-ink-tertiary">Show me</span>
-                  <span className="flex gap-3 text-[12px] font-medium text-brand">
-                    <button onClick={() => setEnabled(KINDS.map((k) => k.key))}>All</button>
-                    <button onClick={() => setEnabled([])}>None</button>
-                  </span>
-                </div>
-                <div className="space-y-1">
-                  {KINDS.map((k) => {
-                    const on = enabled.includes(k.key);
-                    return (
-                      <button key={k.key} onClick={() => toggle(k.key)} className="flex w-full items-center gap-3 rounded-control px-2 py-2 text-left hover:bg-white">
-                        <span className={`flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded border ${on ? "border-brand bg-brand text-white" : "border-line bg-white"}`}>
-                          {on && <Check className="h-3 w-3" strokeWidth={3} />}
-                        </span>
-                        <span className="min-w-0 flex-1 leading-tight">
-                          <span className="block text-[13px] font-medium text-ink">{k.key}</span>
-                          <span className="block text-[11px] text-ink-tertiary">{k.hint}</span>
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
 
             <div className="max-h-[420px] divide-y divide-line/70 overflow-y-auto">
               {visible.map((n) => {
@@ -180,7 +133,7 @@ export function NotificationBell() {
               })}
               {!visible.length && (
                 <p className="px-5 py-12 text-center text-[13px] text-ink-tertiary">
-                  {enabled.length ? "You are all caught up." : "All notification types are switched off."}
+                  {enabled.length ? "You are all caught up." : "All notification types are switched off in Settings."}
                 </p>
               )}
             </div>

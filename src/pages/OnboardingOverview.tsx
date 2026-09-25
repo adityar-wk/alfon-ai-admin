@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Building2, Plug, FileText, Users, ShieldCheck, LayoutGrid, Timer, QrCode, Rocket, Lock, Check, ArrowRight } from "lucide-react";
+import { Bell, Building2, Plug, FileText, Users, ShieldCheck, LayoutGrid, Timer, QrCode, Rocket, Lock, Check, ArrowRight } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { Page, Card, Button } from "../components/ui";
 
@@ -23,6 +23,7 @@ const STEPS: {
   { id: 6, title: "Roles & Permissions", desc: "Create roles and set what each one can access.", to: "/onboarding/roles", icon: ShieldCheck, status: "todo", progress: 0, time: "10 min" },
   { id: 7, title: "SLA & Escalation", desc: "Response times, service SLAs and escalation paths.", to: "/onboarding/sla", icon: Timer, status: "todo", progress: 0, time: "10 min" },
   { id: 8, title: "Rooms & QR", desc: "Create rooms and generate guest QR codes.", to: "/onboarding/rooms-qr", icon: QrCode, status: "todo", progress: 0, time: "6 min" },
+  { id: 9, title: "Notifications", desc: "Choose which alerts reach the notification bell.", to: "/onboarding/notifications", icon: Bell, status: "todo", progress: 0, time: "2 min" },
 ];
 
 const STATS = [

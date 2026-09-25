@@ -12,6 +12,7 @@ import DepartmentDetail from "./pages/DepartmentDetail";
 import NewDepartment from "./pages/NewDepartment";
 import RoomsQrSetup from "./pages/RoomsQrSetup";
 import ComponentDesign from "./pages/ComponentDesign";
+import NotificationSettings from "./pages/NotificationSettings";
 import Guests from "./pages/Guests";
 import GuestChats from "./pages/GuestChats";
 import PreArrival from "./pages/PreArrival";
@@ -41,6 +42,7 @@ export const router = createBrowserRouter([
       { path: "/onboarding/sla", element: <SlaSetup /> },
       { path: "/onboarding/departments", element: <DepartmentsSetup onboarding /> },
       { path: "/onboarding/rooms-qr", element: <RoomsQrSetup onboarding /> },
+      { path: "/onboarding/notifications", element: <NotificationSettings /> },
       { path: "/tasks", element: <Tasks /> },
       { path: "/team", element: <Team /> },
       { path: "/team/roles", element: <RolesPermissions /> },

@@ -40,7 +40,7 @@ const INVENTORY: Item[] = [
   { id: "charts", name: "Donut & health orb", group: "Data display", note: "Pastel donut and the health-score orb" },
   { id: "tabs", name: "Tabs", group: "Navigation", note: "Underline tabs" },
   { id: "sidebar", name: "Sidebar item & top bar", group: "Navigation", note: "Nav item states and the title-only top bar" },
-  { id: "notifications", name: "Notification centre", group: "Navigation", note: "Bell with unread count, filter by kind" },
+  { id: "notifications", name: "Notification centre", group: "Navigation", note: "Bell with unread count; kinds are chosen in Settings" },
   { id: "modal", name: "Modal", group: "Overlays", note: "Centred dialog with footer buttons" },
   { id: "drawer", name: "Drawer", group: "Overlays", note: "Right-hand detail panel" },
   { id: "m-header", name: "Mobile header", group: "Mobile app", note: "Back arrow, 20px semibold title, plain icon buttons" },
@@ -355,7 +355,7 @@ export default function ComponentDesign() {
             </div>
           </Section>
 
-          <Section id="notifications" title="Notification centre" note="Bell with an unread count; the funnel inside chooses which kinds you receive.">
+          <Section id="notifications" title="Notification centre" note="Bell with an unread count. Which kinds arrive is chosen in Settings, not in the panel.">
             <div className="flex min-h-[120px] justify-end"><NotificationBell /></div>
           </Section>
 
