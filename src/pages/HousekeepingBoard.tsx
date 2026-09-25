@@ -44,11 +44,11 @@ const GUESTS = [
 
 const PLAN: Record<number, [RoomStatus, number?][]> = {
   10: [["inspected"], ["ooo"], ["inspected"], ["oos"], ["inspected"]],
-  11: [["inspection"], ["progress", 17], ["inspected"], ["oos"], ["inspected"]],
+  11: [["inspection", 14], ["progress", 17], ["inspected"], ["oos"], ["inspected"]],
   12: [["inspected"], ["ooo"], ["progress", 23], ["progress", 24], ["inspected"]],
   13: [["inspected"], ["inspected"], ["oos"], ["progress", 29], ["inspected"]],
-  14: [["progress", 12], ["inspected"], ["inspected"], ["inspection"], ["inspected"]],
-  15: [["inspected"], ["progress", 8], ["inspected"], ["inspected"], ["inspection"]],
+  14: [["progress", 12], ["inspected"], ["inspected"], ["inspection", 10], ["inspected"]],
+  15: [["inspected"], ["progress", 8], ["inspected"], ["inspected"], ["inspection", 22]],
   16: [["inspected"], ["inspected"], ["progress", 19], ["inspected"], ["inspected"]],
 };
 
@@ -74,6 +74,14 @@ const STATUS_LABEL: Record<RoomStatus, string> = {
   inspection: "Needs Inspection",
   oos: "Out of Service",
   ooo: "Out of Order",
+};
+
+const STATUS_ICON: Record<RoomStatus, React.ComponentType<{ className?: string }>> = {
+  inspected: CheckCircle2,
+  progress: Loader,
+  inspection: AlertCircle,
+  oos: CircleSlash,
+  ooo: Wrench,
 };
 
 const OPEN_TASK = "__open__";
@@ -130,7 +138,7 @@ export default function HousekeepingBoard() {
               status,
               assignedTo: staff && staff !== OPEN_TASK ? staff : undefined,
               open: status === "progress" && staff === OPEN_TASK,
-              mins: status === "progress" ? r.mins : undefined,
+              mins: status === "progress" || status === "inspection" ? r.mins ?? 20 : undefined,
             }
           : r,
       ),
@@ -237,9 +245,9 @@ export default function HousekeepingBoard() {
                 <div className="mt-1 truncate text-[12px] text-ink-secondary">{r.type}</div>
                 <div className="truncate text-[12px] text-ink-tertiary">{occupied ? "Occupied" : "Vacant"}</div>
                 <div className="mt-2 flex items-center justify-between gap-2 text-[12px] font-medium text-ink">
-                  <span>{STATUS_LABEL[r.status]}</span>
+                  {(() => { const Icon = STATUS_ICON[r.status]; return <span title={STATUS_LABEL[r.status]} aria-label={STATUS_LABEL[r.status]} role="img" className="flex h-7 w-7 items-center justify-center rounded-lg bg-subtle text-ink-secondary"><Icon className="h-4 w-4" /></span>; })()}
                   {r.mins != null && (
-                    <span className="flex items-center gap-1 font-medium text-amber-600">
+                    <span className="flex items-center gap-1 font-medium text-ink-secondary">
                       <Timer className="h-3 w-3" /> {r.mins} mins
                     </span>
                   )}
