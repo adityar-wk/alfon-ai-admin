@@ -59,7 +59,7 @@ const SEED_ROOMS: Room[] = Object.entries(PLAN).flatMap(([floor, rooms]) =>
       no,
       floor: Number(floor),
       type: TYPES[(no + i) % TYPES.length],
-      guest: status === "oos" && i % 2 === 0 ? undefined : GUESTS[no % GUESTS.length],
+      guest: (status === "oos" && i % 2 === 0) || no % 3 === 0 ? undefined : GUESTS[no % GUESTS.length],
       status,
       mins,
       assignedTo: status === "progress" ? "Maria Santos" : undefined,
@@ -99,7 +99,7 @@ export default function HousekeepingBoard() {
         (floor === "all" || r.floor === floor) &&
         (occ === "all" || (occ === "occupied" ? !!r.guest : !r.guest)) &&
         (!statuses.length || statuses.includes(r.status)) &&
-        (!q || `${r.no} ${r.guest ?? ""}`.toLowerCase().includes(q)),
+        (!q || String(r.no).includes(q)),
     );
   }, [rooms, floor, occ, statuses, query]);
   const activeFilters = (floor !== "all" ? 1 : 0) + (occ !== "all" ? 1 : 0) + (statuses.length ? 1 : 0);
@@ -171,7 +171,7 @@ export default function HousekeepingBoard() {
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search room or guest…"
+              placeholder="Search room number…"
               className="h-10 w-full rounded-lg border border-line bg-white pl-9 pr-3 text-[13px] outline-none placeholder:text-ink-tertiary focus:border-brand"
             />
           </div>
@@ -235,7 +235,7 @@ export default function HousekeepingBoard() {
                   <div className="text-[14px] font-bold text-ink">Room {r.no}</div>
                 </div>
                 <div className="mt-1 truncate text-[12px] font-medium text-ink">
-                  {occupied ? r.guest : <span className="font-normal text-ink-tertiary">Vacant</span>}
+                  {occupied ? "Occupied" : <span className="font-normal text-ink-tertiary">Vacant</span>}
                 </div>
                 <div className="truncate text-[12px] text-ink-tertiary">{r.type}</div>
                 <div className="mt-2 flex items-center justify-between gap-2 text-[12px] font-medium text-ink-secondary">
@@ -324,7 +324,7 @@ function EditRoomModal({
     >
       <div className="mb-4 flex items-center justify-between text-[12px] text-ink-secondary">
         <span>
-          {room.type} · {occupied ? `Occupied by ${room.guest}` : "Vacant"}
+          {room.type} · {occupied ? "Occupied" : "Vacant"}
         </span>
       </div>
 
