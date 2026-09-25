@@ -19,6 +19,7 @@ import {
   ShieldCheck,
   ShieldAlert,
   Check,
+  MoreHorizontal,
 } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { GuestChat, type ChatMsg, type ChatMode, type MessageTemplate } from "../components/GuestChat";
@@ -50,6 +51,14 @@ function ReadyBadge({ r }: { r: Ready }) {
     </span>
   );
 }
+
+// what the engagement column reads as
+const ENG_LABEL: Record<string, string> = {
+  "Not Contacted": "No contact",
+  "Awaiting Response": "Message sent",
+  Engaged: "Responded",
+  Responded: "Responded",
+};
 
 const ENG_DOT: Record<string, string> = {
   "Not Contacted": "bg-gray-300",
@@ -359,9 +368,8 @@ export default function PreArrival() {
                   <th className="py-3 font-medium">Stay</th>
                   <th className="py-3 font-medium">Arrival</th>
                   <th className="py-3 font-medium">Engagement</th>
-                  <th className="py-3 font-medium">Preferences / Requests</th>
                   <th className="py-3 font-medium">Last Interaction</th>
-                  <th className="py-3 pr-5 text-right font-medium">Action</th>
+                  <th className="w-12 py-3 pr-5" aria-label="Actions" />
                 </tr>
               </thead>
               <tbody>
@@ -398,43 +406,19 @@ export default function PreArrival() {
                       </td>
                       <td className="py-3.5 pr-3">
                         <span className="flex items-center gap-2 whitespace-nowrap text-[13px] text-ink">
-                          <span className={`h-2 w-2 rounded-full ${ENG_DOT[g.eng]}`} /> {g.eng}
+                          <span className={`h-2 w-2 rounded-full ${ENG_DOT[g.eng]}`} /> {ENG_LABEL[g.eng]}
                         </span>
-                      </td>
-                      <td className="py-3.5 pr-3">
-                        {g.chips.length === 0 ? (
-                          <span className="text-[12px] text-ink-tertiary">—</span>
-                        ) : (
-                          <div className="flex flex-wrap items-center gap-1.5">
-                            {g.chips.slice(0, 3).map((c) => (
-                              <span key={c} className="whitespace-nowrap rounded-md bg-subtle px-2 py-1 text-[12px] text-ink-secondary">
-                                {c}
-                              </span>
-                            ))}
-                            {g.chips.length > 3 && (
-                              <span className="text-[12px] font-medium text-ink-tertiary">+{g.chips.length - 3} more</span>
-                            )}
-                          </div>
-                        )}
                       </td>
                       <td className="whitespace-nowrap py-3.5 pr-3 text-[13px] text-ink-secondary">{g.last}</td>
                       <td className="py-3.5 pr-5 text-right">
-                        <span
-                          className={`inline-flex rounded-lg px-3 py-1.5 text-[12px] font-semibold ${
-                            g.ready === "Action Required"
-                              ? "bg-brand text-white"
-                              : "border border-line bg-white text-ink-secondary"
-                          }`}
-                        >
-                          {g.ready === "Action Required" ? "Review" : "View"}
-                        </span>
+                        <MoreHorizontal className="ml-auto h-5 w-5 text-ink-tertiary" aria-label="More actions" />
                       </td>
                     </tr>
                   );
                 })}
                 {!rows.length && (
                   <tr>
-                    <td colSpan={7} className="py-12 text-center text-[13px] text-ink-tertiary">
+                    <td colSpan={6} className="py-12 text-center text-[13px] text-ink-tertiary">
                       No guests match this view.
                     </td>
                   </tr>
