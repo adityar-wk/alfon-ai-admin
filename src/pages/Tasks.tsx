@@ -244,9 +244,6 @@ export default function Tasks() {
         actions={
           <div className="flex items-center gap-3">
             <ScopePicker />
-            <Button onClick={() => { setPrefill({ guest: "", room: "" }); setNewOpen(true); }}>
-              <Plus className="h-4 w-4" /> Create task
-            </Button>
           </div>
         }
       />
@@ -270,7 +267,7 @@ export default function Tasks() {
         </div>
 
         <div className="relative mt-5 flex items-center gap-3">
-          <div className="relative w-full max-w-md">
+          <div className="relative min-w-0 max-w-md flex-1">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-tertiary" />
             <input
               value={query}
@@ -279,16 +276,11 @@ export default function Tasks() {
               className="h-10 w-full rounded-lg border border-line bg-white pl-9 pr-3 text-[13px] outline-none placeholder:text-ink-tertiary focus:border-brand"
             />
           </div>
-          <div className="ml-auto flex items-center gap-3">
-            {activeFilters > 0 && (
-              <button onClick={() => { setView("action"); setFDept(""); setFPriority(""); }} className="text-[13px] font-medium text-brand">
-                Clear filters
-              </button>
-            )}
+          <div className="relative shrink-0">
             <button
               aria-label="Filters"
               onClick={() => setFiltersOpen((o) => !o)}
-              className={`relative flex h-10 w-10 items-center justify-center rounded-lg border ${
+              className={`relative flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border ${
                 filtersOpen || activeFilters ? "border-brand bg-brand-tint text-brand" : "border-line bg-white text-ink-secondary hover:bg-subtle"
               }`}
             >
@@ -299,27 +291,35 @@ export default function Tasks() {
                 </span>
               )}
             </button>
-          </div>
-
-          {filtersOpen && (
-            <div className="absolute right-0 top-12 z-20 w-[300px] space-y-3 rounded-xl border border-line bg-white p-4 shadow-lg">
-              <Field label="View">
-                <Select value={view} onChange={(e) => setView(e.target.value as View)}>
-                  {VIEWS.map((v) => (
-                    <option key={v.key} value={v.key}>{v.label} ({counts[v.key]})</option>
-                  ))}
-                </Select>
-              </Field>
-              {(!manager || scopeDepts.length > 1) && (
-                <Field label="Department">
-                  <Select value={fDept} onChange={(e) => setFDept(e.target.value)}>
-                    <option value="">{manager ? "All my departments" : "All departments"}</option>
-                    {(manager ? scopeDepts : DEPTS).map((d) => <option key={d}>{d}</option>)}
+            {filtersOpen && (
+              <div className="absolute left-0 top-12 z-20 w-[300px] space-y-3 rounded-xl border border-line bg-white p-4 shadow-lg">
+                <Field label="View">
+                  <Select value={view} onChange={(e) => setView(e.target.value as View)}>
+                    {VIEWS.map((v) => (
+                      <option key={v.key} value={v.key}>{v.label} ({counts[v.key]})</option>
+                    ))}
                   </Select>
                 </Field>
-              )}
-            </div>
+                {(!manager || scopeDepts.length > 1) && (
+                  <Field label="Department">
+                    <Select value={fDept} onChange={(e) => setFDept(e.target.value)}>
+                      <option value="">{manager ? "All my departments" : "All departments"}</option>
+                      {(manager ? scopeDepts : DEPTS).map((d) => <option key={d}>{d}</option>)}
+                    </Select>
+                  </Field>
+                )}
+              </div>
+            )}
+          </div>
+          {activeFilters > 0 && (
+            <button onClick={() => { setView("action"); setFDept(""); setFPriority(""); }} className="text-[13px] font-medium text-brand">
+              Clear filters
+            </button>
           )}
+          <Button className="ml-auto" onClick={() => { setPrefill({ guest: "", room: "" }); setNewOpen(true); }}>
+            <Plus className="h-4 w-4" /> Create task
+          </Button>
+
         </div>
 
         <div className="mb-2 mt-4 text-[13px] text-ink-secondary">
@@ -623,7 +623,7 @@ function SlaTimer({ task }: { task: Task }) {
           <div className="text-[12px] font-medium text-ink-secondary">{met ? "SLA met" : over ? "SLA breached" : "Time remaining"}</div>
           <div className="text-[11px] text-ink-tertiary">Target {target} min</div>
         </div>
-        <div className={`font-mono text-[32px] font-bold leading-none ${tone}`}>{met ? "Met" : clock}</div>
+        <div className={`text-[34px] font-semibold leading-none tracking-tight tabular-nums ${tone}`} style={{ fontFamily: '"Poppins", "Sora", "Inter", sans-serif' }}>{met ? "Met" : clock}</div>
       </div>
       <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/70"><div className={`h-full rounded-full ${bar}`} style={{ width: `${frac * 100}%` }} /></div>
     </div>
