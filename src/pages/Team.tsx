@@ -297,20 +297,10 @@ export default function Team() {
                       </Select>
                     </label>
                     <label className="block">
-                      <span className="mb-1 block text-[11px] text-ink-secondary">Shift</span>
-                      <Select className="h-9 text-[13px]" value={shift} onChange={(e) => setShift(e.target.value)}>
-                        <option>All Shifts</option>
-                        <option>Morning</option>
-                        <option>Afternoon</option>
-                        <option>Night</option>
-                      </Select>
-                    </label>
-                    <label className="block">
                       <span className="mb-1 block text-[11px] text-ink-secondary">Sort / group by</span>
                       <Select className="h-9 text-[13px]" value={groupBy} onChange={(e) => setGroupBy(e.target.value as GroupBy)}>
                         <option value="none">None</option>
                         <option value="dept">Department</option>
-                        <option value="shift">Shift</option>
                         <option value="availability">Availability</option>
                       </Select>
                     </label>
@@ -335,8 +325,7 @@ export default function Team() {
                     <th className="py-3 font-medium">Department</th>
                     <th className="py-3 font-medium">Status</th>
                     <th className="py-3 font-medium">Current Task</th>
-                    <th className="py-3 font-medium">Shift</th>
-                    <th className="py-3 font-medium">{manager ? "Open tasks" : "Access"}</th>
+                    {manager && <th className="py-3 font-medium">Open tasks</th>}
                     <th className="py-3 pr-4 font-medium">Actions</th>
                   </tr>
                 </thead>
@@ -365,22 +354,11 @@ export default function Team() {
                         <StatusPill s={s.status} />
                       </td>
                       <td className="py-3 pr-3 text-[13px] text-ink-secondary">{s.task ?? "—"}</td>
-                      <td className="py-3 pr-3 leading-tight">
-                        <div className="text-[13px] text-ink">{s.shift}</div>
-                        <div className="text-[11px] text-ink-tertiary">{SHIFT_TIME[s.shift]}</div>
-                      </td>
-                      <td className="whitespace-nowrap py-3 pr-3 leading-tight">
-                        {manager ? (
+                      {manager && (
+                        <td className="whitespace-nowrap py-3 pr-3 leading-tight">
                           <WorkloadCell s={s} />
-                        ) : (
-                          <>
-                            <div className="text-[13px] text-ink">{levelOf(permsOf(s))}</div>
-                            <div className="text-[11px] text-ink-tertiary">
-                              {ALL.filter((k) => permsOf(s)[k].view).length} of {ALL.length} modules
-                            </div>
-                          </>
-                        )}
-                      </td>
+                        </td>
+                      )}
                       <td className="py-3 pr-4">
                         <MoreHorizontal className="h-4 w-4 text-ink-tertiary" />
                       </td>
@@ -388,7 +366,7 @@ export default function Team() {
                   ))}
                   {!rows.length && (
                     <tr>
-                      <td colSpan={8} className="py-10 text-center text-[13px] text-ink-tertiary">
+                      <td colSpan={manager ? 7 : 6} className="py-10 text-center text-[13px] text-ink-tertiary">
                         No staff match your filters.
                       </td>
                     </tr>
@@ -435,7 +413,7 @@ export default function Team() {
           width={400}
           onClose={() => setSelected(null)}
         >
-          <StaffDetails key={selected.id} s={selected} perms={permsOf(selected)} onSaveAccess={(p) => saveAccess(selected, p)} manager />
+          <StaffDetails key={selected.id} s={selected} perms={permsOf(selected)} onSaveAccess={(p) => saveAccess(selected, p)} manager={manager} />
         </Drawer>
       )}
 
