@@ -234,11 +234,9 @@ export default function HousekeepingBoard() {
                 <div className="flex items-start justify-between gap-2">
                   <div className="text-[14px] font-bold text-ink">Room {r.no}</div>
                 </div>
-                <div className="mt-1 truncate text-[12px] font-medium text-ink">
-                  {occupied ? "Occupied" : <span className="font-normal text-ink-tertiary">Vacant</span>}
-                </div>
-                <div className="truncate text-[12px] text-ink-tertiary">{r.type}</div>
-                <div className="mt-2 flex items-center justify-between gap-2 text-[12px] font-medium text-ink-secondary">
+                <div className="mt-1 truncate text-[12px] text-ink-secondary">{r.type}</div>
+                <div className="truncate text-[12px] text-ink-tertiary">{occupied ? "Occupied" : "Vacant"}</div>
+                <div className="mt-2 flex items-center justify-between gap-2 text-[12px] font-medium text-ink">
                   <span>{STATUS_LABEL[r.status]}</span>
                   {r.mins != null && (
                     <span className="flex items-center gap-1 font-medium text-amber-600">
