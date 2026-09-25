@@ -637,10 +637,11 @@ function SatisfactionChart({ values }: { values: number[] }) {
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="mt-3 w-full">
       <defs>
-        <linearGradient id="satFill" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0" stopColor="#8DB7F0" stopOpacity="0.28" />
+        <linearGradient id="satFill" gradientUnits="userSpaceOnUse" x1="0" x2="0" y1={T} y2={H - B}>
+          <stop offset="0" stopColor="#8DB7F0" stopOpacity="0.26" />
           <stop offset="1" stopColor="#8DB7F0" stopOpacity="0" />
         </linearGradient>
+        <clipPath id="satClip"><rect x={L} y={T} width={W - L - R} height={H - T - B} /></clipPath>
       </defs>
       {[5, 4.5, 4, 3.5].map((t) => (
         <g key={t}>
@@ -648,7 +649,7 @@ function SatisfactionChart({ values }: { values: number[] }) {
           <text x={L - 8} y={y(t) + 3} textAnchor="end" fontSize="10" fill="#9CA3AF">{t}</text>
         </g>
       ))}
-      <path d={area} fill="url(#satFill)" />
+      <path d={area} fill="url(#satFill)" clipPath="url(#satClip)" />
       <path d={d} fill="none" stroke="#7FA8E0" strokeWidth="2.5" strokeLinecap="round" />
       {pts.map(([px, py], i) => (
         <g key={i} onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)}>

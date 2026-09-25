@@ -52,7 +52,7 @@ const SCORE_PILLARS: { title: string; weight: number; icon: Icon; text: string }
   { title: "Recovery Rate", weight: 10, icon: Zap, text: "Scores how well the team turns a negative guest experience into a positive one — complaint-to-resolution time, compensation approvals, and whether a follow-up was made after the issue was closed." },
 ];
 
-const DEPT_ICON: Record<string, Icon> = {
+export const DEPT_ICON: Record<string, Icon> = {
   Engineering: Wrench, Concierge: ConciergeBell, "Front Desk": KeyRound, "Room Service": UtensilsCrossed,
   Housekeeping: BedDouble, "Food & Beverage": Wine, "Guest Services": Headset,
 };

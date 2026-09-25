@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, ListChecks, Building2 } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { Page, Card, RoomNo } from "../components/ui";
 import { ScopePicker } from "../components/ScopePicker";
@@ -8,6 +8,7 @@ import { INITIAL } from "../data/staff";
 import { usePersona } from "../persona";
 import { taskStatus, STATUS_PILL, COMPLAINT_PILL, slaLabel, useClock } from "../data/attention";
 import { SlaClock } from "../components/SlaClock";
+import { DEPT_ICON } from "./Home";
 
 export default function DepartmentDashboard() {
   useClock();
@@ -64,42 +65,65 @@ export default function DepartmentDashboard() {
           ))}
         </div>
 
-        <div className="mt-5 grid grid-cols-1 gap-5 xl:grid-cols-[1fr_460px]">
+        <div className="mt-5 grid grid-cols-1 gap-5">
           <div className="space-y-5">
-            <Card className="overflow-hidden">
-              <div className="flex items-center justify-between px-5 py-4">
-                <h3 className="text-[15px] font-semibold text-ink">Needs your attention</h3>
-                <Link to="/tasks" className="flex items-center gap-1 text-[12px] font-medium text-brand">
+            <Card table className="overflow-hidden">
+              <div className="flex flex-wrap items-center gap-3 px-5 py-4">
+                <ListChecks className="h-[18px] w-[18px] text-brand" />
+                <h3 className="text-[16px] font-semibold text-ink">Needs Your Attention</h3>
+                <Link to="/tasks" className="ml-auto flex items-center gap-1 text-[13px] font-semibold text-brand">
                   All department tasks <ChevronRight className="h-3.5 w-3.5" />
                 </Link>
               </div>
-              <div className="divide-y divide-line/70 border-t border-line/70">
-                {attention.map((t) => (
-                  <div key={t.id} className="flex items-center gap-4 px-5 py-3">
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-2 text-[13px] font-semibold text-ink">
-                        {t.title}
-                        {t.tag === "Complaint" && <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${COMPLAINT_PILL}`}>Complaint</span>}
-                      </div>
-                      <div className="text-[12px] text-ink-tertiary">
-                        {scopeDepts.length > 1 && <>{t.dept} · </>}
-                        <RoomNo room={t.room} />{t.owner && <> · {t.owner}</>}
-                      </div>
-                    </div>
-                    <span className={`w-24 shrink-0 text-[13px] font-medium ${STATUS_PILL[taskStatus(t)]}`}>{taskStatus(t)}</span>
-                    <SlaClock sla={t.sla} className="w-24 shrink-0" />
-                    <Link to={`/tasks?open=${t.id}`} className="shrink-0 rounded-lg border border-line px-3 py-1.5 text-[12px] font-semibold text-ink hover:bg-subtle">
-                      View
-                    </Link>
-                  </div>
-                ))}
-                {!attention.length && <p className="px-5 py-8 text-center text-[13px] text-ink-tertiary">Nothing needs attention in your department.</p>}
+              <div className="overflow-x-auto border-t border-line">
+                <table className="w-full min-w-[760px] table-fixed text-left">
+                  <colgroup>
+                    <col className="w-[120px]" />
+                    <col />
+                    <col className="w-[140px]" />
+                    <col className="w-[170px]" />
+                    <col className="w-[130px]" />
+                  </colgroup>
+                  <thead>
+                    <tr className="bg-[#F4F4F5] text-[12px] uppercase tracking-wide text-[#6B7280]">
+                      <th className="py-3.5 pl-6 font-medium">SLA</th>
+                      <th className="py-3.5 pl-6 font-medium">Task</th>
+                      <th className="py-3.5 pl-6 font-medium">Status</th>
+                      <th className="py-3.5 pl-6 font-medium">Department</th>
+                      <th className="py-3.5 pl-6 font-medium">Assigned To</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {attention.map((t) => {
+                      const D = DEPT_ICON[t.dept] ?? Building2;
+                      const status = taskStatus(t);
+                      return (
+                        <tr key={t.id} onClick={() => navigate(`/tasks?open=${t.id}`)} className="cursor-pointer border-b border-line/50 last:border-0 hover:bg-subtle/60">
+                          <td className="whitespace-nowrap py-3.5 pl-6 pr-3"><SlaClock sla={t.sla} /></td>
+                          <td className="py-3.5 pl-6 pr-3">
+                            <div className="flex items-center gap-2 text-[13px] font-semibold text-ink">
+                              {t.title}
+                              {t.tag === "Complaint" && <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${COMPLAINT_PILL}`}>Complaint</span>}
+                            </div>
+                            <div className="text-[12px] text-ink-tertiary"><RoomNo room={t.room} /></div>
+                          </td>
+                          <td className="whitespace-nowrap py-3.5 pl-6 pr-3"><span className={`text-[13px] font-medium ${STATUS_PILL[status]}`}>{status}</span></td>
+                          <td className="whitespace-nowrap py-3.5 pl-6 pr-3 text-[14px] text-ink-secondary"><span className="flex items-center gap-2"><D className="h-4 w-4 text-ink-tertiary" />{t.dept}</span></td>
+                          <td className="whitespace-nowrap py-3.5 pl-6 pr-3 text-[14px]">
+                            {t.owner ? <span className="text-ink">{t.owner}</span> : <span className="font-medium text-brand">Unassigned</span>}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                    {!attention.length && <tr><td colSpan={5} className="py-8 pl-6 pr-3 text-center text-[14px] text-ink-tertiary">Nothing needs attention in your department.</td></tr>}
+                  </tbody>
+                </table>
               </div>
             </Card>
 
           </div>
 
-          <div className="space-y-5">
+          <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-2">
             <Card className="p-5">
               <h3 className="text-[15px] font-semibold text-ink">Team availability &amp; workload</h3>
               <div className="mt-3 flex items-center gap-2 text-[12px]">
