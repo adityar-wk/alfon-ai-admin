@@ -673,7 +673,7 @@ export function ManagerPrototype() {
         <button
           onClick={() => setNewChatOpen(true)}
           aria-label="New chat"
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#F4F4F6] text-ink active:bg-black/10"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand text-white active:bg-brand-hover"
         >
           <Plus className="h-6 w-6" strokeWidth={2.25} />
         </button>
