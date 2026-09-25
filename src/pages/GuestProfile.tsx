@@ -419,11 +419,13 @@ export default function GuestProfile() {
   const [noteOpen, setNoteOpen] = useState(false);
   const [draft, setDraft] = useState("");
   const [editOpen, setEditOpen] = useState(false);
+  const [tab, setTab] = useState<"overview" | "prefs" | "history" | "notes">("overview");
   const [, refresh] = useState(0);
 
   useEffect(() => {
     setNoteOpen(false);
     setDraft("");
+    setTab("overview");
   }, [id]);
 
   if (!guest) return <Navigate to="/guests" replace />;
@@ -476,42 +478,32 @@ export default function GuestProfile() {
               </div>
             </Card>
 
-            <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1fr_340px]">
-              <div className="min-w-0 space-y-4">
-                <Card className="p-5">
-                  <Heading icon={User} tone="text-ink-tertiary">Guest profile</Heading>
-                  <p className="text-[14px] leading-relaxed text-ink">{p.summary}</p>
-                </Card>
+            {/* tabs: one topic at a time instead of one long page */}
+            <div className="flex gap-6 border-b border-line">
+              {([["overview", "Overview"], ["prefs", "Preferences"], ["history", "Stay history"], ["notes", `Notes (${notes.length})`]] as const).map(([k, l]) => (
+                <button
+                  key={k}
+                  onClick={() => setTab(k)}
+                  className={`-mb-px border-b-2 pb-2.5 text-[14px] font-medium ${tab === k ? "border-brand text-brand" : "border-transparent text-ink-secondary hover:text-ink"}`}
+                >
+                  {l}
+                </button>
+              ))}
+            </div>
 
-                <Card className="p-5">
-                  <Heading icon={Lightbulb} tone="text-ink-tertiary">Anticipated needs</Heading>
-                  <p className="text-[14px] leading-relaxed text-ink">{p.anticipated}</p>
-                </Card>
-
-                <Card className="p-5">
-                  <div className="mb-3 text-[11px] font-bold uppercase tracking-wide text-ink-tertiary">Preferences</div>
-                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                    {PREF_CARDS.map(({ key, label, icon: Icon }) => (
-                      <div key={key} className="rounded-xl bg-subtle/70 p-3.5">
-                        <div className="mb-2 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-ink-tertiary"><Icon className="h-3.5 w-3.5" /> {label}</div>
-                        <div className="flex flex-wrap gap-1.5">
-                          {p.prefs[key].map((v) => <span key={v} className="rounded-full bg-white px-3 py-1 text-[13px] text-ink">{v}</span>)}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </Card>
-
-                <Card className="p-5">
-                  <div className="mb-3 text-[11px] font-bold uppercase tracking-wide text-ink-tertiary">Stay history</div>
-                  <div className="space-y-2">
-                    {p.history.map((h) => <div key={h} className="rounded-lg bg-subtle/70 px-3 py-2.5 text-[13px] text-ink">{h}</div>)}
-                  </div>
-                </Card>
-              </div>
-
-              <div className="min-w-0 space-y-4">
-                <Card className="p-5">
+            {tab === "overview" && (
+              <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1fr_360px]">
+                <div className="min-w-0 space-y-4">
+                  <Card className="p-5">
+                    <Heading icon={User} tone="text-ink-tertiary">Guest profile</Heading>
+                    <p className="text-[14px] leading-relaxed text-ink">{p.summary}</p>
+                  </Card>
+                  <Card className="p-5">
+                    <Heading icon={Lightbulb} tone="text-ink-tertiary">Anticipated needs</Heading>
+                    <p className="text-[14px] leading-relaxed text-ink">{p.anticipated}</p>
+                  </Card>
+                </div>
+                <Card className="self-start p-5">
                   <Heading icon={Bell} tone="text-red-700">Actions</Heading>
                   <div className="divide-y divide-line/70">
                     {actions.map((a, i) => {
@@ -535,38 +527,63 @@ export default function GuestProfile() {
                         </div>
                       );
                     })}
+                    {!actions.length && <p className="py-4 text-[13px] text-ink-tertiary">No open actions for this guest.</p>}
                   </div>
-                </Card>
-
-                <Card className="p-5">
-                  <div className="mb-3 flex items-center justify-between">
-                    <div className="text-[11px] font-bold uppercase tracking-wide text-ink-tertiary">Notes</div>
-                    <button onClick={() => setNoteOpen((o) => !o)} className="flex items-center gap-1 text-[12px] font-medium text-brand"><Plus className="h-3.5 w-3.5" /> Add note</button>
-                  </div>
-                  <div className="space-y-2">
-                    {notes.map((n, i) => (
-                      <div key={i} className="rounded-lg bg-subtle/70 p-3">
-                        <p className="text-[11px] text-ink-tertiary">{n.author} · {n.time}</p>
-                        <p className="mt-1 text-[13px] leading-snug text-ink">{n.text}</p>
-                      </div>
-                    ))}
-                  </div>
-                  {noteOpen && (
-                    <div className="mt-3">
-                      <textarea
-                        autoFocus
-                        rows={2}
-                        value={draft}
-                        onChange={(e) => setDraft(e.target.value)}
-                        placeholder="Add an internal note…"
-                        className="w-full rounded-lg bg-subtle p-2.5 text-[13px] outline-none placeholder:text-ink-tertiary focus:ring-1 focus:ring-brand"
-                      />
-                      <button onClick={addNote} disabled={!draft.trim()} className="mt-2 rounded-lg bg-brand px-3.5 py-1.5 text-[12px] font-semibold text-white disabled:opacity-40">Add Note</button>
-                    </div>
-                  )}
                 </Card>
               </div>
-            </div>
+            )}
+
+            {tab === "prefs" && (
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2 2xl:grid-cols-4">
+                {PREF_CARDS.map(({ key, label, icon: Icon }) => (
+                  <div key={key} className="rounded-xl border border-line bg-white p-4">
+                    <div className="mb-2.5 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-ink-tertiary"><Icon className="h-3.5 w-3.5" /> {label}</div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {p.prefs[key].map((v) => <span key={v} className="rounded-full bg-subtle px-3 py-1 text-[13px] text-ink">{v}</span>)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {tab === "history" && (
+              <Card className="p-5">
+                <div className="space-y-2">
+                  {p.history.map((h) => <div key={h} className="rounded-lg bg-subtle/70 px-3 py-2.5 text-[13px] text-ink">{h}</div>)}
+                  {!p.history.length && <p className="text-[13px] text-ink-tertiary">No previous stays.</p>}
+                </div>
+              </Card>
+            )}
+
+            {tab === "notes" && (
+              <Card className="max-w-[720px] p-5">
+                <div className="mb-3 flex items-center justify-between">
+                  <div className="text-[11px] font-bold uppercase tracking-wide text-ink-tertiary">Internal notes</div>
+                  <button onClick={() => setNoteOpen((o) => !o)} className="flex items-center gap-1 text-[12px] font-medium text-brand"><Plus className="h-3.5 w-3.5" /> Add note</button>
+                </div>
+                {noteOpen && (
+                  <div className="mb-3">
+                    <textarea
+                      autoFocus
+                      rows={2}
+                      value={draft}
+                      onChange={(e) => setDraft(e.target.value)}
+                      placeholder="Add an internal note…"
+                      className="w-full rounded-lg bg-subtle p-2.5 text-[13px] outline-none placeholder:text-ink-tertiary focus:ring-1 focus:ring-brand"
+                    />
+                    <button onClick={addNote} disabled={!draft.trim()} className="mt-2 rounded-lg bg-brand px-3.5 py-1.5 text-[12px] font-semibold text-white disabled:opacity-40">Add Note</button>
+                  </div>
+                )}
+                <div className="space-y-2">
+                  {notes.map((n, i) => (
+                    <div key={i} className="rounded-lg bg-subtle/70 p-3">
+                      <p className="text-[11px] text-ink-tertiary">{n.author} · {n.time}</p>
+                      <p className="mt-1 text-[13px] leading-snug text-ink">{n.text}</p>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            )}
           </div>
         </div>
       </div>
