@@ -196,7 +196,14 @@ export default function Home() {
               </div>
             </div>
             <div className="overflow-x-auto border-t border-line">
-              <table className="w-full min-w-[820px] text-left">
+              <table className="w-full min-w-[820px] table-fixed text-left">
+                <colgroup>
+                  <col className="w-[120px]" />
+                  <col />
+                  <col className="w-[140px]" />
+                  <col className="w-[170px]" />
+                  <col className="w-[130px]" />
+                </colgroup>
                 <thead>
                   <tr className="border-b border-line bg-subtle/50 text-[11px] uppercase tracking-wide text-ink-secondary">
                     <th className="py-3 pl-5 font-medium">SLA</th>
