@@ -534,8 +534,6 @@ export function StaffDetails({ s, perms, onSaveAccess, manager }: { s: Staff; pe
             {[
               ["Tasks Completed", `${20 + n}`],
               ["Avg Completion", `${14 + n * 2} min`],
-              ["Guest Rating", "4.8/5"],
-              ["Performance", `${88 + (n % 8)}%`],
             ].map(([l, v]) => (
               <div key={l} className="rounded-xl border border-line p-3">
                 <div className="text-[11px] text-ink-secondary">{l}</div>
@@ -570,7 +568,10 @@ export function StaffDetails({ s, perms, onSaveAccess, manager }: { s: Staff; pe
             </div>
           </div>
 
-          <div className="mb-1 mt-5 text-[11px] font-semibold uppercase tracking-wide text-ink-tertiary">Tasks completed</div>
+          <div className="mb-1 mt-5 flex items-center justify-between">
+            <span className="text-[11px] font-semibold uppercase tracking-wide text-ink-tertiary">Tasks completed</span>
+            <span className="text-[13px] font-semibold text-ink">{20 + n}</span>
+          </div>
           <div>
             {taskRows.map((t) => (
               <div key={t} className="border-b border-line/70 py-2.5 text-[13px] text-ink last:border-0">{t}</div>
@@ -672,16 +673,7 @@ function AccessEditor({ saved, onSave }: { saved: Perms; onSave: (p: Perms) => v
 
   return (
     <div className="mt-4">
-      <Field label="Access level">
-        <Select value={level} onChange={(e) => PRESETS[e.target.value] && setDraft(clonePerms(PRESETS[e.target.value]))}>
-          {Object.keys(PRESETS).map((n) => (
-            <option key={n}>{n}</option>
-          ))}
-          {level === "Custom" && <option>Custom</option>}
-        </Select>
-      </Field>
-
-      <div className="mt-4 overflow-hidden rounded-xl border border-line">
+      <div className="overflow-hidden rounded-xl border border-line">
         <div className="grid grid-cols-[1fr_52px_52px] items-center gap-2 border-b border-line bg-subtle/50 px-3 py-2 text-[11px] font-medium text-ink-secondary">
           <span>Module</span>
           <label className="flex items-center justify-center gap-1">

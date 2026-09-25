@@ -72,6 +72,9 @@ const MODULE_ICON: Record<ModuleKey, Icon> = {
 type Tab = "roles" | "users";
 type EditTab = "basic" | "advanced" | "members";
 
+// week-over-week change in tasks handled, shown per user
+const TREND = [12, 8, 0, -5, 15, 3, 9, 6, 10, 2];
+
 export default function RolesPermissions() {
   const [roles, setRoles] = useState<Role[]>(() => STORE.roles);
   const [users, setUsers] = useState<User[]>(() => STORE.users);
@@ -603,12 +606,6 @@ function UserManagement({
                     {depts.map((d) => <option key={d}>{d}</option>)}
                   </Select>
                 </Field>
-                <Field label="Account" className="col-span-2">
-                  <Select value={acct} onChange={(e) => { setAcct(e.target.value); setPage(0); }}>
-                    <option value="all">All</option>
-                    <option>Active</option><option>Invited</option><option>Deactivated</option>
-                  </Select>
-                </Field>
               </div>
               <div className="mt-3 flex items-center justify-between text-[12px] text-ink-secondary">
                 <span>{list.length} users match</span>
@@ -626,7 +623,7 @@ function UserManagement({
                 <th className="py-3 font-medium">Role</th>
                 <th className="py-3 font-medium">Department</th>
                 <th className="py-3 font-medium">Current Task</th>
-                <th className="py-3 pr-4 font-medium">Access</th>
+                <th className="py-3 pr-4 font-medium">Task Trend</th>
               </tr>
             </thead>
             <tbody>
@@ -654,9 +651,15 @@ function UserManagement({
                     <td className="py-3 pr-3 text-[13px] text-ink">{roleOf(u.roleId)?.name ?? "Staff"}</td>
                     <td className="py-3 pr-3 text-[13px] text-ink-secondary">{u.dept}</td>
                     <td className="py-3 pr-3 text-[13px] text-ink-secondary">{u.task ?? "—"}</td>
-                    <td className="whitespace-nowrap py-3 pr-4 leading-tight">
-                      <div className="text-[13px] text-ink">{levelOf(permsOf(u))}</div>
-                      <div className="text-[11px] text-ink-tertiary">{ALL.filter((k) => permsOf(u)[k].view).length} of {ALL.length} modules</div>
+                    <td className="whitespace-nowrap py-3 pr-4 text-[13px] font-semibold">
+                      {(() => {
+                        const v = TREND[u.id % TREND.length];
+                        return v > 0
+                          ? <span className="text-emerald-600">↑ +{v}%</span>
+                          : v < 0
+                            ? <span className="text-brand">↓ {v}%</span>
+                            : <span className="text-ink-secondary">→ 0%</span>;
+                      })()}
                     </td>
                   </tr>
                 );
