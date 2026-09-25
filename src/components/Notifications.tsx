@@ -14,20 +14,30 @@ const KINDS: { key: Kind; hint: string; dot: string }[] = [
   { key: "Staff & system", hint: "Help requests, shifts, PMS sync", dot: "bg-emerald-400" },
 ];
 
-type Note = { id: number; kind: Kind; title: string; text: string; time: string; to: string; dept?: string };
+type Note = { id: number; kind: Kind; label: string; task: string; sub: string; time: string; to: string; dept?: string };
 
 const NOTES: Note[] = [
-  { id: 1, kind: "Escalations", title: "AC Not Working escalated", text: "Room 1204 · no resolution after 25 minutes", time: "2 min ago", to: "/tasks?view=escalated", dept: "Engineering" },
-  { id: 2, kind: "SLA breaches", title: "SLA breached: Extra towels", text: "Room 812 · Housekeeping is 12 min over", time: "8 min ago", to: "/tasks?view=overdue", dept: "Housekeeping" },
-  { id: 3, kind: "Complaints", title: "New complaint from Emma Davis", text: "Noise from the neighbouring room · Room 906", time: "15 min ago", to: "/tasks?view=complaints", dept: "Guest Services" },
-  { id: 4, kind: "Guest requests", title: "3 tasks are unassigned", text: "Waiting for an owner in Front Desk and Concierge", time: "22 min ago", to: "/tasks?view=unassigned", dept: "Front Desk" },
-  { id: 5, kind: "Pre-arrival", title: "2 arrivals need action", text: "Airport pickup unconfirmed for today's arrivals", time: "35 min ago", to: "/pre-arrival" },
-  { id: 6, kind: "Staff & system", title: "Help requested by Sarah Ali", text: "Floor 21 team is fully booked until 4 PM", time: "48 min ago", to: "/tasks", dept: "Housekeeping" },
-  { id: 7, kind: "SLA breaches", title: "SLA at risk: Airport transfer", text: "Room 1501 · due in 14 min", time: "1 hr ago", to: "/tasks?view=risk", dept: "Concierge" },
-  { id: 8, kind: "Guest requests", title: "New request: Late checkout", text: "James Wilson · Room 1102", time: "1 hr ago", to: "/tasks", dept: "Front Desk" },
-  { id: 9, kind: "Staff & system", title: "PMS synced", text: "Reservations updated 2 minutes ago", time: "2 hr ago", to: "/onboarding/whatsapp-pms" },
-  { id: 10, kind: "Escalations", title: "Room service order escalated", text: "Room 1010 · guest chased twice", time: "3 hr ago", to: "/tasks?view=escalated", dept: "Room Service" },
+  { id: 1, kind: "Escalations", label: "Escalation", task: "AC Not Working", sub: "Room 1204", time: "2 min ago", to: "/tasks?view=escalated", dept: "Engineering" },
+  { id: 2, kind: "SLA breaches", label: "SLA breach", task: "Extra towels", sub: "Room 812", time: "8 min ago", to: "/tasks?view=overdue", dept: "Housekeeping" },
+  { id: 3, kind: "Complaints", label: "Complaint", task: "Noise from the neighbouring room", sub: "Room 906", time: "15 min ago", to: "/tasks?view=complaints", dept: "Guest Services" },
+  { id: 4, kind: "Guest requests", label: "Unassigned", task: "3 tasks need an owner", sub: "Front Desk, Concierge", time: "22 min ago", to: "/tasks?view=unassigned", dept: "Front Desk" },
+  { id: 5, kind: "Pre-arrival", label: "Pre-arrival", task: "2 arrivals need action", sub: "Airport pickup unconfirmed", time: "35 min ago", to: "/pre-arrival" },
+  { id: 6, kind: "Staff & system", label: "Help request", task: "Extra support needed", sub: "Room 2101 · Sarah Ali", time: "48 min ago", to: "/tasks", dept: "Housekeeping" },
+  { id: 7, kind: "SLA breaches", label: "SLA at risk", task: "Airport transfer", sub: "Room 1501", time: "1 hr ago", to: "/tasks?view=risk", dept: "Concierge" },
+  { id: 8, kind: "Guest requests", label: "New request", task: "Late checkout request", sub: "Room 1102", time: "1 hr ago", to: "/tasks", dept: "Front Desk" },
+  { id: 9, kind: "Staff & system", label: "System", task: "PMS synced", sub: "Reservations updated", time: "2 hr ago", to: "/onboarding/whatsapp-pms" },
+  { id: 10, kind: "Escalations", label: "Escalation", task: "Room service order", sub: "Room 1010", time: "3 hr ago", to: "/tasks?view=escalated", dept: "Room Service" },
 ];
+
+// label colour per kind (text only)
+const LABEL_TONE: Record<Kind, string> = {
+  Escalations: "text-red-600",
+  "SLA breaches": "text-orange-600",
+  Complaints: "text-violet-600",
+  "Guest requests": "text-sky-600",
+  "Pre-arrival": "text-purple",
+  "Staff & system": "text-emerald-600",
+};
 
 const LS_KINDS = "alfon.notifKinds";
 const LS_READ = "alfon.notifRead";
@@ -146,8 +156,7 @@ export function NotificationBell() {
             <div className="max-h-[420px] divide-y divide-line/70 overflow-y-auto">
               {visible.map((n) => {
                 const isRead = read.includes(n.id);
-                const k = KINDS.find((x) => x.key === n.kind)!;
-                return (
+                                return (
                   <button
                     key={n.id}
                     onClick={() => {
@@ -157,13 +166,13 @@ export function NotificationBell() {
                     }}
                     className={`flex w-full items-start gap-3 px-5 py-4 text-left hover:bg-subtle/60 ${isRead ? "" : "bg-brand-tint/30"}`}
                   >
-                    <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${k.dot}`} />
                     <span className="min-w-0 flex-1">
-                      <span className={`block text-[13px] text-ink ${isRead ? "font-medium" : "font-semibold"}`}>{n.title}</span>
-                      <span className="mt-0.5 block text-[12px] leading-snug text-ink-secondary">{n.text}</span>
-                      <span className="mt-1 block text-[11px] text-ink-tertiary">
-                        {n.kind} · {n.time}
+                      <span className="block text-[12px]">
+                        <span className={`font-semibold ${LABEL_TONE[n.kind]}`}>{n.label}</span>
+                        <span className="text-ink-tertiary"> · {n.time}</span>
                       </span>
+                      <span className={`mt-1 block text-[14px] text-ink ${isRead ? "font-medium" : "font-semibold"}`}>{n.task}</span>
+                      <span className="mt-0.5 block text-[13px] text-ink-secondary">{n.sub}</span>
                     </span>
                     {!isRead && <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-brand" />}
                   </button>
