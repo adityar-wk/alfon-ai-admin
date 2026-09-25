@@ -388,54 +388,45 @@ export default function Tasks() {
         ) : (
         <Card table className="overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[900px] table-fixed text-left">
+            <table className="w-full min-w-[1040px] table-fixed text-left">
               <colgroup>
-                {Array.from({ length: manager ? 5 : 6 }, (_, i) => <col key={i} className={!manager && i === 0 ? "w-[96px]" : undefined} />)}
+                <col /><col /><col /><col /><col /><col />
               </colgroup>
               <thead>
                 <tr className="bg-[#F4F4F5] text-[12px] uppercase tracking-wide text-[#6B7280]">
-                  {!manager && <th className="py-3.5 pl-6 font-medium">Task ID</th>}
-                  <th  className="font-medium py-3.5 pl-6 font-medium">Task</th>
-                  {!manager && <th className="py-3.5 pl-6 font-medium">Department</th>}
-                  <th className="py-3.5 pl-6 font-medium">Guest / Room</th>
-                  <th className="py-3.5 pl-6 font-medium">Owner</th>
-                  {manager && <th className="py-3.5 pl-6 font-medium">Priority</th>}
+                  <th className="py-3.5 pl-6 font-medium">SLA</th>
+                  <th className="py-3.5 pl-6 font-medium">Task</th>
                   <th className="py-3.5 pl-6 font-medium">Status</th>
+                  <th className="py-3.5 pl-6 font-medium">Department</th>
+                  <th className="py-3.5 pl-6 font-medium">Room</th>
+                  <th className="py-3.5 pl-6 font-medium">Assigned To</th>
                 </tr>
               </thead>
               <tbody>
-                {rows.map((t) => (
-                  <tr key={t.id} onClick={() => setSelectedId(t.id)} className={`cursor-pointer border-b border-line/50 last:border-0 hover:bg-subtle/60 ${t.status === "Completed" ? "opacity-50" : ""}`}>
-                    {!manager && <td className="font-mono text-[12px] text-ink-tertiary py-3.5 pl-6 pr-3">#{String(t.id).padStart(3, "0")}</td>}
-                    <td className="py-3.5 pl-6 pr-3">
-                      <div className="flex items-center gap-3">
-                        {manager && <DeptIcon dept={t.dept} />}
-                        <div className="min-w-0">
-                          <div className="text-[13px] font-semibold text-ink">{t.title}</div>
-                          {cap(t) && <ComplaintPill className="mt-1" />}
+                {rows.map((t) => {
+                  const D = DEPT_ICON[t.dept] ?? Building2;
+                  return (
+                    <tr key={t.id} onClick={() => setSelectedId(t.id)} className={`cursor-pointer border-b border-line/50 last:border-0 hover:bg-subtle/60 ${t.status === "Completed" ? "opacity-50" : ""}`}>
+                      <td className="whitespace-nowrap py-3.5 pl-6 pr-3"><SlaText sla={t.sla} /></td>
+                      <td className="py-3.5 pl-6 pr-3">
+                        <div className="flex items-center gap-2 text-[13px] font-semibold text-ink">
+                          {t.title}
+                          {cap(t) && <ComplaintPill />}
                         </div>
-                      </div>
-                    </td>
-                    {!manager && <td className="text-[14px] text-ink-secondary py-3.5 pl-6 pr-3">{t.dept}</td>}
-                    <td className="py-3.5 pl-6 pr-3">
-                      <div className="text-[13px] text-ink">{t.guest}</div>
-                      <div className="text-[12px] text-ink-tertiary">Room {t.room}</div>
-                    </td>
-                    <td className="text-[14px] py-3.5 pl-6 pr-3">
-                      {t.owner ? <span className="text-ink-secondary">{t.owner}</span> : <span className="text-ink-tertiary">—</span>}
-                    </td>
-                    {manager && <td className="py-3.5 pl-6 pr-3"><PriorityLabel p={t.priority} /></td>}
-                    <td className="py-3.5 pl-6 pr-3">
-                      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
-                        <StatusLabel t={t} />
-                        <SlaText sla={t.sla} />
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                        <div className="text-[12px] text-ink-tertiary">#{String(t.id).padStart(3, "0")}</div>
+                      </td>
+                      <td className="whitespace-nowrap py-3.5 pl-6 pr-3"><StatusLabel t={t} /></td>
+                      <td className="whitespace-nowrap py-3.5 pl-6 pr-3 text-[14px] text-ink-secondary"><span className="flex items-center gap-2"><D className="h-4 w-4 text-ink-tertiary" />{t.dept}</span></td>
+                      <td className="whitespace-nowrap py-3.5 pl-6 pr-3 text-[14px] text-ink-secondary">{t.room}</td>
+                      <td className="whitespace-nowrap py-3.5 pl-6 pr-3 text-[14px]">
+                        {t.owner ? <span className="text-ink">{t.owner}</span> : <span className="font-medium text-brand">Unassigned</span>}
+                      </td>
+                    </tr>
+                  );
+                })}
                 {!rows.length && (
                   <tr>
-                    <td colSpan={manager ? 5 : 6} className="text-center text-[14px] text-ink-tertiary py-3.5 pl-6 pr-3">No tasks in this view.</td>
+                    <td colSpan={6} className="py-3.5 pl-6 pr-3 text-center text-[14px] text-ink-tertiary">No tasks in this view.</td>
                   </tr>
                 )}
               </tbody>
