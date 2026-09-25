@@ -373,8 +373,7 @@ export default function Tasks() {
                             {cap(t) && <ComplaintPill className="mt-1.5" />}
                           </div>
                         </div>
-                        <div className="mt-3 flex items-center justify-between gap-2">
-                          <PriorityLabel p={t.priority} />
+                        <div className="mt-3">
                           <SlaText sla={t.sla} />
                         </div>
                         <div className="mt-3 flex items-center justify-between border-t border-line/70 pt-3 text-[12px]">
