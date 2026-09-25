@@ -210,8 +210,6 @@ export default function PreArrival() {
     flash(`${fresh.length} arrivals imported from ${file.name}`);
   };
 
-  const contacted = today.filter((g) => g.eng !== "Not Contacted").length;
-  const responded = today.filter((g) => g.eng === "Engaged" || g.eng === "Responded").length;
   const kpiNC = today.filter((g) => g.eng === "Not Contacted").length;
   const kpiAW = today.filter((g) => g.eng === "Awaiting Response").length;
   const kpiAR = today.filter((g) => g.ready === "Action Required").length;
@@ -285,10 +283,10 @@ export default function PreArrival() {
       <Page>
         {/* KPIs */}
         <div className="grid grid-cols-2 gap-5 lg:grid-cols-4">
-          <Kpi icon={Plane} tone="text-ink-secondary bg-subtle" label="Arriving Today" value={today.length} sub={`${contacted} contacted · ${responded} responded`} onClick={() => goToday("all")} />
-          <Kpi icon={Send} tone="text-gray-500 bg-gray-100" label="Not Contacted" value={kpiNC} sub="Requires attention" onClick={() => goToday("nc")} />
-          <Kpi icon={Clock} tone="text-amber-600 bg-amber-50" label="Awaiting Response" value={kpiAW} sub="Messages already sent" onClick={() => goToday("aw")} />
-          <Kpi icon={AlertTriangle} tone="text-amber-700 bg-amber-100" label="Action Required" value={kpiAR} sub="Hotel intervention needed" emphasis onClick={() => goToday("ar")} />
+          <Kpi icon={Plane} tone="text-slate-500" label="Arriving Today" value={today.length} onClick={() => goToday("all")} />
+          <Kpi icon={Send} tone="text-sky-500" label="Not Contacted" value={kpiNC} onClick={() => goToday("nc")} />
+          <Kpi icon={Clock} tone="text-amber-500" label="Awaiting Response" value={kpiAW} onClick={() => goToday("aw")} />
+          <Kpi icon={AlertTriangle} tone="text-red-500" label="Action Required" value={kpiAR} onClick={() => goToday("ar")} />
         </div>
 
         {/* search + filter | date strip | bulk actions */}
@@ -513,31 +511,24 @@ export default function PreArrival() {
 }
 
 function Kpi({
-  icon: Icon, tone, label, value, sub, emphasis, onClick,
+  icon: Icon, tone, label, value, onClick,
 }: {
   icon: React.ComponentType<{ className?: string }>;
   tone: string;
   label: string;
   value: number;
-  sub: string;
-  emphasis?: boolean;
   onClick: () => void;
 }) {
   return (
     <button
       onClick={onClick}
-      className={`rounded-card border p-4 text-left transition-colors hover:border-brand/40 ${
-        emphasis ? "border-amber-200 bg-amber-50/50 shadow-sm" : "border-line bg-white"
-      }`}
+      className="rounded-card border border-line bg-white p-4 text-left transition-colors hover:border-brand/40"
     >
       <div className="flex items-center gap-2">
-        <span className={`flex h-7 w-7 items-center justify-center rounded-lg ${tone}`}>
-          <Icon className="h-4 w-4" />
-        </span>
+        <Icon className={`h-[18px] w-[18px] ${tone}`} />
         <span className="text-[13px] font-medium text-ink-secondary">{label}</span>
       </div>
       <div className="mt-2 text-[28px] font-bold leading-none text-ink">{value}</div>
-      <div className="mt-1.5 text-[12px] text-ink-secondary">{sub}</div>
     </button>
   );
 }
