@@ -15,10 +15,12 @@ import {
   Lock,
   ArrowRight,
   Download,
+  FileText,
+  ChevronLeft,
   X,
 } from "lucide-react";
 import { Topbar } from "../components/Topbar";
-import { Page, Button, Field, Select } from "../components/ui";
+import { Page, Button, Field, Select, Input } from "../components/ui";
 import { AUDIT, TASKS } from "../data/tasks";
 import { usePersona } from "../persona";
 import { ScopePicker } from "../components/ScopePicker";
@@ -37,29 +39,6 @@ type Report = {
 };
 
 const REPORTS: Report[] = [
-  {
-    key: "integrity", title: "Manual Task Integrity Report", icon: ShieldAlert, action: "view", gmOnly: true,
-    desc: "All manually created tasks, with automatic flagging of suspicious patterns for review.",
-    cols: ["Task", "Created by", "Department", "Created", "Flag"],
-    rows: [
-      ["Comp. minibar for Room 1802", "Sarah K.", "Room Service", "May 8, 11:42 PM", "After-hours"],
-      ["Late checkout override 1203", "James W.", "Front Desk", "May 8, 4:10 PM", "Repeated by user"],
-      ["Room upgrade 1608", "Maria S.", "Front Desk", "May 7, 9:05 AM", "—"],
-      ["Extra towels 2104", "Lisa M.", "Housekeeping", "May 7, 8:30 AM", "—"],
-      ["Airport pickup", "John S.", "Concierge", "May 6, 6:15 PM", "No guest request"],
-    ],
-  },
-  {
-    key: "sla-adjust", title: "SLA & Timing Adjustment Report", icon: History, action: "view", gmOnly: true,
-    desc: "Every change made to SLA targets or task completion times, with full attribution.",
-    cols: ["Item", "Changed by", "From", "To", "When"],
-    rows: [
-      ["Housekeeping · Extra towels SLA", "Sophia Carter", "20 min", "30 min", "May 8, 10:02 AM"],
-      ["Task #1042 completion time", "Mike R.", "48 min", "31 min", "May 7, 3:14 PM"],
-      ["Engineering · AC repair SLA", "Sophia Carter", "60 min", "45 min", "May 6, 9:30 AM"],
-      ["Task #1017 completion time", "Sarah K.", "25 min", "12 min", "May 5, 6:48 PM"],
-    ],
-  },
   {
     key: "action", title: "Action Report", icon: Bell, action: "generate",
     desc: "All proactive guest actions flagged by Alfon AI — department, assignee, and completion status.",
@@ -129,17 +108,88 @@ const AUDIT_REPORT: Report = {
   rows: [],
 };
 
-const PERIODS = ["Today", "Last 7 days", "Last 30 days", "This month", "Last month"];
 const LABEL: Record<Action, string> = { view: "View Report", generate: "Generate", download: "Download" };
 
-function downloadCsv(r: Report, period: string) {
-  const lines = [r.cols, ...r.rows].map((row) => row.map((c) => `"${c.replace(/"/g, '""')}"`).join(","));
-  const blob = new Blob([`"${r.title}","${period}"\n` + lines.join("\n")], { type: "text/csv" });
+const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+const daysAgo = (n: number) => { const d = new Date(); d.setDate(d.getDate() - n); return iso(d); };
+const RANGE_PRESETS: { label: string; from: () => string; to: () => string }[] = [
+  { label: "Today", from: () => daysAgo(0), to: () => daysAgo(0) },
+  { label: "Last 7 days", from: () => daysAgo(6), to: () => daysAgo(0) },
+  { label: "Last 30 days", from: () => daysAgo(29), to: () => daysAgo(0) },
+];
+const niceDate = (v: string) => new Date(v + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+
+type Filters = { from: string; to: string; dept: string };
+
+/** rows narrowed to the chosen department (only reports that have a department column can be narrowed) */
+function filterRows(r: Report, f: Filters, allowed: (d: string) => boolean): string[][] {
+  const di = r.cols.findIndex((c) => /^(department|dept)$/i.test(c));
+  if (di < 0) return r.rows;
+  return r.rows.filter((row) => (f.dept === "All departments" ? allowed(row[di]) : row[di] === f.dept));
+}
+
+function saveBlob(blob: Blob, name: string) {
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = `${r.key}-report.csv`;
+  a.download = name;
   a.click();
   URL.revokeObjectURL(a.href);
+}
+
+function downloadCsv(r: Report, rows: string[][], meta: string[]) {
+  const q = (c: string) => `"${c.replace(/"/g, '""')}"`;
+  const lines = [[r.title], ...meta.map((m) => [m]), [], r.cols, ...rows].map((row) => row.map(q).join(","));
+  saveBlob(new Blob([lines.join("\n")], { type: "text/csv" }), `${r.key}-report.csv`);
+}
+
+/** minimal dependency-free PDF (Helvetica, A4, paginated table) */
+function downloadPdf(r: Report, rows: string[][], meta: string[]) {
+  const esc = (t: string) =>
+    t.replace(/[\u2013\u2014]/g, "-").replace(/\u2192/g, "->").replace(/[\\()]/g, (c) => "\\" + c).replace(/[^\x20-\x7e]/g, (c) => (c.charCodeAt(0) < 256 ? "\\" + c.charCodeAt(0).toString(8).padStart(3, "0") : "?"));
+  const W = 595, H = 842, M = 40, usable = W - M * 2;
+  const colW = usable / r.cols.length;
+  const fit = (t: string, size: number) => { const max = Math.max(3, Math.floor(colW / (size * 0.5)) - 1); return t.length > max ? t.slice(0, max - 1) + "..." : t; };
+  const rowH = 20;
+  const perPage = Math.floor((H - M * 2 - 90) / rowH);
+  const pages: string[] = [];
+  for (let start = 0, pg = 0; start < Math.max(rows.length, 1); start += perPage, pg++) {
+    let y = H - M;
+    let c = "";
+    if (pg === 0) {
+      c += `BT /F2 16 Tf ${M} ${y} Td (${esc(r.title)}) Tj ET\n`;
+      y -= 18;
+      meta.forEach((m) => { c += `BT /F1 9 Tf 0.4 g ${M} ${y} Td (${esc(m)}) Tj ET 0 g\n`; y -= 12; });
+      y -= 12;
+    }
+    c += `0.95 g ${M} ${y - 6} ${usable} ${rowH} re f 0 g\n`;
+    r.cols.forEach((h, i) => { c += `BT /F2 9 Tf ${M + i * colW + 6} ${y} Td (${esc(fit(h.toUpperCase(), 9))}) Tj ET\n`; });
+    y -= rowH;
+    rows.slice(start, start + perPage).forEach((row) => {
+      row.forEach((cell, i) => { c += `BT /F1 9 Tf ${M + i * colW + 6} ${y} Td (${esc(fit(cell, 9))}) Tj ET\n`; });
+      c += `0.88 G ${M} ${y - 6} m ${W - M} ${y - 6} l S 0 G\n`;
+      y -= rowH;
+    });
+    c += `BT /F1 8 Tf 0.5 g ${M} 24 Td (Page ${pg + 1}) Tj ET\n`;
+    pages.push(c);
+  }
+  const objs: string[] = [];
+  objs[1] = "<< /Type /Catalog /Pages 2 0 R >>";
+  objs[2] = `<< /Type /Pages /Kids [${pages.map((_, i) => `${5 + i * 2} 0 R`).join(" ")}] /Count ${pages.length} >>`;
+  objs[3] = "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>";
+  objs[4] = "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>";
+  pages.forEach((content, i) => {
+    objs[5 + i * 2] = `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${W} ${H}] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents ${6 + i * 2} 0 R >>`;
+    objs[6 + i * 2] = `<< /Length ${content.length} >>\nstream\n${content}endstream`;
+  });
+  let out = "%PDF-1.4\n";
+  const offsets: number[] = [];
+  for (let i = 1; i < objs.length; i++) { offsets[i] = out.length; out += `${i} 0 obj\n${objs[i]}\nendobj\n`; }
+  const xref = out.length;
+  out += `xref\n0 ${objs.length}\n0000000000 65535 f \n` + offsets.slice(1).map((o) => `${String(o).padStart(10, "0")} 00000 n \n`).join("");
+  out += `trailer\n<< /Size ${objs.length} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`;
+  const bytes = new Uint8Array(out.length);
+  for (let i = 0; i < out.length; i++) bytes[i] = out.charCodeAt(i) & 0xff;
+  saveBlob(new Blob([bytes], { type: "application/pdf" }), `${r.key}-report.pdf`);
 }
 
 export default function Reports() {
@@ -148,8 +198,10 @@ export default function Reports() {
   const list = manager ? [...REPORTS.filter((r) => r.key !== "language" && r.key !== "compensation"), AUDIT_REPORT] : REPORTS;
   const scopeLabel = manager ? scopeDepts.join(", ") : "All departments";
   const [active, setActive] = useState<Report | null>(null);
-  const [period, setPeriod] = useState(PERIODS[1]);
+  const [step, setStep] = useState<"filter" | "report">("filter");
+  const [filters, setFilters] = useState<Filters>({ from: daysAgo(6), to: daysAgo(0), dept: "All departments" });
   const [toast, setToast] = useState<string | null>(null);
+  const deptOptions = ["All departments", ...(manager ? scopeDepts : ["Housekeeping", "Front Desk", "Room Service", "Engineering", "Concierge", "Guest Services", "Food & Beverage"])];
 
   const flash = (m: string) => {
     setToast(m);
@@ -157,7 +209,6 @@ export default function Reports() {
   };
 
   const run = (r: Report) => {
-    if (manager && r.gmOnly) return;
     if (r.key === "audit") {
       r = {
         ...r,
@@ -167,14 +218,14 @@ export default function Reports() {
         }).map((a) => [a.time, a.who, a.action, a.task, a.detail]),
       };
     }
-    if (r.action === "download") {
-      downloadCsv(r, `Arriving today · ${scopeLabel}`);
-      flash(`${r.title} downloaded`);
-    } else {
-      setPeriod(PERIODS[1]);
-      setActive(r);
-    }
+    setFilters({ from: daysAgo(6), to: daysAgo(0), dept: "All departments" });
+    setStep("filter");
+    setActive(r);
   };
+
+  const reportRows = active ? filterRows(active, filters, (d) => !manager || inScope(d)) : [];
+  const meta = [`Period: ${niceDate(filters.from)} - ${niceDate(filters.to)}`, `Department: ${filters.dept}`, `Generated for: ${scopeLabel}`];
+  const rangeOk = !!filters.from && !!filters.to && filters.from <= filters.to;
 
   return (
     <>
@@ -182,66 +233,75 @@ export default function Reports() {
       <Page>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {list.map((r) => (
-            <div key={r.key} className={`relative flex flex-col rounded-card border border-line bg-white p-5 transition-colors ${manager && r.gmOnly ? "opacity-60" : "hover:border-brand/40"}`}>
-              {r.gmOnly && (
-                <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700 ring-1 ring-inset ring-amber-200">
-                  <Lock className="h-2.5 w-2.5" /> GM Only
-                </span>
-              )}
+            <div key={r.key} className="relative flex flex-col rounded-card border border-line bg-white p-5 transition-colors hover:border-brand/40">
               <span className="flex h-10 w-10 items-center justify-center rounded-lg border border-brand/30 bg-brand-tint/40 text-brand">
                 <r.icon className="h-5 w-5" />
               </span>
               <h3 className="mt-4 text-[15px] font-semibold text-ink">{r.title}</h3>
               <p className="mt-1 flex-1 text-[13px] leading-snug text-ink-secondary">{r.desc}</p>
-              {manager && r.gmOnly ? (
-                <span className="mt-4 flex items-center gap-1.5 self-start text-[13px] font-medium text-ink-tertiary">
-                  <Lock className="h-3.5 w-3.5" /> Restricted to General Manager
-                </span>
-              ) : (
-                <button onClick={() => run(r)} className="mt-4 flex items-center gap-1.5 self-start text-[13px] font-semibold text-brand hover:underline">
-                  {r.action === "download" && <Download className="h-3.5 w-3.5" />}
-                  {LABEL[r.action]}
-                  {r.action !== "download" && <ArrowRight className="h-3.5 w-3.5" />}
-                </button>
-              )}
+              <button onClick={() => run(r)} className="mt-4 flex items-center gap-1.5 self-start text-[13px] font-semibold text-brand hover:underline">
+                {LABEL[r.action]}
+                <ArrowRight className="h-3.5 w-3.5" />
+              </button>
             </div>
           ))}
         </div>
       </Page>
 
       {active && (
-        <Overlay onClose={() => setActive(null)} title={active.title} wide={active.action === "view"}>
-          {active.action === "view" ? (
+        <Overlay onClose={() => setActive(null)} title={active.title} wide={step === "report"}>
+          {step === "filter" ? (
             <>
-              <div className="overflow-x-auto p-6">
-                <ReportTable r={active} />
+              <div className="space-y-5 p-6">
+                <p className="text-[13px] text-ink-secondary">{active.desc}</p>
+                <div>
+                  <div className="mb-1.5 flex items-center justify-between">
+                    <span className="text-[13px] font-medium text-ink">Date range</span>
+                    <div className="flex gap-1.5">
+                      {RANGE_PRESETS.map((pr) => (
+                        <button key={pr.label} onClick={() => setFilters((f) => ({ ...f, from: pr.from(), to: pr.to() }))} className="rounded-full bg-subtle px-2.5 py-1 text-[11px] font-medium text-ink-secondary hover:bg-line/60">{pr.label}</button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <Field label="From"><Input type="date" value={filters.from} max={filters.to || undefined} onChange={(e) => setFilters((f) => ({ ...f, from: e.target.value }))} /></Field>
+                    <Field label="To"><Input type="date" value={filters.to} min={filters.from || undefined} onChange={(e) => setFilters((f) => ({ ...f, to: e.target.value }))} /></Field>
+                  </div>
+                </div>
+                <Field label="Department">
+                  <Select value={filters.dept} onChange={(e) => setFilters((f) => ({ ...f, dept: e.target.value }))}>
+                    {deptOptions.map((d) => <option key={d}>{d}</option>)}
+                  </Select>
+                </Field>
               </div>
               <div className="flex justify-end gap-2 border-t border-line px-6 py-3.5">
-                <Button variant="outline" onClick={() => setActive(null)}>Close</Button>
-                <Button onClick={() => { downloadCsv(active, `All time · ${scopeLabel}`); flash("Report exported"); }}>
-                  <Download className="h-4 w-4" /> Export CSV
-                </Button>
+                <Button variant="outline" onClick={() => setActive(null)}>Cancel</Button>
+                <Button onClick={() => setStep("report")} disabled={!rangeOk} className="disabled:opacity-40">Apply filter</Button>
               </div>
             </>
           ) : (
             <>
-              <div className="space-y-4 p-6">
-                <p className="text-[13px] text-ink-secondary">{active.desc}</p>
-                <Field label="Period">
-                  <Select value={period} onChange={(e) => setPeriod(e.target.value)}>
-                    {PERIODS.map((p) => <option key={p}>{p}</option>)}
-                  </Select>
-                </Field>
-                <div>
-                  <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-ink-secondary">Preview</div>
-                  <ReportTable r={active} />
+              <div className="p-6">
+                <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px] text-ink-secondary">
+                  <span><span className="text-ink-tertiary">Period</span> {niceDate(filters.from)} – {niceDate(filters.to)}</span>
+                  <span><span className="text-ink-tertiary">Department</span> {filters.dept}</span>
+                  <span className="text-ink-tertiary">{reportRows.length} {reportRows.length === 1 ? "row" : "rows"}</span>
                 </div>
+                <div className="overflow-x-auto">
+                  <ReportTable r={{ ...active, rows: reportRows }} />
+                </div>
+                {!reportRows.length && <p className="pt-4 text-center text-[13px] text-ink-tertiary">Nothing to report for this filter.</p>}
               </div>
-              <div className="flex justify-end gap-2 border-t border-line px-6 py-3.5">
-                <Button variant="outline" onClick={() => setActive(null)}>Cancel</Button>
-                <Button onClick={() => { downloadCsv(active, `${period} · ${scopeLabel}`); flash(`${active.title} generated`); setActive(null); }}>
-                  <Download className="h-4 w-4" /> Generate CSV
-                </Button>
+              <div className="flex items-center justify-between gap-2 border-t border-line px-6 py-3.5">
+                <Button variant="outline" onClick={() => setStep("filter")}><ChevronLeft className="h-4 w-4" /> Change filter</Button>
+                <div className="flex gap-2">
+                  <Button variant="outline" onClick={() => { downloadCsv(active, reportRows, meta); flash("CSV downloaded"); }}>
+                    <Download className="h-4 w-4" /> CSV
+                  </Button>
+                  <Button onClick={() => { downloadPdf(active, reportRows, meta); flash("PDF downloaded"); }}>
+                    <FileText className="h-4 w-4" /> PDF
+                  </Button>
+                </div>
               </div>
             </>
           )}
@@ -270,7 +330,7 @@ function ReportTable({ r }: { r: Report }) {
           {r.rows.map((row, i) => (
             <tr key={i} className="border-b border-line/70 last:border-0">
               {row.map((c, j) => (
-                <td key={j} className={`px-3 py-2.5 ${j === 0 ? "font-medium text-ink" : "text-ink-secondary"} ${r.gmOnly && j === row.length - 1 && c !== "—" ? "font-medium text-brand" : ""}`}>{c}</td>
+                <td key={j} className={`px-3 py-2.5 ${j === 0 ? "font-medium text-ink" : "text-ink-secondary"}`}>{c}</td>
               ))}
             </tr>
           ))}
