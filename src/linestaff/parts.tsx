@@ -16,7 +16,7 @@ export const isAtRisk = (t: MTask) => isOpen(t) && t.slaLeft >= 0 && t.slaLeft /
 export const isOverdue = (t: MTask) => isOpen(t) && t.slaLeft < 0;
 
 export const STATUS_LABEL: Record<MTask["status"], string> = {
-  unassigned: "Unassigned",
+  unassigned: "",
   assigned: "",
   progress: "",
   completed: "Completed",
