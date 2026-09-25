@@ -399,20 +399,16 @@ export default function Analytics() {
         <div className="mt-5 grid grid-cols-1 gap-4 lg:grid-cols-2">
           <Card className="p-6">
             <h3 className="text-[15px] font-semibold text-ink">Complaint Insights</h3>
-            <p className="text-[12px] text-ink-tertiary">Use View more to see where a complaint happened</p>
             <div className="mt-3 divide-y divide-line/70">
               {COMPLAINTS.map(([name, v]) => {
                 const det = COMPLAINT_DETAIL[name];
                 const n = scale(v);
                 return (
-                  <div key={name} className="grid w-full grid-cols-[1fr_44px_46px_70px_72px] items-center gap-3 py-3 text-left text-[13px]">
+                  <div key={name} className="grid w-full grid-cols-[1fr_44px_46px_70px] items-center gap-3 py-3 text-left text-[13px]">
                     <span className="truncate text-ink">{name}</span>
                     <span className="text-right font-bold text-ink">{n}</span>
                     <span className="text-right text-ink-secondary">{Math.round((v / complaintTotal) * 100)}%</span>
                     <span className="text-right"><Delta v={det.delta} badWhenUp /></span>
-                    <button onClick={() => setBreakdown({ title: `${name} — By Department`, items: det.by, total: n })} className="whitespace-nowrap text-right text-[12px] font-semibold text-brand hover:underline">
-                      View more
-                    </button>
                   </div>
                 );
               })}
