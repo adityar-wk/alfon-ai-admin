@@ -378,7 +378,7 @@ export function ManagerPrototype() {
   );
 
   const bellBtn = (
-    <button onClick={() => nav.push({ name: "notifications" })} aria-label="Notifications" className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white shadow-sm">
+    <button onClick={() => nav.push({ name: "notifications" })} aria-label="Notifications" className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white shadow-sm">
       <Bell className="h-[18px] w-[18px]" /><span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500" />
     </button>
   );
@@ -428,8 +428,8 @@ export function ManagerPrototype() {
         </div>
         <div className="flex items-center gap-2">
           {bellBtn}
-          <button onClick={openCreate} aria-label="Create task" className="flex h-10 w-10 items-center justify-center rounded-full bg-brand text-white shadow-sm active:scale-95">
-            <Plus className="h-5 w-5" />
+          <button onClick={openCreate} aria-label="Create task" className="flex h-11 w-11 items-center justify-center rounded-full text-ink active:bg-black/5">
+            <Plus className="h-6 w-6" strokeWidth={2.25} />
           </button>
         </div>
       </div>
