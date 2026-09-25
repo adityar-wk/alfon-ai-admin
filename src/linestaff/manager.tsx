@@ -852,6 +852,7 @@ export function ManagerPrototype() {
           })()}
         </div>
 
+        {task.complaint && (
         <div className="rounded-2xl border border-line bg-white p-4">
           <div className="flex items-center justify-between">
             <span className="text-[12px] font-semibold text-ink-tertiary">Compensation</span>
@@ -871,6 +872,7 @@ export function ManagerPrototype() {
             <p className="mt-1.5 text-[13px] text-ink-tertiary">None given.</p>
           )}
         </div>
+        )}
 
         <div className={`rounded-2xl bg-white p-4 ${CARD_SHADOW}`}>
           <div className="text-[11px] font-semibold text-ink-secondary">Timeline</div>

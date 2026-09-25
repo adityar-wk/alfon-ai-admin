@@ -61,6 +61,7 @@ const SEED: Task[] = [
   T(20, "Stained Bedding Complaint", "Michael Johnson", "1103", "Housekeeping", "Sarah A.", "High", { kind: "overdue", text: "Overdue 14 min" }, "Escalated", "Guest Chat", {
     tag: "Complaint", vip: true,
     escalation: "Guest reported stained linen; the supervisor could not resolve it within the SLA window.",
+    compensation: [{ type: "Fruit Platter — $10", reason: "Apology for the stained linen", approvedBy: "Daniel Reyes (Housekeeping Manager)", time: "10:12 AM" }],
   }),
   T(21, "Wi-Fi Not Connecting", "David Williams", "1008", "Engineering", "Raj P.", "Medium", { kind: "due", text: "Due in 9 min" }, "Yet to Assign", "Guest Chat"),
   T(22, "Key Card Not Working", "Ananya Kapoor", "908", "Front Desk", "Sarah K.", "High", { kind: "overdue", text: "Overdue 5 min" }, "Escalated", "Guest Chat", {
@@ -87,12 +88,16 @@ const SEED: Task[] = [
   T(39, "Pest Sighting Complaint", "Noah Martinez", "1802", "Housekeeping", "Sarah A.", "Critical", { kind: "overdue", text: "Overdue 9 min" }, "Escalated", "Guest Chat", {
     tag: "Complaint",
     escalation: "Guest reported insects in the bathroom; the room needs to be changed immediately.",
+    compensation: [{ type: "Champagne — $50", reason: "Room changed after the pest sighting", approvedBy: "Sophia Carter (General Manager)", time: "9:48 AM" }],
   }),
   T(40, "Missing Towels Complaint", "Ava Thompson", "2501", "Housekeeping", "Lisa M.", "High", { kind: "overdue", text: "Overdue 6 min" }, "Escalated", "Guest Chat", {
     tag: "Complaint",
     escalation: "Third request for towels; the guest is upset and asked for a manager.",
   }),
-  T(41, "Room Not Cleaned Complaint", "Robert Brown", "905", "Housekeeping", "Maria S.", "High", { kind: "due", text: "Due in 7 min" }, "In Progress", "Guest Chat", { tag: "Complaint" }),
+  T(41, "Room Not Cleaned Complaint", "Robert Brown", "905", "Housekeeping", "Maria S.", "High", { kind: "due", text: "Due in 7 min" }, "In Progress", "Guest Chat", {
+    tag: "Complaint",
+    compensation: [{ type: "Chocolate Cake — $10", reason: "Late cleaning apology", approvedBy: "Daniel Reyes (Housekeeping Manager)", time: "11:05 AM" }],
+  }),
   T(42, "Stale Smell in Room", "Sophia Lee", "1904", "Housekeeping", "Lisa M.", "Medium", { kind: "due", text: "Due in 11 min" }, "Escalated", "Guest Chat", {
     tag: "Complaint",
     escalation: "Odour remains after two cleans; guest wants to move rooms.",

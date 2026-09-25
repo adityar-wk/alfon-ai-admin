@@ -56,6 +56,7 @@ type Task = {
   dept?: string;
   compensation?: { type: string; reason: string; by: string }[];
   escalatedTo?: "Supervisor" | "Mid Manager";
+  complaint?: boolean;
   assignedBy?: string;
 };
 
@@ -66,6 +67,11 @@ const ASSIGNED_SAMPLES = [
 ];
 
 const INITIAL: Task[] = [
+  {
+    id: "t20", title: "Dirty bathroom complaint", room: "Room 1108", note: "Guest complained the bathroom was not cleaned properly.",
+    status: "progress", left: 24, total: 40, guest: "Olivia Turner", roomType: "Deluxe Room", floor: 11, stay: "In house · 2 nights", prefs: ["Quiet room"],
+    source: "Guest chat", created: "10:05 AM", complaint: true,
+  },
   {
     id: "t1", title: "Full towel change & hypoallergenic linens", room: "Room 501", note: "Guest requested a full towel change and hypoallergenic linens before check-in.",
     status: "progress", left: 18, total: 45, guest: "Emma Davis", roomType: "Deluxe King", floor: 5, stay: "Arriving today · 7 nights", prefs: ["Hypoallergenic bedding", "Firm pillow", "Quiet room"],
@@ -419,6 +425,7 @@ export function LineStaffPrototype() {
           {active.staffNote && <p className="mt-2 text-[14px] leading-relaxed text-ink">{active.staffNote}</p>}
         </div>
 
+        {active.complaint && (
         <div className="rounded-2xl border border-line bg-white p-4">
           <div className="flex items-center justify-between">
             <span className="text-[12px] font-semibold text-ink-tertiary">Compensation</span>
@@ -438,6 +445,7 @@ export function LineStaffPrototype() {
             <p className="mt-1.5 text-[13px] text-ink-tertiary">None given.</p>
           )}
         </div>
+        )}
       </div>
 
       <div className="flex shrink-0 gap-3 px-6 pb-6 pt-3">

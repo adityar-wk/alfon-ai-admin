@@ -812,6 +812,7 @@ function ManagerTaskWindow({
             )}
           </div>
 
+          {task.tag === "Complaint" && (
           <div className="border-t border-line pt-5">
             <div className="mb-2 flex items-center justify-between">
               <div className="text-[11px] font-semibold uppercase tracking-wide text-ink-tertiary">Compensation</div>
@@ -833,6 +834,7 @@ function ManagerTaskWindow({
               <p className="text-[13px] text-ink-tertiary">No compensation given.</p>
             )}
           </div>
+          )}
 
           <div className="border-t border-line pt-5">
             <div className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-ink-tertiary">Notes</div>
