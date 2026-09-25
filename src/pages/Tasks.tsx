@@ -251,9 +251,6 @@ export default function Tasks() {
         }
       />
       <Page>
-        <p className="mb-4 text-[13px] text-ink-secondary">
-          {manager ? `Escalations, SLA risks and requests for ${scopeDepts.join(" + ")}.` : "Monitor escalations, SLA risks and operational requests across departments."}
-        </p>
 
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
           {stats.map((s) => (

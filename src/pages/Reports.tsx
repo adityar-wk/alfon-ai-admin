@@ -237,7 +237,7 @@ export default function Reports() {
 
   return (
     <>
-      <Topbar title="Reports" subtitle={manager ? `Reports for ${scopeDepts.join(" + ")}` : "Generate and download operational reports"} actions={manager ? <ScopePicker /> : undefined} />
+      <Topbar title="Reports" actions={manager ? <ScopePicker /> : undefined} />
       <Page>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {list.map((r) => (

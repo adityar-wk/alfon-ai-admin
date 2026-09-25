@@ -98,9 +98,6 @@ export default function RoomsQrSetup({ onboarding = false }: { onboarding?: bool
         <Topbar title="Rooms &amp; QR Setup" backTo={onboarding ? "/onboarding" : undefined} />
         <Page>
           {onboarding && <SetupTabs />}
-          <p className="mb-6 text-[13px] text-ink-secondary">
-            Create rooms, manage room inventory, and generate guest QR codes.
-          </p>
 
           <div className="flex flex-wrap gap-3">
             <Button onClick={() => setDrawer("new")}>

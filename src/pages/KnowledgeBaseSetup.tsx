@@ -59,9 +59,6 @@ export default function KnowledgeBaseSetup() {
       <Topbar title="Knowledge Base Setup" backTo="/onboarding" />
       <Page>
         <SetupTabs />
-        <p className="mb-6 text-[13px] text-ink-secondary">
-          Upload hotel documents or add reference links for Alfon AI to learn from.
-        </p>
 
         <div className="max-w-3xl space-y-5">
           {/* Drag & drop */}

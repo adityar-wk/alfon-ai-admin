@@ -279,7 +279,7 @@ export default function PreArrival() {
 
   return (
     <>
-      <Topbar title="Pre-Arrival" subtitle="Prepare arriving guests, capture preferences, and resolve requests before check-in." />
+      <Topbar title="Pre-Arrival" />
       <Page>
         {/* KPIs */}
         <div className="grid grid-cols-2 gap-5 lg:grid-cols-4">

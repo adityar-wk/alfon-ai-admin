@@ -10,7 +10,6 @@ export default function RolesSetup() {
       <Topbar title="Roles & Permissions" backTo="/onboarding" />
       <Page>
         <SetupTabs />
-        <p className="mb-6 text-[13px] text-ink-secondary">Create roles and choose what each one can access and do.</p>
         <RolesPermissions embedded />
       </Page>
     </>

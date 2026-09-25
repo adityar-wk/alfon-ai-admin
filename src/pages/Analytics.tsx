@@ -186,7 +186,7 @@ export default function Analytics() {
 
   return (
     <>
-      <Topbar title="Analytics" subtitle={manager ? `Performance for ${scopeDepts.join(" + ")}` : "Operational performance across all departments"} actions={manager ? <ScopePicker /> : undefined} />
+      <Topbar title="Analytics" actions={manager ? <ScopePicker /> : undefined} />
       <Page>
         {/* date range + export + filter, one line */}
         <div className="relative flex flex-wrap items-center gap-3">

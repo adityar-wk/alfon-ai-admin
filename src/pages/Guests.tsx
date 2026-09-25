@@ -65,7 +65,7 @@ export default function Guests() {
 
   return (
     <>
-      <Topbar title="Guests" subtitle="View and manage guest profiles, stay details and preferences." />
+      <Topbar title="Guests" />
       <Page>
         {/* stats */}
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">

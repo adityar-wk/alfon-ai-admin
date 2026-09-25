@@ -59,9 +59,6 @@ export default function WhatsAppPmsSetup() {
       <Topbar title="WhatsApp and PMS Setup" backTo="/onboarding" />
       <Page>
         <SetupTabs />
-        <p className="mb-6 text-[13px] text-ink-secondary">
-          These connections are managed by your Alfon administrator. Here is their current status.
-        </p>
 
         <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
           <ConnectionCard

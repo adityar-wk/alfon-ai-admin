@@ -17,9 +17,6 @@ export default function HotelPropertySetup() {
       <Topbar title="Hotel Property Setup" backTo="/onboarding" />
       <Page>
         <SetupTabs />
-        <p className="mb-6 text-[13px] text-ink-secondary">
-          Add your hotel details, address, time zone and preferences to get started.
-        </p>
         <div className="max-w-3xl">
           <div className="space-y-5">
             <Section title="Basic Information">

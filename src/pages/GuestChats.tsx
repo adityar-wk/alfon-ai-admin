@@ -78,7 +78,7 @@ export default function GuestChats() {
 
   return (
     <>
-      <Topbar title="Guest Chats" subtitle="Manage all guest conversations in one place" />
+      <Topbar title="Guest Chats" />
       <div className="flex min-h-0 flex-1 gap-5 bg-[#FBFBFD] p-6">
         {/* ---------------- conversations ---------------- */}
         <div className={`flex shrink-0 flex-col overflow-hidden transition-[width] duration-200 ${CARD} ${collapsed ? "w-[80px]" : "w-[340px]"}`}>

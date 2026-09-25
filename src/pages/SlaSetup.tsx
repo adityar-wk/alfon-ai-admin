@@ -80,9 +80,6 @@ export default function SlaSetup() {
       <Topbar title="SLA & Escalation Setup" backTo="/onboarding" />
       <Page>
         <SetupTabs />
-        <p className="mb-5 text-[13px] text-ink-secondary">
-          Define response times, service SLAs, and escalation paths.
-        </p>
 
         {/* Service SLAs (left) + Escalation (right) */}
         <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">

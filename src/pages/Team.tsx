@@ -223,7 +223,6 @@ export default function Team() {
       <div className="flex min-w-0 flex-1 flex-col">
         <Topbar
           title="Team"
-          subtitle={manager ? "Availability and workload for your department team." : "View your team and what they are working on."}
           actions={manager ? <ScopePicker /> : undefined}
         />
         <Page>

@@ -171,7 +171,7 @@ export default function RolesPermissions({ embedded = false }: { embedded?: bool
 
   return (
     <>
-      {!embedded && <Topbar title="Roles & Permissions" subtitle="Define what each role can access and do, and who belongs to it." />}
+      {!embedded && <Topbar title="Roles & Permissions" />}
       <Shell embedded={embedded}>
         <div className={`${embedded ? "hidden" : "flex"} gap-6 border-b border-line`}>
           {([["roles", "Role Configuration"], ["users", "User Management"]] as const).map(([k, l]) => (

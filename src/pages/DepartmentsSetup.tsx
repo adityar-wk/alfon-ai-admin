@@ -53,9 +53,6 @@ export default function DepartmentsSetup({ onboarding = false }: { onboarding?: 
       />
       <Page>
         {onboarding && <SetupTabs />}
-        <p className="mb-6 text-[13px] text-ink-secondary">
-          Manage and configure hotel departments and their leadership.
-        </p>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {DEPARTMENTS.map((d) => (
