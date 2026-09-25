@@ -444,11 +444,6 @@ export default function Team() {
           title="Staff Details"
           width={400}
           onClose={() => setSelected(null)}
-          footer={
-            <Button className="w-full" onClick={() => setAssigning(true)}>
-              <Plus className="h-4 w-4" /> Add Task
-            </Button>
-          }
         >
           <StaffDetails key={selected.id} s={selected} perms={permsOf(selected)} onSaveAccess={(p) => saveAccess(selected, p)} manager={manager} />
         </Drawer>
@@ -488,10 +483,10 @@ function KV({ label, children }: { label: string; children: React.ReactNode }) {
   );
 }
 
-const DETAIL_TABS = ["Overview", "Schedule", "Performance", "Access"] as const;
+const DETAIL_TABS = ["Performance", "Access"] as const;
 
 export function StaffDetails({ s, perms, onSaveAccess, manager }: { s: Staff; perms: Perms; onSaveAccess: (p: Perms) => void; manager?: boolean }) {
-  const [tab, setTab] = useState<(typeof DETAIL_TABS)[number]>("Overview");
+  const [tab, setTab] = useState<(typeof DETAIL_TABS)[number]>("Performance");
   const first = s.name.split(" ")[0].toLowerCase();
   const last = s.name.split(" ").slice(-1)[0].toLowerCase();
   const n = Number(s.id.replace(/\D/g, ""));
@@ -539,45 +534,6 @@ export function StaffDetails({ s, perms, onSaveAccess, manager }: { s: Staff; pe
           </button>
         ))}
       </div>
-
-      {tab === "Overview" && (
-        <>
-          <div className="mt-1">
-            <KV label="Email">{first}.{last}@alfonhotels.com</KV>
-            <KV label="Phone">
-              <span className="flex items-center gap-2">
-                +971 50 123 {4560 + n} <MessageCircle className="h-4 w-4 text-emerald-500" />
-              </span>
-            </KV>
-            <KV label="Department">{s.dept}</KV>
-            <KV label="Role">{s.role}</KV>
-            <KV label="Shift">
-              {s.shift} ({SHIFT_TIME[s.shift].replace(" – ", " - ")})
-            </KV>
-            <KV label="Joined">Jan {10 + n}, 2023</KV>
-            <KV label="Status">
-              <StatusPill s={s.status} />
-            </KV>
-          </div>
-
-        </>
-      )}
-
-      {tab === "Schedule" && (
-        <div className="mt-2">
-          {shiftDays.map((d, i) => {
-            const off = i === 5 || i === 6;
-            return (
-              <div key={d} className="flex items-center justify-between border-b border-line/70 py-2.5 text-[13px]">
-                <span className="w-12 font-medium text-ink">{d}</span>
-                <span className={off ? "text-ink-tertiary" : "text-ink-secondary"}>
-                  {off ? "Off" : `${s.shift} · ${SHIFT_TIME[s.shift]}`}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-      )}
 
       {tab === "Access" && <AccessEditor saved={perms} onSave={onSaveAccess} />}
 

@@ -576,7 +576,6 @@ function UserManagement({
           </div>
           <div className="ml-auto flex items-center gap-3">
             {activeFilters > 0 && <button onClick={clear} className="text-[13px] font-medium text-brand">Clear filters</button>}
-            <Button onClick={() => setInviteOpen(true)}><Plus className="h-4 w-4" /> Invite User</Button>
             <button
               onClick={() => setFiltersOpen((o) => !o)}
               aria-label="Filters"
@@ -604,18 +603,6 @@ function UserManagement({
                     {depts.map((d) => <option key={d}>{d}</option>)}
                   </Select>
                 </Field>
-                <Field label="Availability">
-                  <Select value={avail} onChange={(e) => { setAvail(e.target.value); setPage(0); }}>
-                    <option value="all">All</option>
-                    <option>On Duty</option><option>On Break</option><option>Off Duty</option>
-                  </Select>
-                </Field>
-                <Field label="Shift">
-                  <Select value={shift} onChange={(e) => { setShift(e.target.value); setPage(0); }}>
-                    <option value="all">All</option>
-                    <option>Morning</option><option>Afternoon</option><option>Night</option>
-                  </Select>
-                </Field>
                 <Field label="Account" className="col-span-2">
                   <Select value={acct} onChange={(e) => { setAcct(e.target.value); setPage(0); }}>
                     <option value="all">All</option>
@@ -632,15 +619,13 @@ function UserManagement({
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[900px] text-left">
+          <table className="w-full min-w-[700px] text-left">
             <thead>
               <tr className="border-b border-line text-[11px] tracking-wide text-ink-secondary">
                 <th className="py-3 pl-4 font-medium">Staff Member</th>
                 <th className="py-3 font-medium">Role</th>
                 <th className="py-3 font-medium">Department</th>
-                <th className="py-3 font-medium">Status</th>
                 <th className="py-3 font-medium">Current Task</th>
-                <th className="py-3 font-medium">Shift</th>
                 <th className="py-3 pr-4 font-medium">Access</th>
               </tr>
             </thead>
@@ -663,27 +648,12 @@ function UserManagement({
                               <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${u.status === "Invited" ? "bg-amber-50 text-amber-600" : "bg-gray-100 text-ink-secondary"}`}>{u.status}</span>
                             )}
                           </span>
-                          <span className="text-[11px] text-ink-tertiary">{st.id}</span>
                         </span>
                       </span>
                     </td>
-                    <td className="w-56 py-3 pr-3" onClick={(e) => e.stopPropagation()}>
-                      <Select
-                        className="h-9 text-[13px]"
-                        value={u.roleId}
-                        aria-label={`Role for ${u.name}`}
-                        onChange={(e) => { update(u.id, { roleId: e.target.value }); flash(`${u.name} is now ${roleOf(e.target.value)?.name}`); }}
-                      >
-                        {roles.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
-                      </Select>
-                    </td>
+                    <td className="py-3 pr-3 text-[13px] text-ink">{roleOf(u.roleId)?.name ?? "Staff"}</td>
                     <td className="py-3 pr-3 text-[13px] text-ink-secondary">{u.dept}</td>
-                    <td className="py-3 pr-3"><StatusPill s={u.avail} /></td>
                     <td className="py-3 pr-3 text-[13px] text-ink-secondary">{u.task ?? "—"}</td>
-                    <td className="py-3 pr-3 leading-tight">
-                      <div className="text-[13px] text-ink">{u.shift}</div>
-                      <div className="text-[11px] text-ink-tertiary">{SHIFT_TIME[u.shift]}</div>
-                    </td>
                     <td className="whitespace-nowrap py-3 pr-4 leading-tight">
                       <div className="text-[13px] text-ink">{levelOf(permsOf(u))}</div>
                       <div className="text-[11px] text-ink-tertiary">{ALL.filter((k) => permsOf(u)[k].view).length} of {ALL.length} modules</div>
@@ -691,7 +661,7 @@ function UserManagement({
                   </tr>
                 );
               })}
-              {!rows.length && <tr><td colSpan={7} className="py-10 text-center text-[13px] text-ink-tertiary">No users match your filters.</td></tr>}
+              {!rows.length && <tr><td colSpan={5} className="py-10 text-center text-[13px] text-ink-tertiary">No users match your filters.</td></tr>}
             </tbody>
           </table>
         </div>
@@ -713,14 +683,6 @@ function UserManagement({
               title="Staff Details"
               width={420}
               onClose={() => setSelectedId(null)}
-              footer={
-                <div className="grid grid-cols-2 gap-2">
-                  <Button variant="outline" onClick={() => { update(selected.id, { status: selected.status === "Deactivated" ? "Active" : "Deactivated" }); flash(selected.status === "Deactivated" ? "User reactivated" : "User deactivated"); }}>
-                    {selected.status === "Deactivated" ? "Reactivate" : "Deactivate"}
-                  </Button>
-                  <Button onClick={() => setAssigning(true)}><Plus className="h-4 w-4" /> Add Task</Button>
-                </div>
-              }
             >
               <StaffDetails
                 key={selected.id}
