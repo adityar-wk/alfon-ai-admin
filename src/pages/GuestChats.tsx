@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import {
   Search, Phone, Mail, Calendar, Hourglass, BedDouble, Users, UtensilsCrossed, Wine, SlidersHorizontal, PanelLeftClose, PanelLeftOpen, Check,
-  FileText, ChevronRight, CalendarDays, X,
+  FileText, ChevronRight, CalendarDays, X, DoorOpen, AlertCircle,
 } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { GuestChat, type ChatMsg, type ChatMode } from "../components/GuestChat";
@@ -10,6 +10,7 @@ import { Flag } from "../components/Flag";
 import { GUESTS as BASE_GUESTS, type Guest } from "../data/guests";
 import { buildProfile, seedChat } from "./GuestProfile";
 import { AI_DRAFTS, TASKS } from "../data/tasks";
+import { sampleUnread } from "../linestaff/mobile";
 
 const CARD = "rounded-[20px] border border-line/60 bg-white shadow-[0_1px_3px_rgba(16,24,40,0.05)]";
 
@@ -21,6 +22,7 @@ const chip = (status: string) =>
       : null;
 
 const ORPHAN_ID = 1000;
+const hasComplaint = (name: string) => TASKS.some((t) => t.guest === name && t.tag === "Complaint" && t.status !== "Completed" && t.status !== "Void");
 const CHAT_FILTERS = ["All", "Active", "Resolved", "Pre-Arrival"] as const;
 const chatFilterOf = (status: string) => (status === "Checked Out" ? "Resolved" : status === "Arriving" ? "Pre-Arrival" : "Active");
 
@@ -149,23 +151,32 @@ export default function GuestChats() {
                 {list.map((g) => {
                   const c = chip(g.status);
                   const lm = lastMsg(g.id);
+                  const unread = sampleUnread(g.name) > 0;
                   return (
                     <button
                       key={g.id}
                       onClick={() => setSelectedId(g.id)}
                       className={`flex w-full items-start gap-3.5 px-6 py-4 text-left hover:bg-subtle/70 ${g.id === guest.id ? "bg-[#F6F7F9]" : ""}`}
                     >
-                      <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full font-display text-[13px] font-semibold ${g.tint}`}>{g.initials}</span>
+                      <span className="relative block shrink-0">
+                        <span className={`flex h-11 w-11 items-center justify-center rounded-full font-display text-[13px] font-semibold ${g.tint}`}>{g.initials}</span>
+                        {hasComplaint(g.name) && (
+                          <span className="absolute -bottom-1 -right-1 flex h-[20px] w-[20px] items-center justify-center rounded-full bg-white">
+                            <AlertCircle aria-label="Complaint" className="h-[18px] w-[18px] text-red-500" />
+                          </span>
+                        )}
+                      </span>
                       <span className="min-w-0 flex-1">
-                        <span className="flex items-baseline justify-between gap-2">
-                          <span className="truncate text-[15px] font-semibold text-ink">{g.name}</span>
-                          {lm && <span className="shrink-0 text-[12px] text-ink-tertiary">{lm.time}</span>}
-                        </span>
-                        <span className="mt-0.5 block text-[13px] text-brand">Room {g.room}</span>
-                        <span className="mt-1 flex items-center gap-2">
+                        <span className="block truncate text-[15px] font-semibold text-ink">{g.name}</span>
+                        <span className="mt-1 flex items-center gap-1 text-[12px] text-ink-tertiary"><DoorOpen className="h-3.5 w-3.5" />{g.room}</span>
+                        <span className="mt-1.5 flex items-center gap-2">
                           <span className="min-w-0 flex-1 truncate text-[13px] text-ink-secondary">{lm ? lm.text : "No messages yet"}</span>
                           {c && <span className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold ${c.cls}`}>{c.text}</span>}
                         </span>
+                      </span>
+                      <span className="flex shrink-0 flex-col items-end justify-between gap-1.5 self-stretch py-0.5">
+                        <span className={`text-[12px] ${unread ? "font-bold text-brand" : "text-ink-tertiary"}`}>{lm?.time ?? ""}</span>
+                        <span className="flex h-2.5 items-center">{unread && <span aria-label="Unread" className="h-2.5 w-2.5 rounded-full bg-brand" />}</span>
                       </span>
                     </button>
                   );
@@ -182,7 +193,7 @@ export default function GuestChats() {
             <span className={`flex h-11 w-11 items-center justify-center rounded-full font-display text-[13px] font-semibold ${guest.tint}`}>{guest.initials}</span>
             <div className="min-w-0 flex-1">
               <div className="text-[17px] font-bold leading-tight text-ink">{guest.name}</div>
-              <div className="mt-0.5 text-[13px] text-ink-tertiary">Room {guest.room} · {guest.nights} Nights Stay</div>
+              <div className="mt-0.5 flex items-center gap-1 text-[13px] text-ink-tertiary"><DoorOpen className="h-3.5 w-3.5" />{guest.room} <span>·</span> {guest.nights} Nights Stay</div>
             </div>
           </div>
           <GuestChat

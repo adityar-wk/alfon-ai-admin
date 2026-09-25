@@ -307,7 +307,7 @@ export function GuestChatScreen({
           </div>
         </button>
       </div>
-      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto bg-[#F6F5F1] px-5 py-5">
+      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto bg-[#FFF9F5] px-5 py-5">
         {!thread.length && <p className="py-6 text-center text-[12px] text-ink-tertiary">No messages yet.</p>}
         {thread.map((m, i) => {
           const mine = m.from !== "guest";
@@ -317,9 +317,9 @@ export function GuestChatScreen({
               <div
                 className={`max-w-[82%] px-4 py-2.5 text-[14px] leading-[1.45] ${
                   m.from === "guest"
-                    ? "rounded-[18px] rounded-tl-md border border-[#E6E4DF] bg-white text-ink"
+                    ? "rounded-[18px] rounded-tl-md border border-[#F3E4DB] bg-white text-ink"
                     : m.from === "ai"
-                      ? "rounded-[18px] rounded-tr-md bg-brand-tint text-ink"
+                      ? "rounded-[18px] rounded-tr-md bg-[#FFE9DF] text-ink"
                       : "rounded-[18px] rounded-tr-md bg-brand text-white"
                 }`}
               >
