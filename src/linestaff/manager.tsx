@@ -218,6 +218,7 @@ export function ManagerPrototype() {
       key={t.id}
       room={t.room}
       note={t.title}
+      staff={t.owner}
       left={t.status === "completed" ? undefined : t.slaLeft}
       total={t.slaTotal}
       done={t.status === "completed"}
@@ -254,6 +255,7 @@ export function ManagerPrototype() {
       key={t.id}
       room={t.room}
       note={t.title}
+      staff={t.owner}
       left={t.status === "completed" ? undefined : t.slaLeft}
       total={t.slaTotal}
       done={t.status === "completed"}

@@ -174,6 +174,7 @@ export function PriorityPill({ p }: { p: Priority }) {
 export function TaskCard({
   room,
   note,
+  staff,
   priority,
   left,
   total,
@@ -185,6 +186,8 @@ export function TaskCard({
 }: {
   room: string;
   note: string;
+  /** who the task is assigned to, shown under the task name */
+  staff?: string | null;
   priority?: Priority;
   left?: number;
   total?: number;
@@ -199,8 +202,11 @@ export function TaskCard({
     <div className={`relative rounded-2xl bg-white p-4 ${CARD_SHADOW} ${done ? "opacity-55 grayscale-[0.5]" : ""}`}>
       <div onClick={onClick} role={onClick ? "button" : undefined} className={`flex items-start gap-3 ${onClick ? "cursor-pointer active:scale-[0.99]" : ""}`}>
         <div className="min-w-0 flex-1">
-          <div className="text-[15px] font-semibold leading-snug text-ink">{note}</div>
-          <div className="mt-1 text-[12px] font-medium text-ink-secondary">{room}</div>
+          <div className="flex items-center gap-1 text-[12px] font-medium text-ink-secondary">
+            {/^Room\s/i.test(room) ? <><DoorClosed className="h-3.5 w-3.5" />{room.replace(/^Room\s+/i, "")}</> : room}
+          </div>
+          <div className="mt-1 text-[15px] font-semibold leading-snug text-ink">{note}</div>
+          {staff !== undefined && <div className="mt-1 text-[12px] text-ink-secondary">{staff ?? "Unassigned"}</div>}
           {(priority || tag) && (
             <div className="mt-2 flex flex-wrap items-center gap-2">
               {priority && <PriorityPill p={priority} />}
