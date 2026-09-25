@@ -52,7 +52,7 @@ export const STAFF: Staffer[] = [
 
 const NOW = "10:31 AM";
 
-export const SEED_TASKS: MTask[] = [
+const RAW_TASKS: MTask[] = [
   {
     id: "t1", room: "Room 501", guest: "Emma Davis", title: "Full towel change & hypoallergenic linens",
     note: "Guest requested a full towel change and hypoallergenic linens before check-in.", priority: "Medium", status: "progress",
@@ -142,6 +142,11 @@ export const SEED_TASKS: MTask[] = [
     timeline: [{ t: "10:00", text: "Created" }, { t: "10:31", text: "Escalated: no staff available" }], notes: [],
   },
 ];
+
+// a task is either an escalation or a complaint, never both: complaints stay complaints
+export const SEED_TASKS: MTask[] = RAW_TASKS.map((t) =>
+  t.complaint ? { ...t, escalated: false, escType: undefined, escBy: undefined, escReason: undefined } : t,
+);
 
 export const HELP_REASONS = ["Need more staff", "Wrong assignment", "Technical blocker", "Guest unavailable", "Item unavailable", "Other"] as const;
 

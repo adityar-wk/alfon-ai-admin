@@ -211,10 +211,12 @@ export function ManagerPrototype() {
   // escalated and complaint read as plain coloured text beside the room; other statuses follow the shared labels
   const cardProps = (t: MTask) => {
     const escalated = !!t.escType || !!t.escalated;
-    const flags = [
-      ...(escalated ? [{ label: "Escalated", tone: "text-red-600" }] : []),
-      ...(t.complaint ? [{ label: "Complaint", tone: "text-violet-600" }] : []),
-    ];
+    // never both: an escalation is an escalation, a complaint stays a complaint
+    const flags = escalated
+      ? [{ label: "Escalated", tone: "text-red-600" }]
+      : t.complaint
+        ? [{ label: "Complaint", tone: "text-violet-600" }]
+        : [];
     return {
       room: t.room,
       note: t.title,

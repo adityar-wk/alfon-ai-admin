@@ -125,10 +125,9 @@ export const fmtMins = (m: number) => {
 };
 
 export function slaTone(left: number, total: number) {
-  if (left < 0) return { color: "#DC2626", label: "over", text: "text-red-600" };
-  const f = left / total;
-  if (f < 0.25) return { color: "#E8623A", label: "left", text: "text-orange-600" };
-  if (f < 0.55) return { color: "#F59E0B", label: "left", text: "text-amber-600" };
+  // breached (negative) or in the last two minutes: red; at risk: orange; otherwise on time: green
+  if (left <= 2) return { color: "#DC2626", label: left < 0 ? "over" : "left", text: "text-red-600" };
+  if (left / total < 0.35) return { color: "#EA580C", label: "left", text: "text-orange-600" };
   return { color: "#16A34A", label: "left", text: "text-emerald-600" };
 }
 

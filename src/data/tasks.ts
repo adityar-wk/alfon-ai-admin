@@ -109,7 +109,11 @@ const SEED: Task[] = [
 
 
 /** Shared in-memory task list — Tasks page and Team page both read/write it. */
-export const TASKS: Task[] = [...SEED];
+// a task is either an escalation or a complaint, never both: complaints stay complaints
+const NORMALIZED: Task[] = SEED.map((t) =>
+  t.tag === "Complaint" && t.status === "Escalated" ? { ...t, status: "In Progress" as Status, escalation: undefined } : t,
+);
+export const TASKS: Task[] = [...NORMALIZED];
 
 export const shortName = (full: string) => {
   const [first, ...rest] = full.split(" ");
