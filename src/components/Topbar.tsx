@@ -32,7 +32,7 @@ export function DefaultTopbarActions() {
 export function Topbar({
   title,
   subtitle,
-  showSearch = true,
+  showSearch = false,
   searchPlaceholder,
   actions,
   backTo,
