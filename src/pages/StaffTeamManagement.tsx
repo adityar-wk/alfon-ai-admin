@@ -1,12 +1,14 @@
 import { useMemo, useRef, useState } from "react";
-import { Upload, UserPlus, Download, MoreVertical, Info, Search } from "lucide-react";
+import { Upload, UserPlus, Download, MoreVertical, Info, Search, Copy, Send, Smartphone } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { SetupTabs } from "../components/SetupTabs";
 import { Drawer } from "../components/Drawer";
 import { Page, Card, Button, Field, Input, Select } from "../components/ui";
+import { FakeQR } from "../components/FakeQR";
 
 type Member = {
   id: number;
+  fresh?: boolean;
   first: string;
   last: string;
   email: string;
@@ -26,6 +28,17 @@ const SEED: Member[] = [
   { id: 7, first: "Rahul", last: "Verma", email: "rahul.verma@alfonhotel.com", phone: "+91 98765 11007", dept: "Operator" },
 ];
 
+const APP_LINK = "https://alfon.app/join/prime-hotel";
+
+// what a CSV upload adds in this prototype
+const IMPORTED: Omit<Member, "id">[] = [
+  { first: "Anita", last: "Desai", email: "", phone: "", dept: "Front Desk" },
+  { first: "Carlos", last: "Mendez", email: "", phone: "", dept: "Engineering" },
+  { first: "Fatima", last: "Khan", email: "", phone: "", dept: "Guest Services" },
+  { first: "Tom", last: "Hughes", email: "", phone: "", dept: "F&B" },
+  { first: "Nisha", last: "Rao", email: "", phone: "", dept: "Concierge" },
+];
+
 type DrawerState = { mode: "add" } | { mode: "edit"; member: Member } | null;
 
 export default function StaffTeamManagement() {
@@ -36,6 +49,8 @@ export default function StaffTeamManagement() {
   const [dragging, setDragging] = useState(false);
   const [fileName, setFileName] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const [menuFor, setMenuFor] = useState<number | null>(null);
+  const [invited, setInvited] = useState(false);
 
   const rows = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -48,6 +63,25 @@ export default function StaffTeamManagement() {
     window.setTimeout(() => setToast(null), 1800);
   };
 
+  const importFile = (f: File) => {
+    setFileName(f.name);
+    setMembers((ms) => {
+      let id = Math.max(0, ...ms.map((x) => x.id));
+      return [...ms.map((x) => ({ ...x, fresh: false })), ...IMPORTED.map((m) => ({ ...m, id: ++id, fresh: true }))];
+    });
+    setInvited(false);
+    flash(`${IMPORTED.length} team members imported from ${f.name}`);
+  };
+
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(APP_LINK);
+    } catch {
+      /* clipboard unavailable */
+    }
+    flash("App link copied");
+  };
+
   const editing = drawer?.mode === "edit" ? drawer.member : null;
 
   return (
@@ -56,6 +90,7 @@ export default function StaffTeamManagement() {
         <Topbar title="Team Members" backTo="/onboarding" />
         <Page>
           <SetupTabs />
+          <div className="max-w-3xl space-y-5">
           <Card className="p-6">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
@@ -79,7 +114,7 @@ export default function StaffTeamManagement() {
               className="hidden"
               onChange={(e) => {
                 const f = e.target.files?.[0];
-                if (f) { setFileName(f.name); flash(`${f.name} uploaded`); }
+                if (f) importFile(f);
                 e.target.value = "";
               }}
             />
@@ -90,7 +125,7 @@ export default function StaffTeamManagement() {
                 e.preventDefault();
                 setDragging(false);
                 const f = e.dataTransfer.files?.[0];
-                if (f) { setFileName(f.name); flash(`${f.name} uploaded`); }
+                if (f) importFile(f);
               }}
               className={`mt-5 flex flex-col items-center justify-center rounded-2xl border border-dashed px-6 py-10 text-center transition-colors ${dragging ? "border-brand bg-brand-tint/50" : "border-line bg-subtle/60"}`}
             >
@@ -100,7 +135,7 @@ export default function StaffTeamManagement() {
               {fileName ? (
                 <>
                   <p className="mt-3 text-[14px] font-medium text-ink">{fileName}</p>
-                  <p className="mt-0.5 text-[12px] text-ink-tertiary">Ready to import</p>
+                  <p className="mt-0.5 text-[12px] text-ink-tertiary">Imported {IMPORTED.length} team members</p>
                 </>
               ) : (
                 <>
@@ -112,6 +147,98 @@ export default function StaffTeamManagement() {
             </div>
           </Card>
 
+          {/* imported team */}
+          <Card className="p-6">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h3 className="text-[16px] font-semibold text-ink">
+                Team members <span className="font-normal text-ink-tertiary">({members.length})</span>
+              </h3>
+              <div className="relative w-full sm:w-60">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-tertiary" />
+                <input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Search name or department"
+                  className="h-10 w-full rounded-lg border border-line bg-white pl-9 pr-3 text-[13px] outline-none placeholder:text-ink-tertiary focus:border-brand"
+                />
+              </div>
+            </div>
+            <div className="mt-3 divide-y divide-line/70">
+              {rows.map((m) => (
+                <div key={m.id} className="relative flex items-center gap-4 py-4">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-tint text-[13px] font-semibold text-brand">
+                    {m.first[0]}{m.last[0]}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 text-[14px] font-medium text-ink">
+                      {m.first} {m.last}
+                      {m.fresh && <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-600">Just imported</span>}
+                    </div>
+                    <div className="text-[12px] text-ink-tertiary">{m.dept}</div>
+                  </div>
+                  <button
+                    aria-label={`Actions for ${m.first} ${m.last}`}
+                    onClick={() => setMenuFor((x) => (x === m.id ? null : m.id))}
+                    className="rounded-md p-1.5 text-ink-tertiary hover:bg-subtle hover:text-ink"
+                  >
+                    <MoreVertical className="h-4 w-4" />
+                  </button>
+                  {menuFor === m.id && (
+                    <>
+                      <button className="fixed inset-0 z-10 cursor-default" aria-label="Close menu" onClick={() => setMenuFor(null)} />
+                      <div className="absolute right-0 top-12 z-20 w-36 rounded-lg border border-line bg-white p-1 shadow-lg">
+                        <button onClick={() => { setDrawer({ mode: "edit", member: m }); setMenuFor(null); }} className="block w-full rounded-md px-3 py-2 text-left text-[13px] text-ink hover:bg-subtle">Edit</button>
+                        <button onClick={() => { setMembers((ms) => ms.filter((x) => x.id !== m.id)); setMenuFor(null); flash("Team member removed"); }} className="block w-full rounded-md px-3 py-2 text-left text-[13px] text-red-600 hover:bg-red-50">Remove</button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              ))}
+              {!rows.length && <p className="py-8 text-center text-[13px] text-ink-tertiary">No team members match.</p>}
+            </div>
+          </Card>
+
+          {/* invite to the app */}
+          <Card className="p-6">
+            <div className="flex items-start gap-3.5">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-tint text-brand">
+                <Smartphone className="h-5 w-5" />
+              </span>
+              <div>
+                <h3 className="text-[16px] font-semibold text-ink">Invite your team to the Alfon app</h3>
+                <p className="mt-1 text-[13px] text-ink-secondary">
+                  Share one link so every team member can download the app and sign in.
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-6 flex flex-col gap-6 sm:flex-row sm:items-center">
+              <FakeQR seed="alfon-app-invite" size={112} className="shrink-0 rounded-lg" />
+              <div className="min-w-0 flex-1">
+                <div className="text-[12px] font-medium text-ink-secondary">App download link</div>
+                <div className="mt-1.5 flex items-center gap-2">
+                  <div className="min-w-0 flex-1 truncate rounded-lg border border-line bg-subtle/60 px-3 py-2.5 text-[13px] text-ink">{APP_LINK}</div>
+                  <Button variant="outline" onClick={copyLink}>
+                    <Copy className="h-4 w-4" /> Copy
+                  </Button>
+                </div>
+                <p className="mt-2 text-[12px] text-ink-tertiary">Staff can also scan the QR code to open the link on their phone.</p>
+              </div>
+            </div>
+
+            <div className="mt-6 flex flex-wrap items-center gap-3 border-t border-line pt-5">
+              <Button
+                onClick={() => {
+                  setInvited(true);
+                  flash(`App link sent to ${members.length} team members`);
+                }}
+              >
+                <Send className="h-4 w-4" /> {invited ? "Send again" : `Send link to all ${members.length} staff`}
+              </Button>
+              {invited && <span className="text-[13px] text-emerald-600">Link sent to {members.length} team members</span>}
+            </div>
+          </Card>
+          </div>
         </Page>
       </div>
 
