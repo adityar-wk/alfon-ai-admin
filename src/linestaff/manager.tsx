@@ -43,10 +43,10 @@ const ROOM_STATUS_FILTERS = ["All", "Cleaning", "Needs Inspection", "Out of Serv
 type RoomStatusFilter = (typeof ROOM_STATUS_FILTERS)[number];
 const ROOM_STATUSES = ["Clean", "Cleaning", "Needs Inspection", "Out of Service"] as const;
 const ROOM_STATUS_TONE: Record<RoomStatus, string> = {
-  Clean: "bg-emerald-50 text-emerald-600",
-  "Cleaning": "bg-blue-50 text-blue-600",
-  "Needs Inspection": "bg-amber-50 text-amber-700",
-  "Out of Service": "bg-red-50 text-red-600",
+  Clean: "text-emerald-600",
+  "Cleaning": "text-blue-600",
+  "Needs Inspection": "text-amber-600",
+  "Out of Service": "text-red-600",
 };
 const TASK_FILTERS = ["All", "Unassigned", "At Risk", "Overdue", "Completed"] as const;
 type TaskFilter = (typeof TASK_FILTERS)[number];
@@ -535,12 +535,21 @@ export function ManagerPrototype() {
       <div><Chips items={ROOM_STATUS_FILTERS} active={roomFilter} onChange={setRoomFilter} counts={roomChipCounts} /></div>
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-6 pb-6 pt-3 no-scrollbar">
         {roomsFiltered.map((r) => (
-          <button key={r.number} onClick={() => setRoomSheet(r.number)} className={`flex w-full items-center justify-between gap-3 rounded-2xl bg-white p-3.5 text-left ${CARD_SHADOW}`}>
-            <div className="min-w-0">
-              <div className="text-[14px] font-semibold text-ink">{r.number}</div>
-              {(r.assignee || r.status === "Needs Inspection" || r.status === "Cleaning") && <div className="mt-0.5 text-[12px] text-ink-tertiary">{r.assignee ? `${r.status === "Cleaning" ? "Cleaning" : "Inspector"} · ${r.assignee}` : r.status === "Cleaning" ? (r.open ? "Open task · anyone can pick it up" : "Cleaner not assigned") : "Inspector not assigned"}</div>}
+          <button key={r.number} onClick={() => setRoomSheet(r.number)} className="block w-full rounded-2xl border border-[#E6E4DF] bg-white px-5 py-4 text-left active:scale-[0.99]">
+            <div className="flex items-center gap-1.5 font-display text-[16px] font-semibold leading-snug text-ink">
+              <DoorOpen className="h-[17px] w-[17px] text-ink-secondary" />{r.number.replace(/^Room\s+/i, "")}
             </div>
-            <span className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold ${ROOM_STATUS_TONE[r.status]}`}>{r.status}</span>
+            <div className="mt-3 flex min-h-[26px] items-center gap-3 text-[13px]">
+              <span className={`text-[12px] font-medium ${ROOM_STATUS_TONE[r.status]}`}>{r.status}</span>
+              {r.assignee && (
+                <span className="flex min-w-0 items-center gap-2 text-ink">
+                  <span className="flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full bg-brand-tint font-display text-[9px] font-semibold text-brand">
+                    {r.assignee.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase()}
+                  </span>
+                  <span className="truncate">{r.assignee.split(" ")[0]}</span>
+                </span>
+              )}
+            </div>
           </button>
         ))}
         {!roomsFiltered.length && <p className="rounded-2xl bg-white p-6 text-center text-[13px] text-ink-tertiary">No rooms match.</p>}

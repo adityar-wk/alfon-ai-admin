@@ -111,66 +111,66 @@ export default function RoomsQrSetup({ onboarding = false }: { onboarding?: bool
             </Button>
           </div>
 
-          <Card table className="mt-5 overflow-hidden">
-            <div className="relative flex flex-wrap items-center gap-3 p-5">
-              <div className="relative w-full max-w-xs">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-tertiary" />
-                <input
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Search room number…"
-                  className="h-10 w-full rounded-control border border-line bg-white pl-9 pr-3 text-[13px] outline-none placeholder:text-ink-tertiary focus:border-brand"
-                />
-              </div>
-              <div className="relative shrink-0">
-                <button
-                  aria-label="Filters"
-                  onClick={() => setFilterOpen((o) => !o)}
-                  className={`relative flex h-10 w-10 items-center justify-center rounded-lg border ${filterOpen || activeFilters ? "border-brand bg-brand-tint text-brand" : "border-line bg-white text-ink-secondary hover:bg-subtle"}`}
-                >
-                  <SlidersHorizontal className="h-4 w-4" />
-                  {activeFilters > 0 && <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-brand px-1 text-[10px] font-semibold text-white">{activeFilters}</span>}
-                </button>
-                {filterOpen && (
-                  <div className="absolute left-0 top-12 z-20 w-[280px] space-y-3 rounded-xl border border-line bg-white p-4 shadow-lg">
-                    <Field label="Floor">
-                      <Select value={floor} onChange={(e) => setFloor(e.target.value)}>
-                        <option value="all">All floors</option>
-                        {floors.map((f) => <option key={f} value={f}>Floor {f}</option>)}
-                      </Select>
-                    </Field>
-                    <Field label="Room type">
-                      <Select value={type} onChange={(e) => setType(e.target.value)}>
-                        <option value="all">All room types</option>
-                        {types.map((t) => <option key={t}>{t}</option>)}
-                      </Select>
-                    </Field>
-                    <Field label="Status">
-                      <Select value={status} onChange={(e) => setStatus(e.target.value)}>
-                        <option value="all">All</option>
-                        <option>Active</option>
-                        <option>Out of Service</option>
-                      </Select>
-                    </Field>
-                    <Field label="QR status">
-                      <Select value={qr} onChange={(e) => setQr(e.target.value)}>
-                        <option value="all">All</option>
-                        <option value="Generated">QR Generated</option>
-                        <option value="Pending">QR Pending</option>
-                        <option value="None">QR Not Generated</option>
-                      </Select>
-                    </Field>
-                    <div className="flex items-center justify-between text-[12px] text-ink-secondary">
-                      <span>{rows.length} rooms match</span>
-                      <button onClick={() => setFilterOpen(false)} className="font-semibold text-brand">Done</button>
-                    </div>
-                  </div>
-                )}
-              </div>
-              {activeFilters > 0 && <button onClick={clear} className="text-[13px] font-medium text-brand">Clear filters</button>}
-              <span className="ml-auto text-[12px] text-ink-tertiary">{rows.length} of 152 rooms</span>
+          <div className="relative mt-5 flex flex-wrap items-center gap-3">
+            <div className="relative w-full max-w-xs">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-tertiary" />
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search room number…"
+                className="h-10 w-full rounded-control border border-line bg-white pl-9 pr-3 text-[13px] outline-none placeholder:text-ink-tertiary focus:border-brand"
+              />
             </div>
+            <div className="relative shrink-0">
+              <button
+                aria-label="Filters"
+                onClick={() => setFilterOpen((o) => !o)}
+                className={`relative flex h-10 w-10 items-center justify-center rounded-lg border ${filterOpen || activeFilters ? "border-brand bg-brand-tint text-brand" : "border-line bg-white text-ink-secondary hover:bg-subtle"}`}
+              >
+                <SlidersHorizontal className="h-4 w-4" />
+                {activeFilters > 0 && <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-brand px-1 text-[10px] font-semibold text-white">{activeFilters}</span>}
+              </button>
+              {filterOpen && (
+                <div className="absolute left-0 top-12 z-20 w-[280px] space-y-3 rounded-xl border border-line bg-white p-4 shadow-lg">
+                  <Field label="Floor">
+                    <Select value={floor} onChange={(e) => setFloor(e.target.value)}>
+                      <option value="all">All floors</option>
+                      {floors.map((f) => <option key={f} value={f}>Floor {f}</option>)}
+                    </Select>
+                  </Field>
+                  <Field label="Room type">
+                    <Select value={type} onChange={(e) => setType(e.target.value)}>
+                      <option value="all">All room types</option>
+                      {types.map((t) => <option key={t}>{t}</option>)}
+                    </Select>
+                  </Field>
+                  <Field label="Status">
+                    <Select value={status} onChange={(e) => setStatus(e.target.value)}>
+                      <option value="all">All</option>
+                      <option>Active</option>
+                      <option>Out of Service</option>
+                    </Select>
+                  </Field>
+                  <Field label="QR status">
+                    <Select value={qr} onChange={(e) => setQr(e.target.value)}>
+                      <option value="all">All</option>
+                      <option value="Generated">QR Generated</option>
+                      <option value="Pending">QR Pending</option>
+                      <option value="None">QR Not Generated</option>
+                    </Select>
+                  </Field>
+                  <div className="flex items-center justify-between text-[12px] text-ink-secondary">
+                    <span>{rows.length} rooms match</span>
+                    <button onClick={() => setFilterOpen(false)} className="font-semibold text-brand">Done</button>
+                  </div>
+                </div>
+              )}
+            </div>
+            {activeFilters > 0 && <button onClick={clear} className="text-[13px] font-medium text-brand">Clear filters</button>}
+            <span className="ml-auto text-[12px] text-ink-tertiary">{rows.length} of 152 rooms</span>
+          </div>
 
+          <Card table className="mt-4 overflow-hidden">
             <table className="w-full table-fixed text-left">
               <colgroup><col /><col /><col /><col /><col /><col className="w-16" /></colgroup>
               <thead>

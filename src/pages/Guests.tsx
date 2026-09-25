@@ -83,9 +83,9 @@ export default function Guests() {
           ))}
         </div>
 
-        {/* search (left) + filter icon (right) */}
-        <div className="relative mt-5 flex items-center justify-between gap-3">
-          <div className="relative w-full max-w-md">
+        {/* search + filter icon side by side */}
+        <div className="relative mt-5 flex items-center gap-3">
+          <div className="relative min-w-0 max-w-md flex-1">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-tertiary" />
             <input
               value={query}
@@ -94,13 +94,7 @@ export default function Guests() {
               className="h-10 w-full rounded-control border border-line bg-white pl-9 pr-3 text-[13px] outline-none placeholder:text-ink-tertiary focus:border-brand"
             />
           </div>
-
-          <div className="flex items-center gap-3">
-            {activeCount > 0 && (
-              <button onClick={() => setFilters(NO_FILTERS)} className="text-[13px] font-medium text-brand">
-                Clear filters
-              </button>
-            )}
+          <div className="relative shrink-0">
             <button
               onClick={() => setFiltersOpen((o) => !o)}
               aria-label="Filters"
@@ -117,48 +111,52 @@ export default function Guests() {
                 </span>
               )}
             </button>
+            {filtersOpen && (
+              <div className="absolute left-0 top-12 z-30 w-[380px] rounded-card border border-line bg-white p-4 shadow-lg">
+                <div className="grid grid-cols-2 gap-3">
+                  <label className="block">
+                    <span className="mb-1 block text-[11px] text-ink-secondary">Stay status</span>
+                    <Select className="h-9 text-[13px]" value={filters.status} onChange={(e) => setFilters((f) => ({ ...f, status: e.target.value }))}>
+                      <option value="all">Any</option>
+                      <option>In House</option>
+                      <option>Arriving</option>
+                    </Select>
+                  </label>
+                  <label className="block">
+                    <span className="mb-1 block text-[11px] text-ink-secondary">Nationality</span>
+                    <Select className="h-9 text-[13px]" value={filters.nationality} onChange={(e) => setFilters((f) => ({ ...f, nationality: e.target.value }))}>
+                      <option value="all">Any</option>
+                      {nationalities.map((n) => (
+                        <option key={n}>{n}</option>
+                      ))}
+                    </Select>
+                  </label>
+                  <label className="block">
+                    <span className="mb-1 block text-[11px] text-ink-secondary">Room type</span>
+                    <Select className="h-9 text-[13px]" value={filters.room} onChange={(e) => setFilters((f) => ({ ...f, room: e.target.value }))}>
+                      <option value="all">Any</option>
+                      {roomTypes.map((r) => (
+                        <option key={r}>{r}</option>
+                      ))}
+                    </Select>
+                  </label>
+                </div>
+                <div className="mt-3 flex items-center justify-between text-[13px]">
+                  <span />
+                  <span className="flex items-center gap-3 text-[12px] text-ink-secondary">
+                    {rows.length} match
+                    <button onClick={() => setFiltersOpen(false)} className="font-semibold text-brand">
+                      Done
+                    </button>
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
-
-          {filtersOpen && (
-            <div className="absolute right-0 top-12 z-30 w-[380px] rounded-card border border-line bg-white p-4 shadow-lg">
-              <div className="grid grid-cols-2 gap-3">
-                <label className="block">
-                  <span className="mb-1 block text-[11px] text-ink-secondary">Stay status</span>
-                  <Select className="h-9 text-[13px]" value={filters.status} onChange={(e) => setFilters((f) => ({ ...f, status: e.target.value }))}>
-                    <option value="all">Any</option>
-                    <option>In House</option>
-                    <option>Arriving</option>
-                  </Select>
-                </label>
-                <label className="block">
-                  <span className="mb-1 block text-[11px] text-ink-secondary">Nationality</span>
-                  <Select className="h-9 text-[13px]" value={filters.nationality} onChange={(e) => setFilters((f) => ({ ...f, nationality: e.target.value }))}>
-                    <option value="all">Any</option>
-                    {nationalities.map((n) => (
-                      <option key={n}>{n}</option>
-                    ))}
-                  </Select>
-                </label>
-                <label className="block">
-                  <span className="mb-1 block text-[11px] text-ink-secondary">Room type</span>
-                  <Select className="h-9 text-[13px]" value={filters.room} onChange={(e) => setFilters((f) => ({ ...f, room: e.target.value }))}>
-                    <option value="all">Any</option>
-                    {roomTypes.map((r) => (
-                      <option key={r}>{r}</option>
-                    ))}
-                  </Select>
-                </label>
-              </div>
-              <div className="mt-3 flex items-center justify-between text-[13px]">
-                <span />
-                <span className="flex items-center gap-3 text-[12px] text-ink-secondary">
-                  {rows.length} match
-                  <button onClick={() => setFiltersOpen(false)} className="font-semibold text-brand">
-                    Done
-                  </button>
-                </span>
-              </div>
-            </div>
+          {activeCount > 0 && (
+            <button onClick={() => setFilters(NO_FILTERS)} className="text-[13px] font-medium text-brand">
+              Clear filters
+            </button>
           )}
         </div>
 

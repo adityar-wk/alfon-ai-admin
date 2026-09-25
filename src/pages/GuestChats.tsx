@@ -106,41 +106,43 @@ export default function GuestChats() {
                     <div className="mt-1 text-[13px] text-ink-tertiary">{list.length === GUESTS.length ? `${GUESTS.length} conversations` : `${list.length} of ${GUESTS.length} conversations`}</div>
                   </div>
                   <div className="flex items-center gap-1">
-                    <div className="relative">
-                      <button
-                        onClick={() => setFilterOpen((o) => !o)}
-                        aria-label="Filter conversations"
-                        aria-expanded={filterOpen}
-                        className={`relative flex h-9 w-9 items-center justify-center rounded-lg ${filter !== "All" || filterOpen ? "bg-brand text-white" : "text-ink-secondary hover:bg-subtle hover:text-ink"}`}
-                      >
-                        <SlidersHorizontal className="h-[18px] w-[18px]" />
-                        {filter !== "All" && <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-ink px-1 text-[9px] font-bold text-white">1</span>}
-                      </button>
-                      {filterOpen && (
-                        <div className="absolute right-0 top-11 z-20 w-48 rounded-xl border border-line bg-white p-1.5 shadow-lg">
-                          <div className="px-2.5 pb-1 pt-1.5 text-[11px] font-semibold uppercase tracking-wide text-ink-tertiary">Show</div>
-                          {CHAT_FILTERS.map((x) => (
-                            <button key={x} onClick={() => { setFilter(x); setFilterOpen(false); }} className="flex w-full items-center justify-between rounded-control px-2.5 py-2 text-left text-[13px] text-ink hover:bg-subtle">
-                              {x}
-                              {filter === x && <Check className="h-4 w-4 text-brand" />}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
                     <button onClick={() => setCollapsed(true)} aria-label="Collapse conversations" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-control text-ink-secondary hover:bg-subtle hover:text-ink">
                       <PanelLeftClose className="h-[18px] w-[18px]" />
                     </button>
                   </div>
                 </div>
-                <div className="relative mt-5">
-                  <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-tertiary" />
-                  <input
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    placeholder="Search conversations…"
-                    className="h-11 w-full rounded-xl bg-subtle pl-10 pr-3 text-[14px] outline-none placeholder:text-ink-tertiary focus:ring-1 focus:ring-brand"
-                  />
+                <div className="mt-5 flex items-center gap-2">
+                  <div className="relative min-w-0 flex-1">
+                    <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-tertiary" />
+                    <input
+                      value={query}
+                      onChange={(e) => setQuery(e.target.value)}
+                      placeholder="Search conversations…"
+                      className="h-11 w-full rounded-xl bg-subtle pl-10 pr-3 text-[14px] outline-none placeholder:text-ink-tertiary focus:ring-1 focus:ring-brand"
+                    />
+                  </div>
+                      <div className="relative shrink-0">
+                        <button
+                          onClick={() => setFilterOpen((o) => !o)}
+                          aria-label="Filter conversations"
+                          aria-expanded={filterOpen}
+                          className={`relative flex h-11 w-11 items-center justify-center rounded-xl border ${filter !== "All" || filterOpen ? "border-brand bg-brand-tint text-brand" : "border-line bg-white text-ink-secondary hover:bg-subtle"}`}
+                        >
+                          <SlidersHorizontal className="h-4 w-4" />
+                          {filter !== "All" && <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-brand px-1 text-[9px] font-bold text-white">1</span>}
+                        </button>
+                        {filterOpen && (
+                          <div className="absolute right-0 top-12 z-20 w-48 rounded-xl border border-line bg-white p-1.5 shadow-lg">
+                            <div className="px-2.5 pb-1 pt-1.5 text-[11px] font-semibold uppercase tracking-wide text-ink-tertiary">Show</div>
+                            {CHAT_FILTERS.map((x) => (
+                              <button key={x} onClick={() => { setFilter(x); setFilterOpen(false); }} className="flex w-full items-center justify-between rounded-control px-2.5 py-2 text-left text-[13px] text-ink hover:bg-subtle">
+                                {x}
+                                {filter === x && <Check className="h-4 w-4 text-brand" />}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                 </div>
               </div>
               <div className="min-h-0 flex-1 divide-y divide-line/50 overflow-y-auto border-t border-line/50">

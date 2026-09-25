@@ -375,7 +375,7 @@ export default function Analytics() {
               <tbody>
                 {rows.map((d) => (
                   <tr key={d.name} className="border-b border-line/50 last:border-0">
-                    <td className="py-3.5 pl-6 pr-3"><span className={`inline-flex rounded-md px-2.5 py-1 text-[12px] font-semibold ${TAGS[deptIdx(d.name)].pill}`}>{d.name}</span></td>
+                    <td className="py-3.5 pl-6 pr-3 text-[14px] font-medium text-ink">{d.name}</td>
                     <td className="text-[14px] font-bold text-ink py-3.5 pl-6 pr-3">{d.n.toLocaleString()}</td>
                     <td className="text-[14px] text-ink-secondary py-3.5 pl-6 pr-3">{d.m.done}%</td>
                     <td className={`py-3 text-[13px] ${d.m.overdue / d.tasks > 0.04 ? "font-semibold text-rose-500" : "text-ink-secondary"}`}>{scale(d.m.overdue)}</td>
@@ -458,7 +458,7 @@ export default function Analytics() {
         {/* peak hours */}
         <Card className="mt-4 p-6">
           <h3 className="text-[15px] font-semibold text-ink">Peak Hours by Department</h3>
-          <p className="text-[12px] text-ink-tertiary">Request volume per hour — darker = higher demand</p>
+          <p className="text-[12px] text-ink-tertiary">Request volume per hour — deeper orange = higher demand</p>
           <div className="mt-4 overflow-x-auto">
             <div className="min-w-[720px]">
               <div className="ml-[156px] grid grid-cols-24 text-[10px] text-ink-tertiary" style={{ gridTemplateColumns: "repeat(24, 1fr)" }}>
@@ -477,7 +477,7 @@ export default function Analytics() {
                           key={h}
                           title={`${name} · ${h}:00 — ${Math.round(v * 100)}% of peak`}
                           className="h-7 rounded"
-                          style={{ background: `rgba(120,150,235,${0.08 + v * 0.62})` }}
+                          style={{ background: `rgba(232,98,58,${0.08 + v * 0.62})` }}
                         />
                       );
                     })}
@@ -487,7 +487,7 @@ export default function Analytics() {
               <div className="mt-3 flex items-center justify-end gap-1.5 text-[11px] text-ink-tertiary">
                 Low
                 {[0.1, 0.3, 0.5, 0.7, 0.9].map((v) => (
-                  <span key={v} className="h-3.5 w-3.5 rounded" style={{ background: `rgba(120,150,235,${0.08 + v * 0.62})` }} />
+                  <span key={v} className="h-3.5 w-3.5 rounded" style={{ background: `rgba(232,98,58,${0.08 + v * 0.62})` }} />
                 ))}
                 High
               </div>

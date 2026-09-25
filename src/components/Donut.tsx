@@ -27,6 +27,7 @@ export function Donut({
         />
         {segments.map((seg) => {
           const len = (seg.value / total) * c;
+          const gap = segments.length > 1 ? 2 : 0; // thin white gap between slices
           const el = (
             <circle
               key={seg.label}
@@ -36,7 +37,7 @@ export function Donut({
               fill="none"
               stroke={seg.color}
               strokeWidth={thickness}
-              strokeDasharray={`${len} ${c - len}`}
+              strokeDasharray={`${Math.max(len - gap, 0)} ${c - Math.max(len - gap, 0)}`}
               strokeDashoffset={-offset}
               strokeLinecap="butt"
             />

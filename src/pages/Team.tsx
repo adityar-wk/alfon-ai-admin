@@ -242,44 +242,35 @@ export default function Team() {
             ))}
           </div>
 
-          <Card table className="mt-5">
-            <div className="relative flex items-center justify-between gap-3 border-b border-line px-4 py-3">
-              <div className="relative w-full max-w-sm">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-tertiary" />
-                <input
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Search staff by name, role, department…"
-                  className="h-10 w-full rounded-control border border-line bg-white pl-9 pr-3 text-[13px] outline-none placeholder:text-ink-tertiary focus:border-brand"
-                />
-              </div>
-
-              <div className="flex items-center gap-3">
+          <div className="relative mt-5 flex items-center gap-3">
+            <div className="relative min-w-0 max-w-md flex-1">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-tertiary" />
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search staff by name, role, department…"
+                className="h-10 w-full rounded-control border border-line bg-white pl-9 pr-3 text-[13px] outline-none placeholder:text-ink-tertiary focus:border-brand"
+              />
+            </div>
+            <div className="relative shrink-0">
+              <button
+                onClick={() => setFiltersOpen((o) => !o)}
+                aria-label="Filters"
+                className={`relative flex h-10 w-10 items-center justify-center rounded-lg border ${
+                  filtersOpen || activeFilters
+                    ? "border-brand bg-brand-tint text-brand"
+                    : "border-line bg-white text-ink-secondary hover:bg-subtle"
+                }`}
+              >
+                <Filter className="h-4 w-4" />
                 {activeFilters > 0 && (
-                  <button onClick={clearFilters} className="text-[13px] font-medium text-brand">
-                    Clear filters
-                  </button>
+                  <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-brand px-1 text-[10px] font-semibold text-white">
+                    {activeFilters}
+                  </span>
                 )}
-                <button
-                  onClick={() => setFiltersOpen((o) => !o)}
-                  aria-label="Filters"
-                  className={`relative flex h-10 w-10 items-center justify-center rounded-lg border ${
-                    filtersOpen || activeFilters
-                      ? "border-brand bg-brand-tint text-brand"
-                      : "border-line bg-white text-ink-secondary hover:bg-subtle"
-                  }`}
-                >
-                  <Filter className="h-4 w-4" />
-                  {activeFilters > 0 && (
-                    <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-brand px-1 text-[10px] font-semibold text-white">
-                      {activeFilters}
-                    </span>
-                  )}
-                </button>
-              </div>
-
+              </button>
               {filtersOpen && (
-                <div className="absolute right-4 top-14 z-30 w-[360px] rounded-card border border-line bg-white p-4 shadow-lg">
+                <div className="absolute left-0 top-12 z-30 w-[360px] rounded-card border border-line bg-white p-4 shadow-lg">
                   <div className="grid grid-cols-2 gap-3">
                     <label className="block">
                       <span className="mb-1 block text-[11px] text-ink-secondary">Department</span>
@@ -317,7 +308,14 @@ export default function Team() {
                 </div>
               )}
             </div>
+            {activeFilters > 0 && (
+              <button onClick={clearFilters} className="text-[13px] font-medium text-brand">
+                Clear filters
+              </button>
+            )}
+          </div>
 
+          <Card table className="mt-4">
             <div className="overflow-x-auto">
               <table className="w-full table-fixed min-w-[820px] text-left">
                 <thead>
