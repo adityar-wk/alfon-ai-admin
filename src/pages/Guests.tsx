@@ -174,16 +174,16 @@ export default function Guests() {
         {/* table */}
         <Card className="mt-4 overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[820px] whitespace-nowrap text-left">
+            <table className="w-full min-w-[820px] table-fixed whitespace-nowrap text-left">
+              <colgroup><col /><col /><col /><col /><col /></colgroup>
               <thead>
                 <tr className="border-b border-line text-[11px] uppercase tracking-wide text-ink-secondary">
                   <th className="py-3 pl-5 font-medium">Guest</th>
                   <th className="py-3 font-medium">Room / Type</th>
                   <th className="py-3 font-medium">Stay Dates</th>
                   <th className="py-3 font-medium">Nationality</th>
-                  <th className="py-3 font-medium">Status</th>
-                  <th className="py-3 pr-5 font-medium">Last Interaction</th>
-                </tr>
+                  <th className="py-3 pr-5 font-medium">Status</th>
+                                  </tr>
               </thead>
               <tbody>
                 {rows.map((g) => (
@@ -220,27 +220,14 @@ export default function Guests() {
                         <Flag country={g.country} /> {g.country}
                       </span>
                     </td>
-                    <td className="py-3 pr-3">
-                      <Badge tone={g.status === "In House" ? "success" : "info"}>{g.status}</Badge>
-                    </td>
                     <td className="py-3 pr-5">
-                      {g.last ? (
-                        <span className="flex items-center gap-2 text-[13px] text-ink-secondary">
-                          {g.last}
-                          <span className="flex items-center gap-0.5 text-ink-tertiary">
-                            <MessageSquare className="h-3.5 w-3.5" />
-                            {g.msgs}
-                          </span>
-                        </span>
-                      ) : (
-                        <span className="text-ink-tertiary">–</span>
-                      )}
+                      <Badge tone={g.status === "In House" ? "success" : "info"}>{g.status}</Badge>
                     </td>
                   </tr>
                 ))}
                 {!rows.length && (
                   <tr>
-                    <td colSpan={6} className="py-12 text-center text-[13px] text-ink-tertiary">
+                    <td colSpan={5} className="py-12 text-center text-[13px] text-ink-tertiary">
                       No guests match your search or filters.
                     </td>
                   </tr>
