@@ -195,14 +195,16 @@ export default function ComponentDesign() {
           </Section>
 
           {/* ------------------------------------------------ actions */}
-          <Section id="button" title="Button" note="Inter 600 / 14px, 10px radius, 10px 18px padding. Primary is Warm Orange; secondary is transparent with a hairline border. Labels never carry tick marks.">
+          <Section id="button" title="Button" note="Inter 600 / 14px, 10px radius, 10px 18px padding. Primary is Warm Orange; secondary is transparent with a hairline border; the orange outline pairs an orange border and label with a white fill. Labels never carry tick marks.">
             <div className="flex flex-wrap items-center gap-3">
               <Button>New Chat</Button>
               <Button variant="outline">Cancel</Button>
+              <Button variant="brand-outline">Orange outline</Button>
               <Button variant="ghost">Ghost</Button>
               <Button disabled className="disabled:opacity-40">Disabled</Button>
               <Button><Plus className="h-4 w-4" /> With icon</Button>
               <Button variant="outline"><Download className="h-4 w-4" /> Secondary icon</Button>
+              <Button variant="brand-outline"><Download className="h-4 w-4" /> Orange outline icon</Button>
             </div>
           </Section>
 

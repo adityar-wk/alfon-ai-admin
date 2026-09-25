@@ -71,7 +71,7 @@ export function Button({
   className = "",
   ...rest
 }: {
-  variant?: "primary" | "outline" | "ghost";
+  variant?: "primary" | "outline" | "ghost" | "brand-outline";
   /** custom fill for a coloured primary action, e.g. "bg-emerald-600" */
   tone?: string;
   children: ReactNode;
@@ -81,6 +81,7 @@ export function Button({
     primary: tone ? `${tone} text-white hover:opacity-90` : "bg-brand text-white hover:bg-brand-hover",
     outline: "border border-line bg-transparent text-ink hover:bg-subtle",
     ghost: "text-ink-secondary hover:bg-subtle",
+    "brand-outline": "border border-brand bg-white text-brand hover:bg-brand-tint",
   }[variant];
   return (
     <button
