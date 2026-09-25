@@ -65,18 +65,20 @@ export default function DepartmentsSetup({ onboarding = false }: { onboarding?: 
           {DEPARTMENTS.map((d) => (
             <DeptCard key={d.slug} d={d} onboarding={onboarding} />
           ))}
-          <Link
-            to={`/departments/new${onboarding ? "?from=onboarding" : ""}`}
-            className="flex min-h-[150px] flex-col items-center justify-center rounded-card border-2 border-dashed border-line text-center hover:border-brand/40"
-          >
-            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-tint text-brand">
-              <Plus className="h-5 w-5" />
-            </span>
-            <span className="mt-2 text-[14px] font-semibold text-ink">Add Department</span>
-            <span className="mt-0.5 text-[12px] text-ink-secondary">
-              Create a new department for your hotel
-            </span>
-          </Link>
+          {onboarding && (
+            <Link
+              to={`/departments/new${onboarding ? "?from=onboarding" : ""}`}
+              className="flex min-h-[150px] flex-col items-center justify-center rounded-card border-2 border-dashed border-line text-center hover:border-brand/40"
+            >
+              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-tint text-brand">
+                <Plus className="h-5 w-5" />
+              </span>
+              <span className="mt-2 text-[14px] font-semibold text-ink">Add Department</span>
+              <span className="mt-0.5 text-[12px] text-ink-secondary">
+                Create a new department for your hotel
+              </span>
+            </Link>
+          )}
         </div>
       </Page>
     </>

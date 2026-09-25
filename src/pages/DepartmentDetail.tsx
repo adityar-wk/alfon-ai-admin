@@ -1,20 +1,22 @@
 import { useEffect, useState } from "react";
-import { Link, Navigate, useParams, useSearchParams } from "react-router-dom";
+import { Navigate, useParams, useSearchParams } from "react-router-dom";
 import {
-  Building2,
-  Pencil,
   Plus,
-  MoreHorizontal,
   CheckCircle2,
   Circle,
+  ChevronRight,
   Info,
   Check,
+  Search,
+  Mail,
+  Phone,
 } from "lucide-react";
 import { Topbar } from "../components/Topbar";
-import { Breadcrumb } from "../components/Breadcrumb";
 import { Drawer } from "../components/Drawer";
-import { Page, Card, Badge, Button, Field, Input, Select } from "../components/ui";
+import { Page, Card, Button, Field, Input, Select } from "../components/ui";
 import { getDepartment, initials, type DeptMember, type DeptService } from "../data/departments";
+import { deptIcon } from "../data/deptIcons";
+import { TASKS, shortName } from "../data/tasks";
 
 export default function DepartmentDetail() {
   const { slug = "" } = useParams();
@@ -25,6 +27,8 @@ export default function DepartmentDetail() {
   const [members, setMembers] = useState<DeptMember[]>(dept?.members ?? []);
   const [services, setServices] = useState<DeptService[]>(dept?.services ?? []);
   const [addStaffOpen, setAddStaffOpen] = useState(false);
+  const [staffQuery, setStaffQuery] = useState("");
+  const [selectedMember, setSelectedMember] = useState<string | null>(null);
   const [addingService, setAddingService] = useState(false);
   const [newService, setNewService] = useState({ name: "", description: "" });
   const [toast, setToast] = useState<string | null>(null);
@@ -48,7 +52,9 @@ export default function DepartmentDetail() {
   if (!dept) return <Navigate to={listPath} replace />;
 
   const head = members.find((m) => m.role === "Department Head");
-  const supervisors = members.filter((m) => m.role === "Supervisor").length;
+  const shownMembers = members.filter((m) => `${m.name} ${m.role}`.toLowerCase().includes(staffQuery.trim().toLowerCase()));
+  const Icon = deptIcon(dept.name);
+  const selected = members.find((m) => m.name === selectedMember) ?? null;
 
   const addService = () => {
     if (!newService.name.trim()) return;
@@ -63,6 +69,7 @@ export default function DepartmentDetail() {
   const addStaff = (form: { name: string; role: DeptMember["role"]; reports: string }) => {
     setMembers((m) => [...m, { name: form.name, role: form.role, reports: form.reports, status: "Active" }]);
     setAddStaffOpen(false);
+    setSelectedMember(null);
   };
 
   return (
@@ -78,172 +85,86 @@ export default function DepartmentDetail() {
           }
         />
         <Page>
-          <Breadcrumb items={["Departments", dept.name]} />
-          <p className="mb-6 mt-1 text-[13px] text-ink-secondary">
-            Manage department details, members, and services.
-          </p>
-
-          <Card className="p-6">
-            <div className="flex flex-wrap items-start gap-6">
-              <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-tint text-brand">
-                <Building2 className="h-6 w-6" />
-              </span>
-              <div className="grid flex-1 grid-cols-2 gap-x-8 gap-y-3 sm:grid-cols-4">
-                <div>
-                  <div className="text-xs text-ink-secondary">Department Name</div>
-                  <div className="text-[14px] font-semibold text-ink">{dept.name}</div>
-                </div>
-                <div>
-                  <div className="text-xs text-ink-secondary">Status</div>
-                  <div className="flex items-center gap-1.5 text-[14px] font-semibold text-ink">
-                    <span className="h-2 w-2 rounded-full bg-emerald-500" /> Active
-                  </div>
-                </div>
-                <div>
-                  <div className="text-xs text-ink-secondary">Department Head</div>
-                  <div className="text-[14px] font-semibold text-ink">{head?.name ?? "—"}</div>
-                </div>
-                <div>
-                  <div className="text-xs text-ink-secondary">Supervisors</div>
-                  <div className="text-[14px] font-semibold text-ink">{supervisors} assigned</div>
-                </div>
+          <div className="flex items-center gap-4">
+            <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-brand-tint text-brand">
+              <Icon className="h-7 w-7" />
+            </span>
+            <div className="min-w-0">
+              <h1 className="text-[28px] font-bold leading-tight tracking-tight text-ink">{dept.name}</h1>
+              <div className="mt-1 text-[15px] text-ink-secondary">
+                <span className="text-ink-tertiary">Head of Department</span>{" "}
+                <span className="font-semibold text-ink">{head?.name ?? "—"}</span>
               </div>
-              <Button variant="outline">
-                <Pencil className="h-4 w-4" /> Edit Department
-              </Button>
             </div>
-            <div className="mt-4">
-              <div className="text-xs text-ink-secondary">Description</div>
-              <p className="mt-1 max-w-3xl text-[13px] text-ink-secondary">{dept.description}</p>
-            </div>
-          </Card>
+          </div>
+          <p className="mt-3 max-w-3xl text-[13px] leading-relaxed text-ink-tertiary">{dept.description}</p>
 
-          <div className="mt-6 grid grid-cols-1 gap-5 lg:grid-cols-2">
+          <div className="mt-6 grid grid-cols-1 gap-5 lg:grid-cols-[1.4fr_1fr]">
             <Card className="p-6">
-              <div className="flex items-center justify-between">
-                <h3 className="text-[15px] font-semibold text-ink">Department Members</h3>
+              <div className="flex items-baseline justify-between">
+                <h3 className="text-[16px] font-semibold text-ink">Staff</h3>
+                <span className="text-[12px] text-ink-tertiary">{members.length} {members.length === 1 ? "member" : "members"}</span>
+              </div>
+              <div className="mt-4 flex items-center gap-3">
+                <div className="relative flex-1">
+                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-tertiary" />
+                  <Input value={staffQuery} onChange={(e) => setStaffQuery(e.target.value)} placeholder="Search staff" className="pl-9" />
+                </div>
                 <Button onClick={() => setAddStaffOpen(true)}>
                   <Plus className="h-4 w-4" /> Add Staff
                 </Button>
               </div>
-              <table className="mt-4 w-full text-left">
-                <thead>
-                  <tr className="border-b border-line text-[11px] uppercase tracking-wide text-ink-secondary">
-                    <th className="pb-2 font-medium">Member</th>
-                    <th className="pb-2 font-medium">Role</th>
-                    <th className="pb-2 font-medium">Reports To</th>
-                    <th className="pb-2 font-medium">Status</th>
-                    <th className="pb-2" />
-                  </tr>
-                </thead>
-                <tbody>
-                  {members.map((m) => (
-                    <tr key={m.name} className="border-b border-line/70">
-                      <td className="py-3">
-                        <span className="flex items-center gap-2.5">
-                          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-subtle text-[11px] font-semibold text-ink-secondary">
-                            {initials(m.name)}
-                          </span>
-                          <span className="text-[13px] font-medium text-ink">{m.name}</span>
-                        </span>
-                      </td>
-                      <td className="py-3">
-                        {m.role === "Department Head" ? (
-                          <Badge tone="brand">Department Head</Badge>
-                        ) : (
-                          <span className="text-[12px] text-ink-secondary">{m.role}</span>
-                        )}
-                      </td>
-                      <td className="py-3 text-[13px] text-ink-secondary">{m.reports}</td>
-                      <td className="py-3">
-                        <span className="inline-flex items-center gap-1.5 text-[12px] text-emerald-600">
-                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> {m.status}
-                        </span>
-                      </td>
-                      <td className="py-3">
-                        <MoreHorizontal className="h-4 w-4 text-ink-tertiary" />
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              <p className="mt-3 text-[12px] text-ink-tertiary">
-                Showing 1 to {members.length} of {members.length} members
-              </p>
+              <div className="mt-3 divide-y divide-line/70">
+                {shownMembers.map((m) => (
+                  <button
+                    key={m.name}
+                    onClick={() => setSelectedMember(m.name)}
+                    className={`flex w-full items-center gap-3 rounded-lg px-2 py-3 text-left hover:bg-subtle/70 ${selectedMember === m.name ? "bg-subtle/70" : ""}`}
+                  >
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-subtle text-[12px] font-semibold text-ink-secondary">
+                      {initials(m.name)}
+                    </span>
+                    <span className="min-w-0 flex-1 truncate text-[14px] font-medium text-ink">{m.name}</span>
+                    <span className={`shrink-0 text-[12px] ${m.role === "Department Head" ? "font-semibold text-brand" : "text-ink-secondary"}`}>{m.role}</span>
+                    <ChevronRight className="h-4 w-4 shrink-0 text-ink-tertiary" />
+                  </button>
+                ))}
+                {!shownMembers.length && <p className="py-8 text-center text-[13px] text-ink-tertiary">No staff match your search.</p>}
+              </div>
             </Card>
 
             <Card className="p-6">
-              <div className="flex items-center justify-between">
-                <h3 className="text-[15px] font-semibold text-ink">Services Covered</h3>
-                <button
-                  onClick={() => setAddingService((v) => !v)}
-                  className="flex items-center gap-1.5 text-[13px] font-medium text-brand"
-                >
+              <div className="flex items-baseline justify-between">
+                <h3 className="text-[16px] font-semibold text-ink">Services Covered</h3>
+                <button onClick={() => setAddingService((v) => !v)} className="flex items-center gap-1.5 text-[13px] font-medium text-brand">
                   <Plus className="h-4 w-4" /> Add Service
                 </button>
               </div>
 
-              <div className="mt-2 divide-y divide-line">
-                {services.map((s) => (
-                  <div key={s.name} className="flex items-start gap-3 py-3">
-                    <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
-                    <div className="min-w-0 flex-1">
-                      <span className="text-[13px] font-medium text-ink">{s.name}</span>
-                      {s.description && (
-                        <p className="mt-0.5 text-[12px] text-ink-secondary">{s.description}</p>
-                      )}
-                    </div>
-                    <Badge tone={s.active ? "success" : "neutral"}>
-                      {s.active ? "Active" : "Inactive"}
-                    </Badge>
-                  </div>
+              <div className="mt-3 divide-y divide-line/70">
+                {services.map((sv) => (
+                  <div key={sv.name} className="py-3 text-[14px] text-ink">{sv.name}</div>
                 ))}
-                {!services.length && (
-                  <p className="py-6 text-center text-[13px] text-ink-tertiary">
-                    No services added yet.
-                  </p>
-                )}
+                {!services.length && <p className="py-6 text-center text-[13px] text-ink-tertiary">No services added yet.</p>}
               </div>
 
               {addingService && (
                 <div className="mt-3 space-y-3 rounded-lg border border-line bg-subtle p-4">
                   <Field label="Service Name" required>
-                    <Input
-                      autoFocus
-                      placeholder="e.g. Pillow Menu"
-                      value={newService.name}
-                      onChange={(e) => setNewService((s) => ({ ...s, name: e.target.value }))}
-                    />
-                  </Field>
-                  <Field label="Description (optional)">
-                    <Input
-                      placeholder="Short description"
-                      value={newService.description}
-                      onChange={(e) => setNewService((s) => ({ ...s, description: e.target.value }))}
-                    />
+                    <Input autoFocus placeholder="e.g. Pillow Menu" value={newService.name} onChange={(e) => setNewService((sv) => ({ ...sv, name: e.target.value }))} />
                   </Field>
                   <div className="flex gap-2">
                     <Button onClick={addService}>Add</Button>
-                    <Button variant="outline" onClick={() => setAddingService(false)}>
-                      Cancel
-                    </Button>
+                    <Button variant="outline" onClick={() => setAddingService(false)}>Cancel</Button>
                   </div>
                 </div>
               )}
             </Card>
           </div>
-
-          <div className="mt-6 flex items-center gap-3">
-            <Button onClick={() => setToast("Changes saved")}>Save Changes</Button>
-            <Link
-              to="/departments"
-              className="inline-flex items-center gap-2 rounded-lg border border-line bg-white px-4 py-2 text-[13px] font-semibold text-ink hover:bg-subtle"
-            >
-              ← Back to Departments
-            </Link>
-          </div>
         </Page>
       </div>
+
+      {selected && !addStaffOpen && <StaffDetailDrawer member={selected} deptName={dept.name} onClose={() => setSelectedMember(null)} />}
 
       {addStaffOpen && (
         <AddStaffDrawer
@@ -262,6 +183,32 @@ export default function DepartmentDetail() {
         </div>
       )}
     </div>
+  );
+}
+
+function StaffDetailDrawer({ member, deptName, onClose }: { member: DeptMember; deptName: string; onClose: () => void }) {
+  const short = shortName(member.name);
+  const mine = TASKS.filter((t) => t.owner === short);
+  const open = mine.filter((t) => !["Completed", "Void", "Unable to Complete"].includes(t.status)).length;
+  const email = `${member.name.toLowerCase().replace(/[^a-z ]/g, "").replace(/\s+/g, ".")}@primehotel.com`;
+  return (
+    <Drawer title="Staff Details" onClose={onClose}>
+      <div className="flex flex-col items-center text-center">
+        <span className="flex h-16 w-16 items-center justify-center rounded-full bg-brand-tint text-[20px] font-semibold text-brand">{initials(member.name)}</span>
+        <div className="mt-3 text-[17px] font-bold text-ink">{member.name}</div>
+        <div className="text-[13px] text-ink-secondary">{member.role} · {deptName}</div>
+        <span className="mt-2 inline-flex items-center gap-1.5 text-[12px] text-emerald-600"><span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> {member.status}</span>
+      </div>
+      <div className="mt-6 space-y-3 text-[13px] text-ink">
+        <div className="flex items-center gap-2.5"><Mail className="h-4 w-4 text-ink-tertiary" /> {email}</div>
+        <div className="flex items-center gap-2.5"><Phone className="h-4 w-4 text-ink-tertiary" /> +1 (555) 010-{String(1000 + (member.name.length * 137) % 9000)}</div>
+      </div>
+      <div className="mt-6 divide-y divide-line/70 border-t border-line/70 text-[13px]">
+        <div className="flex items-center justify-between py-3"><span className="text-ink-secondary">Reports to</span><span className="font-medium text-ink">{member.reports}</span></div>
+        <div className="flex items-center justify-between py-3"><span className="text-ink-secondary">Open tasks</span><span className="font-medium text-ink">{open}</span></div>
+        <div className="flex items-center justify-between py-3"><span className="text-ink-secondary">Tasks handled</span><span className="font-medium text-ink">{mine.length}</span></div>
+      </div>
+    </Drawer>
   );
 }
 
