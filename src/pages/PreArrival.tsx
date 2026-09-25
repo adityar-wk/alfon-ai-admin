@@ -54,7 +54,7 @@ function ReadyBadge({ r }: { r: Ready }) {
 
 // what the engagement column reads as
 const ENG_LABEL: Record<string, string> = {
-  "Not Contacted": "No contact",
+  "Not Contacted": "Pending",
   "Awaiting Response": "Message sent",
   Engaged: "Responded",
   Responded: "Responded",
@@ -106,6 +106,10 @@ function arrivalLabel(g: PreGuest) {
 
 function checkinDay(g: PreGuest) {
   return g.day === "today" ? 24 : g.day === "tomorrow" ? 25 : parseInt(g.date.split(" ")[1], 10);
+}
+
+function shortDay(day: number) {
+  return new Date(2025, 4, day).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
 function fmt(day: number) {
@@ -405,11 +409,8 @@ export default function PreArrival() {
                           </div>
                         </div>
                       </td>
-                      <td className="whitespace-nowrap py-3.5 pr-3">
-                        <div className="text-[14px] text-ink-secondary">{g.room ? `Room ${g.room}` : "Room not assigned"}</div>
-                        <div className="text-[12px] text-ink-tertiary">
-                          {g.type} · {g.nights} nights
-                        </div>
+                      <td className="whitespace-nowrap py-3.5 pr-3 text-[14px] text-ink-secondary">
+                        {shortDay(checkinDay(g))} – {shortDay(checkinDay(g) + g.nights)}
                       </td>
                       <td className="whitespace-nowrap py-3.5 pr-3">
                         <div className="text-[14px] text-ink-secondary">{arrivalLabel(g)}</div>
