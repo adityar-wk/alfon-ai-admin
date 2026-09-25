@@ -249,7 +249,7 @@ export default function PreArrival() {
       <Topbar title="Pre-Arrival" subtitle="Prepare arriving guests, capture preferences, and resolve requests before check-in." />
       <Page>
         {/* KPIs */}
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-5 lg:grid-cols-4">
           <Kpi icon={Plane} tone="text-ink-secondary bg-subtle" label="Arriving Today" value={today.length} sub={`${contacted} contacted · ${responded} responded`} onClick={() => goToday("all")} />
           <Kpi icon={Send} tone="text-gray-500 bg-gray-100" label="Not Contacted" value={kpiNC} sub="Requires attention" onClick={() => goToday("nc")} />
           <Kpi icon={Clock} tone="text-amber-600 bg-amber-50" label="Awaiting Response" value={kpiAW} sub="Messages already sent" onClick={() => goToday("aw")} />
@@ -347,12 +347,14 @@ export default function PreArrival() {
         </div>
 
         {/* table */}
-        <div className="mt-4 overflow-hidden rounded-[20px] border border-line/40 bg-white shadow-[0_1px_3px_rgba(16,24,40,0.05)]">
+        <div className="mt-5 overflow-hidden rounded-[20px] border border-line/40 bg-white shadow-[0_1px_3px_rgba(16,24,40,0.05)]">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[900px] table-fixed text-left">
               <colgroup>
-                <col /><col /><col /><col /><col />
-                <col className="w-14" />
+                {/* the Guest column carries 24px of left padding, so it is that much wider: gaps between column texts stay equal */}
+                <col style={{ width: "20.5%" }} />
+                <col style={{ width: "18.4%" }} /><col style={{ width: "18.4%" }} /><col style={{ width: "18.4%" }} /><col style={{ width: "18.4%" }} />
+                <col />
               </colgroup>
               <thead>
                 <tr className="bg-[#F4F4F5] text-[12px] uppercase tracking-wide text-[#6B7280]">

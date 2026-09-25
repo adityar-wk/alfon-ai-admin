@@ -182,12 +182,17 @@ export default function Team() {
   const off = manager ? scoped.filter((s) => s.status === "Off Duty").length : 5;
   const pct = (n: number) => `${Math.round((n / Math.max(total, 1)) * 100)}%`;
 
-  const STATS = [
-    { label: "Total Staff", value: total, foot: manager ? scopeDepts.join(" + ") : "Across all departments" },
-    { label: "On Duty", value: onDuty, foot: `${pct(onDuty)} of total` },
-    { label: "On Break", value: onBreak, foot: `${pct(onBreak)} of total` },
-    { label: "Off Duty", value: off, foot: `${pct(off)} of total` },
-  ];
+  const STATS = manager
+    ? [
+        { label: "Total Staff", value: total, foot: scopeDepts.join(" + ") },
+        { label: "On Duty", value: onDuty, foot: `${pct(onDuty)} of total` },
+        { label: "On Break", value: onBreak, foot: `${pct(onBreak)} of total` },
+        { label: "Off Duty", value: off, foot: `${pct(off)} of total` },
+      ]
+    : [
+        { label: "Total Staff", value: total, foot: "Across all departments" },
+        { label: "Departments", value: new Set(staff.map((x) => x.dept)).size, foot: "With staff assigned" },
+      ];
 
   const toggle = (id: string) =>
     setChecked((c) => {
@@ -218,7 +223,7 @@ export default function Team() {
       <div className="flex min-w-0 flex-1 flex-col">
         <Topbar
           title="Team"
-          subtitle={manager ? "Availability and workload for your department team." : "View your team, workloads and availability."}
+          subtitle={manager ? "Availability and workload for your department team." : "View your team and what they are working on."}
           actions={manager ? <ScopePicker /> : undefined}
         />
         <Page>
@@ -280,7 +285,7 @@ export default function Team() {
                         ))}
                       </Select>
                     </label>
-                    <label className="block">
+                    {manager && <label className="block">
                       <span className="mb-1 block text-[11px] text-ink-secondary">Availability</span>
                       <Select className="h-9 text-[13px]" value={status} onChange={(e) => setStatus(e.target.value)}>
                         <option>All Statuses</option>
@@ -288,13 +293,13 @@ export default function Team() {
                         <option>On Break</option>
                         <option>Off Duty</option>
                       </Select>
-                    </label>
+                    </label>}
                     <label className="block">
                       <span className="mb-1 block text-[11px] text-ink-secondary">Sort / group by</span>
                       <Select className="h-9 text-[13px]" value={groupBy} onChange={(e) => setGroupBy(e.target.value as GroupBy)}>
                         <option value="none">None</option>
                         <option value="dept">Department</option>
-                        <option value="availability">Availability</option>
+                        {manager && <option value="availability">Availability</option>}
                       </Select>
                     </label>
                   </div>
@@ -316,7 +321,7 @@ export default function Team() {
                     <th className="py-3 pl-4 font-medium">Staff Member</th>
                     <th className="py-3 font-medium">Role</th>
                     <th className="py-3 font-medium">Department</th>
-                    <th className="py-3 font-medium">Status</th>
+                    {manager && <th className="py-3 font-medium">Status</th>}
                     <th className="py-3 font-medium">Current Task</th>
                     {manager && <th className="py-3 font-medium">Open tasks</th>}
                     <th className="py-3 pr-4 font-medium">Actions</th>
@@ -343,9 +348,11 @@ export default function Team() {
                       </td>
                       <td className="py-3 pr-3 text-[13px] text-ink-secondary">{s.role}</td>
                       <td className="py-3 pr-3 text-[13px] text-ink-secondary">{s.dept}</td>
-                      <td className="py-3 pr-3">
-                        <StatusPill s={s.status} />
-                      </td>
+                      {manager && (
+                        <td className="py-3 pr-3">
+                          <StatusPill s={s.status} />
+                        </td>
+                      )}
                       <td className="py-3 pr-3 text-[13px] text-ink-secondary">{s.task ?? "—"}</td>
                       {manager && (
                         <td className="whitespace-nowrap py-3 pr-3 leading-tight">
@@ -359,7 +366,7 @@ export default function Team() {
                   ))}
                   {!rows.length && (
                     <tr>
-                      <td colSpan={manager ? 7 : 6} className="py-10 text-center text-[13px] text-ink-tertiary">
+                      <td colSpan={manager ? 7 : 5} className="py-10 text-center text-[13px] text-ink-tertiary">
                         No staff match your filters.
                       </td>
                     </tr>
@@ -464,7 +471,7 @@ export function StaffDetails({ s, perms, onSaveAccess, manager }: { s: Staff; pe
         <div className="leading-tight">
           <div className="flex items-center gap-2">
             <span className="text-[20px] font-bold text-ink">{s.name}</span>
-            <StatusPill s={s.status} />
+            {manager !== false && <StatusPill s={s.status} />}
           </div>
           <div className="mt-1 text-[13px] text-ink-secondary">{s.id}</div>
           <div className="text-[13px] text-ink-secondary">
