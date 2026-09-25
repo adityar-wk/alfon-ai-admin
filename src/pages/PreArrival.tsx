@@ -368,7 +368,11 @@ export default function PreArrival() {
         {/* table */}
         <div className="mt-4 overflow-hidden rounded-[20px] border border-line/40 bg-white shadow-[0_1px_3px_rgba(16,24,40,0.05)]">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[900px] text-left">
+            <table className="w-full min-w-[900px] table-fixed text-left">
+              <colgroup>
+                <col /><col /><col /><col /><col />
+                <col className="w-14" />
+              </colgroup>
               <thead>
                 <tr className="bg-[#F4F4F5] text-[12px] uppercase tracking-wide text-[#6B7280]">
                   <th className="py-3.5 pl-6 font-medium">Guest</th>
