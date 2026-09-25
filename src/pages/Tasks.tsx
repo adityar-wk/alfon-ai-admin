@@ -414,11 +414,11 @@ export default function Tasks() {
                     <tr key={t.id} onClick={() => setSelectedId(t.id)} className={`cursor-pointer border-b border-line/50 last:border-0 hover:bg-subtle/60 ${t.status === "Completed" ? "opacity-50" : ""}`}>
                       <td className="whitespace-nowrap py-3.5 pl-6 pr-3"><SlaText sla={t.sla} /></td>
                       <td className="py-3.5 pl-6 pr-3">
-                        <div className="flex items-center gap-2 text-[13px] font-semibold text-ink">
-                          {t.title}
+                        <div className="text-[13px] font-semibold text-ink">{t.title}</div>
+                        <div className="mt-0.5 flex items-center gap-2 text-[12px] text-ink-tertiary">
+                          #{String(t.id).padStart(3, "0")}
                           {cap(t) && <ComplaintPill />}
                         </div>
-                        <div className="text-[12px] text-ink-tertiary">#{String(t.id).padStart(3, "0")}</div>
                       </td>
                       <td className="whitespace-nowrap py-3.5 pl-6 pr-3"><StatusLabel t={t} /></td>
                       <td className="whitespace-nowrap py-3.5 pl-6 pr-3 text-[14px] text-ink-secondary"><span className="flex items-center gap-2"><D className="h-4 w-4 text-ink-tertiary" />{t.dept}</span></td>
