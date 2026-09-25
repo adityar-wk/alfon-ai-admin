@@ -21,7 +21,7 @@ type Item = { id: string; name: string; group: string; note: string };
 
 const INVENTORY: Item[] = [
   { id: "colors", name: "Colour", group: "Foundations", note: "Warm Orange accent, neutrals, teal, purple and semantic colours" },
-  { id: "type", name: "Typography", group: "Foundations", note: "Sora for headings and key numbers, Inter for everything else (SLA clock: Inter 600 / 14px)" },
+  { id: "type", name: "Typography", group: "Foundations", note: "Sora for headings and key numbers, Inter for everything else (SLA clock: Sora 600 / 14px)" },
   { id: "surface", name: "Surfaces & spacing", group: "Foundations", note: "Radii, hairline border, double shadow, sidebar width" },
   { id: "button", name: "Button", group: "Actions", note: "Primary, outline, ghost, disabled, with icon" },
   { id: "icon-button", name: "Icon button", group: "Actions", note: "Plain, filled and funnel-with-count buttons" },

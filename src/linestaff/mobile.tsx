@@ -138,7 +138,7 @@ export function SlaClockChip({ left, total }: { left: number; total: number }) {
   const secs = secsFromMinutes(left);
   const tone = slaTone(secs / 60, total);
   return (
-    <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap font-sans text-[14px] font-semibold tabular-nums" style={{ color: tone.color }}>
+    <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap font-display text-[14px] font-semibold tabular-nums" style={{ color: tone.color }}>
       <Clock className="h-4 w-4" strokeWidth={2.5} />
       {formatClock(secs)}
     </span>
