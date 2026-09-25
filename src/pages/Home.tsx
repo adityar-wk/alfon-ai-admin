@@ -2,22 +2,15 @@ import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   ListChecks,
-  MessageCircle,
   Timer,
-  Activity,
   BedDouble,
   Smile,
-  CheckCircle2,
   Heart,
   Users,
-  HeartPulse,
-  Zap,
-  Home as HomeIcon,
   Clock,
   ArrowDown,
   ArrowUp,
   Minus,
-  Check,
   Wrench,
   ConciergeBell,
   KeyRound,
@@ -25,13 +18,10 @@ import {
   Wine,
   Headset,
   Building2,
-  ChevronDown,
 } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { Page, Card, Select } from "../components/ui";
-import { GUESTS } from "../data/guests";
-import { TASKS, type Priority } from "../data/tasks";
-import { usePersona } from "../persona";
+import { TASKS } from "../data/tasks";
 import Orb from "../components/Orb";
 import { scoreBand } from "../data/scoreBand";
 
@@ -46,26 +36,10 @@ const PILLARS = [
   { label: "Team Performance", value: "84%", tag: "Excellent", trend: "up", icon: Users, spark: [58, 59, 60, 60, 61, 62] },
 ] as const;
 
-const SCORE_EXPLAINED = [
-  { icon: HeartPulse, name: "Guest Pulse", weight: 30, text: "Tracks how guests feel throughout their stay — drawn from AI chat sentiment, complaint volume, and the tone and frequency of guest-initiated messages." },
-  { icon: Activity, name: "Operations Heartbeat", weight: 25, text: "Measures how efficiently the hotel runs day to day — task completion rates, average response time, SLA breaches, and whether requests are being closed or left open." },
-  { icon: HomeIcon, name: "Housekeeping Rhythm", weight: 20, text: "Evaluates room turnover speed, amenity fulfilment accuracy, and whether pre-arrival requests such as minibar preferences and room setup notes were actioned before the guest arrived." },
-  { icon: Users, name: "Workload Balance", weight: 15, text: "Measures how evenly work is distributed across the team — whether tasks are being claimed by multiple staff members or concentrated on one person, and whether any department is understaffed relative to its open task volume." },
-  { icon: Zap, name: "Recovery Rate", weight: 10, text: "Scores how well the team turns a negative guest experience into a positive one — complaint-to-resolution timing, compensation approvals, and whether a follow-up was made after the issue was closed." },
-] as const;
-
 const DEPT_ICON: Record<string, Icon> = {
   Engineering: Wrench, Concierge: ConciergeBell, "Front Desk": KeyRound, "Room Service": UtensilsCrossed,
   Housekeeping: BedDouble, "Food & Beverage": Wine, "Guest Services": Headset,
 };
-
-const PRIORITY_DOT: Record<Priority, string> = { Critical: "bg-red-500", High: "bg-brand", Medium: "bg-amber-400", Low: "bg-gray-300" };
-
-const CHATS = [
-  { guestId: 2, last: "That's perfect, thank you!", time: "9:16 PM" },
-  { guestId: 3, last: "Puo contare si noi di noi…", time: "May 22" },
-  { guestId: 1, last: "Our pleasure, Mr. Wilson…", time: "9:47 AM" },
-];
 
 const DEPT_PERF = [
   { name: "Housekeeping", tasks: 52, onTime: 96 },
@@ -88,8 +62,6 @@ const penalty = (ts: typeof TASKS) => {
 };
 const BASELINE = penalty(TASKS);
 
-const DAILY = [74, 76, 78, 77, 75, 76, 78, 79, 77, 76, 78, 80, 79, 77, 76, 78, 79, 81, 80, 79, 78, 79, 80, 82, 83, 82, 81, 82, 82];
-
 function Spark({ data }: { data: readonly number[] }) {
   const min = Math.min(...data), max = Math.max(...data);
   const pts = data.map((v, i) => `${(i / (data.length - 1)) * 100},${28 - ((v - min) / Math.max(max - min, 1)) * 22}`).join(" ");
@@ -108,17 +80,10 @@ function Trend({ t }: { t: "up" | "down" | "flat" }) {
 
 export default function Home() {
   const navigate = useNavigate();
-  const { me } = usePersona();
   const [dept, setDept] = useState("all");
   const [prio, setPrio] = useState("all");
 
-  const hour = new Date().getHours();
-  const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
-
   const open = TASKS.filter((t) => t.status !== "Completed" && t.status !== "Unable to Complete" && t.status !== "Void");
-  const inProgress = open.filter((t) => t.status === "In Progress").length;
-  const completed = TASKS.filter((t) => t.status === "Completed").length;
-  const overdue = open.filter((t) => t.sla.kind === "overdue").length;
 
   const rank = (t: (typeof TASKS)[number]) => (t.status === "Escalated" ? 0 : t.sla.kind === "overdue" ? 1 : t.sla.kind === "due" ? 2 : 3);
   const depts = Array.from(new Set(open.map((t) => t.dept))).sort();
@@ -264,44 +229,8 @@ export default function Home() {
           </Card>
         </div>
 
-        {/* chats + analytics + team */}
-        <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-[1fr_1.4fr_1fr]">
-          <Card className="p-6">
-            <div className="flex items-center justify-between">
-              <h3 className="text-[16px] font-semibold text-ink">Guest Chats</h3>
-              <Link to="/guests" className="text-[13px] font-semibold text-brand">View all</Link>
-            </div>
-            <div className="mt-3 divide-y divide-line/70">
-              {CHATS.map((c) => {
-                const g = GUESTS.find((x) => x.id === c.guestId)!;
-                return (
-                  <Link key={g.id} to={`/guests/${g.id}`} className="flex items-center gap-3 py-3 hover:opacity-80">
-                    <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold ${g.tint}`}>{g.initials}</span>
-                    <span className="min-w-0 flex-1 leading-tight">
-                      <span className="block text-[13px] font-semibold text-ink">{g.name}</span>
-                      <span className="block truncate text-[12px] text-ink-secondary">{c.last}</span>
-                    </span>
-                    <span className="shrink-0 text-[11px] text-ink-tertiary">{c.time}</span>
-                  </Link>
-                );
-              })}
-            </div>
-          </Card>
-
-          <Card className="p-6">
-            <div className="flex items-center justify-between">
-              <h3 className="text-[16px] font-semibold text-ink">Analytics Overview</h3>
-              <Link to="/analytics" className="text-[13px] font-semibold text-brand">Details</Link>
-            </div>
-            <p className="text-[12px] text-ink-tertiary">Daily task completion rate</p>
-            <DailyChart data={DAILY} />
-            <div className="mt-3 grid grid-cols-3 text-center">
-              <div><div className="text-[22px] font-bold text-ink">{TASKS.length}</div><div className="text-[12px] text-ink-tertiary">Total Tasks</div></div>
-              <div><div className="text-[22px] font-bold text-emerald-600">{completed}</div><div className="text-[12px] text-ink-tertiary">Completed</div></div>
-              <div><div className="text-[22px] font-bold text-rose-500">{overdue}</div><div className="text-[12px] text-ink-tertiary">Overdue</div></div>
-            </div>
-          </Card>
-
+        {/* department performance */}
+        <div className="mt-5">
           <Card className="p-6">
             <div className="flex items-center justify-between">
               <h3 className="text-[16px] font-semibold text-ink">Department Performance</h3>
@@ -322,39 +251,5 @@ export default function Home() {
         </div>
       </Page>
     </>
-  );
-}
-
-function DailyChart({ data }: { data: number[] }) {
-  const W = 520, H = 190, L = 30, R = 8, T = 8, B = 22;
-  const x = (i: number) => L + (i * (W - L - R)) / (data.length - 1);
-  const y = (v: number) => T + ((100 - v) / 100) * (H - T - B);
-  const d = data.map((v, i) => `${i ? "L" : "M"}${x(i)},${y(v)}`).join(" ");
-  const [hover, setHover] = useState<number | null>(null);
-  return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="mt-2 w-full">
-      {[0, 25, 50, 75, 100].map((t) => (
-        <g key={t}>
-          <line x1={L} x2={W - R} y1={y(t)} y2={y(t)} stroke="#EDEDED" />
-          <text x={L - 6} y={y(t) + 3} textAnchor="end" fontSize="9" fill="#9CA3AF">{t}</text>
-        </g>
-      ))}
-      {[1, 5, 9, 13, 17, 21, 25, 29].map((day) => (
-        <text key={day} x={x(day - 1)} y={H - 6} textAnchor="middle" fontSize="9" fill="#9CA3AF">{day}</text>
-      ))}
-      <path d={d} fill="none" stroke="#7FA8E0" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
-      {data.map((v, i) => (
-        <g key={i} onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)}>
-          <circle cx={x(i)} cy={y(v)} r="8" fill="transparent" />
-          {hover === i && (
-            <>
-              <circle cx={x(i)} cy={y(v)} r="3.5" fill="#fff" stroke="#7FA8E0" strokeWidth="2" />
-              <rect x={x(i) - 34} y={y(v) - 30} width="68" height="20" rx="5" fill="#111" />
-              <text x={x(i)} y={y(v) - 16} textAnchor="middle" fontSize="10" fontWeight="600" fill="#fff">May {i + 1} · {v}%</text>
-            </>
-          )}
-        </g>
-      ))}
-    </svg>
   );
 }
