@@ -461,11 +461,11 @@ export default function GuestProfile() {
             <div className="grid grid-cols-1 items-stretch border-t border-line xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_320px]">
               <div className="min-w-0 border-b border-line p-6 xl:border-r">
                 <Heading icon={User} tone="text-ink-tertiary">Guest profile</Heading>
-                <p className="text-[14px] leading-relaxed text-ink">{p.summary}</p>
+                <p className="text-[14px] leading-relaxed text-ink-secondary">{p.summary}</p>
               </div>
               <div className="min-w-0 border-b border-line p-6 xl:border-r">
                 <Heading icon={Lightbulb} tone="text-ink-tertiary">Anticipated needs</Heading>
-                <p className="text-[14px] leading-relaxed text-ink">{p.anticipated}</p>
+                <p className="text-[14px] leading-relaxed text-ink-secondary">{p.anticipated}</p>
               </div>
 
               <div className="min-w-0 border-b border-line p-6 xl:col-span-2 xl:col-start-1 xl:row-start-2 xl:border-r">
@@ -475,7 +475,7 @@ export default function GuestProfile() {
                     <div key={key}>
                       <div className="mb-1.5 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-ink-tertiary"><Icon className="h-3.5 w-3.5" /> {label}</div>
                       <div className="flex flex-wrap gap-1.5">
-                        {p.prefs[key].map((v) => <span key={v} className="rounded-full bg-subtle px-2.5 py-0.5 text-[13px] text-ink">{v}</span>)}
+                        {p.prefs[key].map((v) => <span key={v} className="rounded-full bg-subtle px-2.5 py-0.5 text-[13px] text-ink-secondary">{v}</span>)}
                       </div>
                     </div>
                   ))}
@@ -485,7 +485,7 @@ export default function GuestProfile() {
               <div className="min-w-0 p-6 xl:col-span-2 xl:col-start-1 xl:row-start-3 xl:border-r">
                 <Heading icon={History} tone="text-ink-tertiary">Stay history</Heading>
                 <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
-                  {p.history.map((h) => <div key={h} className="rounded-lg bg-subtle/70 px-3 py-2 text-[13px] text-ink">{h}</div>)}
+                  {p.history.map((h) => <div key={h} className="rounded-lg bg-subtle/70 px-3 py-2 text-[13px] text-ink-secondary">{h}</div>)}
                   {!p.history.length && <p className="text-[13px] text-ink-tertiary">No previous stays.</p>}
                 </div>
               </div>
@@ -500,7 +500,7 @@ export default function GuestProfile() {
                         <div key={a.key} className="flex items-start gap-3 py-3">
                           <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-50 text-[11px] font-bold text-red-600">{i + 1}</span>
                           <div className="min-w-0 flex-1">
-                            <p className="text-[13px] leading-snug text-ink">{a.text}</p>
+                            <p className="text-[13px] leading-snug text-ink-secondary">{a.text}</p>
                             <div className="mt-2 flex flex-wrap items-center gap-2">
                               <span className="rounded-full bg-subtle px-2 py-0.5 text-[11px] font-medium text-ink-secondary">{a.dept}</span>
                               <span className="flex h-5 w-5 items-center justify-center rounded-full bg-brand-tint text-[9px] font-bold text-brand">{a.who}</span>
@@ -541,7 +541,7 @@ export default function GuestProfile() {
                     {notes.map((n, i) => (
                       <div key={i} className="rounded-lg bg-subtle/70 p-3">
                         <p className="text-[11px] text-ink-tertiary">{n.author} · {n.time}</p>
-                        <p className="mt-1 text-[13px] leading-snug text-ink">{n.text}</p>
+                        <p className="mt-1 text-[13px] leading-snug text-ink-secondary">{n.text}</p>
                       </div>
                     ))}
                   </div>

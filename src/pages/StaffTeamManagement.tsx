@@ -84,7 +84,7 @@ export default function StaffTeamManagement() {
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
                 <h3 className="text-[16px] font-semibold text-ink">Add your team</h3>
-                <p className="mt-1 text-[13px] text-ink-secondary">Upload a CSV or add people one by one. Name and department is all we need.</p>
+                <p className="mt-1 text-[13px] text-ink-secondary">Upload a CSV or add people one by one. First name, last name and email is all we need.</p>
               </div>
               <div className="flex items-center gap-3">
                 <button className="flex items-center gap-1.5 text-[13px] font-medium text-ink-secondary hover:text-ink">
@@ -129,7 +129,7 @@ export default function StaffTeamManagement() {
               ) : (
                 <>
                   <p className="mt-3 text-[14px] font-medium text-ink">Drop your CSV here</p>
-                  <p className="mt-0.5 text-[12px] text-ink-tertiary">Columns: Name, Department · up to 10MB</p>
+                  <p className="mt-0.5 text-[12px] text-ink-tertiary">Columns: First name, Last name, Email · up to 10MB</p>
                 </>
               )}
               <Button className="mt-4" onClick={() => fileRef.current?.click()}>{fileName ? "Choose another file" : "Choose file"}</Button>
@@ -147,7 +147,7 @@ export default function StaffTeamManagement() {
                 <input
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Search name or department"
+                  placeholder="Search name or email"
                   className="h-10 w-full rounded-control border border-line bg-white pl-9 pr-3 text-[13px] outline-none placeholder:text-ink-tertiary focus:border-brand"
                 />
               </div>
@@ -163,7 +163,7 @@ export default function StaffTeamManagement() {
                       {m.first} {m.last}
                       {m.fresh && <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-600">Just imported</span>}
                     </div>
-                    <div className="text-[12px] text-ink-tertiary">{m.dept}</div>
+                    <div className="text-[12px] text-ink-tertiary">{m.email || m.dept}</div>
                   </div>
                   <button
                     aria-label={`Actions for ${m.first} ${m.last}`}
@@ -255,8 +255,8 @@ export default function StaffTeamManagement() {
 function MemberDrawer({ member, onClose, onSave }: { member: Member | null; onClose: () => void; onSave: (m: Omit<Member, "id">) => void }) {
   const [first, setFirst] = useState(member?.first ?? "");
   const [last, setLast] = useState(member?.last ?? "");
-  const [dept, setDept] = useState(member?.dept ?? "Unassigned");
-  const ok = first.trim() && last.trim();
+  const [email, setEmail] = useState(member?.email ?? "");
+  const ok = first.trim() && last.trim() && /^\S+@\S+\.\S+$/.test(email.trim());
 
   return (
     <Drawer title={member ? "Edit Team Member" : "Add Team Member"} onClose={onClose}>
@@ -268,10 +268,8 @@ function MemberDrawer({ member, onClose, onSave }: { member: Member | null; onCl
           <Input value={last} onChange={(e) => setLast(e.target.value)} placeholder="Carter" />
         </Field>
       </div>
-      <Field className="mt-3" label="Department (Optional)">
-        <Select value={dept} onChange={(e) => setDept(e.target.value)}>
-          {DEPTS.map((d) => <option key={d}>{d}</option>)}
-        </Select>
+      <Field className="mt-3" label="Email ID" required>
+        <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="sophia.carter@alfonhotel.com" />
       </Field>
 
       <div className="mt-4 flex items-start gap-2 rounded-lg bg-blue-50 px-3 py-2.5 text-[12px] text-blue-700">
@@ -279,7 +277,7 @@ function MemberDrawer({ member, onClose, onSave }: { member: Member | null; onCl
         Roles and access are assigned later from the Team page.
       </div>
 
-      <Button className="mt-5 w-full" disabled={!ok} onClick={() => onSave({ first: first.trim(), last: last.trim(), email: member?.email ?? "", phone: member?.phone ?? "", dept })}>
+      <Button className="mt-5 w-full" disabled={!ok} onClick={() => onSave({ first: first.trim(), last: last.trim(), email: email.trim(), phone: member?.phone ?? "", dept: member?.dept ?? "Unassigned" })}>
         {member ? "Save Changes" : "Add Member"}
       </Button>
       <Button variant="outline" className="mt-2 w-full" onClick={onClose}>

@@ -3,20 +3,12 @@ import { Navigate, useParams, useSearchParams } from "react-router-dom";
 import {
   Plus,
   CheckCircle2,
-  Circle,
-  ChevronRight,
-  Info,
   Check,
-  Search,
-  Mail,
-  Phone,
 } from "lucide-react";
 import { Topbar } from "../components/Topbar";
-import { Drawer } from "../components/Drawer";
 import { Page, Card, Button, Field, Input, Select } from "../components/ui";
-import { getDepartment, initials, type DeptMember, type DeptService } from "../data/departments";
+import { getDepartment, type DeptMember, type DeptService } from "../data/departments";
 import { deptIcon } from "../data/deptIcons";
-import { TASKS, shortName } from "../data/tasks";
 
 export default function DepartmentDetail() {
   const { slug = "" } = useParams();
@@ -26,9 +18,6 @@ export default function DepartmentDetail() {
 
   const [members, setMembers] = useState<DeptMember[]>(dept?.members ?? []);
   const [services, setServices] = useState<DeptService[]>(dept?.services ?? []);
-  const [addStaffOpen, setAddStaffOpen] = useState(false);
-  const [staffQuery, setStaffQuery] = useState("");
-  const [selectedMember, setSelectedMember] = useState<string | null>(null);
   const [addingService, setAddingService] = useState(false);
   const [newService, setNewService] = useState({ name: "", description: "" });
   const [toast, setToast] = useState<string | null>(null);
@@ -52,9 +41,7 @@ export default function DepartmentDetail() {
   if (!dept) return <Navigate to={listPath} replace />;
 
   const head = members.find((m) => m.role === "Department Head");
-  const shownMembers = members.filter((m) => `${m.name} ${m.role}`.toLowerCase().includes(staffQuery.trim().toLowerCase()));
   const Icon = deptIcon(dept.name);
-  const selected = members.find((m) => m.name === selectedMember) ?? null;
 
   const addService = () => {
     if (!newService.name.trim()) return;
@@ -66,17 +53,11 @@ export default function DepartmentDetail() {
     setAddingService(false);
   };
 
-  const addStaff = (form: { name: string; role: DeptMember["role"]; reports: string }) => {
-    setMembers((m) => [...m, { name: form.name, role: form.role, reports: form.reports, status: "Active" }]);
-    setAddStaffOpen(false);
-    setSelectedMember(null);
-  };
-
   return (
     <div className="flex min-h-0 flex-1">
       <div className="flex min-w-0 flex-1 flex-col">
         <Topbar
-          title={dept.name}
+          title="Department"
           backTo={listPath}
           actions={
             <Button onClick={() => setToast("Changes saved")}>
@@ -90,46 +71,13 @@ export default function DepartmentDetail() {
               <Icon className="h-7 w-7" />
             </span>
             <div className="min-w-0">
-              <div className="text-[12px] text-ink-tertiary">Head of Department</div>
-              <div className="text-[18px] font-semibold text-ink">{head?.name ?? "—"}</div>
+              <div className="text-[20px] font-semibold leading-tight text-ink">{dept.name}</div>
+              <div className="mt-0.5 text-[13px] text-ink-secondary">Department Head · {head?.name ?? "—"}</div>
             </div>
           </div>
           <p className="mt-3 max-w-3xl text-[13px] leading-relaxed text-ink-tertiary">{dept.description}</p>
 
-          <div className="mt-6 grid grid-cols-1 gap-5 lg:grid-cols-[1.4fr_1fr]">
-            <Card className="p-6">
-              <div className="flex items-baseline justify-between">
-                <h3 className="text-[16px] font-semibold text-ink">Staff</h3>
-                <span className="text-[12px] text-ink-tertiary">{members.length} {members.length === 1 ? "member" : "members"}</span>
-              </div>
-              <div className="mt-4 flex items-center gap-3">
-                <div className="relative flex-1">
-                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-tertiary" />
-                  <Input value={staffQuery} onChange={(e) => setStaffQuery(e.target.value)} placeholder="Search staff" className="pl-9" />
-                </div>
-                <Button onClick={() => setAddStaffOpen(true)}>
-                  <Plus className="h-4 w-4" /> Add Staff
-                </Button>
-              </div>
-              <div className="mt-3 divide-y divide-line/70">
-                {shownMembers.map((m) => (
-                  <button
-                    key={m.name}
-                    onClick={() => setSelectedMember(m.name)}
-                    className={`flex w-full items-center gap-3 rounded-lg px-2 py-3 text-left hover:bg-subtle/70 ${selectedMember === m.name ? "bg-subtle/70" : ""}`}
-                  >
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-subtle text-[12px] font-semibold text-ink-secondary">
-                      {initials(m.name)}
-                    </span>
-                    <span className="min-w-0 flex-1 truncate text-[14px] font-medium text-ink">{m.name}</span>
-                    <span className={`shrink-0 text-[12px] ${m.role === "Department Head" ? "font-semibold text-brand" : "text-ink-secondary"}`}>{m.role}</span>
-                    <ChevronRight className="h-4 w-4 shrink-0 text-ink-tertiary" />
-                  </button>
-                ))}
-                {!shownMembers.length && <p className="py-8 text-center text-[13px] text-ink-tertiary">No staff match your search.</p>}
-              </div>
-            </Card>
-
+          <div className="mt-6 max-w-2xl">
             <Card className="p-6">
               <div className="flex items-baseline justify-between">
                 <h3 className="text-[16px] font-semibold text-ink">Services Covered</h3>
@@ -161,17 +109,6 @@ export default function DepartmentDetail() {
         </Page>
       </div>
 
-      {selected && !addStaffOpen && <StaffDetailDrawer member={selected} deptName={dept.name} onClose={() => setSelectedMember(null)} />}
-
-      {addStaffOpen && (
-        <AddStaffDrawer
-          deptName={dept.name}
-          members={members}
-          onClose={() => setAddStaffOpen(false)}
-          onAdd={addStaff}
-        />
-      )}
-
       {toast && (
         <div className="pointer-events-none fixed inset-x-0 bottom-6 z-50 flex justify-center">
           <span className="flex items-center gap-2 rounded-full bg-ink px-4 py-2 text-[13px] font-medium text-white shadow-lg">
@@ -180,101 +117,5 @@ export default function DepartmentDetail() {
         </div>
       )}
     </div>
-  );
-}
-
-function StaffDetailDrawer({ member, deptName, onClose }: { member: DeptMember; deptName: string; onClose: () => void }) {
-  const short = shortName(member.name);
-  const mine = TASKS.filter((t) => t.owner === short);
-  const open = mine.filter((t) => !["Completed", "Void", "Unable to Complete"].includes(t.status)).length;
-  const email = `${member.name.toLowerCase().replace(/[^a-z ]/g, "").replace(/\s+/g, ".")}@primehotel.com`;
-  return (
-    <Drawer title="Staff Details" onClose={onClose}>
-      <div className="flex flex-col items-center text-center">
-        <span className="flex h-16 w-16 items-center justify-center rounded-full bg-brand-tint text-[20px] font-semibold text-brand">{initials(member.name)}</span>
-        <div className="mt-3 text-[17px] font-bold text-ink">{member.name}</div>
-        <div className="text-[13px] text-ink-secondary">{member.role} · {deptName}</div>
-        <span className="mt-2 inline-flex items-center gap-1.5 text-[12px] text-emerald-600"><span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> {member.status}</span>
-      </div>
-      <div className="mt-6 divide-y divide-line/70 border-t border-line/70 text-[13px]">
-        <div className="flex items-center justify-between py-3"><span className="text-ink-secondary">Reports to</span><span className="font-medium text-ink">{member.reports}</span></div>
-        <div className="flex items-center justify-between py-3"><span className="text-ink-secondary">Open tasks</span><span className="font-medium text-ink">{open}</span></div>
-        <div className="flex items-center justify-between py-3"><span className="text-ink-secondary">Tasks handled</span><span className="font-medium text-ink">{mine.length}</span></div>
-      </div>
-    </Drawer>
-  );
-}
-
-function AddStaffDrawer({
-  deptName,
-  members,
-  onClose,
-  onAdd,
-}: {
-  deptName: string;
-  members: DeptMember[];
-  onClose: () => void;
-  onAdd: (form: { name: string; role: DeptMember["role"]; reports: string }) => void;
-}) {
-  const [name, setName] = useState("");
-  const [role, setRole] = useState<DeptMember["role"]>("Line Staff");
-  const reportsOptions = members.filter((m) => m.role !== "Line Staff");
-  const [reports, setReports] = useState(reportsOptions[0]?.name ?? "—");
-
-  return (
-    <Drawer title={`Add Staff to ${deptName}`} onClose={onClose}>
-      <div className="flex items-start gap-2 rounded-lg bg-blue-50 px-3 py-2.5 text-[12px] text-blue-700">
-        <Info className="mt-0.5 h-4 w-4 shrink-0" />
-        Profile photos are not required. We&apos;ll use initials generated from the name.
-      </div>
-
-      <div className="mt-5 flex flex-col items-center">
-        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-indigo-100 text-[18px] font-semibold text-indigo-500">
-          {name ? initials(name) : <Circle className="h-5 w-5 opacity-30" />}
-        </div>
-        <div className="mt-1.5 text-[11px] text-ink-tertiary">Initials Preview</div>
-      </div>
-
-      <Field className="mt-4" label="Full Name" required>
-        <Input
-          placeholder="e.g. Aanya Sharma"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
-      </Field>
-      <Field className="mt-3" label="Role in Department">
-        <Select value={role} onChange={(e) => setRole(e.target.value as DeptMember["role"])}>
-          <option>Line Staff</option>
-          <option>Supervisor</option>
-          <option>Department Head</option>
-        </Select>
-      </Field>
-      <Field className="mt-3" label="Reports To">
-        <Select value={reports} onChange={(e) => setReports(e.target.value)}>
-          {reportsOptions.length ? (
-            reportsOptions.map((m) => <option key={m.name}>{m.name}</option>)
-          ) : (
-            <option>—</option>
-          )}
-        </Select>
-      </Field>
-      <Field className="mt-3" label="Status">
-        <Select defaultValue="active">
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
-        </Select>
-      </Field>
-
-      <Button
-        className="mt-5 w-full"
-        disabled={!name.trim()}
-        onClick={() => onAdd({ name: name.trim(), role, reports })}
-      >
-        Add to Department
-      </Button>
-      <Button variant="outline" className="mt-2 w-full" onClick={onClose}>
-        Cancel
-      </Button>
-    </Drawer>
   );
 }

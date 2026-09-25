@@ -21,6 +21,7 @@ import {
   Settings,
   X,
   Filter,
+  Trash2,
 } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { Drawer } from "../components/Drawer";
@@ -161,9 +162,9 @@ export default function RolesPermissions({ embedded = false }: { embedded?: bool
     editorRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-  const moveUser = (id: number, roleId: string) => {
-    setUsers((us) => us.map((u) => (u.id === id ? { ...u, roleId } : u)));
-    flash(`Moved to ${roles.find((r) => r.id === roleId)?.name}`);
+  const removeUser = (id: number) => {
+    setUsers((us) => us.filter((u) => u.id !== id));
+    flash("Member removed");
   };
 
   const set = <K extends keyof Role>(k: K, v: Role[K]) => setDraft((d) => ({ ...d, [k]: v }));
@@ -379,9 +380,8 @@ export default function RolesPermissions({ embedded = false }: { embedded?: bool
                 ) : (
                   <RoleMembers
                     role={saved}
-                    roles={roles}
                     members={users.filter((u) => u.roleId === saved.id)}
-                    onMove={moveUser}
+                    onRemove={removeUser}
                     onInvite={() => setInviteRole(saved.id)}
                   />
                 )}
@@ -426,12 +426,11 @@ export default function RolesPermissions({ embedded = false }: { embedded?: bool
 /* ---------- members of a role ---------- */
 
 function RoleMembers({
-  role, roles, members, onMove, onInvite,
+  role, members, onRemove, onInvite,
 }: {
   role: Role;
-  roles: Role[];
   members: User[];
-  onMove: (id: number, roleId: string) => void;
+  onRemove: (id: number) => void;
   onInvite: () => void;
 }) {
   const [q, setQ] = useState("");
@@ -459,14 +458,17 @@ function RoleMembers({
             </span>
             <div className="min-w-0 flex-1 leading-tight">
               <div className="truncate text-[13px] font-medium text-ink">{u.name}</div>
-              <div className="truncate text-[11px] text-ink-tertiary">{u.email} · {u.last}</div>
+              <div className="truncate text-[11px] text-ink-tertiary">{u.email}</div>
             </div>
             <span className={`shrink-0 text-[12px] ${u.status === "Active" ? "text-emerald-600" : u.status === "Invited" ? "text-amber-600" : "text-ink-tertiary"}`}>{u.status}</span>
-            <div className="w-44 shrink-0">
-              <Select className="h-8 text-[12px]" value={u.roleId} onChange={(e) => onMove(u.id, e.target.value)} aria-label={`Role for ${u.name}`}>
-                {roles.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
-              </Select>
-            </div>
+            <button
+              onClick={() => onRemove(u.id)}
+              aria-label={`Remove ${u.name}`}
+              title="Remove"
+              className="shrink-0 rounded-md p-1.5 text-ink-tertiary hover:bg-red-50 hover:text-red-600"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
           </div>
         ))}
         {!list.length && (
