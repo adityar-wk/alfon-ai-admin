@@ -208,7 +208,7 @@ export function TaskCard({
 }) {
   const initials = (n: string) => n.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
   return (
-    <div className={`relative rounded-2xl bg-white p-5 ${CARD_SHADOW} ${done ? "opacity-55 grayscale-[0.5]" : ""}`}>
+    <div className={`relative rounded-[20px] border border-[#ECE9E1] bg-page p-5 ${done ? "opacity-55 grayscale-[0.5]" : ""}`}>
       <div onClick={onClick} role={onClick ? "button" : undefined} className={onClick ? "cursor-pointer active:scale-[0.99]" : ""}>
         <div className="font-display text-[16px] font-semibold leading-snug text-ink">{note}</div>
         <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[13px]">
