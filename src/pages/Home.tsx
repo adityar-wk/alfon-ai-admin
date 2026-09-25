@@ -25,6 +25,7 @@ import {
   Wine,
   Headset,
   Building2,
+  ChevronDown,
 } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { Page, Card, Select } from "../components/ui";
@@ -66,12 +67,13 @@ const CHATS = [
   { guestId: 1, last: "Our pleasure, Mr. Wilson…", time: "9:47 AM" },
 ];
 
-const TEAM = [
-  { name: "Maria Santos", role: "Senior Housekeeper", tasks: 24, onTime: 96 },
-  { name: "John Stevens", role: "Concierge Lead", tasks: 18, onTime: 94 },
-  { name: "Anna Petrov", role: "Room Service Captain", tasks: 21, onTime: 91 },
-  { name: "Mike Rodriguez", role: "Maintenance Technician", tasks: 15, onTime: 88 },
-  { name: "Sarah Kim", role: "Front Desk Supervisor", tasks: 32, onTime: 97 },
+const DEPT_PERF = [
+  { name: "Housekeeping", tasks: 52, onTime: 96 },
+  { name: "Front Desk", tasks: 32, onTime: 97 },
+  { name: "Concierge", tasks: 18, onTime: 94 },
+  { name: "Room Service", tasks: 21, onTime: 91 },
+  { name: "Guest Services", tasks: 27, onTime: 93 },
+  { name: "Engineering", tasks: 15, onTime: 88 },
 ];
 
 /** Health score = 82 at the starting data; it moves as tasks are resolved or new problems appear. */
@@ -109,6 +111,7 @@ export default function Home() {
   const { me } = usePersona();
   const [dept, setDept] = useState("all");
   const [prio, setPrio] = useState("all");
+  const [showExplain, setShowExplain] = useState(false);
 
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
@@ -145,7 +148,23 @@ export default function Home() {
       <Topbar title={`${greeting}, ${me.name.split(" ")[0]} 👋`} subtitle={`Here's what's happening at ${HOTEL}`} />
       <Page>
         {/* health score */}
-        <div className="grid grid-cols-1 gap-5 xl:grid-cols-[1fr_400px]">
+        {/* score pillars */}
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-5">
+          {PILLARS.map((p) => (
+                <div key={p.label} className="rounded-xl border border-line p-3.5">
+                  <div className="flex items-center justify-between">
+                    <span className="flex h-7 w-7 items-center justify-center rounded-lg border border-line text-brand"><p.icon className="h-3.5 w-3.5" /></span>
+                    <Trend t={p.trend} />
+                  </div>
+                  <div className="mt-2.5 text-[12px] text-ink-secondary">{p.label}</div>
+                  <div className="text-[20px] font-bold leading-tight text-ink">{p.value}</div>
+                  <div className={`text-[12px] font-medium ${p.tag === "Excellent" ? "text-emerald-600" : "text-amber-600"}`}>{p.tag}</div>
+                  <Spark data={p.spark} />
+                </div>
+              ))}
+            </div>
+
+        <div className="mt-5">
           <Card className="p-8">
             <div className="flex flex-col items-center">
               <HealthOrb score={score} size={300}>
@@ -175,49 +194,46 @@ export default function Home() {
                       ? "Several things need attention — start with overdue and escalated tasks."
                       : "Urgent: resolve overdue and escalated tasks to recover the score."}
               </p>
+
+              <button
+                onClick={() => setShowExplain((v) => !v)}
+                aria-expanded={showExplain}
+                className="mt-6 flex items-center gap-1.5 text-[13px] font-medium text-brand hover:underline"
+              >
+                How your score is calculated
+                <ChevronDown className={`h-4 w-4 transition-transform ${showExplain ? "rotate-180" : ""}`} />
+              </button>
+
+              {showExplain && (
+                <div className="mt-5 w-full max-w-[760px] border-t border-line pt-5 text-left">
+                  <p className="text-[13px] leading-relaxed text-ink-secondary">
+                    Alfon monitors your hotel's live operations around the clock and distils everything into one score. Five pillars are weighted by their impact on the guest experience and recalculated every night at midnight.
+                  </p>
+                  <div className="mt-4 divide-y divide-line/70">
+                    {SCORE_EXPLAINED.map((sx) => (
+                      <div key={sx.name} className="flex gap-3 py-3.5">
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-line text-brand"><sx.icon className="h-4 w-4" /></span>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[13px] font-semibold text-ink">{sx.name}</span>
+                            <span className="text-[13px] font-semibold text-brand">{sx.weight}%</span>
+                          </div>
+                          <p className="mt-0.5 text-[12px] leading-relaxed text-ink-secondary">{sx.text}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <ul className="mt-3 space-y-1.5 border-t border-line pt-3 text-[12px] text-ink-secondary">
+                    {["Recalculates automatically every midnight", "Benchmarks against your previous day's performance"].map((t) => (
+                      <li key={t} className="flex items-center gap-2"><Check className="h-3.5 w-3.5 text-emerald-500" /> {t}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
 
-            <div className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-3 2xl:grid-cols-5">
-              {PILLARS.map((p) => (
-                <div key={p.label} className="rounded-xl border border-line p-3.5">
-                  <div className="flex items-center justify-between">
-                    <span className="flex h-7 w-7 items-center justify-center rounded-lg border border-line text-brand"><p.icon className="h-3.5 w-3.5" /></span>
-                    <Trend t={p.trend} />
-                  </div>
-                  <div className="mt-2.5 text-[12px] text-ink-secondary">{p.label}</div>
-                  <div className="text-[20px] font-bold leading-tight text-ink">{p.value}</div>
-                  <div className={`text-[12px] font-medium ${p.tag === "Excellent" ? "text-emerald-600" : "text-amber-600"}`}>{p.tag}</div>
-                  <Spark data={p.spark} />
-                </div>
-              ))}
-            </div>
           </Card>
 
-          <Card className="p-6">
-            <h3 className="text-[16px] font-semibold text-ink">How Your Score Is Calculated</h3>
-            <p className="mt-2 text-[13px] leading-relaxed text-ink-secondary">
-              Alfon monitors your hotel's live operations around the clock and distils everything into one score. Five pillars are weighted by their impact on the guest experience and recalculated every night at midnight.
-            </p>
-            <div className="mt-4 divide-y divide-line/70">
-              {SCORE_EXPLAINED.map((s) => (
-                <div key={s.name} className="flex gap-3 py-3.5">
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-line text-brand"><s.icon className="h-4 w-4" /></span>
-                  <div className="min-w-0">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[13px] font-semibold text-ink">{s.name}</span>
-                      <span className="text-[13px] font-semibold text-brand">{s.weight}%</span>
-                    </div>
-                    <p className="mt-0.5 text-[12px] leading-relaxed text-ink-secondary">{s.text}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <ul className="mt-3 space-y-1.5 border-t border-line pt-3 text-[12px] text-ink-secondary">
-              {["Recalculates automatically every midnight", "Benchmarks against your previous day's performance"].map((t) => (
-                <li key={t} className="flex items-center gap-2"><Check className="h-3.5 w-3.5 text-emerald-500" /> {t}</li>
-              ))}
-            </ul>
-          </Card>
         </div>
 
         {/* KPIs */}
@@ -352,19 +368,16 @@ export default function Home() {
 
           <Card className="p-6">
             <div className="flex items-center justify-between">
-              <h3 className="text-[16px] font-semibold text-ink">Team Performance</h3>
-              <Link to="/team" className="text-[13px] font-semibold text-brand">Team</Link>
+              <h3 className="text-[16px] font-semibold text-ink">Department Performance</h3>
+              <Link to="/analytics" className="text-[13px] font-semibold text-brand">Analytics</Link>
             </div>
             <div className="mt-3 divide-y divide-line/70">
-              {TEAM.map((t) => (
-                <div key={t.name} className="flex items-center gap-3 py-3">
-                  <div className="min-w-0 flex-1 leading-tight">
-                    <div className="text-[13px] font-semibold text-ink">{t.name}</div>
-                    <div className="truncate text-[11px] text-ink-tertiary">{t.role}</div>
-                  </div>
+              {DEPT_PERF.map((d) => (
+                <div key={d.name} className="flex items-center gap-3 py-3">
+                  <div className="min-w-0 flex-1 text-[13px] font-semibold text-ink">{d.name}</div>
                   <div className="text-right leading-tight">
-                    <div className="text-[13px] font-semibold text-ink">{t.tasks} tasks</div>
-                    <div className="text-[11px] text-ink-tertiary">{t.onTime}% on time</div>
+                    <div className="text-[13px] font-semibold text-ink">{d.tasks} tasks</div>
+                    <div className="text-[11px] text-ink-tertiary">{d.onTime}% on time</div>
                   </div>
                 </div>
               ))}
