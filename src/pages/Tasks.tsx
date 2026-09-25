@@ -328,7 +328,10 @@ export default function Tasks() {
 
         <Card className="overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[900px] text-left">
+            <table className="w-full min-w-[900px] table-fixed text-left">
+              <colgroup>
+                {Array.from({ length: manager ? 6 : 7 }, (_, i) => <col key={i} />)}
+              </colgroup>
               <thead>
                 <tr className="border-b border-line bg-subtle/50 text-[11px] uppercase tracking-wide text-ink-secondary">
                   {!manager && <th className="py-3 pl-4 font-medium">Task ID</th>}
