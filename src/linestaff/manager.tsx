@@ -373,14 +373,14 @@ export function ManagerPrototype() {
   );
 
   const menuBtn = (
-    <button onClick={() => nav.push({ name: "menu" })} aria-label="Menu" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white shadow-sm">
-      <MenuIcon className="h-[18px] w-[18px]" />
+    <button onClick={() => nav.push({ name: "menu" })} aria-label="Menu" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-ink active:bg-black/5">
+      <MenuIcon className="h-[22px] w-[22px]" />
     </button>
   );
 
   const bellBtn = (
-    <button onClick={() => nav.push({ name: "notifications" })} aria-label="Notifications" className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white shadow-sm">
-      <Bell className="h-[18px] w-[18px]" /><span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500" />
+    <button onClick={() => nav.push({ name: "notifications" })} aria-label="Notifications" className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-ink active:bg-black/5">
+      <Bell className="h-[22px] w-[22px]" /><span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-red-500" />
     </button>
   );
 
@@ -441,7 +441,7 @@ export function ManagerPrototype() {
             value={taskQuery}
             onChange={(e) => setTaskQuery(e.target.value)}
             placeholder="Search room, guest or task"
-            className="h-11 w-full rounded-2xl bg-white pl-10 pr-3 text-[14px] shadow-sm outline-none placeholder:text-ink-tertiary focus:ring-2 focus:ring-brand/30"
+            className="h-11 w-full rounded-full bg-white pl-10 pr-3 text-[14px] shadow-sm outline-none placeholder:text-ink-tertiary focus:ring-2 focus:ring-brand/30"
           />
         </div>
       </div>
@@ -464,7 +464,7 @@ export function ManagerPrototype() {
     <button
       onClick={onClick}
       aria-label="Filter"
-      className={`relative flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${active ? "bg-brand text-white" : "bg-white text-ink shadow-sm"}`}
+      className={`relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${active ? "bg-brand text-white" : "bg-white text-ink shadow-sm"}`}
     >
       <Filter className="h-[18px] w-[18px]" />
       {active > 0 && <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white">{active}</span>}
@@ -478,7 +478,7 @@ export function ManagerPrototype() {
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
-          className="h-11 w-full rounded-2xl bg-white pl-10 pr-3 text-[14px] shadow-sm outline-none placeholder:text-ink-tertiary focus:ring-2 focus:ring-brand/30"
+          className="h-11 w-full rounded-full bg-white pl-10 pr-3 text-[14px] shadow-sm outline-none placeholder:text-ink-tertiary focus:ring-2 focus:ring-brand/30"
         />
       </div>
       {filter}
