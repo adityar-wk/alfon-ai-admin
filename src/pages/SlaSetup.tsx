@@ -127,22 +127,20 @@ export default function SlaSetup() {
                 </div>
               </div>
 
-              <div className="min-w-0 p-5">
-                <div className="mb-3 flex items-center justify-between">
-                  <div className="text-[14px] font-semibold text-ink">{dept.name}</div>
+              <div className="min-w-0 p-6">
+                <div className="mb-4 flex items-center justify-between">
+                  <div className="text-[15px] font-semibold text-ink">{dept.name}</div>
                   <div className="text-[12px] text-ink-tertiary">
                     {dept.services.length} services · {customCount(deptSlug)} customised
                   </div>
                 </div>
                 <div className="overflow-x-auto">
-                  <table className="w-full min-w-[480px] text-left">
+                  <table className="w-full min-w-[420px] text-left">
                     <thead>
                       <tr className="border-b border-line text-[11px] uppercase tracking-wide text-ink-secondary">
-                        <th className="pb-2 font-medium">Service</th>
-                        <th className="pb-2 font-medium">Priority</th>
-                        <th className="pb-2 font-medium">Response</th>
-                        <th className="pb-2 font-medium">Resolve</th>
-                        <th className="pb-2 text-right font-medium">Source</th>
+                        <th className="pb-3 font-medium">Service</th>
+                        <th className="pb-3 font-medium">Response (min)</th>
+                        <th className="pb-3 font-medium">Resolve (min)</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -150,43 +148,21 @@ export default function SlaSetup() {
                         const row = sla[key(s.name)];
                         const custom = isCustom(deptSlug, s.name);
                         return (
-                          <tr key={s.name} className="border-b border-line/70">
-                            <td className="py-2.5 pr-3 text-[13px] font-medium text-ink">{s.name}</td>
-                            <td className="py-2.5 pr-2">
-                              <Select
-                                className="h-9 w-28"
-                                value={row.priority}
-                                onChange={(e) => setPriority(s.name, e.target.value as Priority)}
-                              >
-                                {PRIORITIES.map((p) => (
-                                  <option key={p}>{p}</option>
-                                ))}
-                              </Select>
-                            </td>
-                            <td className="py-2.5 pr-2">
+                          <tr key={s.name} className="border-b border-line/60 last:border-0">
+                            <td className="py-4 pr-4 text-[14px] font-medium text-ink">{s.name}</td>
+                            <td className="py-4 pr-4">
                               <Input
-                                className="h-9 w-16 text-center"
+                                className="h-10 w-24 text-center"
                                 value={row.response}
                                 onChange={(e) => update(s.name, { response: e.target.value })}
                               />
                             </td>
-                            <td className="py-2.5 pr-2">
+                            <td className="py-4">
                               <Input
-                                className="h-9 w-16 text-center"
+                                className="h-10 w-24 text-center"
                                 value={row.resolve}
                                 onChange={(e) => update(s.name, { resolve: e.target.value })}
                               />
-                            </td>
-                            <td className="py-2.5 text-right">
-                              <span
-                                className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${
-                                  custom
-                                    ? "bg-brand-tint text-brand"
-                                    : "bg-gray-100 text-ink-tertiary"
-                                }`}
-                              >
-                                {custom ? "Custom" : "Default"}
-                              </span>
                             </td>
                           </tr>
                         );
@@ -195,7 +171,7 @@ export default function SlaSetup() {
                   </table>
                 </div>
                 <p className="mt-3 text-[11px] text-ink-tertiary">
-                  Times in minutes. Changing priority resets a service to that priority&apos;s default.
+                  Response is the time to first reply; resolve is the time to close the task.
                 </p>
               </div>
             </div>
@@ -259,8 +235,7 @@ export default function SlaSetup() {
             <div className="flex gap-3 rounded-card border border-amber-100 bg-amber-50/60 p-4">
               <Lightbulb className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
               <p className="text-[12px] text-ink-secondary">
-                Tasks inherit the SLA of the service they belong to. If a service isn&apos;t
-                customised, the default for its priority applies.
+                Tasks inherit the SLA of the service they belong to.
               </p>
             </div>
 
