@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from "react";
 import { Bell, Filter, Plus, Search, Menu as MenuIcon, ChevronRight, ChevronLeft, SlidersHorizontal, LogOut, ListChecks, MessageCircle, Home as HomeIcon, Wrench, Trash2, Download } from "lucide-react";
 import { Topbar } from "../components/Topbar";
-import { Page, Card, Badge, Button, Field, Input, Select, Textarea, PhoneInput, Toggle, Stars, Modal, Tabs } from "../components/ui";
+import { Page, Card, Badge, Button, Field, Input, Select, Textarea, PhoneInput, Toggle, Stars, Modal, Tabs, Avatar as UiAvatar } from "../components/ui";
 import { Drawer } from "../components/Drawer";
 import { Donut } from "../components/Donut";
 import Orb from "../components/Orb";
@@ -20,9 +20,9 @@ import {
 type Item = { id: string; name: string; group: string; note: string };
 
 const INVENTORY: Item[] = [
-  { id: "colors", name: "Colours", group: "Foundations", note: "Brand orange, charcoal ink, greys and the status palette" },
-  { id: "type", name: "Typography", group: "Foundations", note: "Inter for text, Sora for digits, Poppins for the SLA clock" },
-  { id: "surface", name: "Surfaces & elevation", group: "Foundations", note: "Card, table surface, popover, phone card shadow" },
+  { id: "colors", name: "Colour", group: "Foundations", note: "Warm Orange accent, neutrals, teal, purple and semantic colours" },
+  { id: "type", name: "Typography", group: "Foundations", note: "Sora for headings and key numbers, Inter for everything else" },
+  { id: "surface", name: "Surfaces & spacing", group: "Foundations", note: "Radii, hairline border, double shadow, sidebar width" },
   { id: "button", name: "Button", group: "Actions", note: "Primary, outline, ghost, disabled, with icon" },
   { id: "icon-button", name: "Icon button", group: "Actions", note: "Plain, filled and funnel-with-count buttons" },
   { id: "input", name: "Input, Select, Textarea", group: "Forms", note: "Field wrapper with label, hint and required mark" },
@@ -30,13 +30,13 @@ const INVENTORY: Item[] = [
   { id: "search", name: "Search field", group: "Forms", note: "Search with the single funnel filter beside it" },
   { id: "toggle", name: "Toggle, checkbox, stars", group: "Forms", note: "Small selection controls" },
   { id: "calendar", name: "Date picker", group: "Forms", note: "Arrival-date calendar with arrival dots" },
-  { id: "badge", name: "Badge & tags", group: "Status", note: "Tinted tones and the Complaint tag" },
+  { id: "badge", name: "Badges", group: "Status", note: "Priority badges with a dot, plain status badges" },
   { id: "status", name: "Task status", group: "Status", note: "Coloured text only, one rule for every list" },
   { id: "sla", name: "SLA clock", group: "Status", note: "Live countdown, counts up once breached" },
   { id: "toast", name: "Toast", group: "Feedback", note: "Short confirmation at the bottom of the screen" },
   { id: "card", name: "Card & stat card", group: "Data display", note: "Standard card and the KPI card" },
   { id: "table", name: "Data table", group: "Data display", note: "The Pre-Arrival table style used everywhere" },
-  { id: "avatar", name: "Avatar, flag, QR", group: "Data display", note: "Initials, country flag and QR code" },
+  { id: "avatar", name: "Avatar, flag, QR", group: "Data display", note: "44px orange-tint avatar in Sora, flag, QR" },
   { id: "charts", name: "Donut & health orb", group: "Data display", note: "Pastel donut and the health-score orb" },
   { id: "tabs", name: "Tabs", group: "Navigation", note: "Underline tabs" },
   { id: "sidebar", name: "Sidebar item & top bar", group: "Navigation", note: "Nav item states and the title-only top bar" },
@@ -74,13 +74,19 @@ function Phone({ children, grey = false }: { children: ReactNode; grey?: boolean
   return <div className={`relative w-[360px] max-w-full overflow-hidden rounded-[28px] border border-line p-4 ${grey ? "bg-[#F6F6F8]" : "bg-white"}`}>{children}</div>;
 }
 
-function Swatch({ name, hex, cls, dark = false }: { name: string; hex: string; cls: string; dark?: boolean }) {
+function Swatch({ name, hex, cls }: { name: string; hex: string; cls: string }) {
+  const [copied, setCopied] = useState(false);
   return (
-    <div className="w-[132px]">
-      <div className={`h-14 rounded-xl border border-line/60 ${cls}`} />
-      <div className="mt-2 text-[12px] font-medium text-ink">{name}</div>
-      <div className={`text-[11px] ${dark ? "text-ink-tertiary" : "text-ink-tertiary"}`}>{hex}</div>
-    </div>
+    <button
+      onClick={() => { try { navigator.clipboard.writeText(hex); } catch { /* clipboard unavailable */ } setCopied(true); window.setTimeout(() => setCopied(false), 1200); }}
+      className="w-[176px] overflow-hidden rounded-[14px] border border-line bg-white text-left"
+    >
+      <span className={`block h-[72px] border-b border-line ${cls}`} />
+      <span className="block px-3.5 py-3">
+        <span className="block text-[13px] font-semibold text-ink">{name}</span>
+        <span className={`mt-0.5 block font-mono text-[12px] ${copied ? "font-semibold text-success" : "text-ink-tertiary"}`}>{copied ? "Copied" : hex}</span>
+      </span>
+    </button>
   );
 }
 
@@ -126,58 +132,77 @@ export default function ComponentDesign() {
 
         <div className="mt-12 space-y-12">
           {/* ------------------------------------------------ foundations */}
-          <Section id="colors" title="Colours" note="Never pure black: the darkest colour is a soft charcoal.">
-            <Label>Brand and neutrals</Label>
-            <div className="flex flex-wrap gap-5">
-              <Swatch name="Brand" hex="#F15A24" cls="bg-brand" />
-              <Swatch name="Brand tint" hex="#FEEFE6" cls="bg-brand-tint" />
-              <Swatch name="Brand hover" hex="#D94E1C" cls="bg-brand-hover" />
-              <Swatch name="Ink" hex="#2B2E35" cls="bg-ink" />
-              <Swatch name="Ink secondary" hex="#6B7280" cls="bg-ink-secondary" />
-              <Swatch name="Ink tertiary" hex="#A0A4AB" cls="bg-ink-tertiary" />
-              <Swatch name="Line" hex="#EDEDED" cls="bg-line" />
-              <Swatch name="Subtle" hex="#FAFAFA" cls="bg-subtle" />
-            </div>
-            <div className="mt-8"><Label>Status text colours</Label></div>
-            <div className="flex flex-wrap gap-6">
-              {[["Escalated", "text-red-600", "#DC2626"], ["SLA breached", "text-orange-600", "#EA580C"], ["SLA at risk", "text-amber-600", "#D97706"], ["In Progress", "text-sky-600", "#0284C7"], ["Assigned", "text-cyan-600", "#0891B2"], ["Pending", "text-slate-500", "#64748B"], ["Completed", "text-emerald-600", "#059669"], ["Complaint tag", "text-violet-600", "#7C3AED"]].map(([n, c, h]) => (
-                <div key={n}><div className={`text-[14px] font-semibold ${c}`}>{n}</div><div className="text-[11px] text-ink-tertiary">{h}</div></div>
-              ))}
-            </div>
-            <div className="mt-8"><Label>Pastel chart palette</Label></div>
-            <div className="flex gap-2">{["#C99AF0", "#8DC3F0", "#6FDDB7", "#F7BC7A", "#F595A5", "#B3A0F0", "#7FD6DE", "#F4A9CE"].map((c) => <span key={c} className="h-8 w-8 rounded-full" style={{ background: c }} />)}</div>
-          </Section>
-
-          <Section id="type" title="Typography" note="Inter for all text. Digits render in Sora; the SLA clock uses Poppins digits.">
-            <div className="space-y-4">
-              <div className="flex items-baseline gap-6"><span className="w-40 text-[11px] text-ink-tertiary">Page title · 19 / 600</span><span className="text-[19px] font-semibold text-ink">Pre-Arrival</span></div>
-              <div className="flex items-baseline gap-6"><span className="w-40 text-[11px] text-ink-tertiary">Section · 16–18 / 600</span><span className="text-[17px] font-semibold text-ink">Needs Your Attention</span></div>
-              <div className="flex items-baseline gap-6"><span className="w-40 text-[11px] text-ink-tertiary">Body · 14 / 400</span><span className="text-[14px] text-ink">Guests who have not been messaged yet</span></div>
-              <div className="flex items-baseline gap-6"><span className="w-40 text-[11px] text-ink-tertiary">Secondary · 13 / 400</span><span className="text-[13px] text-ink-secondary">Upload a CSV or add people one by one</span></div>
-              <div className="flex items-baseline gap-6"><span className="w-40 text-[11px] text-ink-tertiary">Caption · 12 / 400</span><span className="text-[12px] text-ink-tertiary">Showing 10 of 152 rooms</span></div>
-              <div className="flex items-baseline gap-6"><span className="w-40 text-[11px] text-ink-tertiary">Table head · 12 / 500 caps</span><span className="text-[12px] font-medium uppercase tracking-wide text-[#6B7280]">Assigned to</span></div>
-              <div className="flex items-baseline gap-6"><span className="w-40 text-[11px] text-ink-tertiary">Digits · Sora</span><span className="text-[28px] font-bold text-ink">0123456789</span></div>
-              <div className="flex items-baseline gap-6"><span className="w-40 text-[11px] text-ink-tertiary">SLA clock · Poppins</span><span className="text-[28px] font-semibold tabular-nums text-red-600" style={{ fontFamily: '"Poppins", "Sora", "Inter", sans-serif' }}>-13:20</span></div>
+          <Section id="colors" title="Colour" note="Warm off-white surfaces with one accent doing the work: Warm Orange carries every call to action, active state and key number. Teal and purple are reserved accents. Click a swatch to copy its hex.">
+            <div className="space-y-7">
+              <div><Label>Neutrals</Label><div className="flex flex-wrap gap-3.5">
+                <Swatch name="Surface / Card" hex="#FFFFFF" cls="bg-white" />
+                <Swatch name="Page" hex="#FBFAF7" cls="bg-page" />
+                <Swatch name="Text — primary" hex="#1A1A1A" cls="bg-ink" />
+                <Swatch name="Text — secondary" hex="#6B7280" cls="bg-ink-secondary" />
+                <Swatch name="Text — tertiary" hex="#9CA3AF" cls="bg-ink-tertiary" />
+                <Swatch name="Border / hairline" hex="#F0F0F0" cls="bg-line" />
+                <Swatch name="Subtle fill" hex="#F5F5F5" cls="bg-subtle" />
+              </div></div>
+              <div><Label>Brand accent</Label><div className="flex flex-wrap gap-3.5">
+                <Swatch name="Warm Orange — primary" hex="#E8623A" cls="bg-brand" />
+                <Swatch name="Orange — hover / pressed" hex="#D4522D" cls="bg-brand-hover" />
+                <Swatch name="Orange — tint fill" hex="#FFF4F0" cls="bg-brand-tint" />
+              </div></div>
+              <div><Label>Secondary accents</Label><div className="flex flex-wrap gap-3.5">
+                <Swatch name="Intelligent Teal" hex="#2E86AB" cls="bg-teal" />
+                <Swatch name="Purple" hex="#7C3AED" cls="bg-purple" />
+              </div></div>
+              <div><Label>Semantic</Label><div className="flex flex-wrap gap-3.5">
+                <Swatch name="Success" hex="#16A34A" cls="bg-success" />
+                <Swatch name="Warning" hex="#D97706" cls="bg-warning" />
+                <Swatch name="Error / critical" hex="#DC2626" cls="bg-danger" />
+              </div></div>
             </div>
           </Section>
 
-          <Section id="surface" title="Surfaces & elevation" note="Flat by default; only cards, popovers and phone cards carry a shadow.">
-            <div className="flex flex-wrap gap-6">
-              {[["Card", "rounded-card border border-line bg-white"], ["Table surface", "rounded-[20px] border border-line/40 bg-white shadow-[0_1px_3px_rgba(16,24,40,0.05)]"], ["Popover", "rounded-xl border border-line bg-white shadow-lg"], ["Phone card", "rounded-2xl bg-white shadow-[0_2px_10px_rgba(43,46,53,0.08)]"]].map(([n, c]) => (
-                <div key={n} className="w-[190px]"><div className={`h-20 ${c}`} /><div className="mt-2 text-[12px] font-medium text-ink">{n}</div></div>
+          <Section id="type" title="Typography" note="Sora carries headings and key numbers, geometric and a little architectural. Inter runs everything else: labels, body copy, table data.">
+            <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="rounded-card border border-line p-6"><div className="font-display text-[44px] font-bold leading-none">Sg</div><div className="mt-3 text-[14px] font-semibold">Sora — display</div><div className="text-[13px] text-ink-secondary">Headings, score numbers, stat values · weights 600 / 700</div></div>
+              <div className="rounded-card border border-line p-6"><div className="text-[44px] font-semibold leading-none">Sg</div><div className="mt-3 text-[14px] font-semibold">Inter — body &amp; UI</div><div className="text-[13px] text-ink-secondary">Copy, labels, table cells, buttons · weights 400–700</div></div>
+            </div>
+            <div className="divide-y divide-line">
+              {[
+                ["font-display text-[34px] font-bold", "Hotel Health Score", "Sora 700 / 34px"],
+                ["font-display text-[22px] font-semibold", "Guest Chats", "Sora 600 / 22px"],
+                ["text-[16px] font-semibold", "Emma Davis · Room 1608", "Inter 600 / 16px"],
+                ["text-[14px] text-ink-secondary", "Guest sentiment, satisfaction trends, complaints and feedback.", "Inter 400 / 14px"],
+                ["text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-tertiary", "Hotel Health Score", "Inter 600 / 11px · +0.14em"],
+              ].map(([c, t, m]) => (
+                <div key={t + m} className="flex flex-wrap items-baseline justify-between gap-4 py-4"><span className={c}>{t}</span><span className="font-mono text-[12px] text-ink-tertiary">{m}</span></div>
               ))}
             </div>
+          </Section>
+
+          <Section id="surface" title="Surfaces & spacing" note="One card system used everywhere. Elevation comes from a soft double shadow.">
+            <div className="mb-6 flex flex-wrap gap-6">
+              <div className="h-24 w-[200px] rounded-card border border-line bg-white shadow-card" />
+              <div className="h-24 w-[200px] rounded-card border border-line bg-white shadow-lift" />
+              <div className="h-24 w-[200px] rounded-card border border-line bg-page" />
+            </div>
+            <table className="w-full text-left text-[14px]">
+              <thead><tr className="text-[12px] uppercase tracking-[0.08em] text-ink-tertiary"><th className="pb-2.5 font-semibold">Token</th><th className="pb-2.5 font-semibold">Value</th><th className="pb-2.5 font-semibold">Used for</th></tr></thead>
+              <tbody>
+                {[["Card radius", "16px", "Cards, panels, modals"], ["Control radius", "10px", "Nav items, buttons, inputs"], ["Pill radius", "999px", "Badges, avatars, chips"], ["Card border", "1px solid #F0F0F0", "Every card edge"], ["Card shadow", "0 1px 3px rgba(0,0,0,.06), 0 4px 16px rgba(0,0,0,.04)", "Resting elevation"], ["Hover shadow", "0 8px 24px rgba(0,0,0,.08), lift −2px", "Interactive cards on hover"], ["Sidebar width", "220px", "Desktop nav rail"]].map(([t, v, u]) => (
+                  <tr key={t} className="border-t border-line align-top"><td className="py-3.5 pr-4">{t}</td><td className="py-3.5 pr-4 font-mono text-[13px] text-brand-hover">{v}</td><td className="py-3.5 text-ink-secondary">{u}</td></tr>
+                ))}
+              </tbody>
+            </table>
           </Section>
 
           {/* ------------------------------------------------ actions */}
-          <Section id="button" title="Button" note="Three variants. Labels never carry tick marks.">
+          <Section id="button" title="Button" note="Inter 600 / 14px, 10px radius, 10px 18px padding. Primary is Warm Orange; secondary is transparent with a hairline border. Labels never carry tick marks.">
             <div className="flex flex-wrap items-center gap-3">
-              <Button>Primary</Button>
-              <Button variant="outline">Outline</Button>
+              <Button>New Chat</Button>
+              <Button variant="outline">Cancel</Button>
               <Button variant="ghost">Ghost</Button>
               <Button disabled className="disabled:opacity-40">Disabled</Button>
               <Button><Plus className="h-4 w-4" /> With icon</Button>
-              <Button variant="outline"><Download className="h-4 w-4" /> Outline icon</Button>
+              <Button variant="outline"><Download className="h-4 w-4" /> Secondary icon</Button>
             </div>
           </Section>
 
@@ -237,11 +262,11 @@ export default function ComponentDesign() {
           </Section>
 
           {/* ------------------------------------------------ status */}
-          <Section id="badge" title="Badge & tags" note="Light tints; the Complaint tag sits beside a task name.">
-            <div className="flex flex-wrap items-center gap-3">
-              <Badge tone="success">Success</Badge><Badge tone="warning">Warning</Badge><Badge tone="danger">Danger</Badge>
-              <Badge tone="info">Info</Badge><Badge tone="brand">Brand</Badge><Badge tone="neutral">Neutral</Badge>
-              <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${COMPLAINT_PILL}`}>Complaint</span>
+          <Section id="badge" title="Badges" note="Pill, Inter 500 / 12px, 5px 11px. Priority badges carry a 6px dot; status badges are plain.">
+            <div className="space-y-5">
+              <div><Label>Priority</Label><div className="flex flex-wrap gap-3"><Badge tone="brand" dot>High</Badge><Badge tone="warning" dot>Medium</Badge><Badge tone="success" dot>Low</Badge></div></div>
+              <div><Label>Status</Label><div className="flex flex-wrap gap-3"><Badge tone="brand">Open</Badge><Badge tone="warning">In Progress</Badge><Badge tone="neutral">Pending</Badge><Badge tone="success">Completed</Badge></div></div>
+              <div><Label>Other tones</Label><div className="flex flex-wrap gap-3"><Badge tone="danger">Critical</Badge><Badge tone="info">Info</Badge><span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${COMPLAINT_PILL}`}>Complaint</span></div></div>
             </div>
           </Section>
 
@@ -294,9 +319,9 @@ export default function ComponentDesign() {
             </Card>
           </Section>
 
-          <Section id="avatar" title="Avatar, flag, QR" note="Initials on a tint, country flags and the room QR code.">
+          <Section id="avatar" title="Avatar, flag, QR" note="44px circle on the orange tint, initials in Sora 600 / 15px. Flags and the room QR code sit alongside.">
             <div className="flex flex-wrap items-center gap-8">
-              <div className="flex items-center gap-3"><Avatar name="Emma Davis" size={36} /><Avatar name="Rohan Sharma" size={48} tone="bg-sky-100 text-sky-700" /><Avatar name="Sophia Carter" size={64} tone="bg-brand text-white" /></div>
+              <div className="flex items-center gap-4"><UiAvatar name="Emma Davis" /><UiAvatar name="James Wilson" /><UiAvatar name="Rohan Sharma" size={36} /><UiAvatar name="Sophia Carter" size={64} tone="bg-brand text-white" /></div>
               <div className="flex items-center gap-3"><Flag country="India" /><Flag country="United Kingdom" /><Flag country="Australia" /></div>
               <FakeQR seed="component-design" size={96} />
             </div>
@@ -319,13 +344,14 @@ export default function ComponentDesign() {
             </div>
           </Section>
 
-          <Section id="sidebar" title="Sidebar item & top bar" note="Active item is a soft orange tint; the top bar holds only the page title and the bell.">
+          <Section id="sidebar" title="Sidebar item & top bar" note="220px rail. Items are 10px 12px, 14px / 500; the active item sits on the orange tint at 600.">
             <div className="flex flex-wrap items-start gap-10">
-              <div className="w-[220px] space-y-1">
-                <div className="flex items-center gap-3 rounded-lg bg-brand-tint px-3 py-2.5 text-[14px] font-medium text-brand"><HomeIcon className="h-[18px] w-[18px]" /> Home</div>
-                <div className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-[14px] text-ink-secondary hover:bg-subtle"><ListChecks className="h-[18px] w-[18px]" /> Tasks <span className="ml-auto text-[12px] text-ink-tertiary">15</span></div>
+              <div className="w-[200px] rounded-[14px] border border-line bg-white p-2.5">
+                <div className="mb-0.5 flex items-center gap-3 rounded-control bg-brand-tint px-3 py-2.5 text-[14px] font-semibold text-brand"><MessageCircle className="h-[18px] w-[18px]" /> Guest Chats</div>
+                <div className="mb-0.5 flex items-center gap-3 rounded-control px-3 py-2.5 text-[14px] font-medium text-ink-secondary"><ListChecks className="h-[18px] w-[18px]" /> Tasks <span className="ml-auto text-[12px] text-ink-tertiary">15</span></div>
+                <div className="flex items-center gap-3 rounded-control px-3 py-2.5 text-[14px] font-medium text-ink-secondary"><HomeIcon className="h-[18px] w-[18px]" /> Housekeeping</div>
               </div>
-              <div className="flex h-16 w-[420px] items-center border-b border-line px-4"><h1 className="text-[19px] font-semibold text-ink">Pre-Arrival</h1><span className="ml-auto text-ink-secondary"><Bell className="h-[18px] w-[18px]" /></span></div>
+              <div className="flex h-16 w-[420px] items-center border-b border-line bg-white px-4"><h1 className="text-[19px] font-semibold text-ink">Pre-Arrival</h1><span className="ml-auto text-ink-secondary"><Bell className="h-[18px] w-[18px]" /></span></div>
             </div>
           </Section>
 

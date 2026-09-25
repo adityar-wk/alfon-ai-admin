@@ -189,7 +189,7 @@ export function GuestChat({
             onClick={send}
             disabled={mode !== "manual" || !draft.trim()}
             aria-label="Send"
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand text-white shadow-[0_4px_12px_rgba(241,90,36,0.35)] hover:bg-brand-hover disabled:opacity-40 disabled:shadow-none"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand text-white shadow-[0_4px_12px_rgba(232,98,58,0.35)] hover:bg-brand-hover disabled:opacity-40 disabled:shadow-none"
           >
             <Send className="h-[18px] w-[18px]" />
           </button>

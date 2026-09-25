@@ -84,7 +84,7 @@ export function Sidebar() {
   };
 
   return (
-    <aside className="flex h-full w-[240px] shrink-0 flex-col border-r border-line bg-white">
+    <aside className="flex h-full w-[220px] shrink-0 flex-col border-r border-line bg-white">
       <div className="px-6 pb-6 pt-6">
         <Logo />
       </div>
@@ -99,8 +99,8 @@ export function Sidebar() {
               to={to}
               className={({ isActive }) =>
                 [
-                  "group flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] font-medium transition-colors",
-                  isActive || forced ? "bg-brand-tint text-brand" : "text-ink-secondary hover:bg-subtle hover:text-ink",
+                  "group flex items-center gap-3 rounded-control px-3 py-2.5 text-[14px] font-medium transition-colors duration-200",
+                  isActive || forced ? "bg-brand-tint font-semibold text-brand" : "text-ink-secondary hover:bg-subtle hover:text-ink",
                 ].join(" ")
               }
             >

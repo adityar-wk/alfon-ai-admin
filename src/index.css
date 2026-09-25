@@ -9,7 +9,19 @@
     height: 100%;
   }
   body {
-    @apply bg-white text-ink font-sans antialiased;
+    @apply bg-page text-ink font-sans antialiased;
+  }
+  /* Sora: headings and key numbers; everything else is Inter */
+  h1,
+  h2,
+  h3,
+  .font-display,
+  [class*="text-[26px]"],
+  [class*="text-[28px]"],
+  [class*="text-[34px]"],
+  [class*="text-[36px]"],
+  [class*="text-[60px]"] {
+    font-family: theme("fontFamily.display");
   }
 }
 

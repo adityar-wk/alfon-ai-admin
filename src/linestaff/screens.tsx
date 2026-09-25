@@ -138,7 +138,7 @@ function LsCard({ t, onOpen, onAccept }: { t: Task; onOpen?: () => void; onAccep
       </div>
       {onAccept && (
         <div className="mt-3.5 border-t border-line pt-3.5">
-          <button onClick={onAccept} className="flex h-10 w-full items-center justify-center rounded-xl bg-brand text-[13px] font-semibold text-white shadow-[0_2px_6px_rgba(241,90,36,0.16)]">
+          <button onClick={onAccept} className="flex h-10 w-full items-center justify-center rounded-xl bg-brand text-[13px] font-semibold text-white shadow-[0_2px_6px_rgba(232,98,58,0.16)]">
             Accept
           </button>
         </div>

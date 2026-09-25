@@ -3,7 +3,7 @@ import { X } from "lucide-react";
 
 export function Page({ children }: { children: ReactNode }) {
   return (
-    <main className="flex-1 overflow-y-auto bg-white">
+    <main className="flex-1 overflow-y-auto bg-page">
       <div className="mx-auto max-w-[1240px] p-6">{children}</div>
     </main>
   );
@@ -18,13 +18,13 @@ export function Card({
   children: ReactNode;
   className?: string;
   id?: string;
-  /** the shared data-table surface: larger radius, hairline border, soft shadow */
+  /** kept for callers; every card now shares one surface */
   table?: boolean;
 }) {
   return (
     <div
       id={id}
-      className={`${table ? "rounded-[20px] border border-line/40 shadow-[0_1px_3px_rgba(16,24,40,0.05)]" : "rounded-card border border-line"} bg-white ${className}`}
+      className={`rounded-card border border-line bg-white shadow-card ${className}`}
     >
       {children}
     </div>
@@ -33,28 +33,32 @@ export function Card({
 
 type Tone = "success" | "warning" | "danger" | "neutral" | "brand" | "info";
 
-const TONE: Record<Tone, string> = {
-  success: "bg-emerald-50 text-emerald-600",
-  warning: "bg-amber-50 text-amber-600",
-  danger: "bg-red-50 text-red-600",
-  neutral: "bg-gray-100 text-ink-secondary",
-  brand: "bg-brand-tint text-brand",
-  info: "bg-blue-50 text-blue-600",
+const TONE: Record<Tone, { pill: string; dot: string }> = {
+  brand: { pill: "bg-brand-tint text-brand", dot: "bg-brand" },
+  warning: { pill: "bg-[#FFF9EC] text-warning", dot: "bg-warning" },
+  success: { pill: "bg-[#F0FDF4] text-success", dot: "bg-success" },
+  neutral: { pill: "bg-surface2 text-ink-secondary", dot: "bg-ink-tertiary" },
+  danger: { pill: "bg-[#FEF2F2] text-danger", dot: "bg-danger" },
+  info: { pill: "bg-[#EEF6FA] text-teal", dot: "bg-teal" },
 };
 
 export function Badge({
   tone = "neutral",
+  dot = false,
   children,
   className = "",
 }: {
   tone?: Tone;
+  /** leading 6px dot, used on priority badges */
+  dot?: boolean;
   children: ReactNode;
   className?: string;
 }) {
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${TONE[tone]} ${className}`}
+      className={`inline-flex items-center gap-1.5 rounded-full px-[11px] py-[5px] text-[12px] font-medium ${TONE[tone].pill} ${className}`}
     >
+      {dot && <span className={`h-1.5 w-1.5 rounded-full ${TONE[tone].dot}`} />}
       {children}
     </span>
   );
@@ -75,12 +79,12 @@ export function Button({
 } & React.ButtonHTMLAttributes<HTMLButtonElement>) {
   const styles = {
     primary: tone ? `${tone} text-white hover:opacity-90` : "bg-brand text-white hover:bg-brand-hover",
-    outline: "border border-line bg-white text-ink hover:bg-subtle",
+    outline: "border border-line bg-transparent text-ink hover:bg-subtle",
     ghost: "text-ink-secondary hover:bg-subtle",
   }[variant];
   return (
     <button
-      className={`inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-[13px] font-semibold transition-colors ${styles} ${className}`}
+      className={`inline-flex items-center justify-center gap-2 rounded-control px-[18px] py-2.5 text-[14px] font-semibold transition-colors duration-200 ${styles} ${className}`}
       {...rest}
     >
       {children}
@@ -116,7 +120,7 @@ export function Input(props: React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
       {...props}
-      className={`h-10 w-full rounded-lg border border-line bg-white px-3 text-[13px] text-ink outline-none placeholder:text-ink-tertiary focus:border-brand ${props.className ?? ""}`}
+      className={`h-10 w-full rounded-control border border-line bg-white px-3 text-[13px] text-ink outline-none placeholder:text-ink-tertiary focus:border-brand ${props.className ?? ""}`}
     />
   );
 }
@@ -125,7 +129,7 @@ export function Select(props: React.SelectHTMLAttributes<HTMLSelectElement>) {
   return (
     <select
       {...props}
-      className={`h-10 w-full appearance-none rounded-lg border border-line bg-white bg-[length:16px] bg-[right_12px_center] bg-no-repeat px-3 pr-9 text-[13px] text-ink outline-none focus:border-brand ${props.className ?? ""}`}
+      className={`h-10 w-full appearance-none rounded-control border border-line bg-white bg-[length:16px] bg-[right_12px_center] bg-no-repeat px-3 pr-9 text-[13px] text-ink outline-none focus:border-brand ${props.className ?? ""}`}
       style={{
         backgroundImage:
           "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%236B7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m4 6 4 4 4-4'/%3E%3C/svg%3E\")",
@@ -186,7 +190,7 @@ export function Textarea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement
   return (
     <textarea
       {...props}
-      className={`w-full rounded-lg border border-line bg-white p-3 text-[13px] text-ink outline-none placeholder:text-ink-tertiary focus:border-brand ${props.className ?? ""}`}
+      className={`w-full rounded-control border border-line bg-white p-3 text-[13px] text-ink outline-none placeholder:text-ink-tertiary focus:border-brand ${props.className ?? ""}`}
     />
   );
 }
@@ -203,6 +207,18 @@ export function Toggle({ checked = true }: { checked?: boolean }) {
           checked ? "translate-x-4" : ""
         }`}
       />
+    </span>
+  );
+}
+
+/** 44px circle on the brand tint, initials in Sora 600 */
+export function Avatar({ name, size = 44, tone = "bg-brand-tint text-brand", className = "" }: { name: string; size?: number; tone?: string; className?: string }) {
+  return (
+    <span
+      className={`inline-flex shrink-0 items-center justify-center rounded-full font-display font-semibold ${tone} ${className}`}
+      style={{ width: size, height: size, fontSize: Math.max(11, Math.round(size / 3)) }}
+    >
+      {name.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase()}
     </span>
   );
 }

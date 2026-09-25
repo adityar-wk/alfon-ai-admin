@@ -245,7 +245,7 @@ export function GuestProfileScreen({ name, onBack, onMessage, author = "Staff" }
         <button
           onClick={onMessage}
           aria-label="Message guest"
-          className="absolute bottom-6 right-5 z-10 flex h-14 w-14 items-center justify-center rounded-full bg-brand text-white shadow-[0_6px_18px_rgba(241,90,36,0.4)]"
+          className="absolute bottom-6 right-5 z-10 flex h-14 w-14 items-center justify-center rounded-full bg-brand text-white shadow-[0_6px_18px_rgba(232,98,58,0.4)]"
         >
           <MessageCircle className="h-6 w-6" />
         </button>

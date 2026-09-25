@@ -6,14 +6,14 @@ export function HotelIllustration({ className = "" }: { className?: string }) {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <circle cx="120" cy="74" r="66" fill="#FEEFE6" />
+      <circle cx="120" cy="74" r="66" fill="#FFF4F0" />
       {/* palm left */}
       <path d="M46 150c-2-26 4-44 12-58" stroke="#E8895F" strokeWidth="4" strokeLinecap="round" />
       <path d="M58 92c-10-8-24-8-30-2 8 2 14 6 18 12M58 92c-2-12 4-24 14-28-4 8-6 16-6 24M58 92c8-8 22-10 30-4-8 2-16 6-22 12M58 92c-4-10-2-22 6-30-2 8-2 16 0 24" fill="#F2A17E" />
       {/* building */}
       <rect x="86" y="46" width="70" height="96" rx="6" fill="#F6B48F" />
       <rect x="100" y="30" width="42" height="112" rx="6" fill="#F5A623" />
-      <rect x="112" y="18" width="18" height="124" rx="4" fill="#F15A24" />
+      <rect x="112" y="18" width="18" height="124" rx="4" fill="#E8623A" />
       {[36, 54, 72, 90, 108].map((y) => (
         <g key={y}>
           <rect x="106" y={y} width="7" height="9" rx="1.5" fill="#FFF1EA" />

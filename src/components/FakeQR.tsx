@@ -24,16 +24,16 @@ export function FakeQR({
     for (let c = 0; c < n; c++) {
       if (isFinder(r, c)) continue;
       if (rand() > 0.52) {
-        cells.push(<rect key={`${r}-${c}`} x={c} y={r} width="1" height="1" fill="#2B2E35" />);
+        cells.push(<rect key={`${r}-${c}`} x={c} y={r} width="1" height="1" fill="#1A1A1A" />);
       }
     }
   }
 
   const finder = (x: number, y: number) => (
     <g key={`f-${x}-${y}`}>
-      <rect x={x} y={y} width="7" height="7" fill="#2B2E35" />
+      <rect x={x} y={y} width="7" height="7" fill="#1A1A1A" />
       <rect x={x + 1} y={y + 1} width="5" height="5" fill="#ffffff" />
-      <rect x={x + 2} y={y + 2} width="3" height="3" fill="#2B2E35" />
+      <rect x={x + 2} y={y + 2} width="3" height="3" fill="#1A1A1A" />
     </g>
   );
 

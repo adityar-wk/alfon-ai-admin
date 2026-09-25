@@ -22,7 +22,7 @@ export const CARD_SHADOW = "shadow-[0_2px_10px_rgba(17,17,17,0.08)]";
 
 export function PhoneFrame({ children, white = false }: { children: ReactNode; white?: boolean }) {
   return (
-    <div className="relative h-[820px] w-[400px] shrink-0 rounded-[52px] border-[10px] border-[#2B2E35] bg-[#2B2E35] shadow-2xl">
+    <div className="relative h-[820px] w-[400px] shrink-0 rounded-[52px] border-[10px] border-[#1A1A1A] bg-[#1A1A1A] shadow-2xl">
       <div className={`relative flex h-full w-full flex-col overflow-hidden rounded-[42px] ${white ? "bg-white" : "bg-[#F6F6F8]"}`}>
         <StatusBar />
         <div className="relative min-h-0 flex-1">{children}</div>
@@ -126,7 +126,7 @@ export const fmtMins = (m: number) => {
 export function slaTone(left: number, total: number) {
   if (left < 0) return { color: "#DC2626", label: "over", text: "text-red-600" };
   const f = left / total;
-  if (f < 0.25) return { color: "#F15A24", label: "left", text: "text-orange-600" };
+  if (f < 0.25) return { color: "#E8623A", label: "left", text: "text-orange-600" };
   if (f < 0.55) return { color: "#F59E0B", label: "left", text: "text-amber-600" };
   return { color: "#16A34A", label: "left", text: "text-emerald-600" };
 }
@@ -232,7 +232,7 @@ export function StatCard({ label, value, tone = "text-ink", onClick, hint }: { l
 
 export function Avatar({ name, size = 40, tone = "bg-brand-tint text-brand" }: { name: string; size?: number; tone?: string }) {
   return (
-    <span className={`flex shrink-0 items-center justify-center rounded-full text-[12px] font-semibold ${tone}`} style={{ width: size, height: size }}>
+    <span className={`flex shrink-0 items-center justify-center rounded-full font-display text-[12px] font-semibold ${tone}`} style={{ width: size, height: size }}>
       {name.split(" ").map((w) => w[0]).slice(0, 2).join("")}
     </span>
   );
@@ -418,7 +418,7 @@ export function FloatingNav<K extends string>({
         <button
           onClick={fab.onClick}
           aria-label={fab.label}
-          className="pointer-events-auto absolute bottom-[84px] right-5 flex h-14 w-14 items-center justify-center rounded-full bg-brand text-white shadow-[0_3px_10px_rgba(241,90,36,0.22)] active:scale-95"
+          className="pointer-events-auto absolute bottom-[84px] right-5 flex h-14 w-14 items-center justify-center rounded-full bg-brand text-white shadow-[0_3px_10px_rgba(232,98,58,0.22)] active:scale-95"
         >
           <fab.icon className="h-7 w-7" />
         </button>
@@ -433,7 +433,7 @@ export function Fab({ onClick, label, icon: Icon }: { onClick: () => void; label
     <button
       onClick={onClick}
       aria-label={label}
-      className="absolute bottom-5 right-5 z-20 flex h-16 w-16 items-center justify-center rounded-full bg-brand text-white shadow-[0_3px_10px_rgba(241,90,36,0.22)] active:scale-95"
+      className="absolute bottom-5 right-5 z-20 flex h-16 w-16 items-center justify-center rounded-full bg-brand text-white shadow-[0_3px_10px_rgba(232,98,58,0.22)] active:scale-95"
     >
       <Icon className="h-7 w-7" />
     </button>

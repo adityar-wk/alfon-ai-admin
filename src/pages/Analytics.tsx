@@ -657,7 +657,7 @@ function SatisfactionChart({ values }: { values: number[] }) {
           <circle cx={px} cy={py} r={hover === i ? 5 : 3} fill="#fff" stroke="#7FA8E0" strokeWidth="2" />
           {hover === i && (
             <g>
-              <rect x={px - 22} y={py - 30} width="44" height="20" rx="5" fill="#2B2E35" />
+              <rect x={px - 22} y={py - 30} width="44" height="20" rx="5" fill="#1A1A1A" />
               <text x={px} y={py - 16} textAnchor="middle" fontSize="11" fontWeight="600" fill="#fff">{values[i].toFixed(2)}</text>
             </g>
           )}
