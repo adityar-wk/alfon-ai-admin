@@ -34,7 +34,6 @@ export default function StaffTeamManagement() {
   const [query, setQuery] = useState("");
   const [drawer, setDrawer] = useState<DrawerState>(null);
   const [toast, setToast] = useState<string | null>(null);
-  const [tab, setTab] = useState<"members" | "roles">("members");
   const [dragging, setDragging] = useState(false);
   const [fileName, setFileName] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -58,21 +57,6 @@ export default function StaffTeamManagement() {
         <Topbar title="Team Members" backTo="/onboarding" />
         <Page>
           <SetupTabs />
-          <div className="mb-5 flex gap-6 border-b border-line">
-            {([["members", "Team Members"], ["roles", "Roles & Permissions"]] as const).map(([k, l]) => (
-              <button
-                key={k}
-                onClick={() => setTab(k)}
-                className={`-mb-px border-b-2 pb-2.5 text-[14px] font-medium ${tab === k ? "border-brand text-brand" : "border-transparent text-ink-secondary hover:text-ink"}`}
-              >
-                {l}
-              </button>
-            ))}
-          </div>
-          {tab === "roles" ? (
-            <RolesPermissions embedded />
-          ) : (
-          <>
           <Card className="p-6">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
@@ -129,60 +113,9 @@ export default function StaffTeamManagement() {
             </div>
           </Card>
 
-          <Card className="mt-5 p-6">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <h3 className="text-[15px] font-semibold text-ink">
-                Team members <span className="ml-1 font-normal text-ink-tertiary">{members.length}</span>
-              </h3>
-              <div className="relative w-64">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-tertiary" />
-                <input
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Search by name or department"
-                  className="h-9 w-full rounded-lg border border-line bg-white pl-9 pr-3 text-[13px] text-ink outline-none placeholder:text-ink-tertiary focus:border-brand"
-                />
-              </div>
-            </div>
-
-            <table className="mt-4 w-full text-left">
-              <thead>
-                <tr className="border-b border-line text-[11px] uppercase tracking-wide text-ink-secondary">
-                  <th className="pb-2 font-medium">Team Member</th>
-                  <th className="pb-2 font-medium">Department</th>
-                  <th className="pb-2 font-medium">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((m) => (
-                  <tr key={m.id} onClick={() => setDrawer({ mode: "edit", member: m })} className="cursor-pointer border-b border-line/70 hover:bg-subtle/60">
-                    <td className="py-3">
-                      <span className="flex items-center gap-2.5">
-                        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-subtle text-[11px] font-semibold text-ink-secondary">
-                          {m.first[0]}{m.last[0]}
-                        </span>
-                        <span className="text-[13px] font-medium text-ink">{m.first} {m.last}</span>
-                      </span>
-                    </td>
-                    <td className="py-3 text-[13px] text-ink-secondary">{m.dept === "Unassigned" ? <span className="text-ink-tertiary">Unassigned</span> : m.dept}</td>
-                    <td className="py-3">
-                      <MoreVertical className="h-4 w-4 text-ink-tertiary" />
-                    </td>
-                  </tr>
-                ))}
-                {!rows.length && (
-                  <tr>
-                    <td colSpan={3} className="py-8 text-center text-[13px] text-ink-tertiary">
-                      No team members match “{query}”.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-            <p className="mt-3 text-[12px] text-ink-tertiary">Showing {rows.length} of {members.length} members</p>
-          </Card>
-          </>
-          )}
+          <div className="mt-6">
+            <RolesPermissions embedded />
+          </div>
         </Page>
       </div>
 

@@ -173,7 +173,7 @@ export default function RolesPermissions({ embedded = false }: { embedded?: bool
     <>
       {!embedded && <Topbar title="Roles & Permissions" subtitle="Define what each role can access and do, and who belongs to it." />}
       <Shell embedded={embedded}>
-        <div className="flex gap-6 border-b border-line">
+        <div className={`${embedded ? "hidden" : "flex"} gap-6 border-b border-line`}>
           {([["roles", "Role Configuration"], ["users", "User Management"]] as const).map(([k, l]) => (
             <button
               key={k}
@@ -185,15 +185,15 @@ export default function RolesPermissions({ embedded = false }: { embedded?: bool
           ))}
         </div>
 
-        {tab === "roles" ? (
+        {tab === "roles" || embedded ? (
           <>
-            <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-[minmax(340px,0.9fr)_1.4fr]">
+            <div className={`${embedded ? "mt-0" : "mt-6"} grid grid-cols-1 gap-6 xl:grid-cols-[minmax(340px,0.9fr)_1.4fr]`}>
               {/* roles list */}
               <Card className="p-5">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <h2 className="text-[17px] font-semibold text-ink">Roles</h2>
-                    <p className="text-[12px] text-ink-secondary">Select a role to view or edit its permissions.</p>
+                    <h2 className="text-[17px] font-semibold text-ink">{embedded ? "Create role" : "Roles"}</h2>
+                    <p className="text-[12px] text-ink-secondary">{embedded ? "Add a new role, or pick an existing one to configure." : "Select a role to view or edit its permissions."}</p>
                   </div>
                   <Button onClick={() => setCreateOpen(true)}><Plus className="h-4 w-4" /> Create Role</Button>
                 </div>
@@ -239,6 +239,7 @@ export default function RolesPermissions({ embedded = false }: { embedded?: bool
               {/* editor */}
               <Card className="p-5" >
                 <div ref={editorRef} />
+                {embedded && <div className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-ink-tertiary">Configure role</div>}
                 <div className="flex items-start gap-3">
                   <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg ${cfg.tone}`}><cfg.icon className="h-5 w-5" /></span>
                   <div className="min-w-0 flex-1">
