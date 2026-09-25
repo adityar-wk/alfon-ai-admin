@@ -475,31 +475,22 @@ export default function GuestProfile() {
                 </div>
               </div>
 
-            {/* everything at a glance in one card: three columns divided by hairlines */}
-            <div className="grid grid-cols-1 items-start border-t border-line xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_320px] xl:divide-x xl:divide-line">
-              <div className="min-w-0 divide-y divide-line">
-                <div className="p-6">
-                  <Heading icon={User} tone="text-ink-tertiary">Guest profile</Heading>
-                  <p className="text-[14px] leading-relaxed text-ink">{p.summary}</p>
-                </div>
-                <div className="p-6">
-                  <Heading icon={Lightbulb} tone="text-ink-tertiary">Anticipated needs</Heading>
-                  <p className="text-[14px] leading-relaxed text-ink">{p.anticipated}</p>
-                </div>
-                <div className="p-6">
-                  <Heading icon={History} tone="text-ink-tertiary">Stay history</Heading>
-                  <div className="space-y-2">
-                    {p.history.map((h) => <div key={h} className="rounded-lg bg-subtle/70 px-3 py-2 text-[13px] text-ink">{h}</div>)}
-                    {!p.history.length && <p className="text-[13px] text-ink-tertiary">No previous stays.</p>}
-                  </div>
-                </div>
+            {/* everything at a glance in one card: profile + needs, preferences, history on the left; actions + notes on the right */}
+            <div className="grid grid-cols-1 items-stretch border-t border-line xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_320px]">
+              <div className="min-w-0 border-b border-line p-6 xl:border-r">
+                <Heading icon={User} tone="text-ink-tertiary">Guest profile</Heading>
+                <p className="text-[14px] leading-relaxed text-ink">{p.summary}</p>
+              </div>
+              <div className="min-w-0 border-b border-line p-6 xl:border-r">
+                <Heading icon={Lightbulb} tone="text-ink-tertiary">Anticipated needs</Heading>
+                <p className="text-[14px] leading-relaxed text-ink">{p.anticipated}</p>
               </div>
 
-              <div className="min-w-0 p-6">
-                <div className="mb-3 text-[11px] font-bold uppercase tracking-wide text-ink-tertiary">Preferences</div>
-                <div className="divide-y divide-line/70">
+              <div className="min-w-0 border-b border-line p-6 xl:col-span-2 xl:col-start-1 xl:row-start-2 xl:border-r">
+                <div className="mb-4 text-[11px] font-bold uppercase tracking-wide text-ink-tertiary">Preferences</div>
+                <div className="grid grid-cols-1 gap-x-8 gap-y-5 md:grid-cols-2">
                   {PREF_CARDS.map(({ key, label, icon: Icon }) => (
-                    <div key={key} className="py-3 first:pt-0 last:pb-0">
+                    <div key={key}>
                       <div className="mb-1.5 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-ink-tertiary"><Icon className="h-3.5 w-3.5" /> {label}</div>
                       <div className="flex flex-wrap gap-1.5">
                         {p.prefs[key].map((v) => <span key={v} className="rounded-full bg-subtle px-2.5 py-0.5 text-[13px] text-ink">{v}</span>)}
@@ -509,7 +500,15 @@ export default function GuestProfile() {
                 </div>
               </div>
 
-              <div className="min-w-0 divide-y divide-line">
+              <div className="min-w-0 p-6 xl:col-span-2 xl:col-start-1 xl:row-start-3 xl:border-r">
+                <Heading icon={History} tone="text-ink-tertiary">Stay history</Heading>
+                <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
+                  {p.history.map((h) => <div key={h} className="rounded-lg bg-subtle/70 px-3 py-2 text-[13px] text-ink">{h}</div>)}
+                  {!p.history.length && <p className="text-[13px] text-ink-tertiary">No previous stays.</p>}
+                </div>
+              </div>
+
+              <div className="min-w-0 divide-y divide-line xl:col-start-3 xl:row-span-3 xl:row-start-1">
                 <div className="p-6">
                   <Heading icon={Bell} tone="text-red-700">Actions</Heading>
                   <div className="divide-y divide-line/70">

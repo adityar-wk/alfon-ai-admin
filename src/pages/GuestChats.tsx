@@ -81,9 +81,9 @@ export default function GuestChats() {
   return (
     <>
       <Topbar title="Guest Chats" />
-      <div className="flex min-h-0 flex-1 gap-5 bg-[#FBFBFD] p-6">
+      <div className="flex min-h-0 flex-1 bg-[#FBFBFD]">
         {/* ---------------- conversations ---------------- */}
-        <div className={`flex shrink-0 flex-col overflow-hidden transition-[width] duration-200 ${CARD} ${collapsed ? "w-[80px]" : "w-[340px]"}`}>
+        <div className={`flex shrink-0 flex-col overflow-hidden border-r border-line bg-white transition-[width] duration-200 ${collapsed ? "w-[80px]" : "w-[340px]"}`}>
           {collapsed ? (
             <>
               <div className="flex justify-center border-b border-line/60 p-4">
@@ -187,6 +187,7 @@ export default function GuestChats() {
           )}
         </div>
 
+        <div className="flex min-h-0 min-w-0 flex-1 gap-5 p-6">
         {/* ---------------- chat ---------------- */}
         <div className={`flex min-w-0 flex-1 flex-col overflow-hidden ${CARD}`}>
           <div className="flex items-center gap-3.5 border-b border-line/60 px-7 py-4">
@@ -277,6 +278,7 @@ export default function GuestChats() {
               </div>
             </div>
           )}
+        </div>
         </div>
       </div>
 
