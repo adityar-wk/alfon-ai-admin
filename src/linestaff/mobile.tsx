@@ -256,21 +256,33 @@ export function ChatRow({
         <span className="mt-1 block text-[12px] text-ink-tertiary">{room}</span>
         <span className="mt-1.5 block truncate text-[13px] text-ink-secondary">{preview}</span>
       </span>
-      {!plain && <span className="flex shrink-0 flex-col items-end justify-between gap-2 self-stretch py-0.5">
-        <span className="flex h-5 items-center gap-1.5">
-          {complaint && <AlertCircle aria-label="Complaint" className="h-[20px] w-[20px] text-amber-500" />}
-          {unread > 0 && <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-[11px] font-semibold text-white">{unread}</span>}
+      {!plain && (
+        <span className="flex shrink-0 flex-col items-end justify-between gap-2 self-stretch py-0.5">
+          <span className="flex h-5 items-center">
+            {unread > 0 && <span aria-label="Unread" className="h-2.5 w-2.5 rounded-full bg-ink" />}
+          </span>
+          <span className="text-[12px] text-ink-tertiary">{chatTime(name)}</span>
         </span>
-        <span className="text-[12px] text-ink-tertiary">{chatTime(name)}</span>
-      </span>}
+      )}
     </>
+  );
+  // complaint marker sits on the avatar's top-left corner
+  const avatar = (
+    <span className="relative block">
+      <Avatar name={name} size={52} tone={tone} />
+      {complaint && (
+        <span className="absolute -left-1 -top-1 flex h-[22px] w-[22px] items-center justify-center rounded-full bg-white">
+          <AlertCircle aria-label="Complaint" className="h-[20px] w-[20px] text-amber-500" />
+        </span>
+      )}
+    </span>
   );
   return (
     <div className="flex items-center gap-3.5 border-b border-[#EEEEF1] py-5 last:border-b-0">
       {onAvatar ? (
-        <button onClick={onAvatar} aria-label={`View ${name} profile`} className="shrink-0"><Avatar name={name} size={52} tone={tone} /></button>
+        <button onClick={onAvatar} aria-label={`View ${name} profile`} className="shrink-0">{avatar}</button>
       ) : (
-        <Avatar name={name} size={52} tone={tone} />
+        <span className="shrink-0">{avatar}</span>
       )}
       <button onClick={onOpen} className="flex min-w-0 flex-1 items-stretch gap-3 text-left">{body}</button>
     </div>
