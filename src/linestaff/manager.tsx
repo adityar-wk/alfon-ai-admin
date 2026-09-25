@@ -1,3 +1,4 @@
+import { Logo } from "../components/Logo";
 import { useMemo, useState } from "react";
 import {
   Bell, Home as HomeIcon, Plus, Users, UserCog, UserPlus, ArrowUpRight, MessageCircle, Send, Filter, ChevronRight, ChevronLeft, Search,
@@ -389,7 +390,7 @@ export function ManagerPrototype() {
         <div className="flex items-center gap-3">
           {menuBtn}
           <div className="leading-tight">
-            <div className="text-[20px] font-semibold text-ink">{ME}</div>
+            <Logo />
           </div>
         </div>
         {bellBtn}
