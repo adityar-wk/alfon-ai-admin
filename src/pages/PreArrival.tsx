@@ -20,6 +20,7 @@ import {
   ShieldAlert,
   Check,
   MoreHorizontal,
+  X,
 } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { GuestChat, type ChatMsg, type ChatMode, type MessageTemplate } from "../components/GuestChat";
@@ -445,13 +446,8 @@ export default function PreArrival() {
           <div className="fixed inset-y-0 right-0 z-40 flex shadow-2xl">
             <GuestDrawer
               g={selected}
-              msgs={chatFor(selected)}
-              mode={modes[selected.id] ?? "auto"}
-              setMode={(m) => setModes((x) => ({ ...x, [selected.id]: m }))}
-              onSend={(t) => sendChat(selected, t)}
               onClose={() => setSelectedId(null)}
-              onCreateTask={() => createTask(selected)}
-              flash={flash}
+              onTransfer={() => navigate(`/guest-chats?name=${encodeURIComponent(selected.name)}&room=${selected.room ?? ""}`)}
             />
           </div>
         </>
@@ -624,80 +620,87 @@ function KV({ label, children }: { label: string; children: React.ReactNode }) {
 }
 
 function GuestDrawer({
-  g, msgs, mode, setMode, onSend, onClose, onCreateTask, flash,
+  g, onClose, onTransfer,
 }: {
   g: PreGuest;
-  msgs: ChatMsg[];
-  mode: ChatMode;
-  setMode: (m: ChatMode) => void;
-  onSend: (text: string) => void;
   onClose: () => void;
-  onCreateTask: () => void;
-  flash: (m: string) => void;
+  onTransfer: () => void;
 }) {
   const ci = checkinDay(g);
+  const contacted = g.eng !== "Not Contacted";
+  const opened = g.eng === "Engaged" || g.eng === "Responded";
+  const responded = opened;
+  const prefsDone = g.ready === "Ready";
+  const steps: { title: string; sub: string; done: boolean }[] = [
+    { title: "Guest imported from arrival report", sub: `${shortDay(24)}, 08:45 AM`, done: true },
+    { title: "Pre-arrival message sent", sub: contacted ? `${shortDay(24)}, 09:00 AM` : "Not sent yet", done: contacted },
+    { title: "Guest opened message", sub: opened ? `${shortDay(24)}, 11:23 AM` : "Pending", done: opened },
+    { title: "Guest responded", sub: responded ? `${shortDay(24)}, 11:45 AM` : "Pending", done: responded },
+    { title: "Preferences collected", sub: prefsDone ? "Collected" : "Pending", done: prefsDone },
+    { title: "Guest arrives", sub: `${arrivalLabel(g)}, ${g.time}`, done: false },
+    { title: "Transfer to In-House", sub: "Pending front desk action", done: false },
+  ];
   return (
-    <Drawer
-      title="Guest Pre-Arrival"
-      width={470}
-      onClose={onClose}
-      footer={
-        <Button className="w-full" onClick={onCreateTask}>
-          <Plus className="h-4 w-4" /> Create Task
-        </Button>
-      }
-    >
-      <div className="-mt-1 flex items-start gap-4">
-        <Avatar g={g} size={52} />
-        <div className="min-w-0 flex-1">
-          <div className="text-[18px] font-bold leading-tight text-ink">{g.name}</div>
-          <div className="mt-1.5 text-[13px] text-ink-secondary">
-            {g.room ? `Room ${g.room}` : "Room not assigned"} · {g.type} · {g.nights} nights
+    <aside role="dialog" aria-label="Guest pre-arrival" className="flex w-[400px] shrink-0 flex-col border-l border-line bg-white">
+      <div className="min-h-0 flex-1 overflow-y-auto px-6 py-6">
+        <div className="flex items-start gap-3.5">
+          <Avatar g={g} size={48} soft />
+          <div className="min-w-0 flex-1">
+            <div className="text-[19px] font-bold leading-tight text-ink">{g.name}</div>
+            <div className="mt-0.5 text-[13px] text-ink-secondary">{g.room ? `Room ${g.room}` : "Room not assigned"} · {g.type}</div>
           </div>
-          <div className="text-[13px] text-ink-secondary">Arrives {arrivalLabel(g)} at {g.time}</div>
+          <button onClick={onClose} aria-label="Close" className="rounded-md p-1 text-ink-tertiary hover:bg-subtle hover:text-ink"><X className="h-5 w-5" /></button>
         </div>
-      </div>
+        <div className="mt-4 text-[14px] text-ink-secondary">
+          {arrivalLabel(g)} {g.time} → {shortDay(ci + g.nights)} <span className="text-ink-tertiary">· {g.nights} nights</span>
+        </div>
 
-      <div className="mt-4 grid grid-cols-2 gap-x-6 gap-y-2.5 rounded-xl border border-line p-3.5 text-[13px]">
-        <div><div className="text-[11px] text-ink-tertiary">Stay</div><div className="font-medium text-ink">{fmt(ci)} → {fmt(ci + g.nights)}</div></div>
-        <div><div className="text-[11px] text-ink-tertiary">Guests</div><div className="font-medium text-ink">{g.adults} adult{g.adults === 1 ? "" : "s"}{g.children ? `, ${g.children} child${g.children === 1 ? "" : "ren"}` : ""}</div></div>
-        <div><div className="text-[11px] text-ink-tertiary">Language</div><div className="font-medium text-ink">{g.lang}</div></div>
-        <div>
-          <div className="text-[11px] text-ink-tertiary">WhatsApp</div>
-          <div className={`font-medium ${g.consent ? "text-emerald-700" : "text-amber-700"}`}>
-            {g.wa ? (g.consent ? "Consent confirmed" : "Consent required") : "Unavailable"}
-          </div>
-        </div>
-        {g.prefs.length > 0 && (
-          <div className="col-span-2 flex flex-wrap gap-1.5 border-t border-line/70 pt-2.5">
-            {g.prefs.slice(0, 5).map((p) => (
-              <span key={p} className="rounded-md bg-subtle px-2 py-0.5 text-[11px] text-ink-secondary">{p}</span>
+        <div className="mt-5 border-t border-line pt-5">
+          <div className="mb-4 text-[12px] font-semibold uppercase tracking-wide text-ink-tertiary">Pre-arrival journey</div>
+          <ol>
+            {steps.map((st, i) => (
+              <li key={st.title} className="flex gap-3.5">
+                <div className="flex flex-col items-center">
+                  {st.done ? (
+                    <CheckCircle2 className="h-[18px] w-[18px] shrink-0 text-brand" />
+                  ) : (
+                    <span className="h-[18px] w-[18px] shrink-0 rounded-full border-[1.5px] border-line" />
+                  )}
+                  {i < steps.length - 1 && <span className={`my-1 w-px flex-1 ${st.done && steps[i + 1].done ? "bg-brand" : "bg-line"}`} />}
+                </div>
+                <div className={i < steps.length - 1 ? "pb-4" : ""}>
+                  <div className={`text-[15px] leading-tight ${st.done ? "font-medium text-ink" : "text-ink-tertiary"}`}>{st.title}</div>
+                  <div className="mt-0.5 text-[12px] text-ink-tertiary">{st.sub}</div>
+                </div>
+              </li>
             ))}
-            {g.prefs.length > 5 && <span className="px-1 text-[11px] text-ink-tertiary">+{g.prefs.length - 5}</span>}
-          </div>
-        )}
-      </div>
-
-      {!g.consent && (
-        <div className="mt-4 flex items-start gap-2 rounded-lg bg-amber-50/70 px-3 py-2 text-[12px] text-ink-secondary">
-          <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
-          Messaging consent required — hotel-initiated messages are blocked until the guest opts in.
+          </ol>
         </div>
-      )}
 
-      <div className="mt-4 overflow-hidden rounded-xl border border-line">
-        <GuestChat
-          className="h-[calc(100vh-520px)] min-h-[260px]"
-          name={g.name}
-          msgs={msgs}
-          mode={mode}
-          setMode={setMode}
-          onSend={onSend}
-          templates={PRE_ARRIVAL_TEMPLATES}
-          emptyText="No messages yet."
-        />
+        <div className="mt-2 border-t border-line pt-5">
+          <div className="mb-3 text-[12px] font-semibold uppercase tracking-wide text-ink-tertiary">Preferences collected</div>
+          {g.prefs.length > 0 && prefsDone ? (
+            <div className="flex flex-wrap gap-1.5">
+              {g.prefs.map((pr) => <span key={pr} className="rounded-md bg-subtle px-2 py-1 text-[12px] text-ink-secondary">{pr}</span>)}
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 text-[14px] text-ink-secondary">
+              <span className="h-2 w-2 rounded-full bg-brand/60" /> Awaiting guest response
+            </div>
+          )}
+        </div>
+
+        <div className="mt-5 border-t border-line pt-5">
+          <div className="mb-3 text-[12px] font-semibold uppercase tracking-wide text-ink-tertiary">Pre-arrival conversation summary</div>
+          <p className="rounded-xl bg-subtle px-4 py-3 text-[14px] leading-relaxed text-ink">
+            {contacted ? g.brief : "No conversation yet. The pre-arrival message has not been sent."}
+          </p>
+        </div>
       </div>
-    </Drawer>
+      <div className="shrink-0 border-t border-line p-5">
+        <Button className="w-full" onClick={onTransfer}>Transfer to In-House Chat</Button>
+      </div>
+    </aside>
   );
 }
 
