@@ -4,6 +4,7 @@ import { Topbar } from "../components/Topbar";
 import { SetupTabs } from "../components/SetupTabs";
 import { Page, Card } from "../components/ui";
 import { DEPARTMENTS, initials } from "../data/departments";
+import { deptIcon } from "../data/deptIcons";
 
 function DeptCard({ d, onboarding }: { d: (typeof DEPARTMENTS)[number]; onboarding: boolean }) {
   const head = d.members.find((m) => m.role === "Department Head");
@@ -12,8 +13,8 @@ function DeptCard({ d, onboarding }: { d: (typeof DEPARTMENTS)[number]; onboardi
       <Card className="h-full p-5 transition-colors hover:border-brand/40">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-tint text-[12px] font-semibold text-brand">
-              {d.code}
+            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-tint text-brand">
+              {(() => { const Icon = deptIcon(d.name); return <Icon className="h-[18px] w-[18px]" />; })()}
             </span>
             <span className="text-[15px] font-semibold text-ink">{d.name}</span>
           </div>
