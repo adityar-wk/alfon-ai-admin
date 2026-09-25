@@ -165,34 +165,22 @@ export default function Home() {
             </div>
 
         <div className="mt-5">
-          <Card className="p-8">
+          <Card className="overflow-hidden px-8 pb-8 pt-4">
             <div className="flex flex-col items-center">
-              <HealthOrb score={score} size={300}>
-                <span className="text-[56px] font-bold leading-none tracking-tight text-ink">{score}%</span>
-              </HealthOrb>
-              <div className="mt-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-ink-tertiary">Hotel Health Score</div>
-
-              <div className="mt-5 w-full max-w-[460px]">
-                <div className="flex justify-between text-[12px] text-ink-secondary">
-                  <span>Needs Attention</span>
-                  <span>Thriving</span>
-                </div>
-                <div className="relative mt-1.5 h-2 rounded-full" style={{ background: "linear-gradient(90deg,#F5A0AF 0%,#F7BC7A 45%,#F3DC9B 65%,#7FDDBB 90%)" }}>
-                  <span className="absolute top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-ink shadow" style={{ left: `${score}%` }} />
-                </div>
-                <div className="mt-1.5 flex justify-between text-[11px] text-ink-tertiary">
-                  <span>0%</span><span>50%</span><span>100%</span>
-                </div>
+              <div className="-mx-8 w-[calc(100%+4rem)]">
+                <HealthOrb score={score} size={340} wide>
+                  <span className="text-[60px] font-bold leading-none tracking-tight transition-colors duration-700" style={{ color: band.color }}>{score}%</span>
+                </HealthOrb>
               </div>
-
-              <p className={`mt-5 rounded-full px-4 py-2 text-[13px] font-medium ${band.pill}`}>
+              <div className="-mt-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-ink-tertiary">Hotel Health Score</div>
+              <p className="mt-2 text-[14px] text-ink-secondary">
                 {band.key === "excellent"
-                  ? "Your hotel is performing strong. Keep up the great work."
+                  ? "Your hotel is performing strong."
                   : band.key === "good"
                     ? "Your hotel is doing well, with room to improve."
                     : band.key === "attention"
-                      ? "Several things need attention — start with overdue and escalated tasks."
-                      : "Urgent: resolve overdue and escalated tasks to recover the score."}
+                      ? "Several things need attention."
+                      : "Urgent: resolve overdue and escalated tasks."}
               </p>
 
               <button

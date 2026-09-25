@@ -92,14 +92,54 @@ void main(){
   float soft = smoothstep(0.5, 0.05, d);
   float alpha = (0.04 + 0.62 * pow(vRim, 1.5)) * soft;
   vec3 col = mix(uColor * 1.1, uColor * 0.85, pow(vRim, 1.2));
-  gl_FragColor = vec4(col, alpha);
+  gl_FragColor = vec4(pow(col, vec3(1.0 / 2.2)), alpha); // back to sRGB so the pastel reads as pastel
+}`;
+
+/** fine grain drifting left to right, parting around the orb */
+const STREAM_VERT = /* glsl */ `
+uniform float uTime;
+uniform float uHalfW;
+uniform float uPixel;
+uniform vec2 uCenter;
+attribute float aSeed;
+varying float vFade;
+varying float vSeed;
+void main(){
+  float speed = 0.14 + aSeed * 0.24;
+  float x = mod(position.x + uTime * speed + uHalfW, 2.0 * uHalfW) - uHalfW;
+  float y = position.y
+          + sin(uTime * 0.45 + x * 1.1 + aSeed * 6.283) * 0.10
+          + sin(uTime * 0.23 + x * 2.3 + aSeed * 12.0) * 0.05;
+  vec2 c = vec2(x, y) - uCenter;
+  float d = length(c);
+  vec2 dir = d > 0.001 ? c / d : vec2(0.0, 1.0);
+  c += dir * exp(-d * d * 0.85) * 0.6;   // flow parts around the orb
+  vec3 p = vec3(c + uCenter, position.z);
+  vec4 mv = modelViewMatrix * vec4(p, 1.0);
+  gl_Position = projectionMatrix * mv;
+  float u = (x + uHalfW) / (2.0 * uHalfW);
+  vFade = smoothstep(0.0, 0.16, u) * (1.0 - smoothstep(0.84, 1.0, u));
+  vSeed = aSeed;
+  gl_PointSize = uPixel * (0.55 + aSeed * 1.0) * (3.4 / -mv.z);
+}`;
+
+const STREAM_FRAG = /* glsl */ `
+uniform vec3 uColor;
+varying float vFade;
+varying float vSeed;
+void main(){
+  float d = length(gl_PointCoord - 0.5);
+  if (d > 0.5) discard;
+  float soft = smoothstep(0.5, 0.1, d);
+  float alpha = (0.18 + 0.5 * vSeed) * vFade * soft;
+  gl_FragColor = vec4(pow(uColor, vec3(1.0 / 2.2)), alpha);
 }`;
 
 /**
  * A breathing, slowly tumbling particle orb (three.js) with the score shown inside.
  * The colour follows the score band and eases when the score changes.
  */
-export function HealthOrb({ score, size = 280, children }: { score: number; size?: number; children?: ReactNode }) {
+export function HealthOrb({ score, size = 280, wide = false, children }: { score: number; size?: number; wide?: boolean; children?: ReactNode }) {
   const mount = useRef<HTMLDivElement>(null);
   const target = useRef(new THREE.Color(scoreBand(score).color));
   const amp = useRef(0.2);
@@ -123,14 +163,16 @@ export function HealthOrb({ score, size = 280, children }: { score: number; size
     }
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     renderer.setPixelRatio(dpr);
-    renderer.setSize(size, size);
+    const W0 = wide ? Math.max(el.clientWidth, size) : size;
+    renderer.setSize(W0, size);
     renderer.setClearColor(0x000000, 0);
     el.appendChild(renderer.domElement);
     renderer.domElement.style.display = "block";
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 20);
-    camera.position.z = 3.35;
+    const camera = new THREE.PerspectiveCamera(38, W0 / size, 0.1, 20);
+    const camZ = wide ? 4.2 : 3.35; // wide mode pulls back so the orb has room to drift
+    camera.position.z = camZ;
 
     // fibonacci sphere
     const N = 16000;
@@ -170,6 +212,40 @@ export function HealthOrb({ score, size = 280, children }: { score: number; size
     points.rotation.set(0.6, 0.3, 0);
     scene.add(points);
 
+    // flowing grain, left to right (wide mode)
+    const visH = 2 * camZ * Math.tan((38 / 2) * (Math.PI / 180));
+    let halfW = (visH * (W0 / size)) / 2 + 0.3;
+    let streamMat: THREE.ShaderMaterial | null = null;
+    let streamGeo: THREE.BufferGeometry | null = null;
+    if (wide) {
+      const M = 1300;
+      const sp = new Float32Array(M * 3);
+      const ss = new Float32Array(M);
+      for (let i = 0; i < M; i++) {
+        sp[i * 3] = (Math.random() * 2 - 1) * 6; // spread over a long strip; wrapped by the shader
+        sp[i * 3 + 1] = (Math.random() * 2 - 1) * (visH * 0.5);
+        sp[i * 3 + 2] = (Math.random() * 2 - 1) * 0.7;
+        ss[i] = Math.random();
+      }
+      streamGeo = new THREE.BufferGeometry();
+      streamGeo.setAttribute("position", new THREE.BufferAttribute(sp, 3));
+      streamGeo.setAttribute("aSeed", new THREE.BufferAttribute(ss, 1));
+      streamMat = new THREE.ShaderMaterial({
+        vertexShader: STREAM_VERT,
+        fragmentShader: STREAM_FRAG,
+        transparent: true,
+        depthWrite: false,
+        uniforms: {
+          uTime: { value: 0 },
+          uHalfW: { value: halfW },
+          uPixel: { value: dpr * (size / 160) * 1.15 },
+          uCenter: { value: new THREE.Vector2(0, 0) },
+          uColor: { value: color },
+        },
+      });
+      scene.add(new THREE.Points(streamGeo, streamMat));
+    }
+
     const calm = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ? 0.5 : 1; // slower, never frozen
     const vel = new THREE.Vector3(0.12, 0.2, 0.07);
     const velTarget = new THREE.Vector3(0.12, 0.2, 0.07);
@@ -201,7 +277,18 @@ export function HealthOrb({ score, size = 280, children }: { score: number; size
       // hover bulge follows the cursor (eased)
       push += ((pointer.inside ? 0.22 : 0) - push) * (1 - Math.pow(0.5, dt / 0.25));
       mat.uniforms.uPush.value = push;
-      mat.uniforms.uMouse.value.set(pointer.x * 1.05, pointer.y * 1.05, Math.sqrt(Math.max(0, 1 - pointer.x * pointer.x - pointer.y * pointer.y)));
+      const wx = wide ? pointer.x * (visH * (renderer.domElement.clientWidth / size)) / 2 - points.position.x : pointer.x * 1.05;
+      const wy = wide ? pointer.y * (visH / 2) - points.position.y : pointer.y * 1.05;
+      mat.uniforms.uMouse.value.set(wx, wy, Math.sqrt(Math.max(0, 1 - wx * wx - wy * wy)));
+
+      if (wide) {
+        // the orb wanders slowly while the grain flows past it
+        points.position.set(Math.sin(t * 0.22) * 0.22, Math.sin(t * 0.17 + 1.3) * 0.12, 0);
+        if (streamMat) {
+          streamMat.uniforms.uTime.value = t;
+          (streamMat.uniforms.uCenter.value as THREE.Vector2).set(points.position.x, points.position.y);
+        }
+      }
 
       renderer.render(scene, camera);
       raf = requestAnimationFrame(frame);
@@ -248,7 +335,23 @@ export function HealthOrb({ score, size = 280, children }: { score: number; size
 
     frame();
 
+    let ro: ResizeObserver | null = null;
+    if (wide && typeof ResizeObserver !== "undefined") {
+      ro = new ResizeObserver(() => {
+        const w = Math.max(el.clientWidth, size);
+        renderer.setSize(w, size);
+        camera.aspect = w / size;
+        camera.updateProjectionMatrix();
+        halfW = (visH * (w / size)) / 2 + 0.3;
+        if (streamMat) streamMat.uniforms.uHalfW.value = halfW;
+      });
+      ro.observe(el);
+    }
+
     return () => {
+      ro?.disconnect();
+      streamGeo?.dispose();
+      streamMat?.dispose();
       cancelAnimationFrame(raf);
       cv.removeEventListener("pointerdown", down);
       cv.removeEventListener("pointermove", move);
@@ -262,16 +365,16 @@ export function HealthOrb({ score, size = 280, children }: { score: number; size
     };
     // the scene is created once; score changes are handled through refs
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [size]);
+  }, [size, wide]);
 
   const band = scoreBand(score);
 
   return (
-    <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
+    <div className="relative flex items-center justify-center" style={{ width: wide ? "100%" : size, height: size }}>
       {/* soft glow behind the particles */}
       <div
-        className="pointer-events-none absolute inset-[8%] rounded-full opacity-[0.16] blur-2xl transition-colors duration-700"
-        style={{ background: band.color }}
+        className="pointer-events-none absolute left-1/2 top-[8%] aspect-square -translate-x-1/2 rounded-full opacity-[0.16] blur-2xl transition-colors duration-700"
+        style={{ background: band.color, height: "84%" }}
       />
       <div ref={mount} className="absolute inset-0" />
       <div className="pointer-events-none relative text-center">{children}</div>
