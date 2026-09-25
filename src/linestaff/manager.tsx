@@ -5,6 +5,7 @@ import {
 } from "lucide-react";
 import { DEPARTMENTS } from "../data/departments";
 import { DetailRow, ProfileSection, GuestProfileScreen } from "./guestviews";
+import { pastel } from "../data/pastel";
 import { NotificationSettingsScreen, SignedOutScreen } from "./profile";
 import { DEPTS, METRICS, COMPLAINT_DETAIL } from "../pages/Analytics";
 import { Donut } from "../components/Donut";
@@ -111,7 +112,7 @@ const rampColors = (n: number) =>
     const from = [241, 90, 36], to = [253, 226, 212];
     return `rgb(${from.map((f, k) => Math.round(f + (to[k] - f) * t)).join(",")})`;
   });
-const HK_DONUT_COLORS = rampColors(HK_DEPT.items.length);
+const HK_DONUT_COLORS = pastel(HK_DEPT.items.length);
 
 const NOTIFS = [
   { text: "Supervisor escalation — Room 1204 deep clean (staffing risk)", time: "10:20 AM", to: "t5" },

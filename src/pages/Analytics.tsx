@@ -1,3 +1,4 @@
+import { pastel, PASTEL } from "../data/pastel";
 import { useEffect, useMemo, useState } from "react";
 import { ListChecks, CheckCircle2, AlertTriangle, Timer, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, Download, Filter, CalendarDays, X } from "lucide-react";
 import { Field, Input, Select } from "../components/ui";
@@ -14,14 +15,8 @@ type RangeKey = "week" | "month" | "custom";
 const fmtDate = (iso: string) =>
   new Date(iso + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 
-// ramp from brand orange to a pale tint — single hue keeps charts calm
-const ramp = (n: number) =>
-  Array.from({ length: n }, (_, i) => {
-    const t = n === 1 ? 0 : i / (n - 1);
-    const from = [241, 90, 36];
-    const to = [253, 226, 212];
-    return `rgb(${from.map((f, k) => Math.round(f + (to[k] - f) * t)).join(",")})`;
-  });
+// soft pastel palette for the charts
+const ramp = (n: number) => pastel(n);
 
 /* ---------- data ---------- */
 
@@ -156,10 +151,10 @@ export default function Analytics() {
   const deptColors = ramp(sorted.length);
 
   const kpis = [
-    { label: "Total Tasks", value: total.toLocaleString(), delta: "16% vs last period", up: true, icon: ListChecks },
-    { label: "Completed", value: completed.toLocaleString(), delta: "18% vs last period", up: true, icon: CheckCircle2 },
-    { label: "Overdue", value: overdue.toLocaleString(), delta: "8% vs last period", up: false, icon: AlertTriangle },
-    { label: "Avg Response", value: avgResp, delta: "12% vs last period", up: false, icon: Timer },
+    { label: "Total Tasks", value: total.toLocaleString(), delta: "16% vs last period", up: true, icon: ListChecks, chip: "bg-sky-100 text-sky-600" },
+    { label: "Completed", value: completed.toLocaleString(), delta: "18% vs last period", up: true, icon: CheckCircle2, chip: "bg-emerald-100 text-emerald-600" },
+    { label: "Overdue", value: overdue.toLocaleString(), delta: "8% vs last period", up: false, icon: AlertTriangle, chip: "bg-rose-100 text-rose-500" },
+    { label: "Avg Response", value: avgResp, delta: "12% vs last period", up: false, icon: Timer, chip: "bg-violet-100 text-violet-500" },
   ];
 
   const flash = (m: string) => {
@@ -257,12 +252,12 @@ export default function Analytics() {
         <div className="mt-5 grid grid-cols-2 gap-4 lg:grid-cols-4">
           {kpis.map((k) => (
             <Card key={k.label} className="p-5">
-              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-tint text-brand">
+              <span className={`flex h-9 w-9 items-center justify-center rounded-lg ${k.chip}`}>
                 <k.icon className="h-[18px] w-[18px]" />
               </span>
               <div className="mt-3 text-[13px] text-ink-secondary">{k.label}</div>
               <div className="text-[28px] font-bold leading-tight text-ink">{k.value}</div>
-              <div className="mt-1 flex items-center gap-1 text-[12px] font-medium text-brand">
+              <div className="mt-1 flex items-center gap-1 text-[12px] font-medium text-ink-secondary">
                 {k.up ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />} {k.delta}
               </div>
             </Card>
@@ -380,7 +375,7 @@ export default function Analytics() {
                     <td className="py-3 pl-5 text-[13px] font-semibold text-ink">{d.name}</td>
                     <td className="py-3 text-[14px] font-bold text-ink">{d.n.toLocaleString()}</td>
                     <td className="py-3 text-[13px] text-ink-secondary">{d.m.done}%</td>
-                    <td className={`py-3 text-[13px] ${d.m.overdue / d.tasks > 0.04 ? "font-semibold text-brand" : "text-ink-secondary"}`}>{scale(d.m.overdue)}</td>
+                    <td className={`py-3 text-[13px] ${d.m.overdue / d.tasks > 0.04 ? "font-semibold text-rose-500" : "text-ink-secondary"}`}>{scale(d.m.overdue)}</td>
                     <td className="py-3 text-[13px] text-ink-secondary">{d.m.resp}</td>
                     <td className="py-3 text-[13px]"><Delta v={d.m.delta} /></td>
                     <td className="py-3 pr-5 text-right">
@@ -505,12 +500,12 @@ export default function Analytics() {
           <Card className="p-6">
             <h4 className="text-[14px] font-semibold text-ink">By Nationality</h4>
             <div className="mt-4 space-y-4">
-              {NATIONS.map((n) => (
+              {NATIONS.map((n, ni) => (
                 <div key={n.label} className="grid grid-cols-[24px_52px_1fr_36px] items-center gap-3 text-[13px]">
                   {n.country === "Other" ? <span className="h-3.5 w-5 rounded-[3px] bg-gray-200" /> : <Flag country={n.country} />}
                   <span className="text-ink">{n.label}</span>
                   <span className="h-2 overflow-hidden rounded-full bg-subtle">
-                    <span className="block h-full rounded-full bg-brand/70" style={{ width: `${(n.pct / 28) * 100}%` }} />
+                    <span className="block h-full rounded-full" style={{ width: `${(n.pct / 28) * 100}%`, background: PASTEL[(ni + 1) % PASTEL.length] }} />
                   </span>
                   <span className="text-right text-ink-secondary">{n.pct}%</span>
                 </div>
@@ -611,7 +606,7 @@ function Delta({ v, badWhenUp = false }: { v: number; badWhenUp?: boolean }) {
   const bad = badWhenUp ? up : false;
   const good = badWhenUp ? !up : false;
   return (
-    <span className={`inline-flex items-center gap-0.5 ${bad ? "font-medium text-brand" : good ? "font-medium text-emerald-600" : "text-ink-secondary"}`}>
+    <span className={`inline-flex items-center gap-0.5 ${bad ? "font-medium text-rose-500" : good ? "font-medium text-emerald-600" : "text-ink-secondary"}`}>
       {up ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
       {Math.abs(v)}%
     </span>
@@ -640,8 +635,8 @@ function SatisfactionChart({ values }: { values: number[] }) {
     <svg viewBox={`0 0 ${W} ${H}`} className="mt-3 w-full">
       <defs>
         <linearGradient id="satFill" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0" stopColor="#F15A24" stopOpacity="0.14" />
-          <stop offset="1" stopColor="#F15A24" stopOpacity="0" />
+          <stop offset="0" stopColor="#8DB7F0" stopOpacity="0.28" />
+          <stop offset="1" stopColor="#8DB7F0" stopOpacity="0" />
         </linearGradient>
       </defs>
       {[5, 4.5, 4, 3.5].map((t) => (
@@ -651,12 +646,12 @@ function SatisfactionChart({ values }: { values: number[] }) {
         </g>
       ))}
       <path d={area} fill="url(#satFill)" />
-      <path d={d} fill="none" stroke="#F15A24" strokeWidth="2.5" strokeLinecap="round" />
+      <path d={d} fill="none" stroke="#7FA8E0" strokeWidth="2.5" strokeLinecap="round" />
       {pts.map(([px, py], i) => (
         <g key={i} onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)}>
           <text x={px} y={H - 8} textAnchor="middle" fontSize="10" fill="#9CA3AF">W{i + 1}</text>
           <circle cx={px} cy={py} r="14" fill="transparent" />
-          <circle cx={px} cy={py} r={hover === i ? 5 : 3} fill="#fff" stroke="#F15A24" strokeWidth="2" />
+          <circle cx={px} cy={py} r={hover === i ? 5 : 3} fill="#fff" stroke="#7FA8E0" strokeWidth="2" />
           {hover === i && (
             <g>
               <rect x={px - 22} y={py - 30} width="44" height="20" rx="5" fill="#111" />
