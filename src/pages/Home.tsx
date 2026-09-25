@@ -205,42 +205,38 @@ export default function Home() {
               <table className="w-full min-w-[820px] text-left">
                 <thead>
                   <tr className="border-b border-line bg-subtle/50 text-[11px] uppercase tracking-wide text-ink-secondary">
-                    <th className="py-3 pl-5 font-medium">Status</th>
+                    <th className="py-3 pl-5 font-medium">SLA</th>
                     <th className="py-3 font-medium">Task</th>
+                    <th className="py-3 font-medium">Status</th>
                     <th className="py-3 font-medium">Department</th>
-                    <th className="py-3 font-medium">Assigned To</th>
-                    <th className="py-3 pr-5 font-medium">Room</th>
+                    <th className="py-3 pr-5 font-medium">Assigned To</th>
                   </tr>
                 </thead>
                 <tbody>
                   {pending.map((t) => {
                     const D = DEPT_ICON[t.dept] ?? Building2;
+                    const reason = reasonOf(t)!;
                     return (
                       <tr key={t.id} onClick={() => navigate(`/tasks?open=${t.id}`)} className="cursor-pointer border-b border-line/70 last:border-0 hover:bg-subtle/60">
-                        <td className="py-3 pl-5 pr-3">
-                          <div className="flex flex-wrap items-center gap-x-2.5 gap-y-0.5">
-                            <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[12px] font-semibold ${REASON_PILL[reasonOf(t)!]}`}>{reasonOf(t)}</span>
-                            <span className={`flex items-center gap-1 whitespace-nowrap text-[12px] ${t.sla.kind === "overdue" ? "font-medium text-red-600" : t.sla.kind === "due" ? "font-medium text-brand" : "text-ink-secondary"}`}>
-                              <Clock className="h-3.5 w-3.5" />{t.sla.text.replace(/^Overdue\s+/, "-")}
-                            </span>
-                          </div>
+                        <td className="whitespace-nowrap py-3 pl-5 pr-3">
+                          <span className={`flex items-center gap-1 text-[13px] ${t.sla.kind === "overdue" ? "font-medium text-red-600" : t.sla.kind === "due" ? "font-medium text-brand" : "text-ink-secondary"}`}>
+                            <Clock className="h-3.5 w-3.5" />{t.sla.text.replace(/^Overdue\s+/, "-")}
+                          </span>
                         </td>
                         <td className="py-3 pr-3">
                           <div className="flex items-center gap-2 text-[13px] font-semibold text-ink">
                             {t.title}
-                            {t.tag === "Complaint" && reasonOf(t) !== "Complaint" && <span className="rounded-full bg-violet-100 px-2 py-0.5 text-[11px] font-semibold text-violet-700">Complaint</span>}
+                            {t.tag === "Complaint" && reason !== "Complaint" && <span className="rounded-full bg-violet-100 px-2 py-0.5 text-[11px] font-semibold text-violet-700">Complaint</span>}
                           </div>
-                          <div className="text-[12px] text-ink-tertiary">{t.guest}</div>
+                          <div className="text-[12px] text-ink-tertiary">Room {t.room}</div>
+                        </td>
+                        <td className="whitespace-nowrap py-3 pr-3">
+                          <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[12px] font-semibold ${REASON_PILL[reason]}`}>{reason}</span>
                         </td>
                         <td className="whitespace-nowrap py-3 pr-3 text-[13px] text-ink-secondary"><span className="flex items-center gap-2"><D className="h-4 w-4 text-ink-tertiary" />{t.dept}</span></td>
-                        <td className="whitespace-nowrap py-3 pr-3 text-[13px]">
-                          {t.owner ? (
-                            <span className="text-ink">{t.owner}</span>
-                          ) : (
-                            <span className="font-medium text-brand">Unassigned</span>
-                          )}
+                        <td className="whitespace-nowrap py-3 pr-5 text-[13px]">
+                          {t.owner ? <span className="text-ink">{t.owner}</span> : <span className="font-medium text-brand">Unassigned</span>}
                         </td>
-                        <td className="whitespace-nowrap py-3 pr-5 text-[13px] text-ink-secondary">{t.room}</td>
                       </tr>
                     );
                   })}
