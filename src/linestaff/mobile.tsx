@@ -267,7 +267,7 @@ export function ChatRow({
     </>
   );
   return (
-    <div className="flex items-center gap-3.5 border-b border-[#EEEEF1] py-3 last:border-b-0">
+    <div className="flex items-center gap-3.5 border-b border-[#EEEEF1] py-3.5 last:border-b-0">
       {onAvatar ? (
         <button onClick={onAvatar} aria-label={`View ${name} profile`} className="shrink-0"><Avatar name={name} size={52} tone={tone} /></button>
       ) : (
