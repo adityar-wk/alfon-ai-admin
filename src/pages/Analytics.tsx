@@ -358,7 +358,7 @@ export default function Analytics() {
         {/* tasks by department */}
         <div className="mb-3 mt-7 flex items-baseline justify-between">
           <h3 className="text-[15px] font-semibold text-ink">Tasks by Department</h3>
-          <span className="text-[12px] text-ink-tertiary">Select a department for its task breakdown</span>
+          <span className="text-[12px] text-ink-tertiary">Use View more for a department's task breakdown</span>
         </div>
         <Card className="overflow-hidden">
           <div className="overflow-x-auto">
@@ -371,23 +371,23 @@ export default function Analytics() {
                   <SortTh label="Overdue" k="overdue" cur={sortBy} set={setSortBy} />
                   <th className="py-3 font-medium">Avg response</th>
                   <SortTh label="vs last period" k="delta" cur={sortBy} set={setSortBy} />
-                  <th className="w-8" />
+                  <th className="w-24" />
                 </tr>
               </thead>
               <tbody>
                 {rows.map((d) => (
-                  <tr
-                    key={d.name}
-                    onClick={() => setBreakdown({ title: `${d.name} — Task Breakdown`, items: d.items, total: d.n })}
-                    className="cursor-pointer border-b border-line/70 last:border-0 hover:bg-subtle/60"
-                  >
+                  <tr key={d.name} className="border-b border-line/70 last:border-0">
                     <td className="py-3 pl-5 text-[13px] font-semibold text-ink">{d.name}</td>
                     <td className="py-3 text-[14px] font-bold text-ink">{d.n.toLocaleString()}</td>
                     <td className="py-3 text-[13px] text-ink-secondary">{d.m.done}%</td>
                     <td className={`py-3 text-[13px] ${d.m.overdue / d.tasks > 0.04 ? "font-semibold text-brand" : "text-ink-secondary"}`}>{scale(d.m.overdue)}</td>
                     <td className="py-3 text-[13px] text-ink-secondary">{d.m.resp}</td>
                     <td className="py-3 text-[13px]"><Delta v={d.m.delta} /></td>
-                    <td className="py-3 pr-4"><ChevronRight className="h-4 w-4 text-ink-tertiary" /></td>
+                    <td className="py-3 pr-5 text-right">
+                      <button onClick={() => setBreakdown({ title: `${d.name} — Task Breakdown`, items: d.items, total: d.n })} className="whitespace-nowrap text-[12px] font-semibold text-brand hover:underline">
+                        View more
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -399,23 +399,21 @@ export default function Analytics() {
         <div className="mt-5 grid grid-cols-1 gap-4 lg:grid-cols-2">
           <Card className="p-6">
             <h3 className="text-[15px] font-semibold text-ink">Complaint Insights</h3>
-            <p className="text-[12px] text-ink-tertiary">Select a complaint to see where it happened</p>
+            <p className="text-[12px] text-ink-tertiary">Use View more to see where a complaint happened</p>
             <div className="mt-3 divide-y divide-line/70">
               {COMPLAINTS.map(([name, v]) => {
                 const det = COMPLAINT_DETAIL[name];
                 const n = scale(v);
                 return (
-                  <button
-                    key={name}
-                    onClick={() => setBreakdown({ title: `${name} — By Department`, items: det.by, total: n })}
-                    className="grid w-full grid-cols-[1fr_44px_46px_70px_16px] items-center gap-3 py-3 text-left text-[13px] hover:bg-subtle/60"
-                  >
+                  <div key={name} className="grid w-full grid-cols-[1fr_44px_46px_70px_72px] items-center gap-3 py-3 text-left text-[13px]">
                     <span className="truncate text-ink">{name}</span>
                     <span className="text-right font-bold text-ink">{n}</span>
                     <span className="text-right text-ink-secondary">{Math.round((v / complaintTotal) * 100)}%</span>
                     <span className="text-right"><Delta v={det.delta} badWhenUp /></span>
-                    <ChevronRight className="h-4 w-4 text-ink-tertiary" />
-                  </button>
+                    <button onClick={() => setBreakdown({ title: `${name} — By Department`, items: det.by, total: n })} className="whitespace-nowrap text-right text-[12px] font-semibold text-brand hover:underline">
+                      View more
+                    </button>
+                  </div>
                 );
               })}
             </div>
