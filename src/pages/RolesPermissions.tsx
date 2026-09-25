@@ -212,21 +212,16 @@ export default function RolesPermissions({ embedded = false }: { embedded?: bool
                     {DEPARTMENTS.map((d) => <option key={d}>{d}</option>)}
                   </Select>
                 </div>
-                <div className="mt-3 max-h-[560px] space-y-1 overflow-y-auto">
+                <div className="mt-4 space-y-1.5">
                   {visible.map((r) => {
-                    const c = DEPT_ICON[r.dept];
                     const on = r.id === selectedId;
                     return (
                       <button
                         key={r.id}
                         onClick={() => select(r.id)}
-                        className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left ${on ? "bg-brand-tint/60" : "hover:bg-subtle"}`}
+                        className={`flex w-full items-center gap-3 rounded-xl px-4 py-5 text-left ${on ? "bg-brand-tint/60" : "hover:bg-subtle"}`}
                       >
-                        <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${c.tone}`}><c.icon className="h-5 w-5" /></span>
-                        <span className="min-w-0 flex-1 leading-tight">
-                          <span className="block truncate text-[14px] font-semibold text-ink">{r.name}</span>
-                          <span className="block truncate text-[12px] text-ink-secondary">{r.desc || "No description"}</span>
-                        </span>
+                        <span className="min-w-0 flex-1 truncate text-[14px] font-semibold text-ink">{r.name}</span>
                         <span className="shrink-0 text-[12px] text-ink-secondary">{countOf(r.id)} users</span>
                         <ChevronRight className="h-4 w-4 shrink-0 text-ink-tertiary" />
                       </button>

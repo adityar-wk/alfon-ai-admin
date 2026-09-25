@@ -87,16 +87,16 @@ export default function SlaSetup() {
         {/* Service SLAs (left) + Escalation (right) */}
         <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">
           <Card className="overflow-hidden">
-            <div className="border-b border-line px-5 py-4">
-              <h3 className="text-[15px] font-semibold text-ink">Service-Level SLA</h3>
+            <div className="border-b border-line px-8 py-6">
+              <h3 className="text-[16px] font-semibold text-ink">Service-Level SLA</h3>
               <p className="text-[12px] text-ink-secondary">
                 Override the defaults for a specific service under a department.
               </p>
             </div>
 
             <div className="grid md:grid-cols-[210px_minmax(0,1fr)]">
-              <div className="border-b border-line p-2 md:border-b-0 md:border-r">
-                <div className="flex gap-1 overflow-x-auto md:max-h-[420px] md:flex-col md:overflow-y-auto">
+              <div className="border-b border-line p-4 md:border-b-0 md:border-r">
+                <div className="flex gap-2 overflow-x-auto md:flex-col">
                   {DEPARTMENTS.map((d) => {
                     const n = customCount(d.slug);
                     const active = d.slug === deptSlug;
@@ -104,7 +104,7 @@ export default function SlaSetup() {
                       <button
                         key={d.slug}
                         onClick={() => setDeptSlug(d.slug)}
-                        className={`flex shrink-0 items-center justify-between gap-2 rounded-lg px-3 py-2 text-left text-[13px] ${
+                        className={`flex shrink-0 items-center justify-between gap-2 rounded-lg px-4 py-3.5 text-left text-[13px] ${
                           active
                             ? "bg-brand-tint font-semibold text-brand"
                             : "text-ink-secondary hover:bg-subtle hover:text-ink"
@@ -127,9 +127,9 @@ export default function SlaSetup() {
                 </div>
               </div>
 
-              <div className="min-w-0 p-6">
-                <div className="mb-4 flex items-center justify-between">
-                  <div className="text-[15px] font-semibold text-ink">{dept.name}</div>
+              <div className="min-w-0 p-8">
+                <div className="mb-6 flex items-center justify-between">
+                  <div className="text-[16px] font-semibold text-ink">{dept.name}</div>
                   <div className="text-[12px] text-ink-tertiary">
                     {dept.services.length} services · {customCount(deptSlug)} customised
                   </div>
@@ -138,9 +138,9 @@ export default function SlaSetup() {
                   <table className="w-full min-w-[420px] text-left">
                     <thead>
                       <tr className="border-b border-line text-[11px] uppercase tracking-wide text-ink-secondary">
-                        <th className="pb-3 font-medium">Service</th>
-                        <th className="pb-3 font-medium">Response (min)</th>
-                        <th className="pb-3 font-medium">Resolve (min)</th>
+                        <th className="pb-4 font-medium">Service</th>
+                        <th className="pb-4 font-medium">Response (min)</th>
+                        <th className="pb-4 font-medium">Resolve (min)</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -149,15 +149,15 @@ export default function SlaSetup() {
                         const custom = isCustom(deptSlug, s.name);
                         return (
                           <tr key={s.name} className="border-b border-line/60 last:border-0">
-                            <td className="py-4 pr-4 text-[14px] font-medium text-ink">{s.name}</td>
-                            <td className="py-4 pr-4">
+                            <td className="py-6 pr-4 text-[14px] font-medium text-ink">{s.name}</td>
+                            <td className="py-6 pr-4">
                               <Input
                                 className="h-10 w-24 text-center"
                                 value={row.response}
                                 onChange={(e) => update(s.name, { response: e.target.value })}
                               />
                             </td>
-                            <td className="py-4">
+                            <td className="py-6">
                               <Input
                                 className="h-10 w-24 text-center"
                                 value={row.resolve}
@@ -170,17 +170,17 @@ export default function SlaSetup() {
                     </tbody>
                   </table>
                 </div>
-                <p className="mt-3 text-[11px] text-ink-tertiary">
+                <p className="mt-6 text-[12px] text-ink-tertiary">
                   Response is the time to first reply; resolve is the time to close the task.
                 </p>
               </div>
             </div>
           </Card>
 
-          <div className="space-y-5">
-            <Card className="p-5">
+          <div className="space-y-6">
+            <Card className="p-7">
               <div className="flex items-center justify-between">
-                <h3 className="text-[15px] font-semibold text-ink">Escalation Path</h3>
+                <h3 className="text-[16px] font-semibold text-ink">Escalation Path</h3>
                 <button
                   onClick={addLevel}
                   className="flex items-center gap-1 text-[13px] font-medium text-brand"
@@ -188,15 +188,15 @@ export default function SlaSetup() {
                   <Plus className="h-4 w-4" /> Add Level
                 </button>
               </div>
-              <p className="mb-4 mt-1 text-[12px] text-ink-secondary">
+              <p className="mb-7 mt-1.5 text-[12px] text-ink-secondary">
                 When a task breaches its SLA, escalate in this order.
               </p>
 
               <div>
                 {levels.map((l, i) => (
                   <div key={l.id}>
-                    <div className="rounded-lg border border-line p-3">
-                      <div className="flex items-center gap-2.5">
+                    <div className="rounded-xl border border-line p-5">
+                      <div className="flex items-center gap-3">
                         <span className="flex h-6 w-6 items-center justify-center rounded-full bg-brand-tint text-[11px] font-semibold text-brand">
                           {i + 1}
                         </span>
@@ -209,7 +209,7 @@ export default function SlaSetup() {
                         </button>
                       </div>
                       <Select
-                        className="mt-2.5 h-9"
+                        className="mt-4 h-10"
                         value={l.to}
                         onChange={(e) =>
                           setLevels((ls) =>
@@ -223,7 +223,7 @@ export default function SlaSetup() {
                       </Select>
                     </div>
                     {i < levels.length - 1 && (
-                      <div className="flex justify-center py-1 text-ink-tertiary">
+                      <div className="flex justify-center py-3 text-ink-tertiary">
                         <ArrowDown className="h-4 w-4" />
                       </div>
                     )}
@@ -232,7 +232,7 @@ export default function SlaSetup() {
               </div>
             </Card>
 
-            <div className="flex gap-3 rounded-card border border-amber-100 bg-amber-50/60 p-4">
+            <div className="flex gap-3 rounded-card border border-amber-100 bg-amber-50/60 p-5">
               <Lightbulb className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
               <p className="text-[12px] text-ink-secondary">
                 Tasks inherit the SLA of the service they belong to.

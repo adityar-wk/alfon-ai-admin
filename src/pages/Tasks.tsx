@@ -20,6 +20,8 @@ import {
   Search,
   Filter,
   ChevronDown,
+  List,
+  Columns3,
 } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { GuestChat, type ChatMsg, type ChatMode } from "../components/GuestChat";
@@ -142,11 +144,21 @@ function DeptIcon({ dept }: { dept: string }) {
   );
 }
 
+const BOARD_COLS: { key: string; label: string; dot: string; test: (t: Task) => boolean }[] = [
+  { key: "unassigned", label: "Unassigned", dot: "bg-gray-300", test: (t) => t.status === "Yet to Assign" && !t.owner },
+  { key: "assigned", label: "Assigned", dot: "bg-sky-400", test: (t) => t.status === "Yet to Assign" && !!t.owner },
+  { key: "progress", label: "In Progress", dot: "bg-brand", test: (t) => t.status === "In Progress" },
+  { key: "escalated", label: "Escalated", dot: "bg-red-500", test: (t) => t.status === "Escalated" },
+  { key: "completed", label: "Completed", dot: "bg-emerald-500", test: (t) => t.status === "Completed" },
+  { key: "unable", label: "Unable to Complete", dot: "bg-amber-400", test: (t) => t.status === "Unable to Complete" },
+];
+
 const cap = (t: Task) => (t.tag === "Complaint" ? "Complaint" : null);
 
 export default function Tasks() {
   const [tasks, setTasks] = useState<Task[]>(() => [...TASKS]);
   const [view, setView] = useState<View>("action");
+  const [layout, setLayout] = useState<"list" | "board">("list");
   const [query, setQuery] = useState("");
   const [fDept, setFDept] = useState("");
   const [fPriority, setFPriority] = useState("");
@@ -194,7 +206,7 @@ export default function Tasks() {
   const counts = useMemo(() => Object.fromEntries(VIEWS.map((v) => [v.key, visibleTasks.filter(v.test).length])) as Record<View, number>, [visibleTasks]);
 
   const rows = useMemo(() => {
-    const test = VIEWS.find((v) => v.key === view)!.test;
+    const test = layout === "board" ? () => true : VIEWS.find((v) => v.key === view)!.test;
     const q = query.trim().toLowerCase();
     return visibleTasks.filter(
       (t) =>
@@ -203,11 +215,11 @@ export default function Tasks() {
         (!fPriority || t.priority === fPriority) &&
         (!q || `${t.title} ${t.guest} ${t.room} ${t.dept}`.toLowerCase().includes(q)),
     );
-  }, [visibleTasks, view, query, fDept, fPriority]);
+  }, [visibleTasks, view, layout, query, fDept, fPriority]);
 
   const selected = tasks.find((t) => t.id === selectedId) ?? null;
   const update = (id: number, patch: Partial<Task>) => setTasks((ts) => ts.map((t) => (t.id === id ? { ...t, ...patch } : t)));
-  const activeFilters = (fDept ? 1 : 0) + (fPriority ? 1 : 0) + (view !== "action" ? 1 : 0);
+  const activeFilters = (fDept ? 1 : 0) + (fPriority ? 1 : 0) + (layout === "list" && view !== "action" ? 1 : 0);
 
   const stats = manager
     ? [
@@ -293,13 +305,15 @@ export default function Tasks() {
             </button>
             {filtersOpen && (
               <div className="absolute left-0 top-12 z-20 w-[300px] space-y-3 rounded-xl border border-line bg-white p-4 shadow-lg">
-                <Field label="View">
-                  <Select value={view} onChange={(e) => setView(e.target.value as View)}>
-                    {VIEWS.map((v) => (
-                      <option key={v.key} value={v.key}>{v.label} ({counts[v.key]})</option>
-                    ))}
-                  </Select>
-                </Field>
+                {layout === "list" && (
+                  <Field label="View">
+                    <Select value={view} onChange={(e) => setView(e.target.value as View)}>
+                      {VIEWS.map((v) => (
+                        <option key={v.key} value={v.key}>{v.label} ({counts[v.key]})</option>
+                      ))}
+                    </Select>
+                  </Field>
+                )}
                 {(!manager || scopeDepts.length > 1) && (
                   <Field label="Department">
                     <Select value={fDept} onChange={(e) => setFDept(e.target.value)}>
@@ -316,16 +330,74 @@ export default function Tasks() {
               Clear filters
             </button>
           )}
-          <Button className="ml-auto" onClick={() => { setPrefill({ guest: "", room: "" }); setNewOpen(true); }}>
-            <Plus className="h-4 w-4" /> Create task
-          </Button>
+          <div className="ml-auto flex items-center gap-3">
+            <div className="flex rounded-lg border border-line bg-white p-0.5" role="group" aria-label="Task layout">
+              {([["list", "List view", List], ["board", "Board view", Columns3]] as const).map(([k, label, Icon]) => (
+                <button
+                  key={k}
+                  aria-label={label}
+                  aria-pressed={layout === k}
+                  title={label}
+                  onClick={() => setLayout(k)}
+                  className={`flex h-9 w-9 items-center justify-center rounded-md ${layout === k ? "bg-brand-tint text-brand" : "text-ink-tertiary hover:text-ink"}`}
+                >
+                  <Icon className="h-4 w-4" />
+                </button>
+              ))}
+            </div>
+            <Button onClick={() => { setPrefill({ guest: "", room: "" }); setNewOpen(true); }}>
+              <Plus className="h-4 w-4" /> Create task
+            </Button>
+          </div>
 
         </div>
 
         <div className="mb-2 mt-4 text-[13px] text-ink-secondary">
-          <span className="font-semibold text-ink">{VIEWS.find((v) => v.key === view)!.label}</span> · {rows.length} {rows.length === 1 ? "task" : "tasks"}
+          <span className="font-semibold text-ink">{layout === "board" ? "Board" : VIEWS.find((v) => v.key === view)!.label}</span> · {rows.length} {rows.length === 1 ? "task" : "tasks"}
         </div>
 
+        {layout === "board" ? (
+          <div className="flex gap-4 overflow-x-auto pb-3">
+            {BOARD_COLS.map((col) => {
+              const items = rows.filter(col.test);
+              return (
+                <div key={col.key} className="flex w-[290px] shrink-0 flex-col rounded-2xl bg-subtle/70 p-3">
+                  <div className="flex items-center gap-2 px-2 pb-3 pt-1">
+                    <span className={`h-2 w-2 rounded-full ${col.dot}`} />
+                    <span className="text-[13px] font-semibold text-ink">{col.label}</span>
+                    <span className="ml-auto rounded-full bg-white px-2 py-0.5 text-[11px] font-medium text-ink-secondary">{items.length}</span>
+                  </div>
+                  <div className="space-y-3">
+                    {items.map((t) => (
+                      <button
+                        key={t.id}
+                        onClick={() => setSelectedId(t.id)}
+                        className={`block w-full rounded-xl border border-line/70 bg-white p-4 text-left shadow-[0_1px_2px_rgba(16,24,40,0.04)] hover:border-brand/40 ${t.status === "Completed" ? "opacity-50" : ""}`}
+                      >
+                        <div className="flex items-start gap-2.5">
+                          <DeptIcon dept={t.dept} />
+                          <div className="min-w-0">
+                            <div className="text-[13px] font-semibold leading-snug text-ink">{t.title}</div>
+                            <div className="mt-0.5 text-[12px] text-ink-tertiary">{t.guest} · Room {t.room}</div>
+                          </div>
+                        </div>
+                        <div className="mt-3 flex items-center justify-between gap-2">
+                          <PriorityLabel p={t.priority} />
+                          <SlaText sla={t.sla} />
+                        </div>
+                        <div className="mt-3 flex items-center justify-between border-t border-line/70 pt-3 text-[12px]">
+                          <span className="text-ink-tertiary">{t.dept}</span>
+                          <span className={t.owner ? "text-ink-secondary" : "text-ink-tertiary"}>{t.owner ?? "Unassigned"}</span>
+                        </div>
+                      </button>
+                    ))}
+                    {!items.length && <p className="px-2 py-6 text-center text-[12px] text-ink-tertiary">No tasks</p>}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
         <Card className="overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[900px] table-fixed text-left">
@@ -382,6 +454,7 @@ export default function Tasks() {
             </table>
           </div>
         </Card>
+        )}
       </Page>
 
       {selected && (

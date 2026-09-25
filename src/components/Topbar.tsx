@@ -1,4 +1,5 @@
-import { Search, Bell, ArrowLeft } from "lucide-react";
+import { Search, ArrowLeft } from "lucide-react";
+import { NotificationBell } from "./Notifications";
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 
@@ -21,10 +22,7 @@ export function SearchBar({ placeholder = "Search anything..." }: { placeholder?
 export function DefaultTopbarActions() {
   return (
     <div className="flex items-center gap-3">
-      <button className="relative rounded-lg p-2 text-ink-secondary hover:bg-subtle">
-        <Bell className="h-[18px] w-[18px]" />
-        <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-brand" />
-      </button>
+      <NotificationBell />
     </div>
   );
 }

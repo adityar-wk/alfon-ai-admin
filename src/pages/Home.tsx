@@ -111,7 +111,6 @@ export default function Home() {
   const { me } = usePersona();
   const [dept, setDept] = useState("all");
   const [prio, setPrio] = useState("all");
-  const [showExplain, setShowExplain] = useState(false);
 
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
@@ -135,13 +134,6 @@ export default function Home() {
 
   const score = Math.max(0, Math.min(100, Math.round(82 + BASELINE - penalty(TASKS))));
   const band = scoreBand(score);
-
-  const kpis = [
-    { label: "Open Tasks", value: String(open.length), foot: `${inProgress} in progress`, footTone: "text-ink-secondary", icon: ListChecks, chip: "bg-sky-100 text-sky-700" },
-    { label: "Avg Response", value: "2m 45s", foot: "↓ 18%", footTone: "text-emerald-600", icon: Timer, chip: "bg-violet-100 text-violet-700" },
-    { label: "Occupancy", value: "87%", foot: "34 arriving today", footTone: "text-ink-tertiary", icon: BedDouble, chip: "bg-emerald-100 text-emerald-700" },
-  ];
-
 
   return (
     <>
@@ -182,60 +174,10 @@ export default function Home() {
                       ? "Several things need attention."
                       : "Urgent: resolve overdue and escalated tasks."}
               </p>
-
-              <button
-                onClick={() => setShowExplain((v) => !v)}
-                aria-expanded={showExplain}
-                className="mt-6 flex items-center gap-1.5 text-[13px] font-medium text-brand hover:underline"
-              >
-                How your score is calculated
-                <ChevronDown className={`h-4 w-4 transition-transform ${showExplain ? "rotate-180" : ""}`} />
-              </button>
-
-              {showExplain && (
-                <div className="mt-5 w-full max-w-[760px] border-t border-line pt-5 text-left">
-                  <p className="text-[13px] leading-relaxed text-ink-secondary">
-                    Alfon monitors your hotel's live operations around the clock and distils everything into one score. Five pillars are weighted by their impact on the guest experience and recalculated every night at midnight.
-                  </p>
-                  <div className="mt-4 divide-y divide-line/70">
-                    {SCORE_EXPLAINED.map((sx) => (
-                      <div key={sx.name} className="flex gap-3 py-3.5">
-                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-line text-brand"><sx.icon className="h-4 w-4" /></span>
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center justify-between">
-                            <span className="text-[13px] font-semibold text-ink">{sx.name}</span>
-                            <span className="text-[13px] font-semibold text-brand">{sx.weight}%</span>
-                          </div>
-                          <p className="mt-0.5 text-[12px] leading-relaxed text-ink-secondary">{sx.text}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <ul className="mt-3 space-y-1.5 border-t border-line pt-3 text-[12px] text-ink-secondary">
-                    {["Recalculates automatically every midnight", "Benchmarks against your previous day's performance"].map((t) => (
-                      <li key={t} className="flex items-center gap-2"><Check className="h-3.5 w-3.5 text-emerald-500" /> {t}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
             </div>
 
           </Card>
 
-        </div>
-
-        {/* KPIs */}
-        <div className="mt-5 grid grid-cols-2 gap-4 lg:grid-cols-3">
-          {kpis.map((k) => (
-            <Card key={k.label} className="p-5">
-              <span className={`flex h-9 w-9 items-center justify-center rounded-lg ${k.chip}`}>
-                <k.icon className="h-[18px] w-[18px]" />
-              </span>
-              <div className="mt-3 text-[13px] text-ink-secondary">{k.label}</div>
-              <div className="text-[28px] font-bold leading-tight text-ink">{k.value}</div>
-              <div className={`mt-1 text-[12px] font-medium ${k.footTone}`}>{k.foot}</div>
-            </Card>
-          ))}
         </div>
 
         {/* pending tasks + hotel info */}

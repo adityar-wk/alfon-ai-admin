@@ -21,6 +21,7 @@ import {
   Check,
   MoreHorizontal,
   X,
+  CalendarDays,
 } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { GuestChat, type ChatMsg, type ChatMode, type MessageTemplate } from "../components/GuestChat";
@@ -146,6 +147,7 @@ const REQUEST_KEYS = ["Airport", "Early Check-In", "Dietary", "Vegetarian", "Acc
 
 export default function PreArrival() {
   const [guests, setGuests] = useState<PreGuest[]>(PRE_GUESTS);
+  const [dateOn, setDateOn] = useState(false);
   const [selDay, setSelDay] = useState(24);
   const [weekStart, setWeekStart] = useState(24);
   const [tab, setTab] = useState<Tab>("all");
@@ -167,7 +169,7 @@ export default function PreArrival() {
   };
 
   const today = useMemo(() => guests.filter((g) => g.day === "today"), [guests]);
-  const dayGuests = useMemo(() => guests.filter((g) => checkinDay(g) === selDay), [guests, selDay]);
+  const dayGuests = useMemo(() => (dateOn ? guests.filter((g) => checkinDay(g) === selDay) : guests), [guests, selDay, dateOn]);
   const perDay = useMemo(() => {
     const m: Record<number, number> = {};
     guests.forEach((g) => { m[checkinDay(g)] = (m[checkinDay(g)] ?? 0) + 1; });
@@ -179,7 +181,7 @@ export default function PreArrival() {
     setChats((c) => ({ ...c, [g.id]: [...chatFor(g), { from: "staff", text, time: "Now" }] }));
   const createTask = (g: PreGuest) =>
     navigate(`/tasks?new=1&guest=${encodeURIComponent(g.name)}&room=${encodeURIComponent(g.room ?? "")}`);
-  const goToday = (t: Tab) => { setSelDay(24); setWeekStart(24); setTab(t); };
+  const goToday = (t: Tab) => { setDateOn(true); setSelDay(24); setWeekStart(24); setTab(t); };
 
   const contacted = today.filter((g) => g.eng !== "Not Contacted").length;
   const responded = today.filter((g) => g.eng === "Engaged" || g.eng === "Responded").length;
@@ -272,24 +274,35 @@ export default function PreArrival() {
             />
           </div>
 
-          <DateStrip
+          {dateOn && <DateStrip
             selDay={selDay}
             weekStart={weekStart}
             perDay={perDay}
             onSelect={setSelDay}
             onShift={(n) => setWeekStart((w) => w + n)}
             onToday={() => { setSelDay(24); setWeekStart(24); }}
-          />
+          />}
 
-          <div className="flex items-center gap-3">
-            {activeFilterCount > 0 && (
+          <div className="ml-auto flex items-center gap-3">
+            {(activeFilterCount > 0 || dateOn) && (
               <button
-                onClick={() => { setFilters(NO_FILTERS); setTab("all"); }}
+                onClick={() => { setFilters(NO_FILTERS); setTab("all"); setDateOn(false); }}
                 className="text-[13px] font-medium text-brand"
               >
                 Clear
               </button>
             )}
+            <button
+              onClick={() => { setDateOn((o) => !o); setSelDay(24); setWeekStart(24); }}
+              aria-label="Filter by date"
+              aria-pressed={dateOn}
+              title="Filter by date"
+              className={`flex h-10 w-10 items-center justify-center rounded-lg border ${
+                dateOn ? "border-brand bg-brand-tint text-brand" : "border-line bg-white text-ink-secondary hover:bg-subtle"
+              }`}
+            >
+              <CalendarDays className="h-4 w-4" />
+            </button>
             <button
               onClick={() => setFiltersOpen((o) => !o)}
               aria-label="Filters"
@@ -331,7 +344,7 @@ export default function PreArrival() {
                   <input type="checkbox" className="accent-brand" checked={filters.returning} onChange={(e) => setFilters((f) => ({ ...f, returning: e.target.checked }))} />
                   Returning guest
                 </label>
-                <button onClick={() => { setFilters(NO_FILTERS); setTab("all"); }} className="ml-auto text-[13px] font-medium text-brand">
+                <button onClick={() => { setFilters(NO_FILTERS); setTab("all"); setDateOn(false); }} className="ml-auto text-[13px] font-medium text-brand">
                   Clear all
                 </button>
               </div>
