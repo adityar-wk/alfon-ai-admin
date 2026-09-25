@@ -24,7 +24,7 @@ export const CARD_SHADOW = "shadow-[0_2px_10px_rgba(17,17,17,0.08)]";
 export function PhoneFrame({ children, white = false }: { children: ReactNode; white?: boolean }) {
   return (
     <div className="relative h-[820px] w-[400px] shrink-0 rounded-[52px] border-[10px] border-[#1A1A1A] bg-[#1A1A1A] shadow-2xl">
-      <div className={`relative flex h-full w-full flex-col overflow-hidden rounded-[42px] ${white ? "bg-white" : "bg-page"}`}>
+      <div className={`relative flex h-full w-full flex-col overflow-hidden rounded-[42px] ${white ? "bg-white" : "bg-[#FDFCFA]"}`}>
         <StatusBar />
         <div className="relative min-h-0 flex-1">{children}</div>
       </div>
