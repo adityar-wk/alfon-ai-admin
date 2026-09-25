@@ -16,7 +16,7 @@ export default {
         },
         line: "#F0F0F0",
         subtle: "#F5F5F5",
-        page: "#FBFAF7",
+        page: "#FCFCFB",
         surface2: "#F6F4EF",
         teal: "#2E86AB",
         purple: "#7C3AED",

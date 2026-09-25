@@ -136,7 +136,7 @@ export default function ComponentDesign() {
             <div className="space-y-7">
               <div><Label>Neutrals</Label><div className="flex flex-wrap gap-3.5">
                 <Swatch name="Surface / Card" hex="#FFFFFF" cls="bg-white" />
-                <Swatch name="Page" hex="#FBFAF7" cls="bg-page" />
+                <Swatch name="Page" hex="#FCFCFB" cls="bg-page" />
                 <Swatch name="Text — primary" hex="#1A1A1A" cls="bg-ink" />
                 <Swatch name="Text — secondary" hex="#6B7280" cls="bg-ink-secondary" />
                 <Swatch name="Text — tertiary" hex="#9CA3AF" cls="bg-ink-tertiary" />
