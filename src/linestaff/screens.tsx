@@ -23,6 +23,7 @@ import {
   CARD_SHADOW,
   type Priority,
   ChatRow,
+  sampleUnread,
 } from "./mobile";
 import { GuestProfileScreen, GuestChatScreen, type ChatMsg } from "./guestviews";
 import { ProfileScreen, NotificationSettingsScreen, SignedOutScreen } from "./profile";
@@ -327,7 +328,7 @@ export function LineStaffPrototype() {
                 name={g.name}
                 room={g.room}
                 preview={th.length ? th[th.length - 1].text : "No messages yet"}
-                unread={unread}
+                unread={unread || sampleUnread(g.name)}
                 onAvatar={() => nav.push({ name: "guestProfile", id: g.name })}
                 onOpen={() => nav.push({ name: "guestChat", id: g.name })}
               />

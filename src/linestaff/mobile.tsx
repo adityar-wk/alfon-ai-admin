@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { AlertTriangle, Signal, Wifi, BatteryFull, ChevronLeft, ChevronRight, ChevronDown, X, Clock } from "lucide-react";
+import { AlertCircle, Signal, Wifi, BatteryFull, ChevronLeft, ChevronRight, ChevronDown, X, Clock } from "lucide-react";
 
 /* ============================================================
    Shared mobile kit — used by the Line Staff, Supervisor and
@@ -240,12 +240,14 @@ export function Avatar({ name, size = 40, tone = "bg-brand-tint text-brand" }: {
 /* ---------- flat chat list row: no card, no elevation ---------- */
 
 const CHAT_TIMES = ["19:45", "19:12", "18:30", "17:05", "15:48", "Yesterday", "Mon"];
+/** demo unread counts so the badge shows on a few chats */
+export const sampleUnread = (name: string) => [2, 0, 1, 0, 0, 3][name.split("").reduce((a, c) => a + c.charCodeAt(0), 0) % 6];
 export const chatTime = (name: string) => CHAT_TIMES[name.split("").reduce((a, c) => a + c.charCodeAt(0), 0) % CHAT_TIMES.length];
 
 export function ChatRow({
-  name, room, preview, unread = 0, tone, complaint = false, onOpen, onAvatar,
+  name, room, preview, unread = 0, tone, complaint = false, plain = false, onOpen, onAvatar,
 }: {
-  name: string; room: string; preview: string; unread?: number; tone?: string; complaint?: boolean; onOpen: () => void; onAvatar?: () => void;
+  name: string; room: string; preview: string; unread?: number; tone?: string; complaint?: boolean; plain?: boolean; onOpen: () => void; onAvatar?: () => void;
 }) {
   const body = (
     <>
@@ -254,13 +256,13 @@ export function ChatRow({
         <span className="mt-1 block text-[12px] text-ink-tertiary">{room}</span>
         <span className="mt-1.5 block truncate text-[13px] text-ink-secondary">{preview}</span>
       </span>
-      <span className="flex shrink-0 flex-col items-end justify-between gap-2 self-stretch py-0.5">
+      {!plain && <span className="flex shrink-0 flex-col items-end justify-between gap-2 self-stretch py-0.5">
         <span className="flex h-5 items-center gap-1.5">
-          {complaint && <AlertTriangle aria-label="Complaint" className="h-[18px] w-[18px] text-red-500" />}
+          {complaint && <AlertCircle aria-label="Complaint" className="h-[20px] w-[20px] text-amber-500" />}
           {unread > 0 && <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-[11px] font-semibold text-white">{unread}</span>}
         </span>
         <span className="text-[12px] text-ink-tertiary">{chatTime(name)}</span>
-      </span>
+      </span>}
     </>
   );
   return (
@@ -277,14 +279,14 @@ export function ChatRow({
 
 /* ---------- controls ---------- */
 
-export function Chips<T extends string>({ items, active, onChange, counts }: { items: readonly T[]; active: T; onChange: (v: T) => void; counts?: Partial<Record<T, number>> }) {
+export function Chips<T extends string>({ items, active, onChange, counts, flat = false }: { items: readonly T[]; active: T; onChange: (v: T) => void; counts?: Partial<Record<T, number>>; flat?: boolean }) {
   return (
     <div className="no-scrollbar -mx-0 flex gap-2 overflow-x-auto px-6 pb-1">
       {items.map((c) => (
         <button
           key={c}
           onClick={() => onChange(c)}
-          className={`shrink-0 rounded-full px-3.5 py-2 text-[13px] font-semibold ${active === c ? "bg-brand text-white shadow-sm" : "bg-white text-ink-secondary shadow-sm"}`}
+          className={`shrink-0 rounded-full px-3.5 py-2 text-[13px] font-semibold ${flat ? (active === c ? "bg-brand text-white" : "bg-[#F4F4F6] text-ink-secondary") : active === c ? "bg-brand text-white shadow-sm" : "bg-white text-ink-secondary shadow-sm"}`}
         >
           {c}
           {counts?.[c] !== undefined && <span className={`ml-1.5 ${active === c ? "text-white/80" : "text-ink-tertiary"}`}>{counts[c]}</span>}

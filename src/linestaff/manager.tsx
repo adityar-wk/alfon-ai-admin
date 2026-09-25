@@ -1,7 +1,7 @@
 import { Logo } from "../components/Logo";
 import { useMemo, useState } from "react";
 import {
-  Bell, Home as HomeIcon, Plus, Users, UserCog, UserPlus, ArrowUpRight, MessageCircle, Send, Filter, ChevronRight, ChevronLeft, Search,
+  Bell, Home as HomeIcon, Plus, Users, UserCog, UserPlus, ArrowUpRight, MessageCircle, Send, Filter, MessageSquarePlus, ChevronRight, ChevronLeft, Search,
   Menu as MenuIcon, ListChecks, BarChart3, AlertTriangle, User, BedDouble, DoorClosed, Building2, FileText, Download, Lock, UtensilsCrossed, Languages, Thermometer, AlarmClock, Wine, Phone, Mail, Sparkles, SlidersHorizontal, LogOut,
 } from "lucide-react";
 import { DEPARTMENTS } from "../data/departments";
@@ -16,6 +16,7 @@ import {
   PhoneFrame, ScreenHeader, SectionTitle, TaskCard, StatCard, Avatar, Chips, Segmented, FloatingNav, PrimaryButton, GhostButton, SelectField, TextField, Label, Sheet,
   useNav, useToast, CARD_SHADOW, TextHeader, PriorityPill, SlaCountdown, fmtMins, CompensationSheet, type Priority,
   ChatRow,
+  sampleUnread,
 } from "./mobile";
 import { StaffPicker, ReasonSheet, StatusTag, activeCount, atRiskCount, overdueCount, isOpen, isAtRisk, isOverdue } from "./parts";
 
@@ -31,7 +32,7 @@ const DEFAULT_SLA = 40;
 type EscFilter = (typeof ESC_FILTERS)[number];
 const ROLE_FILTERS = ["All", "Supervisor", "Line Staff"] as const;
 type RoleFilter = (typeof ROLE_FILTERS)[number];
-const GUEST_FILTERS = ["All", "Complaints", "Open requests"] as const;
+const GUEST_FILTERS = ["All", "Unread", "Complaints", "Open requests", "Pre-arrival"] as const;
 type GuestFilter = (typeof GUEST_FILTERS)[number];
 const ROSTER_STAGE_FILTERS = ["All", "In-house", "Pre-arrival", "Checked out"] as const;
 type RosterStage = (typeof ROSTER_STAGE_FILTERS)[number];
@@ -148,7 +149,7 @@ export function ManagerPrototype() {
   const [teamFilterOpen, setTeamFilterOpen] = useState(false);
   const [guestQuery, setGuestQuery] = useState("");
   const [guestFilter, setGuestFilter] = useState<GuestFilter>("All");
-  const [guestFilterOpen, setGuestFilterOpen] = useState(false);
+  const [newChatOpen, setNewChatOpen] = useState(false);
   const [taskFilter, setTaskFilter] = useState<TaskFilter>("All");
   const [taskQuery, setTaskQuery] = useState("");
   const [stageFilter, setStageFilter] = useState<RosterStage>("All");
@@ -297,12 +298,13 @@ export function ManagerPrototype() {
   const guestsFiltered = useMemo(() => {
     const q = guestQuery.trim().toLowerCase();
     return guestsSorted.filter((g) => {
+      if (guestFilter === "Pre-arrival") return false;
+      if (guestFilter === "Unread" && !sampleUnread(g.name)) return false;
       if (guestFilter === "Complaints" && !g.complaint) return false;
       if (guestFilter === "Open requests" && !g.items.some(isOpen)) return false;
       return !q || `${g.name} ${g.room}`.toLowerCase().includes(q);
     });
   }, [guestsSorted, guestFilter, guestQuery]);
-  const guestActiveFilters = guestFilter !== "All" ? 1 : 0;
   const rosterFiltered = useMemo(() => {
     const q = rosterQuery.trim().toLowerCase();
     const match = (n: string, r: string) => !q || `${n} ${r}`.toLowerCase().includes(q);
@@ -669,17 +671,15 @@ export function ManagerPrototype() {
           />
         </div>
         <button
-          onClick={() => setGuestFilterOpen(true)}
-          aria-label="Filter"
-          className={`relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${guestActiveFilters ? "bg-brand text-white" : "bg-[#F4F4F6] text-ink"}`}
+          onClick={() => setNewChatOpen(true)}
+          aria-label="New chat"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#F4F4F6] text-ink active:bg-black/5"
         >
-          <Filter className="h-[18px] w-[18px]" />
-          {guestActiveFilters > 0 && (
-            <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white">{guestActiveFilters}</span>
-          )}
+          <MessageSquarePlus className="h-[20px] w-[20px]" />
         </button>
       </div>
-      <div className="mt-2 px-6">
+      <div className="mt-3"><Chips flat items={GUEST_FILTERS} active={guestFilter} onChange={setGuestFilter} /></div>
+      <div className="mt-1 px-6">
         {guestsFiltered.map((g) => (
           <ChatRow
             key={g.name}
@@ -688,9 +688,23 @@ export function ManagerPrototype() {
             preview={g.convo !== "—" ? g.convo : "No messages yet"}
             tone={g.complaint ? "bg-red-50 text-red-600" : undefined}
             complaint={!!g.complaint}
+            unread={sampleUnread(g.name)}
             onOpen={() => nav.push({ name: "guestProfile", id: g.name })}
           />
         ))}
+        {(guestFilter === "All" || guestFilter === "Pre-arrival" || guestFilter === "Unread") && PRE_ARRIVAL_GUESTS
+          .filter((g) => (!guestQuery.trim() || g.name.toLowerCase().includes(guestQuery.trim().toLowerCase())) && (guestFilter !== "Unread" || sampleUnread(g.name) > 0))
+          .slice(0, guestFilter === "Pre-arrival" ? 10 : 3)
+          .map((g) => (
+            <ChatRow
+              key={`pre-${g.name}`}
+              name={g.name}
+              room="Pre-arrival"
+              preview={g.notes}
+              unread={sampleUnread(g.name)}
+              onOpen={() => nav.push({ name: "guestProfile", id: g.name })}
+            />
+          ))}
         {!guestsFiltered.length && <p className="rounded-2xl bg-white p-6 text-center text-[13px] text-ink-tertiary">No guests match.</p>}
       </div>
     </>
@@ -1219,12 +1233,30 @@ export function ManagerPrototype() {
     </Sheet>
   );
 
-  const GuestFilterSheet = guestFilterOpen && (
-    <Sheet title="Filter guests" onClose={() => setGuestFilterOpen(false)}>
-      <Label>Show</Label>
-      <Chips items={GUEST_FILTERS} active={guestFilter} onChange={setGuestFilter} />
-      <PrimaryButton className="mt-6 w-full" onClick={() => setGuestFilterOpen(false)}>Done</PrimaryButton>
-      {guestActiveFilters > 0 && <GhostButton className="mt-2 w-full" onClick={() => setGuestFilter("All")}>Clear filter</GhostButton>}
+  const NewChatSheet = newChatOpen && (
+    <Sheet title="New chat" onClose={() => setNewChatOpen(false)}>
+      <div className="-mx-1 max-h-[420px] overflow-y-auto">
+        {guestsSorted.map((g) => (
+          <ChatRow
+            key={g.name}
+            name={g.name}
+            room={g.room}
+            plain
+            preview="Start a conversation"
+            onOpen={() => { setNewChatOpen(false); nav.push({ name: "guestDetail", id: g.name }); }}
+          />
+        ))}
+        {PRE_ARRIVAL_GUESTS.map((g) => (
+          <ChatRow
+            key={`new-${g.name}`}
+            name={g.name}
+            room="Pre-arrival"
+            plain
+            preview="Start a conversation"
+            onOpen={() => { setNewChatOpen(false); nav.push({ name: "guestProfile", id: g.name }); }}
+          />
+        ))}
+      </div>
     </Sheet>
   );
 
@@ -1242,7 +1274,7 @@ export function ManagerPrototype() {
         {signedOut ? <SignedOutScreen onSignIn={() => { setSignedOut(false); nav.reset(); }} /> : VIEWS[cur.name]}
         {sheetNode}
         {TeamFilterSheet}
-        {GuestFilterSheet}
+        {NewChatSheet}
         {RosterFilterSheet}
         {RoomSheet}
         {compOpen && task && (
