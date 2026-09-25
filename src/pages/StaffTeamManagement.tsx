@@ -1,10 +1,9 @@
 import { useMemo, useRef, useState } from "react";
-import { Upload, UserPlus, Download, MoreVertical, Info, Search, Copy, Send, Smartphone } from "lucide-react";
+import { Upload, UserPlus, Download, MoreVertical, Info, Search, Send, Mail } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { SetupTabs } from "../components/SetupTabs";
 import { Drawer } from "../components/Drawer";
 import { Page, Card, Button, Field, Input, Select } from "../components/ui";
-import { FakeQR } from "../components/FakeQR";
 
 type Member = {
   id: number;
@@ -27,8 +26,6 @@ const SEED: Member[] = [
   { id: 6, first: "Liam", last: "Anderson", email: "liam.anderson@alfonhotel.com", phone: "+91 98765 11006", dept: "Housekeeping" },
   { id: 7, first: "Rahul", last: "Verma", email: "rahul.verma@alfonhotel.com", phone: "+91 98765 11007", dept: "Operator" },
 ];
-
-const APP_LINK = "https://alfon.app/join/prime-hotel";
 
 // what a CSV upload adds in this prototype
 const IMPORTED: Omit<Member, "id">[] = [
@@ -73,15 +70,6 @@ export default function StaffTeamManagement() {
     flash(`${IMPORTED.length} team members imported from ${f.name}`);
   };
 
-  const copyLink = async () => {
-    try {
-      await navigator.clipboard.writeText(APP_LINK);
-    } catch {
-      /* clipboard unavailable */
-    }
-    flash("App link copied");
-  };
-
   const editing = drawer?.mode === "edit" ? drawer.member : null;
 
   return (
@@ -90,7 +78,8 @@ export default function StaffTeamManagement() {
         <Topbar title="Team Members" backTo="/onboarding" />
         <Page>
           <SetupTabs />
-          <div className="max-w-3xl space-y-5">
+          <div className="grid max-w-6xl grid-cols-1 items-start gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">
+          <div className="min-w-0 space-y-5">
           <Card className="p-6">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
@@ -198,45 +187,39 @@ export default function StaffTeamManagement() {
             </div>
           </Card>
 
-          {/* invite to the app */}
-          <Card className="p-6">
-            <div className="flex items-start gap-3.5">
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-tint text-brand">
-                <Smartphone className="h-5 w-5" />
-              </span>
-              <div>
-                <h3 className="text-[16px] font-semibold text-ink">Invite your team to the Alfon app</h3>
-                <p className="mt-1 text-[13px] text-ink-secondary">
-                  Share one link so every team member can download the app and sign in.
-                </p>
+          </div>
+
+          {/* invite to the app, by email */}
+          <Card className="p-6 xl:sticky xl:top-6">
+            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-tint text-brand">
+              <Mail className="h-5 w-5" />
+            </span>
+            <h3 className="mt-4 text-[16px] font-semibold text-ink">Invite your team to the Alfon app</h3>
+            <p className="mt-1.5 text-[13px] leading-relaxed text-ink-secondary">
+              We will email every team member a link to download the app and sign in.
+            </p>
+
+            <div className="mt-5 rounded-xl bg-subtle/70 px-4 py-3.5 text-[13px]">
+              <div className="flex items-center justify-between">
+                <span className="text-ink-secondary">Recipients</span>
+                <span className="font-medium text-ink">{members.length} staff</span>
+              </div>
+              <div className="mt-2.5 flex items-center justify-between gap-3">
+                <span className="text-ink-secondary">Subject</span>
+                <span className="truncate text-right font-medium text-ink">Get the Alfon app</span>
               </div>
             </div>
 
-            <div className="mt-6 flex flex-col gap-6 sm:flex-row sm:items-center">
-              <FakeQR seed="alfon-app-invite" size={112} className="shrink-0 rounded-lg" />
-              <div className="min-w-0 flex-1">
-                <div className="text-[12px] font-medium text-ink-secondary">App download link</div>
-                <div className="mt-1.5 flex items-center gap-2">
-                  <div className="min-w-0 flex-1 truncate rounded-lg border border-line bg-subtle/60 px-3 py-2.5 text-[13px] text-ink">{APP_LINK}</div>
-                  <Button variant="outline" onClick={copyLink}>
-                    <Copy className="h-4 w-4" /> Copy
-                  </Button>
-                </div>
-                <p className="mt-2 text-[12px] text-ink-tertiary">Staff can also scan the QR code to open the link on their phone.</p>
-              </div>
-            </div>
-
-            <div className="mt-6 flex flex-wrap items-center gap-3 border-t border-line pt-5">
-              <Button
-                onClick={() => {
-                  setInvited(true);
-                  flash(`App link sent to ${members.length} team members`);
-                }}
-              >
-                <Send className="h-4 w-4" /> {invited ? "Send again" : `Send link to all ${members.length} staff`}
-              </Button>
-              {invited && <span className="text-[13px] text-emerald-600">Link sent to {members.length} team members</span>}
-            </div>
+            <Button
+              className="mt-5 w-full"
+              onClick={() => {
+                setInvited(true);
+                flash(`Invite email sent to ${members.length} team members`);
+              }}
+            >
+              <Send className="h-4 w-4" /> {invited ? "Send again" : `Email all ${members.length} staff`}
+            </Button>
+            {invited && <p className="mt-3 text-center text-[13px] text-emerald-600">Email sent to {members.length} team members</p>}
           </Card>
           </div>
         </Page>
