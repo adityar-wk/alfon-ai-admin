@@ -28,13 +28,13 @@ export function ProfileScreen({
 
         <div className="mt-2">
           <button onClick={onNotifSettings} className="flex w-full items-center gap-4 border-b border-[#EEEEF1] py-4 text-left">
-            <SlidersHorizontal className="h-[22px] w-[22px] shrink-0 text-ink" />
-            <span className="min-w-0 flex-1 text-[15px] font-semibold text-ink">Notification settings</span>
+            <SlidersHorizontal className="h-[19px] w-[19px] shrink-0 text-ink" />
+            <span className="min-w-0 flex-1 text-[15px] font-medium text-ink">Notification settings</span>
             <ChevronRight className="h-4 w-4 shrink-0 text-ink-tertiary" />
           </button>
           <button onClick={onSignOut} className="flex w-full items-center gap-4 py-4 text-left">
-            <LogOut className="h-[22px] w-[22px] shrink-0 text-red-600" />
-            <span className="text-[15px] font-semibold text-red-600">Sign out</span>
+            <LogOut className="h-[19px] w-[19px] shrink-0 text-red-600" />
+            <span className="text-[15px] font-medium text-red-600">Sign out</span>
           </button>
         </div>
       </div>
