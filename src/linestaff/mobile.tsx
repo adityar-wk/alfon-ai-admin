@@ -76,19 +76,17 @@ export function useToast() {
 
 export function ScreenHeader({ title, onBack, right, sub }: { title?: string; onBack?: () => void; right?: ReactNode; sub?: string }) {
   return (
-    <div className="px-6 pb-2 pt-3">
-      <div className="flex items-center justify-between">
-        {onBack ? (
-          <button onClick={onBack} aria-label="Back" className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-ink shadow-sm">
-            <ChevronLeft className="h-5 w-5" />
-          </button>
-        ) : (
-          <span />
-        )}
-        {right}
+    <div className={`flex items-center gap-1 pb-1 pt-3 pr-4 ${onBack ? "pl-4" : "pl-6"}`}>
+      {onBack && (
+        <button onClick={onBack} aria-label="Back" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-ink active:bg-black/5">
+          <ChevronLeft className="h-6 w-6" />
+        </button>
+      )}
+      <div className="min-w-0 flex-1 leading-tight">
+        {title && <h1 className="text-[20px] font-bold text-ink">{title}</h1>}
+        {sub && <p className="mt-0.5 text-[12px] text-ink-secondary">{sub}</p>}
       </div>
-      {title && <h1 className="mt-3 text-[26px] font-bold leading-tight tracking-tight text-ink">{title}</h1>}
-      {sub && <p className="mt-0.5 text-[13px] text-ink-secondary">{sub}</p>}
+      {right}
     </div>
   );
 }

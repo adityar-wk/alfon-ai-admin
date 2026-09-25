@@ -389,7 +389,7 @@ export function ManagerPrototype() {
         <div className="flex items-center gap-3">
           {menuBtn}
           <div className="leading-tight">
-            <div className="text-[15px] font-semibold text-ink">{ME}</div>
+            <div className="text-[20px] font-bold text-ink">{ME}</div>
             <div className="text-[12px] text-ink-secondary">Housekeeping · Department Head</div>
           </div>
         </div>
@@ -422,7 +422,7 @@ export function ManagerPrototype() {
         <div className="flex items-center gap-3">
           {menuBtn}
           <div className="leading-tight">
-            <div className="text-[15px] font-semibold text-ink">Tasks</div>
+            <div className="text-[20px] font-bold text-ink">Tasks</div>
             <div className="text-[12px] text-ink-secondary">All Housekeeping tasks</div>
           </div>
         </div>
@@ -658,7 +658,7 @@ export function ManagerPrototype() {
         <div className="flex items-center gap-3">
           {menuBtn}
           <div className="leading-tight">
-            <div className="text-[15px] font-semibold text-ink">Guest Communication</div>
+            <div className="text-[20px] font-bold text-ink">Guest Communication</div>
             <div className="text-[12px] text-ink-secondary">Chat with guests</div>
           </div>
         </div>
@@ -901,7 +901,7 @@ export function ManagerPrototype() {
       <ScreenHeader
         title="Notifications"
         onBack={nav.back}
-        right={<button onClick={() => nav.push({ name: "notifSettings" })} aria-label="Notification settings" className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-ink shadow-sm"><SlidersHorizontal className="h-[18px] w-[18px]" /></button>}
+        right={<button onClick={() => nav.push({ name: "notifSettings" })} aria-label="Notification settings" className="flex h-11 w-11 items-center justify-center rounded-full text-ink active:bg-black/5"><SlidersHorizontal className="h-[18px] w-[18px]" /></button>}
       />
       <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-6 pt-2 no-scrollbar">
         {NOTIFS.map((n, i) => {
@@ -961,12 +961,7 @@ export function ManagerPrototype() {
 
   const Menu = (
     <div className="flex h-full flex-col">
-      <div className="flex items-center gap-1 px-4 pb-1 pt-3">
-        <button onClick={nav.back} aria-label="Back" className="flex h-11 w-11 items-center justify-center rounded-full text-ink active:bg-black/5">
-          <ChevronLeft className="h-6 w-6" />
-        </button>
-        <h1 className="text-[24px] font-bold leading-tight tracking-tight text-ink">More</h1>
-      </div>
+      <ScreenHeader title="More" onBack={nav.back} />
       <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-6 pt-2 no-scrollbar">
         <div className="rounded-2xl bg-[#F6F6F8] p-5">
           <div className="flex items-center gap-4">
