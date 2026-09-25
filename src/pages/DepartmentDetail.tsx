@@ -196,10 +196,6 @@ function StaffDetailDrawer({ member, deptName, onClose }: { member: DeptMember; 
         <div className="text-[13px] text-ink-secondary">{member.role} · {deptName}</div>
         <span className="mt-2 inline-flex items-center gap-1.5 text-[12px] text-emerald-600"><span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> {member.status}</span>
       </div>
-      <div className="mt-6 space-y-3 text-[13px] text-ink">
-        <div className="flex items-center gap-2.5"><Mail className="h-4 w-4 text-ink-tertiary" /> {email}</div>
-        <div className="flex items-center gap-2.5"><Phone className="h-4 w-4 text-ink-tertiary" /> +1 (555) 010-{String(1000 + (member.name.length * 137) % 9000)}</div>
-      </div>
       <div className="mt-6 divide-y divide-line/70 border-t border-line/70 text-[13px]">
         <div className="flex items-center justify-between py-3"><span className="text-ink-secondary">Reports to</span><span className="font-medium text-ink">{member.reports}</span></div>
         <div className="flex items-center justify-between py-3"><span className="text-ink-secondary">Open tasks</span><span className="font-medium text-ink">{open}</span></div>
@@ -245,12 +241,6 @@ function AddStaffDrawer({
           value={name}
           onChange={(e) => setName(e.target.value)}
         />
-      </Field>
-      <Field className="mt-3" label="Email">
-        <Input placeholder="name@primehotel.com" />
-      </Field>
-      <Field className="mt-3" label="Mobile Number">
-        <Input placeholder="+91 98765 43210" />
       </Field>
       <Field className="mt-3" label="Role in Department">
         <Select value={role} onChange={(e) => setRole(e.target.value as DeptMember["role"])}>

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Upload, UserPlus, Download, MoreVertical, Info, Search } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { SetupTabs } from "../components/SetupTabs";
@@ -35,6 +35,9 @@ export default function StaffTeamManagement() {
   const [drawer, setDrawer] = useState<DrawerState>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [tab, setTab] = useState<"members" | "roles">("members");
+  const [dragging, setDragging] = useState(false);
+  const [fileName, setFileName] = useState<string | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   const rows = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -70,29 +73,59 @@ export default function StaffTeamManagement() {
             <RolesPermissions embedded />
           ) : (
           <>
-          <p className="mb-6 text-[13px] text-ink-secondary">
-            Import your hotel staff. Roles and access are assigned later from the Team page.
-          </p>
+          <Card className="p-6">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <h3 className="text-[16px] font-semibold text-ink">Add your team</h3>
+                <p className="mt-1 text-[13px] text-ink-secondary">Upload a CSV or add people one by one. Name and department is all we need.</p>
+              </div>
+              <div className="flex items-center gap-3">
+                <button className="flex items-center gap-1.5 text-[13px] font-medium text-ink-secondary hover:text-ink">
+                  <Download className="h-4 w-4" /> Download template
+                </button>
+                <Button variant="outline" onClick={() => setDrawer({ mode: "add" })}>
+                  <UserPlus className="h-4 w-4" /> Add Team Member
+                </Button>
+              </div>
+            </div>
 
-          <div className="flex flex-wrap gap-3">
-            <Button>
-              <Upload className="h-4 w-4" /> Upload CSV
-            </Button>
-            <Button variant="outline" onClick={() => setDrawer({ mode: "add" })}>
-              <UserPlus className="h-4 w-4" /> Add Team Member
-            </Button>
-            <Button variant="outline">
-              <Download className="h-4 w-4" /> Download Template
-            </Button>
-          </div>
-
-          <Card className="mt-5 p-6">
-            <h3 className="text-[15px] font-semibold text-ink">Upload staff data</h3>
-            <p className="mt-1 text-[12px] text-ink-secondary">Import everyone who works at the hotel via CSV — name, email, mobile number and department.</p>
-            <div className="mt-4 flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-line bg-subtle px-6 py-9 text-center">
-              <Upload className="h-7 w-7 text-brand" />
-              <p className="mt-2 text-[13px] font-medium text-ink">Drag and drop your CSV file here, or click to browse</p>
-              <p className="mt-1 text-[12px] text-ink-tertiary">Supports CSV format up to 10MB</p>
+            <input
+              ref={fileRef}
+              type="file"
+              accept=".csv"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) { setFileName(f.name); flash(`${f.name} uploaded`); }
+                e.target.value = "";
+              }}
+            />
+            <div
+              onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+              onDragLeave={() => setDragging(false)}
+              onDrop={(e) => {
+                e.preventDefault();
+                setDragging(false);
+                const f = e.dataTransfer.files?.[0];
+                if (f) { setFileName(f.name); flash(`${f.name} uploaded`); }
+              }}
+              className={`mt-5 flex flex-col items-center justify-center rounded-2xl border border-dashed px-6 py-10 text-center transition-colors ${dragging ? "border-brand bg-brand-tint/50" : "border-line bg-subtle/60"}`}
+            >
+              <span className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-tint text-brand">
+                <Upload className="h-5 w-5" />
+              </span>
+              {fileName ? (
+                <>
+                  <p className="mt-3 text-[14px] font-medium text-ink">{fileName}</p>
+                  <p className="mt-0.5 text-[12px] text-ink-tertiary">Ready to import</p>
+                </>
+              ) : (
+                <>
+                  <p className="mt-3 text-[14px] font-medium text-ink">Drop your CSV here</p>
+                  <p className="mt-0.5 text-[12px] text-ink-tertiary">Columns: Name, Department · up to 10MB</p>
+                </>
+              )}
+              <Button className="mt-4" onClick={() => fileRef.current?.click()}>{fileName ? "Choose another file" : "Choose file"}</Button>
             </div>
           </Card>
 
@@ -106,7 +139,7 @@ export default function StaffTeamManagement() {
                 <input
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Search by name, email, department"
+                  placeholder="Search by name or department"
                   className="h-9 w-full rounded-lg border border-line bg-white pl-9 pr-3 text-[13px] text-ink outline-none placeholder:text-ink-tertiary focus:border-brand"
                 />
               </div>
@@ -116,8 +149,6 @@ export default function StaffTeamManagement() {
               <thead>
                 <tr className="border-b border-line text-[11px] uppercase tracking-wide text-ink-secondary">
                   <th className="pb-2 font-medium">Team Member</th>
-                  <th className="pb-2 font-medium">Email</th>
-                  <th className="pb-2 font-medium">Mobile</th>
                   <th className="pb-2 font-medium">Department</th>
                   <th className="pb-2 font-medium">Actions</th>
                 </tr>
@@ -133,8 +164,6 @@ export default function StaffTeamManagement() {
                         <span className="text-[13px] font-medium text-ink">{m.first} {m.last}</span>
                       </span>
                     </td>
-                    <td className="py-3 text-[13px] text-ink-secondary">{m.email}</td>
-                    <td className="py-3 text-[13px] text-ink-secondary">{m.phone}</td>
                     <td className="py-3 text-[13px] text-ink-secondary">{m.dept === "Unassigned" ? <span className="text-ink-tertiary">Unassigned</span> : m.dept}</td>
                     <td className="py-3">
                       <MoreVertical className="h-4 w-4 text-ink-tertiary" />
@@ -143,7 +172,7 @@ export default function StaffTeamManagement() {
                 ))}
                 {!rows.length && (
                   <tr>
-                    <td colSpan={5} className="py-8 text-center text-[13px] text-ink-tertiary">
+                    <td colSpan={3} className="py-8 text-center text-[13px] text-ink-tertiary">
                       No team members match “{query}”.
                     </td>
                   </tr>
@@ -187,11 +216,8 @@ export default function StaffTeamManagement() {
 function MemberDrawer({ member, onClose, onSave }: { member: Member | null; onClose: () => void; onSave: (m: Omit<Member, "id">) => void }) {
   const [first, setFirst] = useState(member?.first ?? "");
   const [last, setLast] = useState(member?.last ?? "");
-  const [email, setEmail] = useState(member?.email ?? "");
-  const [phone, setPhone] = useState(member?.phone.replace(/^\+\d+\s/, "") ?? "");
-  const [code, setCode] = useState(member?.phone.match(/^\+\d+/)?.[0] ?? "+91");
   const [dept, setDept] = useState(member?.dept ?? "Unassigned");
-  const ok = first.trim() && last.trim() && /\S+@\S+\.\S+/.test(email) && phone.trim();
+  const ok = first.trim() && last.trim();
 
   return (
     <Drawer title={member ? "Edit Team Member" : "Add Team Member"} onClose={onClose}>
@@ -203,20 +229,6 @@ function MemberDrawer({ member, onClose, onSave }: { member: Member | null; onCl
           <Input value={last} onChange={(e) => setLast(e.target.value)} placeholder="Carter" />
         </Field>
       </div>
-      <Field className="mt-3" label="Email" required>
-        <Input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@alfonhotel.com" />
-      </Field>
-      <Field className="mt-3" label="Mobile Number" required>
-        <div className="grid grid-cols-[92px_1fr] gap-2">
-          <Select value={code} onChange={(e) => setCode(e.target.value)}>
-            <option>+91</option>
-            <option>+1</option>
-            <option>+44</option>
-            <option>+971</option>
-          </Select>
-          <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="98765 43210" />
-        </div>
-      </Field>
       <Field className="mt-3" label="Department (Optional)">
         <Select value={dept} onChange={(e) => setDept(e.target.value)}>
           {DEPTS.map((d) => <option key={d}>{d}</option>)}
@@ -228,7 +240,7 @@ function MemberDrawer({ member, onClose, onSave }: { member: Member | null; onCl
         Roles and access are assigned later from the Team page.
       </div>
 
-      <Button className="mt-5 w-full" disabled={!ok} onClick={() => onSave({ first: first.trim(), last: last.trim(), email: email.trim(), phone: `${code} ${phone.trim()}`, dept })}>
+      <Button className="mt-5 w-full" disabled={!ok} onClick={() => onSave({ first: first.trim(), last: last.trim(), email: member?.email ?? "", phone: member?.phone ?? "", dept })}>
         {member ? "Save Changes" : "Add Member"}
       </Button>
       <Button variant="outline" className="mt-2 w-full" onClick={onClose}>
