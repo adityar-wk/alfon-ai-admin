@@ -119,13 +119,13 @@ const RANGE_PRESETS: { label: string; from: () => string; to: () => string }[] =
 ];
 const niceDate = (v: string) => new Date(v + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 
-type Filters = { from: string; to: string; dept: string };
+type Filters = { from: string; to: string; depts: string[] };
 
 /** rows narrowed to the chosen department (only reports that have a department column can be narrowed) */
-function filterRows(r: Report, f: Filters, allowed: (d: string) => boolean): string[][] {
+function filterRows(r: Report, f: Filters): string[][] {
   const di = r.cols.findIndex((c) => /^(department|dept)$/i.test(c));
   if (di < 0) return r.rows;
-  return r.rows.filter((row) => (f.dept === "All departments" ? allowed(row[di]) : row[di] === f.dept));
+  return r.rows.filter((row) => f.depts.includes(row[di]));
 }
 
 function saveBlob(blob: Blob, name: string) {
@@ -199,9 +199,11 @@ export default function Reports() {
   const scopeLabel = manager ? scopeDepts.join(", ") : "All departments";
   const [active, setActive] = useState<Report | null>(null);
   const [step, setStep] = useState<"filter" | "report">("filter");
-  const [filters, setFilters] = useState<Filters>({ from: daysAgo(6), to: daysAgo(0), dept: "All departments" });
+  const deptOptions = manager ? scopeDepts : ["Housekeeping", "Front Desk", "Room Service", "Engineering", "Concierge", "Guest Services", "Food & Beverage"];
+  const [filters, setFilters] = useState<Filters>({ from: daysAgo(6), to: daysAgo(0), depts: deptOptions });
   const [toast, setToast] = useState<string | null>(null);
-  const deptOptions = ["All departments", ...(manager ? scopeDepts : ["Housekeeping", "Front Desk", "Room Service", "Engineering", "Concierge", "Guest Services", "Food & Beverage"])];
+  const allSelected = deptOptions.every((d) => filters.depts.includes(d));
+  const deptLabel = allSelected ? "All departments" : filters.depts.join(", ");
 
   const flash = (m: string) => {
     setToast(m);
@@ -218,14 +220,14 @@ export default function Reports() {
         }).map((a) => [a.time, a.who, a.action, a.task, a.detail]),
       };
     }
-    setFilters({ from: daysAgo(6), to: daysAgo(0), dept: "All departments" });
+    setFilters({ from: daysAgo(6), to: daysAgo(0), depts: deptOptions });
     setStep("filter");
     setActive(r);
   };
 
-  const reportRows = active ? filterRows(active, filters, (d) => !manager || inScope(d)) : [];
-  const meta = [`Period: ${niceDate(filters.from)} - ${niceDate(filters.to)}`, `Department: ${filters.dept}`, `Generated for: ${scopeLabel}`];
-  const rangeOk = !!filters.from && !!filters.to && filters.from <= filters.to;
+  const reportRows = active ? filterRows(active, filters) : [];
+  const meta = [`Period: ${niceDate(filters.from)} - ${niceDate(filters.to)}`, `Department: ${deptLabel}`, `Generated for: ${scopeLabel}`];
+  const rangeOk = !!filters.from && !!filters.to && filters.from <= filters.to && filters.depts.length > 0;
 
   return (
     <>
@@ -268,11 +270,29 @@ export default function Reports() {
                     <Field label="To"><Input type="date" value={filters.to} min={filters.from || undefined} onChange={(e) => setFilters((f) => ({ ...f, to: e.target.value }))} /></Field>
                   </div>
                 </div>
-                <Field label="Department">
-                  <Select value={filters.dept} onChange={(e) => setFilters((f) => ({ ...f, dept: e.target.value }))}>
-                    {deptOptions.map((d) => <option key={d}>{d}</option>)}
-                  </Select>
-                </Field>
+                <div>
+                  <div className="mb-1.5 flex items-center justify-between">
+                    <span className="text-[13px] font-medium text-ink">Departments</span>
+                    <span className="text-[11px] text-ink-tertiary">{allSelected ? "All selected" : `${filters.depts.length} selected`}</span>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className={`flex cursor-pointer items-center gap-3 rounded-xl border px-3.5 py-2.5 text-[13px] font-medium text-ink ${allSelected ? "border-brand bg-brand-tint/40" : "border-line hover:bg-subtle"}`}>
+                      <input type="checkbox" className="h-4 w-4 accent-brand" checked={allSelected} onChange={(e) => setFilters((f) => ({ ...f, depts: e.target.checked ? deptOptions : [] }))} />
+                      All departments
+                    </label>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      {deptOptions.map((d) => {
+                        const on = filters.depts.includes(d);
+                        return (
+                          <label key={d} className={`flex cursor-pointer items-center gap-3 rounded-xl border px-3.5 py-2.5 text-[13px] text-ink ${on ? "border-brand bg-brand-tint/40" : "border-line hover:bg-subtle"}`}>
+                            <input type="checkbox" className="h-4 w-4 accent-brand" checked={on} onChange={(e) => setFilters((f) => ({ ...f, depts: e.target.checked ? [...f.depts, d] : f.depts.filter((x) => x !== d) }))} />
+                            {d}
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
               </div>
               <div className="flex justify-end gap-2 border-t border-line px-6 py-3.5">
                 <Button variant="outline" onClick={() => setActive(null)}>Cancel</Button>
@@ -284,7 +304,7 @@ export default function Reports() {
               <div className="p-6">
                 <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px] text-ink-secondary">
                   <span><span className="text-ink-tertiary">Period</span> {niceDate(filters.from)} – {niceDate(filters.to)}</span>
-                  <span><span className="text-ink-tertiary">Department</span> {filters.dept}</span>
+                  <span><span className="text-ink-tertiary">{filters.depts.length === 1 ? "Department" : "Departments"}</span> {deptLabel}</span>
                   <span className="text-ink-tertiary">{reportRows.length} {reportRows.length === 1 ? "row" : "rows"}</span>
                 </div>
                 <div className="overflow-x-auto">
