@@ -329,7 +329,7 @@ export function Chips<T extends string>({ items, active, onChange, counts, flat 
         <button
           key={c}
           onClick={() => onChange(c)}
-          className={`shrink-0 rounded-full px-3.5 py-2 text-[13px] font-semibold ${flat ? (active === c ? "bg-brand text-white" : "bg-[#F4F4F6] text-ink-secondary") : active === c ? "bg-brand text-white shadow-sm" : "bg-white text-ink-secondary shadow-sm"}`}
+          className={`shrink-0 rounded-full px-3.5 py-2 text-[13px] font-semibold ${flat ? (active === c ? "border border-brand bg-brand text-white" : "border border-[#E6E4DF] bg-white text-ink-secondary") : active === c ? "bg-brand text-white shadow-sm" : "bg-white text-ink-secondary shadow-sm"}`}
         >
           {c}
           {counts?.[c] !== undefined && <span className={`ml-1.5 ${active === c ? "text-white/80" : "text-ink-tertiary"}`}>{counts[c]}</span>}

@@ -428,7 +428,7 @@ export function ManagerPrototype() {
             value={taskQuery}
             onChange={(e) => setTaskQuery(e.target.value)}
             placeholder="Search room, guest or task"
-            className="h-11 w-full rounded-full bg-[#F4F4F6] pl-10 pr-3 text-[14px] outline-none placeholder:text-ink-tertiary focus:ring-2 focus:ring-brand/30"
+            className="h-11 w-full rounded-full border border-[#E6E4DF] bg-white pl-10 pr-3 text-[14px] outline-none placeholder:text-ink-tertiary focus:ring-2 focus:ring-brand/30"
           />
         </div>
       </div>
@@ -658,7 +658,7 @@ export function ManagerPrototype() {
             value={guestQuery}
             onChange={(e) => setGuestQuery(e.target.value)}
             placeholder="Search guest or room"
-            className="h-11 w-full rounded-full bg-[#F4F4F6] pl-10 pr-3 text-[14px] outline-none placeholder:text-ink-tertiary focus:ring-2 focus:ring-brand/30"
+            className="h-11 w-full rounded-full border border-[#E6E4DF] bg-white pl-10 pr-3 text-[14px] outline-none placeholder:text-ink-tertiary focus:ring-2 focus:ring-brand/30"
           />
         </div>
         <button
