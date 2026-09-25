@@ -1234,7 +1234,6 @@ function NewTask({
   const [room, setRoom] = useState(prefill.room);
   const [title, setTitle] = useState("");
   const [dept, setDept] = useState(deptOptions[0]);
-  const [owner, setOwner] = useState("");
   const [details, setDetails] = useState("");
 
   const valid = title.trim() && guest.trim();
@@ -1246,7 +1245,7 @@ function NewTask({
       guest: guest.trim(),
       room: room.trim() || "—",
       dept,
-      owner: owner || STAFF[dept][0],
+      owner: null,
       priority: "Medium",
       sla: { kind: "left", text: "40 min left" },
       status: "Yet to Assign",
@@ -1281,21 +1280,13 @@ function NewTask({
           <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Extra pillows, AC check, airport pickup" autoFocus />
         </Field>
 
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Department">
-            <Select value={dept} onChange={(e) => { setDept(e.target.value); setOwner(""); }}>
-              {deptOptions.map((d) => <option key={d}>{d}</option>)}
-            </Select>
-          </Field>
-          <Field label="Assign to">
-            <Select value={owner} onChange={(e) => setOwner(e.target.value)}>
-              <option value="">Auto-assign (ALFON)</option>
-              {STAFF[dept].map((s) => <option key={s}>{s}</option>)}
-            </Select>
-          </Field>
-        </div>
+        <Field label="Department">
+          <Select value={dept} onChange={(e) => setDept(e.target.value)}>
+            {deptOptions.map((d) => <option key={d}>{d}</option>)}
+          </Select>
+        </Field>
 
-        <Field label="Details" hint="Optional — shared with the assignee.">
+        <Field label="Details" hint="Optional.">
           <Textarea rows={3} value={details} onChange={(e) => setDetails(e.target.value)} placeholder="Anything the team should know…" />
         </Field>
       </div>
