@@ -24,7 +24,7 @@ export const CARD_SHADOW = "shadow-[0_2px_10px_rgba(17,17,17,0.08)]";
 export function PhoneFrame({ children, white = false }: { children: ReactNode; white?: boolean }) {
   return (
     <div className="relative h-[820px] w-[400px] shrink-0 rounded-[52px] border-[10px] border-[#1A1A1A] bg-[#1A1A1A] shadow-2xl">
-      <div className={`relative flex h-full w-full flex-col overflow-hidden rounded-[42px] ${white ? "bg-white" : "bg-[#F6F6F8]"}`}>
+      <div className={`relative flex h-full w-full flex-col overflow-hidden rounded-[42px] ${white ? "bg-white" : "bg-page"}`}>
         <StatusBar />
         <div className="relative min-h-0 flex-1">{children}</div>
       </div>
@@ -208,7 +208,7 @@ export function TaskCard({
 }) {
   const initials = (n: string) => n.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
   return (
-    <div className={`relative rounded-[20px] border border-[#ECE9E1] bg-page p-5 ${done ? "opacity-55 grayscale-[0.5]" : ""}`}>
+    <div className={`relative rounded-2xl border border-[#E6E4DF] bg-white p-5 ${done ? "opacity-55 grayscale-[0.5]" : ""}`}>
       <div onClick={onClick} role={onClick ? "button" : undefined} className={onClick ? "cursor-pointer active:scale-[0.99]" : ""}>
         <div className="font-display text-[16px] font-semibold leading-snug text-ink">{note}</div>
         <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[13px]">

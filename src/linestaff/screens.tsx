@@ -568,7 +568,7 @@ export function LineStaffPrototype() {
 
   return (
     <div className="flex flex-col items-center gap-4">
-      <PhoneFrame white={!signedOut && ["home", "guests", "profile"].includes(cur.name)}>
+      <PhoneFrame white={!signedOut && ["guests", "profile"].includes(cur.name)}>
         {signedOut ? <SignedOutScreen onSignIn={() => { setSignedOut(false); nav.reset(); }} /> : VIEWS[cur.name]}
         {HelpSheet}
         {NewChatSheet}

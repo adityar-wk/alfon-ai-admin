@@ -1257,7 +1257,7 @@ export function ManagerPrototype() {
 
   return (
     <div className="flex flex-col items-center gap-4">
-      <PhoneFrame white={!signedOut && ["home", "tasks", "guests", "menu"].includes(cur.name)}>
+      <PhoneFrame white={!signedOut && ["guests", "menu"].includes(cur.name)}>
         {signedOut ? <SignedOutScreen onSignIn={() => { setSignedOut(false); nav.reset(); }} /> : VIEWS[cur.name]}
         {sheetNode}
         {TeamFilterSheet}
