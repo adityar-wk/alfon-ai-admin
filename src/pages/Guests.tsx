@@ -175,7 +175,7 @@ export default function Guests() {
         <Card className="mt-4 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[820px] table-fixed whitespace-nowrap text-left">
-              <colgroup><col /><col /><col /><col /><col /></colgroup>
+              <colgroup><col className="w-[26%]" /><col className="w-[24%]" /><col className="w-[24%]" /><col className="w-[16%]" /><col className="w-[10%]" /></colgroup>
               <thead>
                 <tr className="border-b border-line text-[11px] uppercase tracking-wide text-ink-secondary">
                   <th className="py-3 pl-5 font-medium">Guest</th>
@@ -183,7 +183,7 @@ export default function Guests() {
                   <th className="py-3 font-medium">Stay Dates</th>
                   <th className="py-3 font-medium">Nationality</th>
                   <th className="py-3 pr-5 font-medium">Status</th>
-                                  </tr>
+                </tr>
               </thead>
               <tbody>
                 {rows.map((g) => (
@@ -192,35 +192,26 @@ export default function Guests() {
                     onClick={() => navigate(`/guests/${g.id}`)}
                     className="cursor-pointer border-b border-line/70 hover:bg-subtle/50"
                   >
-                    <td className="py-3 pl-5 pr-3">
+                    <td className="py-3.5 pl-5 pr-3">
                       <div className="flex items-center gap-3">
                         <span className={`flex h-9 w-9 items-center justify-center rounded-full text-[11px] font-semibold ${g.tint}`}>
                           {g.initials}
                         </span>
-                        <div className="leading-tight">
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-[13px] font-semibold text-ink">{g.name}</span>
-                          </div>
-                          <div className="text-[12px] text-ink-tertiary">{g.contact}</div>
-                        </div>
+                        <span className="text-[13px] font-semibold text-ink">{g.name}</span>
                       </div>
                     </td>
-                    <td className="py-3 pr-3">
-                      <div className="text-[13px] font-medium text-ink">{g.room}</div>
-                      <div className="text-[12px] text-ink-secondary">{g.roomType}</div>
+                    <td className="py-3.5 pr-3 text-[13px] text-ink">
+                      <span className="font-medium">{g.room}</span> <span className="text-ink-secondary">· {g.roomType}</span>
                     </td>
-                    <td className="py-3 pr-3">
-                      <div className="text-[13px] text-ink">
-                        {g.from} – {g.to}
-                      </div>
-                      <div className="text-[12px] text-ink-secondary">{g.nights} nights</div>
+                    <td className="py-3.5 pr-3 text-[13px] text-ink">
+                      {g.from} – {g.to}
                     </td>
-                    <td className="py-3 pr-3">
+                    <td className="py-3.5 pr-3">
                       <span className="flex items-center gap-2 text-[13px] text-ink">
                         <Flag country={g.country} /> {g.country}
                       </span>
                     </td>
-                    <td className="py-3 pr-5">
+                    <td className="py-3.5 pr-5">
                       <Badge tone={g.status === "In House" ? "success" : "info"}>{g.status}</Badge>
                     </td>
                   </tr>
