@@ -250,7 +250,7 @@ export function TaskCard({
 
 export function StatCard({ label, value, tone = "text-ink", onClick, hint }: { label: string; value: number | string; tone?: string; onClick?: () => void; hint?: string }) {
   return (
-    <button onClick={onClick} className={`rounded-2xl bg-white p-3.5 text-left ${CARD_SHADOW} ${onClick ? "active:scale-[0.98]" : "cursor-default"}`}>
+    <button onClick={onClick} className={`rounded-2xl border border-[#E6E4DF] bg-white p-3.5 text-left ${onClick ? "active:scale-[0.98]" : "cursor-default"}`}>
       <div className={`text-[26px] font-bold leading-none ${tone}`}>{value}</div>
       <div className="mt-1.5 text-[12px] font-medium text-ink-secondary">{label}</div>
       {hint && <div className="text-[11px] text-ink-tertiary">{hint}</div>}
