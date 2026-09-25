@@ -349,20 +349,18 @@ export default function PreArrival() {
         {/* table */}
         <div className="mt-5 overflow-hidden rounded-[20px] border border-line/40 bg-white shadow-[0_1px_3px_rgba(16,24,40,0.05)]">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[900px] table-fixed text-left">
+            <table className="w-full min-w-[1040px] table-fixed text-left">
               <colgroup>
-                {/* the Guest column carries 24px of left padding, so it is that much wider: gaps between column texts stay equal */}
-                <col style={{ width: "20.5%" }} />
-                <col style={{ width: "18.4%" }} /><col style={{ width: "18.4%" }} /><col style={{ width: "18.4%" }} /><col style={{ width: "18.4%" }} />
-                <col />
+                <col /><col /><col /><col /><col />
+                <col className="w-16" />
               </colgroup>
               <thead>
                 <tr className="bg-[#F4F4F5] text-[12px] uppercase tracking-wide text-[#6B7280]">
                   <th className="py-3.5 pl-6 font-medium">Guest</th>
-                  <th className="py-3.5 font-medium">Stay</th>
-                  <th className="py-3.5 font-medium">Arrival</th>
-                  <th className="py-3.5 font-medium">Engagement</th>
-                  <th className="py-3.5 font-medium">Last Interaction</th>
+                  <th className="py-3.5 pl-6 font-medium">Stay</th>
+                  <th className="py-3.5 pl-6 font-medium">Arrival</th>
+                  <th className="py-3.5 pl-6 font-medium">Engagement</th>
+                  <th className="py-3.5 pl-6 font-medium">Last Interaction</th>
                   <th className="w-12 py-3.5 pr-6" aria-label="Actions" />
                 </tr>
               </thead>
@@ -376,26 +374,26 @@ export default function PreArrival() {
                       className={`cursor-pointer border-b border-line/50 last:border-0 ${active ? "bg-brand-tint/40" : "hover:bg-subtle/60"}`}
                     >
                       <td className="py-3.5 pl-6 pr-3">
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3 whitespace-nowrap">
                           <Avatar g={g} size={36} soft />
                           <div className="min-w-0">
                             <div className="text-[14px] font-medium text-ink">{g.name}</div>
                           </div>
                         </div>
                       </td>
-                      <td className="whitespace-nowrap py-3.5 pr-3 text-[14px] text-ink-secondary">
+                      <td className="whitespace-nowrap py-3.5 pl-6 pr-3 text-[14px] text-ink-secondary">
                         {shortDay(checkinDay(g))} – {shortDay(checkinDay(g) + g.nights)}
                       </td>
-                      <td className="whitespace-nowrap py-3.5 pr-3">
+                      <td className="whitespace-nowrap py-3.5 pl-6 pr-3">
                         <div className="text-[14px] text-ink-secondary">{arrivalLabel(g)}</div>
                         <div className="text-[12px] text-ink-tertiary">{g.time}</div>
                       </td>
-                      <td className="py-3.5 pr-3">
+                      <td className="py-3.5 pl-6 pr-3">
                         <span className={`whitespace-nowrap text-[14px] font-medium ${ENG_PILL[g.eng]}`}>
                           {ENG_LABEL[g.eng]}
                         </span>
                       </td>
-                      <td className="whitespace-nowrap py-3.5 pr-3 text-[14px] text-ink-secondary">{g.last}</td>
+                      <td className="whitespace-nowrap py-3.5 pl-6 pr-3 text-[14px] text-ink-secondary">{g.last}</td>
                       <td className="py-3.5 pr-6 text-right">
                         <MoreHorizontal className="ml-auto h-5 w-5 text-ink-tertiary" aria-label="More actions" />
                       </td>
