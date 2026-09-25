@@ -61,7 +61,7 @@ export function NotificationSettingsScreen({ persona, onBack }: { persona: strin
   const flip = (k: string) => setPrefs((p) => { const n = { ...p, [k]: !p[k] }; savedPrefs[persona] = n; return n; });
   return (
     <div className="flex h-full flex-col">
-      <ScreenHeader title="Notification settings" sub="Choose which alerts you receive" onBack={onBack} />
+      <ScreenHeader title="Notification settings" onBack={onBack} />
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-6 pb-6 pt-2 no-scrollbar">
         {NOTIF_OPTIONS.map((o) => (
           <div key={o.key} className={`flex items-center gap-3 rounded-2xl bg-white p-4 ${CARD_SHADOW}`}>

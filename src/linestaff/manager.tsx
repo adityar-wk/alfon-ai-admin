@@ -389,8 +389,7 @@ export function ManagerPrototype() {
         <div className="flex items-center gap-3">
           {menuBtn}
           <div className="leading-tight">
-            <div className="text-[20px] font-bold text-ink">{ME}</div>
-            <div className="text-[12px] text-ink-secondary">Housekeeping · Department Head</div>
+            <div className="text-[20px] font-semibold text-ink">{ME}</div>
           </div>
         </div>
         {bellBtn}
@@ -422,8 +421,7 @@ export function ManagerPrototype() {
         <div className="flex items-center gap-3">
           {menuBtn}
           <div className="leading-tight">
-            <div className="text-[20px] font-bold text-ink">Tasks</div>
-            <div className="text-[12px] text-ink-secondary">All Housekeeping tasks</div>
+            <div className="text-[20px] font-semibold text-ink">Tasks</div>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -588,7 +586,7 @@ export function ManagerPrototype() {
   /* ---------- housekeeping (rooms) ---------- */
   const Housekeeping = (
     <div className="flex h-full flex-col">
-      <ScreenHeader onBack={nav.back} title="Housekeeping" sub="Room status" />
+      <ScreenHeader onBack={nav.back} title="Housekeeping" />
       <div><Chips items={ROOM_STATUS_FILTERS} active={roomFilter} onChange={setRoomFilter} counts={roomChipCounts} /></div>
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-6 pb-6 pt-3 no-scrollbar">
         {roomsFiltered.map((r) => (
@@ -658,8 +656,7 @@ export function ManagerPrototype() {
         <div className="flex items-center gap-3">
           {menuBtn}
           <div className="leading-tight">
-            <div className="text-[20px] font-bold text-ink">Guest Communication</div>
-            <div className="text-[12px] text-ink-secondary">Chat with guests</div>
+            <div className="text-[20px] font-semibold text-ink">Chats</div>
           </div>
         </div>
         {bellBtn}
@@ -1001,7 +998,7 @@ export function ManagerPrototype() {
 
   const Analytics = (
     <div className="flex h-full flex-col">
-      <ScreenHeader title="Analytics" sub="Housekeeping · this period" onBack={nav.back} />
+      <ScreenHeader title="Analytics" onBack={nav.back} />
       <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 pb-6 pt-2 no-scrollbar">
         <div className="grid grid-cols-2 gap-3">
           <StatCard label="Total tasks" value={HK_DEPT.tasks.toLocaleString()} />
@@ -1100,7 +1097,7 @@ export function ManagerPrototype() {
 
   const GuestsRoster = (
     <div className="flex h-full flex-col">
-      <ScreenHeader title="Guests" sub="All hotel guests" onBack={nav.back} />
+      <ScreenHeader title="Guests" onBack={nav.back} />
       {searchRow(rosterQuery, setRosterQuery, "Search guest or room", filterBtn(rosterActiveFilters, () => setRosterFilterOpen(true)))}
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-6 pb-6 pt-3 no-scrollbar">
         {rosterFiltered.map((row) =>

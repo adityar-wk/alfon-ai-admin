@@ -74,7 +74,7 @@ export function useToast() {
 
 /* ---------- headers ---------- */
 
-export function ScreenHeader({ title, onBack, right, sub }: { title?: string; onBack?: () => void; right?: ReactNode; sub?: string }) {
+export function ScreenHeader({ title, onBack, right }: { title?: string; onBack?: () => void; right?: ReactNode }) {
   return (
     <div className={`flex items-center gap-1 pb-1 pt-3 pr-4 ${onBack ? "pl-4" : "pl-6"}`}>
       {onBack && (
@@ -83,8 +83,7 @@ export function ScreenHeader({ title, onBack, right, sub }: { title?: string; on
         </button>
       )}
       <div className="min-w-0 flex-1 leading-tight">
-        {title && <h1 className="text-[20px] font-bold text-ink">{title}</h1>}
-        {sub && <p className="mt-0.5 text-[12px] text-ink-secondary">{sub}</p>}
+        {title && <h1 className="text-[20px] font-semibold text-ink">{title}</h1>}
       </div>
       {right}
     </div>

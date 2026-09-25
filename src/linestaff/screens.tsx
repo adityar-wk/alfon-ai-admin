@@ -304,7 +304,7 @@ export function LineStaffPrototype() {
   const Guests = (
     <div className="relative h-full">
       <div className="h-full overflow-y-auto pb-28 no-scrollbar">
-        <h1 className="px-6 pb-2 pt-4 text-[20px] font-bold text-ink">Chats</h1>
+        <h1 className="px-6 pb-2 pt-4 text-[20px] font-semibold text-ink">Chats</h1>
         <div className="px-6">
           <div className="relative">
             <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-tertiary" />
