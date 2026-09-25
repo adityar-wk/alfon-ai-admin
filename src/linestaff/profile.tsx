@@ -11,22 +11,19 @@ const Toggle = ({ on, onChange, label }: { on: boolean; onChange: () => void; la
 
 /** The hamburger menu ("More"): who you are, notification settings, sign out. */
 export function ProfileScreen({
-  name, role, onNotifSettings, onSignOut, onBack,
+  name, role, email, onNotifSettings, onSignOut, onBack,
 }: {
-  name: string; role: string; dept?: string; onNotifSettings: () => void; onSignOut: () => void; onBack: () => void;
+  name: string; role: string; email: string; dept?: string; onNotifSettings: () => void; onSignOut: () => void; onBack: () => void;
 }) {
   return (
     <div className="flex h-full flex-col">
       <ScreenHeader title="More" onBack={onBack} />
       <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-6 pt-2 no-scrollbar">
-        <div className="-mx-6 bg-[#F6F6F8] px-6 py-6">
-          <div className="flex items-center gap-4">
-            <Avatar name={name} size={64} tone="bg-brand text-white" />
-            <div className="min-w-0 leading-tight">
-              <div className="truncate text-[18px] font-bold text-ink">{name}</div>
-              <div className="mt-1 text-[13px] text-ink-secondary">{role}</div>
-            </div>
-          </div>
+        <div className="-mx-6 flex flex-col items-center bg-[#F6F6F8] px-6 pb-8 pt-9 text-center">
+          <Avatar name={name} size={88} tone="bg-brand text-white" />
+          <div className="mt-5 truncate text-[20px] font-bold text-ink">{name}</div>
+          <div className="mt-1.5 text-[14px] font-medium text-ink-secondary">{role}</div>
+          <div className="mt-1 text-[13px] text-ink-tertiary">{email}</div>
         </div>
 
         <div className="mt-2">

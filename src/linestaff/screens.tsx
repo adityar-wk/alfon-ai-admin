@@ -521,7 +521,7 @@ export function LineStaffPrototype() {
 
   const Profile = (
     <ProfileScreen
-      name="Aanya Khan" role="Line Staff" dept="Housekeeping"
+      name="Aanya Khan" role="Line Staff" email="aanya.khan@alfonhotel.com" dept="Housekeeping"
       onNotifSettings={() => nav.push({ name: "notifSettings" })}
       onSignOut={() => setSignedOut(true)}
       onBack={nav.back}

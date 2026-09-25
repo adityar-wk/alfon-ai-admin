@@ -961,14 +961,11 @@ export function ManagerPrototype() {
     <div className="flex h-full flex-col">
       <ScreenHeader title="More" onBack={nav.back} />
       <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-6 pt-2 no-scrollbar">
-        <div className="-mx-6 bg-[#F6F6F8] px-6 py-6">
-          <div className="flex items-center gap-4">
-            <Avatar name={ME} size={64} tone="bg-brand text-white" />
-            <div className="min-w-0 leading-tight">
-              <div className="truncate text-[18px] font-bold text-ink">{ME}</div>
-              <div className="mt-1 text-[13px] text-ink-secondary">Housekeeping Manager</div>
-            </div>
-          </div>
+        <div className="-mx-6 flex flex-col items-center bg-[#F6F6F8] px-6 pb-8 pt-9 text-center">
+          <Avatar name={ME} size={88} tone="bg-brand text-white" />
+          <div className="mt-5 truncate text-[20px] font-bold text-ink">{ME}</div>
+          <div className="mt-1.5 text-[14px] font-medium text-ink-secondary">Housekeeping Manager</div>
+          <div className="mt-1 text-[13px] text-ink-tertiary">daniel.reyes@alfonhotel.com</div>
         </div>
 
         <div className="mt-2">
