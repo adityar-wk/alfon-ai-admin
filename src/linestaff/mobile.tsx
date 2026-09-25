@@ -208,10 +208,10 @@ export function TaskCard({
 }) {
   const initials = (n: string) => n.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
   return (
-    <div className={`relative rounded-2xl border border-[#E6E4DF] bg-white p-5 ${done ? "opacity-55 grayscale-[0.5]" : ""}`}>
+    <div className={`relative rounded-2xl border border-[#E6E4DF] bg-white px-5 py-4 ${done ? "opacity-55 grayscale-[0.5]" : ""}`}>
       <div onClick={onClick} role={onClick ? "button" : undefined} className={onClick ? "cursor-pointer active:scale-[0.99]" : ""}>
         <div className="font-display text-[16px] font-semibold leading-snug text-ink">{note}</div>
-        <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[13px]">
+        <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px]">
           <span className="flex items-center gap-1 font-medium text-ink-secondary">
             {/^Room\s/i.test(room) ? <><DoorOpen className="h-[15px] w-[15px]" />{room.replace(/^Room\s+/i, "")}</> : room}
           </span>
@@ -219,7 +219,7 @@ export function TaskCard({
           {flags.map((f) => <span key={f.label} className={`text-[12px] font-medium ${f.tone}`}>{f.label}</span>)}
         </div>
         {meta && <div className="mt-2 text-[12px] text-ink-tertiary">{meta}</div>}
-        <div className="mt-5 flex min-h-[26px] items-center justify-between gap-3">
+        <div className="mt-3.5 flex min-h-[26px] items-center justify-between gap-3">
           {staff !== undefined ? (
             staff ? (
               <span className="flex min-w-0 items-center gap-2 text-[13px] text-ink">
