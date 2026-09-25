@@ -68,7 +68,6 @@ const MENU_ITEMS = [
   { key: "analytics" as const, label: "Analytics", icon: BarChart3 },
   { key: "guestsRoster" as const, label: "Guests", icon: BedDouble },
   { key: "reports" as const, label: "Reports", icon: FileText },
-  { key: "notifications" as const, label: "Notifications", icon: Bell },
 ];
 
 const REPORTS: { name: string; desc: string; locked?: boolean }[] = [
@@ -962,41 +961,46 @@ export function ManagerPrototype() {
 
   const Menu = (
     <div className="flex h-full flex-col">
-      <ScreenHeader title="More" onBack={nav.back} />
-      <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-6 pb-6 pt-2 no-scrollbar">
-        <div className={`rounded-2xl bg-white p-4 ${CARD_SHADOW}`}>
-          <div className="flex items-center gap-3.5">
-            <Avatar name={ME} size={56} tone="bg-brand text-white" />
+      <div className="flex items-center gap-1 px-4 pb-1 pt-3">
+        <button onClick={nav.back} aria-label="Back" className="flex h-11 w-11 items-center justify-center rounded-full text-ink active:bg-black/5">
+          <ChevronLeft className="h-6 w-6" />
+        </button>
+        <h1 className="text-[24px] font-bold leading-tight tracking-tight text-ink">More</h1>
+      </div>
+      <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-6 pt-2 no-scrollbar">
+        <div className="rounded-2xl bg-[#F6F6F8] p-5">
+          <div className="flex items-center gap-4">
+            <Avatar name={ME} size={64} tone="bg-brand text-white" />
             <div className="min-w-0 leading-tight">
-              <div className="truncate text-[17px] font-bold text-ink">{ME}</div>
-              <div className="mt-0.5 text-[13px] font-medium text-brand">Housekeeping Manager</div>
-              <div className="text-[12px] text-ink-secondary">Housekeeping · Department Head</div>
+              <div className="truncate text-[18px] font-bold text-ink">{ME}</div>
+              <div className="mt-1 text-[13px] font-medium text-brand">Housekeeping Manager</div>
+              <div className="mt-0.5 text-[12px] text-ink-secondary">Housekeeping · Department Head</div>
             </div>
           </div>
         </div>
-        <button onClick={() => nav.push({ name: "notifSettings" })} className={`flex w-full items-center gap-3 rounded-2xl bg-white p-4 text-left ${CARD_SHADOW}`}>
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#F1F1F3] text-ink-secondary"><SlidersHorizontal className="h-[18px] w-[18px]" /></div>
-          <div className="min-w-0 flex-1 leading-tight">
-            <div className="text-[14px] font-semibold text-ink">Notification settings</div>
-            <div className="text-[12px] text-ink-tertiary">Choose which alerts you get</div>
-          </div>
-          <ChevronRight className="h-4 w-4 shrink-0 text-ink-tertiary" />
-        </button>
-        {MENU_ITEMS.map((m) => (
-          <button
-            key={m.key}
-            onClick={() => nav.push({ name: m.key })}
-            className={`flex w-full items-center gap-3 rounded-2xl bg-white p-4 text-left ${CARD_SHADOW}`}
-          >
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-tint text-brand"><m.icon className="h-[18px] w-[18px]" /></div>
-            <div className="min-w-0 flex-1 text-[14px] font-semibold text-ink">{m.label}</div>
+
+        <div className="mt-2">
+          <button onClick={() => nav.push({ name: "notifSettings" })} className="flex w-full items-center gap-4 border-b border-[#EEEEF1] py-4 text-left">
+            <SlidersHorizontal className="h-[22px] w-[22px] shrink-0 text-ink" />
+            <span className="min-w-0 flex-1 text-[15px] font-semibold text-ink">Notification settings</span>
             <ChevronRight className="h-4 w-4 shrink-0 text-ink-tertiary" />
           </button>
-        ))}
-        <button onClick={() => setSignedOut(true)} className={`flex w-full items-center gap-3 rounded-2xl bg-white p-4 text-left ${CARD_SHADOW}`}>
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-50 text-red-600"><LogOut className="h-[18px] w-[18px]" /></div>
-          <div className="text-[14px] font-semibold text-red-600">Sign out</div>
-        </button>
+          {MENU_ITEMS.map((m) => (
+            <button
+              key={m.key}
+              onClick={() => nav.push({ name: m.key })}
+              className="flex w-full items-center gap-4 border-b border-[#EEEEF1] py-4 text-left"
+            >
+              <m.icon className="h-[22px] w-[22px] shrink-0 text-ink" />
+              <span className="min-w-0 flex-1 text-[15px] font-semibold text-ink">{m.label}</span>
+              <ChevronRight className="h-4 w-4 shrink-0 text-ink-tertiary" />
+            </button>
+          ))}
+          <button onClick={() => setSignedOut(true)} className="flex w-full items-center gap-4 py-4 text-left">
+            <LogOut className="h-[22px] w-[22px] shrink-0 text-red-600" />
+            <span className="text-[15px] font-semibold text-red-600">Sign out</span>
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -1246,7 +1250,7 @@ export function ManagerPrototype() {
 
   return (
     <div className="flex flex-col items-center gap-4">
-      <PhoneFrame white={!signedOut && cur.name === "guests"}>
+      <PhoneFrame white={!signedOut && (cur.name === "guests" || cur.name === "menu")}>
         {signedOut ? <SignedOutScreen onSignIn={() => { setSignedOut(false); nav.reset(); }} /> : VIEWS[cur.name]}
         {sheetNode}
         {TeamFilterSheet}
