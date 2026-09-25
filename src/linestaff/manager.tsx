@@ -1,7 +1,7 @@
 import { Logo } from "../components/Logo";
 import { useMemo, useState } from "react";
 import {
-  Bell, Home as HomeIcon, Plus, Users, UserCog, UserPlus, ArrowUpRight, MessageCircle, Send, Filter, MessageSquarePlus, ChevronRight, ChevronLeft, Search,
+  Bell, Home as HomeIcon, Plus, Users, UserCog, UserPlus, ArrowUpRight, MessageCircle, Send, Filter, ChevronRight, ChevronLeft, Search,
   Menu as MenuIcon, ListChecks, BarChart3, AlertTriangle, User, BedDouble, DoorClosed, Building2, FileText, Download, Lock, UtensilsCrossed, Languages, Thermometer, AlarmClock, Wine, Phone, Mail, Sparkles, SlidersHorizontal, LogOut,
 } from "lucide-react";
 import { DEPARTMENTS } from "../data/departments";
@@ -673,9 +673,9 @@ export function ManagerPrototype() {
         <button
           onClick={() => setNewChatOpen(true)}
           aria-label="New chat"
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#F4F4F6] text-ink active:bg-black/5"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-ink active:bg-black/5"
         >
-          <MessageSquarePlus className="h-[20px] w-[20px]" />
+          <Plus className="h-6 w-6" strokeWidth={2.25} />
         </button>
       </div>
       <div className="mt-3"><Chips flat items={GUEST_FILTERS} active={guestFilter} onChange={setGuestFilter} /></div>

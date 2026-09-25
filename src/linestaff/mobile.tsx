@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { AlertCircle, Signal, Wifi, BatteryFull, ChevronLeft, ChevronRight, ChevronDown, X, Clock } from "lucide-react";
+import { AlertCircle, DoorClosed, Signal, Wifi, BatteryFull, ChevronLeft, ChevronRight, ChevronDown, X, Clock } from "lucide-react";
 
 /* ============================================================
    Shared mobile kit — used by the Line Staff, Supervisor and
@@ -253,7 +253,9 @@ export function ChatRow({
     <>
       <span className="min-w-0 flex-1 leading-tight">
         <span className="block truncate text-[15px] font-semibold text-ink">{name}</span>
-        <span className="mt-1 block text-[12px] text-ink-tertiary">{room}</span>
+        <span className="mt-1 flex items-center gap-1 text-[12px] text-ink-tertiary">
+          {/^Room\s/i.test(room) ? <><DoorClosed className="h-3.5 w-3.5" />{room.replace(/^Room\s+/i, "")}</> : room}
+        </span>
         <span className="mt-1.5 block truncate text-[13px] text-ink-secondary">{preview}</span>
       </span>
       {!plain && (
