@@ -490,18 +490,9 @@ export function StaffDetails({ s, perms, onSaveAccess, manager }: { s: Staff; pe
   const first = s.name.split(" ")[0].toLowerCase();
   const last = s.name.split(" ").slice(-1)[0].toLowerCase();
   const n = Number(s.id.replace(/\D/g, ""));
-  const tasks = [
-    { t: s.task ?? "Maintenance Round", st: s.task ? "In Progress" : "Pending", time: "10:00 AM" },
-    { t: `${s.dept} Inspection – Floor ${10 + (n % 6)}`, st: "Pending", time: "01:00 PM" },
-    { t: "Shift Handover Round", st: "Pending", time: "03:00 PM" },
-  ];
-  const mine = TASKS.filter((t) => t.owner === shortName(s.name) && t.status !== "Completed").map((t) => ({
-    key: `t${t.id}`, t: t.title, sub: `${t.guest} · Room ${t.room}`, st: t.status,
-  }));
-  const taskRows = [
-    ...mine,
-    ...tasks.map((t) => ({ key: t.t, t: t.t, sub: "", st: t.st })),
-  ];
+  // names of the tasks this person has completed
+  const done = TASKS.filter((t) => t.owner === shortName(s.name) && t.status === "Completed").map((t) => t.title);
+  const taskRows = Array.from(new Set([...done, `${s.dept} inspection round`, "Shift handover", "Restocking supplies"])).slice(0, 6);
   const week = [9, 13, 11, 15, 8, 6, 5].map((v, i) => v + ((n + i) % 3));
   const shiftDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
@@ -521,7 +512,7 @@ export function StaffDetails({ s, perms, onSaveAccess, manager }: { s: Staff; pe
         </div>
       </div>
 
-      <div className="mt-5 flex justify-between border-b border-line">
+      <div className="mt-5 flex gap-6 border-b border-line">
         {DETAIL_TABS.filter((t) => !(manager && t === "Access")).map((t) => (
           <button
             key={t}
@@ -555,23 +546,34 @@ export function StaffDetails({ s, perms, onSaveAccess, manager }: { s: Staff; pe
           <div className="mb-2 mt-5 text-[11px] font-semibold uppercase tracking-wide text-ink-tertiary">
             This Week
           </div>
-          <div className="rounded-xl border border-line p-3">
-            <BarChart data={["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d, i) => ({ label: d, value: week[i] }))} />
+          <div className="rounded-xl border border-line p-4">
+            <div className="mb-3 flex items-baseline justify-between">
+              <span className="text-[22px] font-bold leading-none text-ink">{week.reduce((a, b) => a + b, 0)}</span>
+              <span className="text-[12px] text-ink-tertiary">tasks this week</span>
+            </div>
+            <div className="flex h-[132px] items-end gap-2.5 border-b border-line/80">
+              {shiftDays.map((d, i) => {
+                const top = Math.max(...week);
+                const today = i === (new Date().getDay() + 6) % 7;
+                return (
+                  <div key={d} className="flex h-full flex-1 flex-col items-center justify-end gap-1.5" title={`${d}: ${week[i]} tasks`}>
+                    <span className={`text-[11px] font-semibold tabular-nums ${today ? "text-brand" : "text-ink-secondary"}`}>{week[i]}</span>
+                    <div className={`w-full rounded-t-lg ${today ? "bg-brand" : "bg-brand/25"}`} style={{ height: `${(week[i] / top) * 78}%` }} />
+                  </div>
+                );
+              })}
+            </div>
+            <div className="mt-2 flex gap-2.5">
+              {shiftDays.map((d, i) => (
+                <span key={d} className={`flex-1 text-center text-[11px] ${i === (new Date().getDay() + 6) % 7 ? "font-semibold text-brand" : "text-ink-tertiary"}`}>{d}</span>
+              ))}
+            </div>
           </div>
 
-          <div className="mb-1 mt-5 flex items-center justify-between">
-            <span className="text-[11px] font-semibold uppercase tracking-wide text-ink-tertiary">Tasks</span>
-            <span className="text-[12px] text-ink-tertiary">{taskRows.length} today</span>
-          </div>
+          <div className="mb-1 mt-5 text-[11px] font-semibold uppercase tracking-wide text-ink-tertiary">Tasks completed</div>
           <div>
             {taskRows.map((t) => (
-              <div key={t.key} className="flex items-center gap-3 border-b border-line/70 py-2.5 text-[13px] last:border-0">
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-ink">{t.t}</span>
-                  {t.sub && <span className="block truncate text-[11px] text-ink-tertiary">{t.sub}</span>}
-                </span>
-                <span className="text-[12px] text-ink-secondary">{t.st}</span>
-              </div>
+              <div key={t} className="border-b border-line/70 py-2.5 text-[13px] text-ink last:border-0">{t}</div>
             ))}
           </div>
         </div>
