@@ -21,8 +21,8 @@ export function ProfileScreen({
       <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-6 pt-2 no-scrollbar">
         <div className="flex flex-col items-center pb-8 pt-6 text-center">
           <Avatar name={name} size={88} tone="bg-brand text-white" />
-          <div className="mt-5 truncate text-[20px] font-bold text-ink">{name}</div>
-          <div className="mt-1.5 text-[14px] font-medium text-ink-secondary">{role}</div>
+          <div className="mt-5 truncate font-display text-[20px] font-bold text-ink">{name}</div>
+          <div className="mt-1.5 font-display text-[14px] font-semibold text-ink-secondary">{role}</div>
           <div className="mt-1 text-[13px] text-ink-tertiary">{email}</div>
         </div>
 
