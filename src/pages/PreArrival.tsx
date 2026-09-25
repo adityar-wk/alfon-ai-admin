@@ -153,7 +153,6 @@ export default function PreArrival() {
   const [filters, setFilters] = useState<Filters>(NO_FILTERS);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [selectedId, setSelectedId] = useState<number | null>(null);
-  const [bulkOpen, setBulkOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [chats, setChats] = useState<Record<number, ChatMsg[]>>({});
   const [modes, setModes] = useState<Record<number, ChatMode>>({});
@@ -261,34 +260,14 @@ export default function PreArrival() {
               Prepare arriving guests, capture preferences, and resolve requests before check-in.
             </p>
           </div>
-          <div className="flex items-center gap-3">
-            <input
-              ref={fileRef}
-              type="file"
-              accept=".csv,.xlsx,.xls"
-              className="hidden"
-              onChange={(e) => {
-                const f = e.target.files?.[0];
-                if (f) flash(`Arrival report uploaded: ${f.name}`);
-                e.target.value = "";
-              }}
-            />
-            <Button variant="outline" onClick={() => fileRef.current?.click()}>
-              <Upload className="h-4 w-4" /> Upload Arrival Report
-            </Button>
-            <Button onClick={() => setBulkOpen(true)}>
-              <Send className="h-4 w-4" /> Review &amp; Send Messages
-            </Button>
-          </div>
         </div>
 
         {/* KPIs */}
-        <div className="mt-5 grid grid-cols-2 gap-4 lg:grid-cols-5">
+        <div className="mt-5 grid grid-cols-2 gap-4 lg:grid-cols-4">
           <Kpi icon={Plane} tone="text-ink-secondary bg-subtle" label="Arriving Today" value={today.length} sub={`${contacted} contacted · ${responded} responded`} onClick={() => goToday("all")} />
           <Kpi icon={Send} tone="text-gray-500 bg-gray-100" label="Not Contacted" value={kpiNC} sub="Requires attention" onClick={() => goToday("nc")} />
           <Kpi icon={Clock} tone="text-amber-600 bg-amber-50" label="Awaiting Response" value={kpiAW} sub="Messages already sent" onClick={() => goToday("aw")} />
           <Kpi icon={AlertTriangle} tone="text-amber-700 bg-amber-100" label="Action Required" value={kpiAR} sub="Hotel intervention needed" emphasis onClick={() => goToday("ar")} />
-          <Kpi icon={CheckCircle2} tone="text-emerald-600 bg-emerald-50" label="Ready for Arrival" value={kpiReady} sub="No outstanding actions" onClick={() => goToday("ready")} />
         </div>
 
         {/* search + date selector + filter, one line */}
@@ -448,18 +427,12 @@ export default function PreArrival() {
               g={selected}
               onClose={() => setSelectedId(null)}
               onTransfer={() => navigate(`/guest-chats?name=${encodeURIComponent(selected.name)}&room=${selected.room ?? ""}`)}
+              onViewChat={() => navigate(`/guest-chats?name=${encodeURIComponent(selected.name)}&room=${selected.room ?? ""}`)}
             />
           </div>
         </>
       )}
 
-      {bulkOpen && (
-        <BulkModal
-          onClose={() => setBulkOpen(false)}
-          onSend={() => { setBulkOpen(false); flash("Messages queued for 12 eligible guests"); }}
-          onReview={() => { setBulkOpen(false); goToday("nc"); }}
-        />
-      )}
 
       {toast && (
         <div className="pointer-events-none fixed inset-x-0 bottom-6 z-50 flex justify-center">
@@ -620,11 +593,12 @@ function KV({ label, children }: { label: string; children: React.ReactNode }) {
 }
 
 function GuestDrawer({
-  g, onClose, onTransfer,
+  g, onClose, onTransfer, onViewChat,
 }: {
   g: PreGuest;
   onClose: () => void;
   onTransfer: () => void;
+  onViewChat: () => void;
 }) {
   const ci = checkinDay(g);
   const contacted = g.eng !== "Not Contacted";
@@ -695,6 +669,7 @@ function GuestDrawer({
           <p className="rounded-xl bg-subtle px-4 py-3 text-[14px] leading-relaxed text-ink">
             {contacted ? g.brief : "No conversation yet. The pre-arrival message has not been sent."}
           </p>
+          <button onClick={onViewChat} className="mt-3 text-[14px] font-medium text-brand hover:underline">View full conversation →</button>
         </div>
       </div>
       <div className="shrink-0 border-t border-line p-5">
