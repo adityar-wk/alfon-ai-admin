@@ -79,8 +79,8 @@ function Trend({ t }: { t: "up" | "down" | "flat" }) {
   return <Minus className="h-3.5 w-3.5 text-ink-tertiary" />;
 }
 
-// what needs attention: escalations, SLA breaches, SLA at risk and unassigned work
-const ATTENTION: TaskStatusLabel[] = ["Escalated", "SLA breached", "SLA at risk", "Unassigned"];
+// what needs attention: escalations, SLA breaches, SLA at risk and pending (unassigned) work
+const ATTENTION: TaskStatusLabel[] = ["Escalated", "SLA breached", "SLA at risk", "Pending"];
 
 export default function Home() {
   const navigate = useNavigate();
@@ -224,7 +224,7 @@ export default function Home() {
                           <div className="text-[12px] text-ink-tertiary">Room {t.room}</div>
                         </td>
                         <td className="whitespace-nowrap py-3 pr-3">
-                          <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[12px] font-semibold ${STATUS_PILL[status]}`}>{status}</span>
+                          <span className={`text-[13px] font-medium ${STATUS_PILL[status]}`}>{status}</span>
                         </td>
                         <td className="whitespace-nowrap py-3 pr-3 text-[13px] text-ink-secondary"><span className="flex items-center gap-2"><D className="h-4 w-4 text-ink-tertiary" />{t.dept}</span></td>
                         <td className="whitespace-nowrap py-3 pr-5 text-[13px]">

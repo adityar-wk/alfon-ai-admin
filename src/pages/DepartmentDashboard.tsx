@@ -84,7 +84,7 @@ export default function DepartmentDashboard() {
                         Room {t.room}{t.owner && <> · {t.owner}</>}
                       </div>
                     </div>
-                    <span className={`shrink-0 rounded-full px-2 py-0.5 text-[12px] font-semibold ${STATUS_PILL[taskStatus(t)]}`}>{taskStatus(t)}</span>
+                    <span className={`w-24 shrink-0 text-[13px] font-medium ${STATUS_PILL[taskStatus(t)]}`}>{taskStatus(t)}</span>
                     <span className={`flex w-20 shrink-0 items-center gap-1 text-[12px] ${t.sla.kind === "overdue" ? "font-medium text-red-600" : t.sla.kind === "due" ? "font-medium text-brand" : "text-ink-secondary"}`}>
                       <Clock className="h-3.5 w-3.5" /> {slaShort(t.sla.text)}
                     </span>

@@ -11,7 +11,7 @@ export type TaskStatusLabel =
   | "SLA at risk"
   | "In Progress"
   | "Assigned"
-  | "Unassigned"
+  | "Pending"
   | "Completed"
   | "Unable to Complete"
   | "Void";
@@ -22,22 +22,23 @@ export function taskStatus(t: Pick<Task, "status" | "owner" | "sla">): TaskStatu
   if (t.sla.kind === "overdue") return "SLA breached";
   if (t.sla.kind === "due") return "SLA at risk";
   if (t.status === "In Progress") return "In Progress";
-  return t.owner ? "Assigned" : "Unassigned";
+  return t.owner ? "Assigned" : "Pending";
 }
 
+/** text colour only, no chip */
 export const STATUS_PILL: Record<TaskStatusLabel, string> = {
-  Escalated: "bg-red-100 text-red-700",
-  "SLA breached": "bg-orange-100 text-orange-700",
-  "SLA at risk": "bg-amber-100 text-amber-700",
-  "In Progress": "bg-sky-100 text-sky-700",
-  Assigned: "bg-cyan-100 text-cyan-700",
-  Unassigned: "bg-slate-100 text-slate-600",
-  Completed: "bg-emerald-100 text-emerald-700",
-  "Unable to Complete": "bg-gray-100 text-gray-600",
-  Void: "bg-gray-100 text-gray-500",
+  Escalated: "text-red-600",
+  "SLA breached": "text-orange-600",
+  "SLA at risk": "text-amber-600",
+  "In Progress": "text-sky-600",
+  Assigned: "text-cyan-600",
+  Pending: "text-slate-500",
+  Completed: "text-emerald-600",
+  "Unable to Complete": "text-gray-500",
+  Void: "text-gray-400",
 };
 
-export const COMPLAINT_PILL = "bg-violet-100 text-violet-700";
+export const COMPLAINT_PILL = "bg-violet-50 text-violet-600";
 
 /** "Overdue 12 min" reads "-12 min"; "Due in 4 min" and "22 min left" read "4 min" and "22 min" */
 export const slaShort = (text: string) => text.replace(/^Overdue\s+/, "-").replace(/^Due in\s+/, "").replace(/\s+left$/, "");

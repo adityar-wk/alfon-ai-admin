@@ -118,7 +118,7 @@ function ComplaintPill({ className = "" }: { className?: string }) {
 
 function StatusLabel({ t }: { t: Pick<Task, "status" | "owner" | "sla"> }) {
   const label = taskStatus(t);
-  return <span className={`inline-flex items-center whitespace-nowrap rounded-full px-2 py-0.5 text-[12px] font-semibold ${STATUS_PILL[label]}`}>{label}</span>;
+  return <span className={`whitespace-nowrap text-[13px] font-medium ${STATUS_PILL[label]}`}>{label}</span>;
 }
 
 function SlaText({ sla }: { sla: Task["sla"] }) {
@@ -813,7 +813,7 @@ function ManagerTaskWindow({
             </button>
           </div>
           <div className="mt-3 flex flex-wrap items-center gap-2">
-            <span className={`rounded-full px-2.5 py-1 text-[12px] font-semibold ${STATUS_PILL[taskStatus(task)]}`}>{taskStatus(task)}</span>
+            <span className={`text-[13px] font-medium ${STATUS_PILL[taskStatus(task)]}`}>{taskStatus(task)}</span>
             {task.tag === "Complaint" && <span className={`rounded-full px-2.5 py-1 text-[12px] font-semibold ${COMPLAINT_PILL}`}>Complaint</span>}
           </div>
         </div>
