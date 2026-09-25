@@ -122,22 +122,18 @@ const NOTIFS = [
 
 const DEFAULT_SLA = 40;
 
-/** Line Staff task card: the shared TaskCard with its tags and an Accept action */
+/** Line Staff task card: the shared TaskCard, with an Accept action when a task is waiting */
 function LsCard({ t, onOpen, onAccept }: { t: Task; onOpen?: () => void; onAccept?: () => void }) {
   const done = t.status === "completed";
   return (
     <TaskCard
       room={t.room}
       note={t.title}
+      by={!done && t.assignedBy ? t.assignedBy.split(" · ")[1] : undefined}
       left={done ? undefined : t.left}
       total={t.total}
       done={done}
-      tag={
-        <>
-          {t.assignedBy && !done && <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-semibold text-blue-600">Assigned by {t.assignedBy.split(" · ")[1]}</span>}
-          {t.escalatedTo && !done && <span className="inline-flex items-center gap-1 rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-semibold text-red-600"><ArrowUpRight className="h-3 w-3" /> Escalated to {t.escalatedTo}</span>}
-        </>
-      }
+      flags={!done && t.escalatedTo ? [{ label: `Escalated to ${t.escalatedTo}`, tone: "text-red-600" }] : []}
       meta={done && t.time ? <span className="font-medium text-emerald-600">✓ {t.time}</span> : undefined}
       onClick={onOpen}
       footer={onAccept ? <Button className="w-full" onClick={onAccept}>Accept</Button> : undefined}

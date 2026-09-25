@@ -23,15 +23,15 @@ export const STATUS_LABEL: Record<MTask["status"], string> = {
   unable: "Unable to complete",
 };
 export const STATUS_TONE: Record<MTask["status"], string> = {
-  unassigned: "bg-red-50 text-red-600",
-  assigned: "bg-amber-50 text-amber-700",
-  progress: "bg-blue-50 text-blue-600",
-  completed: "bg-emerald-50 text-emerald-600",
-  unable: "bg-slate-100 text-slate-600",
+  unassigned: "text-red-600",
+  assigned: "text-amber-600",
+  progress: "text-sky-600",
+  completed: "text-emerald-600",
+  unable: "text-slate-500",
 };
 
 export function StatusTag({ s }: { s: MTask["status"] }) {
-  return <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${STATUS_TONE[s]}`}>{STATUS_LABEL[s]}</span>;
+  return <span className={`text-[12px] font-medium ${STATUS_TONE[s]}`}>{STATUS_LABEL[s]}</span>;
 }
 
 /* ---------- staff picker ---------- */

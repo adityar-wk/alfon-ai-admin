@@ -1,7 +1,7 @@
 import { Button } from "../components/ui";
 import { useClock, secsFromMinutes, formatClock } from "../data/attention";
 import { useEffect, useState, type ReactNode } from "react";
-import { AlertCircle, DoorClosed, Signal, Wifi, BatteryFull, ChevronLeft, ChevronRight, ChevronDown, X, Clock } from "lucide-react";
+import { AlertCircle, DoorClosed, User, Signal, Wifi, BatteryFull, ChevronLeft, ChevronRight, ChevronDown, X, Clock } from "lucide-react";
 
 /* ============================================================
    Shared mobile kit — used by the Line Staff, Supervisor and
@@ -171,53 +171,80 @@ export function PriorityPill({ p }: { p: Priority }) {
 
 /* ---------- cards ---------- */
 
+/** borderless status / label text shown beside the room */
+export type CardFlag = { label: string; tone: string };
+
+/**
+ * Task card: task name on top; room, status and flags beneath it; assignee bottom left,
+ * live SLA clock bottom right.
+ */
 export function TaskCard({
   room,
   note,
   staff,
-  priority,
+  by,
   left,
   total,
-  meta,
-  tag,
+  status,
+  flags = [],
   footer,
+  meta,
   onClick,
   done,
 }: {
   room: string;
   note: string;
-  /** who the task is assigned to, shown under the task name */
+  /** assignee: a name, or null for "Unassigned"; leave undefined to hide the slot */
   staff?: string | null;
-  priority?: Priority;
+  /** "Assigned by …" shown in the assignee slot when there is no assignee (Line Staff) */
+  by?: string;
   left?: number;
   total?: number;
-  meta?: ReactNode;
-  tag?: ReactNode;
-  /** actions inside the card, under a hairline */
+  status?: CardFlag;
+  flags?: CardFlag[];
   footer?: ReactNode;
+  meta?: ReactNode;
   onClick?: () => void;
   done?: boolean;
 }) {
+  const initials = (n: string) => n.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
   return (
-    <div className={`relative rounded-2xl bg-white p-4 ${CARD_SHADOW} ${done ? "opacity-55 grayscale-[0.5]" : ""}`}>
-      <div onClick={onClick} role={onClick ? "button" : undefined} className={`flex items-start gap-3 ${onClick ? "cursor-pointer active:scale-[0.99]" : ""}`}>
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-1 text-[12px] font-medium text-ink-secondary">
-            {/^Room\s/i.test(room) ? <><DoorClosed className="h-3.5 w-3.5" />{room.replace(/^Room\s+/i, "")}</> : room}
-          </div>
-          <div className="mt-1 text-[15px] font-semibold leading-snug text-ink">{note}</div>
-          {staff !== undefined && <div className="mt-1 text-[12px] text-ink-secondary">{staff ?? "Unassigned"}</div>}
-          {(priority || tag) && (
-            <div className="mt-2 flex flex-wrap items-center gap-2">
-              {priority && <PriorityPill p={priority} />}
-              {tag}
-            </div>
-          )}
-          {meta && <div className="mt-2 text-[12px] text-ink-tertiary">{meta}</div>}
+    <div className={`relative rounded-2xl bg-white p-5 ${CARD_SHADOW} ${done ? "opacity-55 grayscale-[0.5]" : ""}`}>
+      <div onClick={onClick} role={onClick ? "button" : undefined} className={onClick ? "cursor-pointer active:scale-[0.99]" : ""}>
+        <div className="font-display text-[16px] font-semibold leading-snug text-ink">{note}</div>
+        <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[13px]">
+          <span className="flex items-center gap-1 font-medium text-ink-secondary">
+            {/^Room\s/i.test(room) ? <><DoorClosed className="h-[15px] w-[15px]" />{room.replace(/^Room\s+/i, "")}</> : room}
+          </span>
+          {status && <span className={`text-[12px] font-medium ${status.tone}`}>{status.label}</span>}
+          {flags.map((f) => <span key={f.label} className={`text-[12px] font-medium ${f.tone}`}>{f.label}</span>)}
         </div>
-        {!done && left !== undefined && total !== undefined && <SlaClockChip left={left} total={total} />}
+        {meta && <div className="mt-2 text-[12px] text-ink-tertiary">{meta}</div>}
+        <div className="mt-5 flex min-h-[26px] items-center justify-between gap-3">
+          {staff !== undefined ? (
+            staff ? (
+              <span className="flex min-w-0 items-center gap-2 text-[13px] text-ink">
+                <span className="flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full bg-brand-tint font-display text-[9px] font-semibold text-brand">{initials(staff)}</span>
+                <span className="truncate">{staff.split(" ")[0]}</span>
+              </span>
+            ) : (
+              <span className="flex items-center gap-2 text-[13px] text-ink-tertiary">
+                <span className="flex h-[26px] w-[26px] items-center justify-center rounded-full border border-dashed border-gray-300"><User className="h-3.5 w-3.5" /></span>
+                Unassigned
+              </span>
+            )
+          ) : by ? (
+            <span className="flex min-w-0 items-center gap-2 text-[13px] text-ink">
+              <span className="flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full bg-brand-tint font-display text-[9px] font-semibold text-brand">{initials(by)}</span>
+              <span className="truncate">{by}</span>
+            </span>
+          ) : (
+            <span />
+          )}
+          {!done && left !== undefined && total !== undefined && <SlaClockChip left={left} total={total} />}
+        </div>
       </div>
-      {footer && <div className="mt-3.5 border-t border-line pt-3.5">{footer}</div>}
+      {footer && <div className="mt-4 border-t border-line pt-4">{footer}</div>}
     </div>
   );
 }

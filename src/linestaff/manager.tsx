@@ -19,7 +19,7 @@ import {
   ChatRow,
   sampleUnread,
 } from "./mobile";
-import { StaffPicker, ReasonSheet, StatusTag, activeCount, atRiskCount, overdueCount, isOpen, isAtRisk, isOverdue } from "./parts";
+import { StaffPicker, ReasonSheet, StatusTag, STATUS_LABEL, STATUS_TONE, activeCount, atRiskCount, overdueCount, isOpen, isAtRisk, isOverdue } from "./parts";
 
 type Screen = {
   name: "home" | "tasks" | "team" | "staffDetail" | "housekeeping" | "guests" | "guestDetail" | "guestProfile" | "detail" | "notifications" | "create" | "menu" | "analytics" | "reports" | "guestsRoster" | "notifSettings";
@@ -208,24 +208,25 @@ export function ManagerPrototype() {
   const chipCounts = Object.fromEntries(ESC_FILTERS.map((f) => [f, tasks.filter(escTests[f]).length])) as Record<EscFilter, number>;
 
   const open = (id: string) => nav.push({ name: "detail", id });
-  const tag = (t: MTask) => (
-    <>
-      {t.escType && <span className="rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-semibold text-red-600">{t.escType}</span>}
-    </>
-  );
-  const card = (t: MTask) => (
-    <TaskCard
-      key={t.id}
-      room={t.room}
-      note={t.title}
-      staff={t.owner}
-      left={t.status === "completed" ? undefined : t.slaLeft}
-      total={t.slaTotal}
-      done={t.status === "completed"}
-      tag={tag(t)}
-      onClick={() => open(t.id)}
-    />
-  );
+  // escalated and complaint read as plain coloured text beside the room; other statuses follow the shared labels
+  const cardProps = (t: MTask) => {
+    const escalated = !!t.escType || !!t.escalated;
+    const flags = [
+      ...(escalated ? [{ label: "Escalated", tone: "text-red-600" }] : []),
+      ...(t.complaint ? [{ label: "Complaint", tone: "text-violet-600" }] : []),
+    ];
+    return {
+      room: t.room,
+      note: t.title,
+      staff: t.owner,
+      left: t.status === "completed" ? undefined : t.slaLeft,
+      total: t.slaTotal,
+      done: t.status === "completed",
+      status: escalated ? undefined : { label: STATUS_LABEL[t.status], tone: STATUS_TONE[t.status] },
+      flags,
+    };
+  };
+  const card = (t: MTask) => <TaskCard key={t.id} {...cardProps(t)} onClick={() => open(t.id)} />;
 
   const stuckAt = (t: MTask) =>
     t.status === "unassigned" ? "Not picked up — no owner" : t.status === "assigned" ? `Awaiting acceptance by ${t.owner}` : t.status === "unable" ? `Blocked — ${t.resolution ?? "unable to complete"}` : `In progress with ${t.owner}`;
@@ -250,19 +251,7 @@ export function ManagerPrototype() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tasks, taskFilter, taskQuery]);
   const taskChipCounts = Object.fromEntries(TASK_FILTERS.map((f) => [f, tasks.filter(taskFilterFn[f]).length])) as Record<TaskFilter, number>;
-  const genericCard = (t: MTask) => (
-    <TaskCard
-      key={t.id}
-      room={t.room}
-      note={t.title}
-      staff={t.owner}
-      left={t.status === "completed" ? undefined : t.slaLeft}
-      total={t.slaTotal}
-      done={t.status === "completed"}
-      tag={<StatusTag s={t.status} />}
-      onClick={() => open(t.id)}
-    />
-  );
+  const genericCard = (t: MTask) => <TaskCard key={t.id} {...cardProps(t)} onClick={() => open(t.id)} />;
 
   /* ---------- guests derived from the department's tasks ---------- */
   const guestMap = useMemo(() => {

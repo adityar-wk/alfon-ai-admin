@@ -46,7 +46,7 @@ const INVENTORY: Item[] = [
   { id: "m-header", name: "Mobile header", group: "Mobile app", note: "Back arrow, 20px semibold title, plain icon buttons" },
   { id: "m-chat", name: "Chat row", group: "Mobile app", note: "Name, room, message; time, unread dot, complaint marker" },
   { id: "m-chips", name: "Chips & segmented", group: "Mobile app", note: "Filter chips under the search bar" },
-  { id: "m-cards", name: "Task card, stat card, SLA clock", group: "Mobile app", note: "Cards with the soft shadow" },
+  { id: "m-cards", name: "Task card, stat card, SLA clock", group: "Mobile app", note: "Name, room and status, assignee left, live SLA clock right" },
   { id: "m-list", name: "Menu line item", group: "Mobile app", note: "Flat row with hairline divider (More screen)" },
   { id: "m-nav", name: "Bottom navigation", group: "Mobile app", note: "Icon tabs; active tab is a pill with its label" },
 ];
@@ -410,7 +410,8 @@ export default function ComponentDesign() {
           <Section id="m-cards" title="Task card, stat card, SLA clock" note="White cards with the soft phone shadow; the live SLA clock sits at the right of each task card.">
             <Phone grey>
               <div className="mb-3 grid grid-cols-3 gap-3"><StatCard label="Open" value={9} /><StatCard label="At risk" value={2} tone="text-amber-600" /><StatCard label="Overdue" value={2} tone="text-red-600" /></div>
-              <TaskCard room="Room 1108" note="Dirty bathroom complaint" priority="High" left={24} total={45} />
+              <TaskCard room="Room 1104" note="Stained bed sheets" staff="Maria Santos" left={-14} total={45} flags={[{ label: "Escalated", tone: "text-red-600" }, { label: "Complaint", tone: "text-violet-600" }]} />
+              <div className="mt-3"><TaskCard room="Room 2104" note="Extra towels" staff={null} status={{ label: "Unassigned", tone: "text-red-600" }} left={9} total={45} /></div>
               <div className="mt-3 flex items-center gap-5"><SlaClockChip left={40} total={45} /><SlaClockChip left={12} total={45} /><SlaClockChip left={-8} total={45} /></div>
             </Phone>
           </Section>
