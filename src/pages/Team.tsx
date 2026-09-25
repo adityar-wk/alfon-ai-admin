@@ -242,7 +242,7 @@ export default function Team() {
             ))}
           </div>
 
-          <Card className="mt-5">
+          <Card table className="mt-5">
             <div className="relative flex items-center justify-between gap-3 border-b border-line px-4 py-3">
               <div className="relative w-full max-w-sm">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-tertiary" />
@@ -319,17 +319,17 @@ export default function Team() {
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[820px] text-left">
+              <table className="w-full table-fixed min-w-[820px] text-left">
                 <thead>
-                  <tr className="border-b border-line text-[11px] tracking-wide text-ink-secondary">
+                  <tr className="bg-[#F4F4F5] text-[12px] uppercase tracking-wide text-[#6B7280]">
                     
-                    <th className="py-3 pl-4 font-medium">Staff Member</th>
-                    <th className="py-3 font-medium">Role</th>
-                    <th className="py-3 font-medium">Department</th>
-                    {manager && <th className="py-3 font-medium">Status</th>}
-                    <th className="py-3 font-medium">Current Task</th>
-                    {manager && <th className="py-3 font-medium">Open tasks</th>}
-                    <th className="py-3 pr-4 font-medium">Actions</th>
+                    <th className="py-3.5 pl-6 font-medium">Staff Member</th>
+                    <th className="py-3.5 pl-6 font-medium">Role</th>
+                    <th className="py-3.5 pl-6 font-medium">Department</th>
+                    {manager && <th className="py-3.5 pl-6 font-medium">Status</th>}
+                    <th className="py-3.5 pl-6 font-medium">Current Task</th>
+                    {manager && <th className="py-3.5 pl-6 font-medium">Open tasks</th>}
+                    <th className="py-3.5 pl-6 font-medium">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -337,12 +337,12 @@ export default function Team() {
                     <tr
                       key={s.id}
                       onClick={() => setSelected(s)}
-                      className={`cursor-pointer border-b border-line/70 ${
+                      className={`cursor-pointer border-b border-line/50 ${
                         selected?.id === s.id ? "bg-brand-tint/40" : "hover:bg-subtle/60"
                       }`}
                     >
                       
-                      <td className="py-3 pl-4 pr-3">
+                      <td className="py-3.5 pl-6 pr-3">
                         <span className="flex items-center gap-3">
                           <Avatar s={s} />
                           <span className="leading-tight">
@@ -351,27 +351,27 @@ export default function Team() {
                           </span>
                         </span>
                       </td>
-                      <td className="py-3 pr-3 text-[13px] text-ink-secondary">{s.role}</td>
-                      <td className="py-3 pr-3 text-[13px] text-ink-secondary">{s.dept}</td>
+                      <td className="text-[14px] text-ink-secondary py-3.5 pl-6 pr-3">{s.role}</td>
+                      <td className="text-[14px] text-ink-secondary py-3.5 pl-6 pr-3">{s.dept}</td>
                       {manager && (
-                        <td className="py-3 pr-3">
+                        <td className="py-3.5 pl-6 pr-3">
                           <StatusPill s={s.status} />
                         </td>
                       )}
-                      <td className="py-3 pr-3 text-[13px] text-ink-secondary">{s.task ?? "—"}</td>
+                      <td className="text-[14px] text-ink-secondary py-3.5 pl-6 pr-3">{s.task ?? "—"}</td>
                       {manager && (
-                        <td className="whitespace-nowrap py-3 pr-3 leading-tight">
+                        <td className="whitespace-nowrap leading-tight py-3.5 pl-6 pr-3">
                           <WorkloadCell s={s} />
                         </td>
                       )}
-                      <td className="py-3 pr-4">
+                      <td className="py-3.5 pl-6 pr-3">
                         <MoreHorizontal className="h-4 w-4 text-ink-tertiary" />
                       </td>
                     </tr>
                   ))}
                   {!rows.length && (
                     <tr>
-                      <td colSpan={manager ? 7 : 5} className="py-10 text-center text-[13px] text-ink-tertiary">
+                      <td colSpan={manager ? 7 : 5} className="text-center text-[14px] text-ink-tertiary py-3.5 pl-6 pr-3">
                         No staff match your filters.
                       </td>
                     </tr>

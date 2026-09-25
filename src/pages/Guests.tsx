@@ -163,17 +163,17 @@ export default function Guests() {
         </div>
 
         {/* table */}
-        <Card className="mt-4 overflow-hidden">
+        <Card table className="mt-5 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[820px] table-fixed whitespace-nowrap text-left">
               <colgroup><col className="w-[26%]" /><col className="w-[24%]" /><col className="w-[24%]" /><col className="w-[16%]" /><col className="w-[10%]" /></colgroup>
               <thead>
-                <tr className="border-b border-line text-[11px] uppercase tracking-wide text-ink-secondary">
-                  <th className="py-3 pl-5 font-medium">Guest</th>
-                  <th className="py-3 font-medium">Room / Type</th>
-                  <th className="py-3 font-medium">Stay Dates</th>
-                  <th className="py-3 font-medium">Nationality</th>
-                  <th className="py-3 pr-5 font-medium">Status</th>
+                <tr className="bg-[#F4F4F5] text-[12px] uppercase tracking-wide text-[#6B7280]">
+                  <th className="py-3.5 pl-6 font-medium">Guest</th>
+                  <th className="py-3.5 pl-6 font-medium">Room / Type</th>
+                  <th className="py-3.5 pl-6 font-medium">Stay Dates</th>
+                  <th className="py-3.5 pl-6 font-medium">Nationality</th>
+                  <th className="py-3.5 pl-6 font-medium">Status</th>
                 </tr>
               </thead>
               <tbody>
@@ -181,9 +181,9 @@ export default function Guests() {
                   <tr
                     key={g.id}
                     onClick={() => navigate(`/guests/${g.id}`)}
-                    className="cursor-pointer border-b border-line/70 hover:bg-subtle/50"
+                    className="cursor-pointer border-b border-line/50 hover:bg-subtle/50"
                   >
-                    <td className="py-3.5 pl-5 pr-3">
+                    <td className="py-3.5 pl-6 pr-3">
                       <div className="flex items-center gap-3">
                         <span className={`flex h-9 w-9 items-center justify-center rounded-full text-[11px] font-semibold ${g.tint}`}>
                           {g.initials}
@@ -191,25 +191,25 @@ export default function Guests() {
                         <span className="text-[13px] font-semibold text-ink">{g.name}</span>
                       </div>
                     </td>
-                    <td className="py-3.5 pr-3 text-[13px] text-ink">
+                    <td className="text-[14px] text-ink py-3.5 pl-6 pr-3">
                       <span className="font-medium">{g.room}</span> <span className="text-ink-secondary">· {g.roomType}</span>
                     </td>
-                    <td className="py-3.5 pr-3 text-[13px] text-ink">
+                    <td className="text-[14px] text-ink py-3.5 pl-6 pr-3">
                       {g.from} – {g.to}
                     </td>
-                    <td className="py-3.5 pr-3">
+                    <td className="py-3.5 pl-6 pr-3">
                       <span className="flex items-center gap-2 text-[13px] text-ink">
                         <Flag country={g.country} /> {g.country}
                       </span>
                     </td>
-                    <td className="py-3.5 pr-5">
+                    <td className="py-3.5 pl-6 pr-3">
                       <span className={`text-[13px] font-medium ${g.status === "In House" ? "text-emerald-600" : g.status === "Arriving" ? "text-blue-600" : "text-slate-500"}`}>{g.status}</span>
                     </td>
                   </tr>
                 ))}
                 {!rows.length && (
                   <tr>
-                    <td colSpan={5} className="py-12 text-center text-[13px] text-ink-tertiary">
+                    <td colSpan={5} className="text-center text-[14px] text-ink-tertiary py-3.5 pl-6 pr-3">
                       No guests match your search or filters.
                     </td>
                   </tr>

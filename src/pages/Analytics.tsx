@@ -358,30 +358,30 @@ export default function Analytics() {
           <h3 className="text-[15px] font-semibold text-ink">Tasks by Department</h3>
           <span className="text-[12px] text-ink-tertiary">Use View more for a department's task breakdown</span>
         </div>
-        <Card className="overflow-hidden">
+        <Card table className="overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[720px] text-left">
+            <table className="w-full table-fixed min-w-[720px] text-left">
               <thead>
-                <tr className="border-b border-line bg-subtle/50 text-[11px] uppercase tracking-wide text-ink-secondary">
-                  <th className="py-3 pl-5 font-medium">Department</th>
+                <tr className="bg-[#F4F4F5] text-[12px] uppercase tracking-wide text-[#6B7280]">
+                  <th className="py-3.5 pl-6 font-medium">Department</th>
                   <SortTh label="Tasks" k="n" cur={sortBy} set={setSortBy} />
                   <SortTh label="Completed" k="done" cur={sortBy} set={setSortBy} />
                   <SortTh label="Overdue" k="overdue" cur={sortBy} set={setSortBy} />
-                  <th className="py-3 font-medium">Avg response</th>
+                  <th className="py-3.5 pl-6 font-medium">Avg response</th>
                   <SortTh label="vs last period" k="delta" cur={sortBy} set={setSortBy} />
-                  <th className="w-24" />
+                  <th className="w-24 py-3.5 pr-6" />
                 </tr>
               </thead>
               <tbody>
                 {rows.map((d) => (
-                  <tr key={d.name} className="border-b border-line/70 last:border-0">
-                    <td className="py-3 pl-5"><span className={`inline-flex rounded-md px-2.5 py-1 text-[12px] font-semibold ${TAGS[deptIdx(d.name)].pill}`}>{d.name}</span></td>
-                    <td className="py-3 text-[14px] font-bold text-ink">{d.n.toLocaleString()}</td>
-                    <td className="py-3 text-[13px] text-ink-secondary">{d.m.done}%</td>
+                  <tr key={d.name} className="border-b border-line/50 last:border-0">
+                    <td className="py-3.5 pl-6 pr-3"><span className={`inline-flex rounded-md px-2.5 py-1 text-[12px] font-semibold ${TAGS[deptIdx(d.name)].pill}`}>{d.name}</span></td>
+                    <td className="text-[14px] font-bold text-ink py-3.5 pl-6 pr-3">{d.n.toLocaleString()}</td>
+                    <td className="text-[14px] text-ink-secondary py-3.5 pl-6 pr-3">{d.m.done}%</td>
                     <td className={`py-3 text-[13px] ${d.m.overdue / d.tasks > 0.04 ? "font-semibold text-rose-500" : "text-ink-secondary"}`}>{scale(d.m.overdue)}</td>
-                    <td className="py-3 text-[13px] text-ink-secondary">{d.m.resp}</td>
-                    <td className="py-3 text-[13px]"><Delta v={d.m.delta} /></td>
-                    <td className="py-3 pr-5 text-right">
+                    <td className="text-[14px] text-ink-secondary py-3.5 pl-6 pr-3">{d.m.resp}</td>
+                    <td className="text-[14px] py-3.5 pl-6 pr-3"><Delta v={d.m.delta} /></td>
+                    <td className="text-right py-3.5 pr-6">
                       <button onClick={() => setBreakdown({ title: `${d.name} — Task Breakdown`, items: d.items, total: d.n })} className="whitespace-nowrap text-[12px] font-semibold text-brand hover:underline">
                         View more
                       </button>

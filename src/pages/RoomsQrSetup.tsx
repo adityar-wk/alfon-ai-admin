@@ -111,8 +111,8 @@ export default function RoomsQrSetup({ onboarding = false }: { onboarding?: bool
             </Button>
           </div>
 
-          <Card className="mt-5 p-6">
-            <div className="relative flex flex-wrap items-center gap-3">
+          <Card table className="mt-5 overflow-hidden">
+            <div className="relative flex flex-wrap items-center gap-3 p-5">
               <div className="relative w-full max-w-xs">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-tertiary" />
                 <input
@@ -171,24 +171,24 @@ export default function RoomsQrSetup({ onboarding = false }: { onboarding?: bool
               <span className="ml-auto text-[12px] text-ink-tertiary">{rows.length} of 152 rooms</span>
             </div>
 
-            <table className="mt-5 w-full table-fixed text-left">
+            <table className="w-full table-fixed text-left">
               <colgroup><col /><col /><col /><col /><col /><col className="w-16" /></colgroup>
               <thead>
-                <tr className="border-b border-line text-[11px] uppercase tracking-wide text-ink-secondary">
-                  <th className="pb-3 font-medium">Room Number</th>
-                  <th className="pb-3 font-medium">Floor</th>
-                  <th className="pb-3 font-medium">Room Type</th>
-                  <th className="pb-3 font-medium">Status</th>
-                  <th className="pb-3 font-medium">QR Status</th>
-                  <th className="pb-3" aria-label="Actions" />
+                <tr className="bg-[#F4F4F5] text-[12px] uppercase tracking-wide text-[#6B7280]">
+                  <th className="py-3.5 pl-6 font-medium">Room Number</th>
+                  <th className="py-3.5 pl-6 font-medium">Floor</th>
+                  <th className="py-3.5 pl-6 font-medium">Room Type</th>
+                  <th className="py-3.5 pl-6 font-medium">Status</th>
+                  <th className="py-3.5 pl-6 font-medium">QR Status</th>
+                  <th className="py-3.5 pr-6" aria-label="Actions" />
                 </tr>
               </thead>
               <tbody>
                 {rows.map((r) => (
-                  <tr key={r.no} onClick={() => setDrawer(r)} className="cursor-pointer border-b border-line/70 hover:bg-subtle/50">
-                    <td className="py-4 text-[13px] font-medium text-ink">{r.no}</td>
-                    <td className="py-4 text-[13px] text-ink-secondary">{r.floor}</td>
-                    <td className="py-4">
+                  <tr key={r.no} onClick={() => setDrawer(r)} className="cursor-pointer border-b border-line/50 hover:bg-subtle/50">
+                    <td className="text-[14px] font-medium text-ink py-3.5 pl-6 pr-3">{r.no}</td>
+                    <td className="text-[14px] text-ink-secondary py-3.5 pl-6 pr-3">{r.floor}</td>
+                    <td className="py-3.5 pl-6 pr-3">
                       <span className="flex items-center gap-2 text-[13px] text-ink">
                         {r.type === "Suite" ? (
                           <Crown className="h-4 w-4 text-amber-500" />
@@ -198,11 +198,11 @@ export default function RoomsQrSetup({ onboarding = false }: { onboarding?: bool
                         {r.type}
                       </span>
                     </td>
-                    <td className="py-4">
+                    <td className="py-3.5 pl-6 pr-3">
                       <Badge tone={r.status === "Active" ? "success" : "neutral"}>{r.status}</Badge>
                     </td>
-                    <td className="py-4"><QrCell qr={r.qr} /></td>
-                    <td className="relative py-4 text-right" onClick={(e) => e.stopPropagation()}>
+                    <td className="py-3.5 pl-6 pr-3"><QrCell qr={r.qr} /></td>
+                    <td className="relative text-right py-3.5 pr-6" onClick={(e) => e.stopPropagation()}>
                       <button
                         onClick={() => setMenuFor((m) => (m === r.no ? null : r.no))}
                         aria-label={`Actions for room ${r.no}`}
@@ -220,12 +220,12 @@ export default function RoomsQrSetup({ onboarding = false }: { onboarding?: bool
                   </tr>
                 ))}
                 {!rows.length && (
-                  <tr><td colSpan={6} className="py-10 text-center text-[13px] text-ink-tertiary">No rooms match these filters.</td></tr>
+                  <tr><td colSpan={6} className="text-center text-[14px] text-ink-tertiary py-3.5 pl-6 pr-3">No rooms match these filters.</td></tr>
                 )}
               </tbody>
             </table>
 
-            <div className="mt-3 flex items-center justify-between text-[12px] text-ink-tertiary">
+            <div className="flex items-center justify-between px-6 py-3 text-[12px] text-ink-tertiary">
               <span>Showing {rows.length} of 152 rooms</span>
               <span className="flex items-center gap-1">
                 <button className="rounded border border-line px-2 py-0.5">‹</button>

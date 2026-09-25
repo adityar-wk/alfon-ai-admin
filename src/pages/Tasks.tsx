@@ -386,28 +386,28 @@ export default function Tasks() {
             })}
           </div>
         ) : (
-        <Card className="overflow-hidden">
+        <Card table className="overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[900px] table-fixed text-left">
               <colgroup>
                 {Array.from({ length: manager ? 5 : 6 }, (_, i) => <col key={i} />)}
               </colgroup>
               <thead>
-                <tr className="border-b border-line bg-subtle/50 text-[11px] uppercase tracking-wide text-ink-secondary">
-                  {!manager && <th className="py-4 pl-6 font-medium">Task ID</th>}
-                  <th className={`py-4 font-medium ${manager ? "pl-6" : ""}`}>Task</th>
-                  {!manager && <th className="py-4 font-medium">Department</th>}
-                  <th className="py-4 font-medium">Guest / Room</th>
-                  <th className="py-4 font-medium">Owner</th>
-                  {manager && <th className="py-4 font-medium">Priority</th>}
-                  <th className="py-4 pr-5 font-medium">Status</th>
+                <tr className="bg-[#F4F4F5] text-[12px] uppercase tracking-wide text-[#6B7280]">
+                  {!manager && <th className="py-3.5 pl-6 font-medium">Task ID</th>}
+                  <th  className="font-medium py-3.5 pl-6 font-medium">Task</th>
+                  {!manager && <th className="py-3.5 pl-6 font-medium">Department</th>}
+                  <th className="py-3.5 pl-6 font-medium">Guest / Room</th>
+                  <th className="py-3.5 pl-6 font-medium">Owner</th>
+                  {manager && <th className="py-3.5 pl-6 font-medium">Priority</th>}
+                  <th className="py-3.5 pl-6 font-medium">Status</th>
                 </tr>
               </thead>
               <tbody>
                 {rows.map((t) => (
-                  <tr key={t.id} onClick={() => setSelectedId(t.id)} className={`cursor-pointer border-b border-line/70 last:border-0 hover:bg-subtle/60 ${t.status === "Completed" ? "opacity-50" : ""}`}>
-                    {!manager && <td className="py-5 pl-6 pr-3 font-mono text-[12px] text-ink-tertiary">#{String(t.id).padStart(3, "0")}</td>}
-                    <td className={`py-5 pr-3 ${manager ? "pl-6" : ""}`}>
+                  <tr key={t.id} onClick={() => setSelectedId(t.id)} className={`cursor-pointer border-b border-line/50 last:border-0 hover:bg-subtle/60 ${t.status === "Completed" ? "opacity-50" : ""}`}>
+                    {!manager && <td className="font-mono text-[12px] text-ink-tertiary py-3.5 pl-6 pr-3">#{String(t.id).padStart(3, "0")}</td>}
+                    <td className="py-3.5 pl-6 pr-3">
                       <div className="flex items-center gap-3">
                         {manager && <DeptIcon dept={t.dept} />}
                         <div className="min-w-0">
@@ -416,16 +416,16 @@ export default function Tasks() {
                         </div>
                       </div>
                     </td>
-                    {!manager && <td className="py-5 pr-3 text-[13px] text-ink-secondary">{t.dept}</td>}
-                    <td className="py-5 pr-3">
+                    {!manager && <td className="text-[14px] text-ink-secondary py-3.5 pl-6 pr-3">{t.dept}</td>}
+                    <td className="py-3.5 pl-6 pr-3">
                       <div className="text-[13px] text-ink">{t.guest}</div>
                       <div className="text-[12px] text-ink-tertiary">Room {t.room}</div>
                     </td>
-                    <td className="py-5 pr-3 text-[13px]">
+                    <td className="text-[14px] py-3.5 pl-6 pr-3">
                       {t.owner ? <span className="text-ink-secondary">{t.owner}</span> : <span className="text-ink-tertiary">—</span>}
                     </td>
-                    {manager && <td className="py-5 pr-3"><PriorityLabel p={t.priority} /></td>}
-                    <td className="py-5 pr-5">
+                    {manager && <td className="py-3.5 pl-6 pr-3"><PriorityLabel p={t.priority} /></td>}
+                    <td className="py-3.5 pl-6 pr-3">
                       <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
                         <StatusLabel t={t} />
                         <SlaText sla={t.sla} />
@@ -435,7 +435,7 @@ export default function Tasks() {
                 ))}
                 {!rows.length && (
                   <tr>
-                    <td colSpan={manager ? 5 : 6} className="py-10 text-center text-[13px] text-ink-tertiary">No tasks in this view.</td>
+                    <td colSpan={manager ? 5 : 6} className="text-center text-[14px] text-ink-tertiary py-3.5 pl-6 pr-3">No tasks in this view.</td>
                   </tr>
                 )}
               </tbody>

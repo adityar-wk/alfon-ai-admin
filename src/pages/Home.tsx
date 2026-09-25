@@ -184,7 +184,7 @@ export default function Home() {
 
         {/* needs attention */}
         <div className="mt-5">
-          <Card className="overflow-hidden">
+          <Card table className="overflow-hidden">
             <div className="flex flex-wrap items-center gap-3 px-5 py-4">
               <ListChecks className="h-[18px] w-[18px] text-brand" />
               <h3 className="text-[16px] font-semibold text-ink">Needs Your Attention</h3>
@@ -205,12 +205,12 @@ export default function Home() {
                   <col className="w-[130px]" />
                 </colgroup>
                 <thead>
-                  <tr className="border-b border-line bg-subtle/50 text-[11px] uppercase tracking-wide text-ink-secondary">
-                    <th className="py-3 pl-5 font-medium">SLA</th>
-                    <th className="py-3 font-medium">Task</th>
-                    <th className="py-3 font-medium">Status</th>
-                    <th className="py-3 font-medium">Department</th>
-                    <th className="py-3 pr-5 font-medium">Assigned To</th>
+                  <tr className="bg-[#F4F4F5] text-[12px] uppercase tracking-wide text-[#6B7280]">
+                    <th className="py-3.5 pl-6 font-medium">SLA</th>
+                    <th className="py-3.5 pl-6 font-medium">Task</th>
+                    <th className="py-3.5 pl-6 font-medium">Status</th>
+                    <th className="py-3.5 pl-6 font-medium">Department</th>
+                    <th className="py-3.5 pl-6 font-medium">Assigned To</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -218,28 +218,28 @@ export default function Home() {
                     const D = DEPT_ICON[t.dept] ?? Building2;
                     const status = taskStatus(t);
                     return (
-                      <tr key={t.id} onClick={() => navigate(`/tasks?open=${t.id}`)} className="cursor-pointer border-b border-line/70 last:border-0 hover:bg-subtle/60">
-                        <td className="whitespace-nowrap py-3 pl-5 pr-3">
+                      <tr key={t.id} onClick={() => navigate(`/tasks?open=${t.id}`)} className="cursor-pointer border-b border-line/50 last:border-0 hover:bg-subtle/60">
+                        <td className="whitespace-nowrap py-3.5 pl-6 pr-3">
                           <SlaClock sla={t.sla} />
                         </td>
-                        <td className="py-3 pr-3">
+                        <td className="py-3.5 pl-6 pr-3">
                           <div className="flex items-center gap-2 text-[13px] font-semibold text-ink">
                             {t.title}
                             {t.tag === "Complaint" && <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${COMPLAINT_PILL}`}>Complaint</span>}
                           </div>
                           <div className="text-[12px] text-ink-tertiary">Room {t.room}</div>
                         </td>
-                        <td className="whitespace-nowrap py-3 pr-3">
+                        <td className="whitespace-nowrap py-3.5 pl-6 pr-3">
                           <span className={`text-[13px] font-medium ${STATUS_PILL[status]}`}>{status}</span>
                         </td>
-                        <td className="whitespace-nowrap py-3 pr-3 text-[13px] text-ink-secondary"><span className="flex items-center gap-2"><D className="h-4 w-4 text-ink-tertiary" />{t.dept}</span></td>
-                        <td className="whitespace-nowrap py-3 pr-5 text-[13px]">
+                        <td className="whitespace-nowrap text-[14px] text-ink-secondary py-3.5 pl-6 pr-3"><span className="flex items-center gap-2"><D className="h-4 w-4 text-ink-tertiary" />{t.dept}</span></td>
+                        <td className="whitespace-nowrap text-[14px] py-3.5 pl-6 pr-3">
                           {t.owner ? <span className="text-ink">{t.owner}</span> : <span className="font-medium text-brand">Unassigned</span>}
                         </td>
                       </tr>
                     );
                   })}
-                  {!pending.length && <tr><td colSpan={5} className="py-10 text-center text-[13px] text-ink-tertiary">No pending tasks match.</td></tr>}
+                  {!pending.length && <tr><td colSpan={5} className="text-center text-[14px] text-ink-tertiary py-3.5 pl-6 pr-3">No pending tasks match.</td></tr>}
                 </tbody>
               </table>
             </div>

@@ -334,18 +334,18 @@ export default function Reports() {
 
 function ReportTable({ r }: { r: Report }) {
   return (
-    <div className="overflow-hidden rounded-xl border border-line">
+    <div className="overflow-hidden rounded-[20px] border border-line/40 bg-white shadow-[0_1px_3px_rgba(16,24,40,0.05)]">
       <table className="w-full text-left text-[13px]">
         <thead>
-          <tr className="border-b border-line bg-subtle/50 text-[11px] uppercase tracking-wide text-ink-secondary">
-            {r.cols.map((c) => <th key={c} className="px-3 py-2.5 font-medium">{c}</th>)}
+          <tr className="bg-[#F4F4F5] text-[12px] uppercase tracking-wide text-[#6B7280]">
+            {r.cols.map((c) => <th key={c} className="py-3.5 pl-6 font-medium">{c}</th>)}
           </tr>
         </thead>
         <tbody>
           {r.rows.map((row, i) => (
-            <tr key={i} className="border-b border-line/70 last:border-0">
+            <tr key={i} className="border-b border-line/50 last:border-0">
               {row.map((c, j) => (
-                <td key={j} className={`px-3 py-2.5 ${j === 0 ? "font-medium text-ink" : "text-ink-secondary"}`}>
+                <td key={j} className=" py-3.5 pl-6 pr-3">
                   {r.cols[j] === "Status" ? (
                     <span className={`inline-flex rounded-full px-2.5 py-0.5 text-[12px] font-medium ${c === "Completed" ? "bg-emerald-50 text-emerald-700" : c === "In progress" ? "bg-blue-50 text-blue-700" : "bg-amber-50 text-amber-700"}`}>{c}</span>
                   ) : c}

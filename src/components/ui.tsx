@@ -13,13 +13,19 @@ export function Card({
   children,
   className = "",
   id,
+  table = false,
 }: {
   children: ReactNode;
   className?: string;
   id?: string;
+  /** the shared data-table surface: larger radius, hairline border, soft shadow */
+  table?: boolean;
 }) {
   return (
-    <div id={id} className={`rounded-card border border-line bg-white ${className}`}>
+    <div
+      id={id}
+      className={`${table ? "rounded-[20px] border border-line/40 shadow-[0_1px_3px_rgba(16,24,40,0.05)]" : "rounded-card border border-line"} bg-white ${className}`}
+    >
       {children}
     </div>
   );

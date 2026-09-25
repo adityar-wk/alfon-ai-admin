@@ -553,7 +553,7 @@ function UserManagement({
 
   return (
     <div className="mt-6">
-      <Card>
+      <Card table>
         <div className="relative flex items-center gap-3 border-b border-line px-4 py-3">
           <div className="relative w-full max-w-sm">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-tertiary" />
@@ -603,14 +603,14 @@ function UserManagement({
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[700px] text-left">
+          <table className="w-full table-fixed min-w-[700px] text-left">
             <thead>
-              <tr className="border-b border-line text-[11px] tracking-wide text-ink-secondary">
-                <th className="py-3 pl-4 font-medium">Staff Member</th>
-                <th className="py-3 font-medium">Role</th>
-                <th className="py-3 font-medium">Department</th>
-                <th className="py-3 font-medium">Current Task</th>
-                <th className="py-3 pr-4 font-medium">Task Trend</th>
+              <tr className="bg-[#F4F4F5] text-[12px] uppercase tracking-wide text-[#6B7280]">
+                <th className="py-3.5 pl-6 font-medium">Staff Member</th>
+                <th className="py-3.5 pl-6 font-medium">Role</th>
+                <th className="py-3.5 pl-6 font-medium">Department</th>
+                <th className="py-3.5 pl-6 font-medium">Current Task</th>
+                <th className="py-3.5 pl-6 font-medium">Task Trend</th>
               </tr>
             </thead>
             <tbody>
@@ -620,9 +620,9 @@ function UserManagement({
                   <tr
                     key={u.id}
                     onClick={() => setSelectedId(u.id)}
-                    className={`cursor-pointer border-b border-line/70 ${selectedId === u.id ? "bg-brand-tint/40" : "hover:bg-subtle/60"} ${u.status === "Deactivated" ? "opacity-60" : ""}`}
+                    className={`cursor-pointer border-b border-line/50 ${selectedId === u.id ? "bg-brand-tint/40" : "hover:bg-subtle/60"} ${u.status === "Deactivated" ? "opacity-60" : ""}`}
                   >
-                    <td className="py-3 pl-4 pr-3">
+                    <td className="py-3.5 pl-6 pr-3">
                       <span className="flex items-center gap-3">
                         <Avatar s={st} />
                         <span className="leading-tight">
@@ -635,10 +635,10 @@ function UserManagement({
                         </span>
                       </span>
                     </td>
-                    <td className="py-3 pr-3 text-[13px] text-ink">{roleOf(u.roleId)?.name ?? "Staff"}</td>
-                    <td className="py-3 pr-3 text-[13px] text-ink-secondary">{u.dept}</td>
-                    <td className="py-3 pr-3 text-[13px] text-ink-secondary">{u.task ?? "—"}</td>
-                    <td className="whitespace-nowrap py-3 pr-4 text-[13px] font-semibold">
+                    <td className="text-[14px] text-ink py-3.5 pl-6 pr-3">{roleOf(u.roleId)?.name ?? "Staff"}</td>
+                    <td className="text-[14px] text-ink-secondary py-3.5 pl-6 pr-3">{u.dept}</td>
+                    <td className="text-[14px] text-ink-secondary py-3.5 pl-6 pr-3">{u.task ?? "—"}</td>
+                    <td className="whitespace-nowrap text-[14px] font-semibold py-3.5 pl-6 pr-3">
                       {(() => {
                         const v = TREND[u.id % TREND.length];
                         return v > 0
@@ -651,7 +651,7 @@ function UserManagement({
                   </tr>
                 );
               })}
-              {!rows.length && <tr><td colSpan={5} className="py-10 text-center text-[13px] text-ink-tertiary">No users match your filters.</td></tr>}
+              {!rows.length && <tr><td colSpan={5} className="text-center text-[14px] text-ink-tertiary py-3.5 pl-6 pr-3">No users match your filters.</td></tr>}
             </tbody>
           </table>
         </div>
