@@ -257,11 +257,11 @@ export function ChatRow({
         <span className="mt-1.5 block truncate text-[13px] text-ink-secondary">{preview}</span>
       </span>
       {!plain && (
-        <span className="flex shrink-0 flex-col items-end justify-between gap-2 self-stretch py-0.5">
-          <span className="flex h-5 items-center">
+        <span className="flex shrink-0 flex-col items-end gap-1.5 self-start pt-0.5">
+          <span className={`text-[12px] ${unread > 0 ? "font-bold text-brand" : "text-ink-tertiary"}`}>{chatTime(name)}</span>
+          <span className="flex h-2.5 items-center">
             {unread > 0 && <span aria-label="Unread" className="h-2.5 w-2.5 rounded-full bg-brand" />}
           </span>
-          <span className={`text-[12px] ${unread > 0 ? "font-bold text-brand" : "text-ink-tertiary"}`}>{chatTime(name)}</span>
         </span>
       )}
     </>
