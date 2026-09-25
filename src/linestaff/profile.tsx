@@ -45,11 +45,9 @@ export function ProfileScreen({
 const NOTIF_OPTIONS: { key: string; label: string; sub: string }[] = [
   { key: "assigned", label: "New task assigned", sub: "When a task is assigned or reassigned to you" },
   { key: "sla", label: "SLA at risk", sub: "Before a task is about to breach its SLA" },
-  { key: "guest", label: "Guest messages", sub: "New messages from guests you are helping" },
   { key: "escalation", label: "Escalation updates", sub: "When an escalation is picked up or resolved" },
-  { key: "team", label: "Team updates", sub: "Support requests and shift changes" },
 ];
-const DEFAULT_PREFS: Record<string, boolean> = { assigned: true, sla: true, guest: true, escalation: true, team: false };
+const DEFAULT_PREFS: Record<string, boolean> = { assigned: true, sla: true, escalation: true };
 // kept at module level so settings survive leaving the screen
 const savedPrefs: Record<string, Record<string, boolean>> = {};
 

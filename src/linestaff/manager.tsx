@@ -17,6 +17,7 @@ import {
   PhoneFrame, ScreenHeader, SectionTitle, TaskCard, StatCard, Avatar, Chips, Segmented, FloatingNav, SelectField, TextField, Label, Sheet,
   useNav, useToast, CARD_SHADOW, TextHeader, SlaCountdown, fmtMins, CompensationSheet, type Priority,
   ChatRow,
+  PersonRow,
   sampleUnread,
 } from "./mobile";
 import { StaffPicker, ReasonSheet, StatusTag, STATUS_LABEL, STATUS_TONE, activeCount, atRiskCount, overdueCount, isOpen, isAtRisk, isOverdue } from "./parts";
@@ -475,21 +476,19 @@ export function ManagerPrototype() {
   const Team = (
     <div className="flex h-full flex-col">
       <ScreenHeader onBack={nav.back} title="Team" />
-      {searchRow(teamQuery, setTeamQuery, "Search team member", filterBtn(teamActiveFilters, () => setTeamFilterOpen(true)))}
-      <div className="min-h-0 flex-1 overflow-y-auto pb-6 pt-3 no-scrollbar">
-        <div className="mt-4 space-y-3 px-6">
-          {filteredTeam.map((s) => (
-            <button key={s.name} onClick={() => nav.push({ name: "staffDetail", id: s.name })} className={`flex w-full items-center gap-3 rounded-2xl bg-white p-3.5 text-left ${CARD_SHADOW}`}>
-              <Avatar name={s.name} tone={s.role === "Supervisor" ? "bg-violet-50 text-violet-600" : undefined} />
-              <div className="min-w-0 flex-1 leading-tight">
-                <div className="text-[14px] font-semibold text-ink">{s.name}</div>
-                <div className="text-[12px] text-ink-secondary">{s.role}</div>
-              </div>
-              <ChevronRight className="h-4 w-4 shrink-0 text-ink-tertiary" />
-            </button>
-          ))}
-          {!filteredTeam.length && <p className="rounded-2xl bg-white p-4 text-center text-[13px] text-ink-tertiary">No one matches these filters.</p>}
-        </div>
+      {searchRow(teamQuery, setTeamQuery, "Search team member", null)}
+      <div className="mt-3"><Chips flat items={ROLE_FILTERS} active={roleFilter} onChange={setRoleFilter} /></div>
+      <div className="mt-1 min-h-0 flex-1 overflow-y-auto px-6 pb-6 no-scrollbar">
+        {filteredTeam.map((s) => (
+          <PersonRow
+            key={s.name}
+            name={s.name}
+            sub={s.role}
+            tone={s.role === "Supervisor" ? "bg-violet-50 text-violet-600" : undefined}
+            onOpen={() => nav.push({ name: "staffDetail", id: s.name })}
+          />
+        ))}
+        {!filteredTeam.length && <p className="py-10 text-center text-[13px] text-ink-tertiary">No one matches these filters.</p>}
       </div>
     </div>
   );
@@ -1095,48 +1094,32 @@ export function ManagerPrototype() {
   const GuestsRoster = (
     <div className="flex h-full flex-col">
       <ScreenHeader title="Guests" onBack={nav.back} />
-      {searchRow(rosterQuery, setRosterQuery, "Search guest or room", filterBtn(rosterActiveFilters, () => setRosterFilterOpen(true)))}
-      <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-6 pb-6 pt-3 no-scrollbar">
-        {rosterFiltered.map((row) =>
-          row.stage === "Current" ? (
-            <button key={row.g.name} onClick={() => nav.push({ name: "guestProfile", id: row.g.name })} className={`flex w-full items-center gap-3 rounded-2xl bg-white p-3.5 text-left ${CARD_SHADOW}`}>
-              <Avatar name={row.g.name} tone={row.g.complaint ? "bg-red-50 text-red-600" : undefined} />
-              <div className="min-w-0 flex-1 leading-tight">
-                <div className="flex items-center gap-2">
-                  <span className="truncate text-[14px] font-semibold text-ink">{row.g.name}</span>
-                  <span className="shrink-0 rounded-full bg-emerald-50 px-1.5 py-0.5 text-[9px] font-bold text-emerald-700">In-house</span>
-                </div>
-                <div className="text-[12px] text-ink-tertiary">{row.g.room}{row.g.checkIn ? ` · ${row.g.checkIn} – ${row.g.checkOut}` : ""}</div>
-              </div>
-              <ChevronRight className="h-4 w-4 shrink-0 text-ink-tertiary" />
-            </button>
-          ) : row.stage === "Upcoming" ? (
-            <button key={row.g.name} onClick={() => nav.push({ name: "guestProfile", id: row.g.name })} className={`flex w-full items-center gap-3 rounded-2xl bg-white p-3.5 text-left ${CARD_SHADOW}`}>
-              <Avatar name={row.g.name} />
-              <div className="min-w-0 flex-1 leading-tight">
-                <div className="flex items-center gap-2">
-                  <span className="truncate text-[14px] font-semibold text-ink">{row.g.name}</span>
-                  <span className="shrink-0 rounded-full bg-blue-50 px-1.5 py-0.5 text-[9px] font-bold text-blue-700">Pre-arrival</span>
-                </div>
-                <div className="text-[12px] text-ink-tertiary">{row.g.room} · {GUEST_PROFILES[row.g.name]?.checkIn.replace(/, \d{4}/, "")} – {GUEST_PROFILES[row.g.name]?.checkOut.replace(/, \d{4}/, "")}</div>
-              </div>
-              <ChevronRight className="h-4 w-4 shrink-0 text-ink-tertiary" />
-            </button>
-          ) : (
-            <button key={row.g.name} onClick={() => nav.push({ name: "guestProfile", id: row.g.name })} className={`flex w-full items-center gap-3 rounded-2xl bg-white p-3.5 text-left opacity-70 ${CARD_SHADOW}`}>
-              <Avatar name={row.g.name} />
-              <div className="min-w-0 flex-1 leading-tight">
-                <div className="flex items-center gap-2">
-                  <span className="truncate text-[14px] font-semibold text-ink">{row.g.name}</span>
-                  <span className="shrink-0 rounded-full bg-slate-100 px-1.5 py-0.5 text-[9px] font-bold text-slate-600">Checked out</span>
-                </div>
-                <div className="text-[12px] text-ink-tertiary">{row.g.room} · {row.g.checkIn} – {row.g.checkOut}</div>
-              </div>
-              <ChevronRight className="h-4 w-4 shrink-0 text-ink-tertiary" />
-            </button>
-          ),
-        )}
-        {!rosterFiltered.length && <p className="rounded-2xl bg-white p-6 text-center text-[13px] text-ink-tertiary">No guests match.</p>}
+      {searchRow(rosterQuery, setRosterQuery, "Search guest or room", null)}
+      <div className="mt-3"><Chips flat items={ROSTER_STAGE_FILTERS} active={stageFilter} onChange={setStageFilter} /></div>
+      <div className="mt-1 min-h-0 flex-1 overflow-y-auto px-6 pb-6 no-scrollbar">
+        {rosterFiltered.map((row) => {
+          const room = <><DoorOpen className="h-3.5 w-3.5" />{row.g.room.replace(/^Room\s+/i, "")}</>;
+          const stay =
+            row.stage === "Upcoming"
+              ? `${GUEST_PROFILES[row.g.name]?.checkIn.replace(/, \d{4}/, "")} – ${GUEST_PROFILES[row.g.name]?.checkOut.replace(/, \d{4}/, "")}`
+              : row.g.checkIn
+                ? `${row.g.checkIn} – ${row.g.checkOut}`
+                : undefined;
+          const right =
+            row.stage === "Current" ? <span className="text-emerald-600">In-house</span> : row.stage === "Upcoming" ? <span className="text-sky-600">Pre-arrival</span> : <span className="text-slate-500">Checked out</span>;
+          return (
+            <PersonRow
+              key={row.g.name}
+              name={row.g.name}
+              sub={room}
+              detail={stay}
+              right={right}
+              tone={row.stage === "Current" && row.g.complaint ? "bg-red-50 text-red-600" : undefined}
+              onOpen={() => nav.push({ name: "guestProfile", id: row.g.name })}
+            />
+          );
+        })}
+        {!rosterFiltered.length && <p className="py-10 text-center text-[13px] text-ink-tertiary">No guests match.</p>}
       </div>
     </div>
   );
@@ -1256,7 +1239,7 @@ export function ManagerPrototype() {
 
   return (
     <div className="flex flex-col items-center gap-4">
-      <PhoneFrame white={!signedOut && ["guests", "menu"].includes(cur.name)}>
+      <PhoneFrame white={!signedOut && ["guests", "menu", "team", "guestsRoster"].includes(cur.name)}>
         {signedOut ? <SignedOutScreen onSignIn={() => { setSignedOut(false); nav.reset(); }} /> : VIEWS[cur.name]}
         {sheetNode}
         {TeamFilterSheet}

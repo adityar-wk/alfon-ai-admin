@@ -320,6 +320,25 @@ export function ChatRow({
   );
 }
 
+/** flat list row for people (team, guests): avatar, name, a detail line and a small right-hand label */
+export function PersonRow({
+  name, sub, detail, right, tone, onOpen,
+}: {
+  name: string; sub?: ReactNode; detail?: string; right?: ReactNode; tone?: string; onOpen: () => void;
+}) {
+  return (
+    <button onClick={onOpen} className="flex w-full items-center gap-3.5 border-b border-[#EEEEF1] py-5 text-left last:border-b-0">
+      <Avatar name={name} size={52} tone={tone} />
+      <span className="min-w-0 flex-1 leading-tight">
+        <span className="block truncate text-[15px] font-semibold text-ink">{name}</span>
+        {sub && <span className="mt-1 flex items-center gap-1 text-[12px] text-ink-tertiary">{sub}</span>}
+        {detail && <span className="mt-1.5 block truncate text-[13px] text-ink-secondary">{detail}</span>}
+      </span>
+      {right && <span className="shrink-0 self-start pt-0.5 text-[12px] font-medium">{right}</span>}
+    </button>
+  );
+}
+
 /* ---------- controls ---------- */
 
 export function Chips<T extends string>({ items, active, onChange, counts, flat = false }: { items: readonly T[]; active: T; onChange: (v: T) => void; counts?: Partial<Record<T, number>>; flat?: boolean }) {
