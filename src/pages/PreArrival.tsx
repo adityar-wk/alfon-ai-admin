@@ -517,15 +517,15 @@ function DateStrip({
 
   return (
     <div className="flex min-w-0 flex-1 items-center justify-center gap-1.5">
-      <button onClick={() => onShift(-7)} aria-label="Previous week" className="rounded-lg p-1.5 text-ink-secondary hover:bg-subtle">
+      <button onClick={() => onShift(-7)} aria-label="Previous week" className="flex h-10 w-7 items-center justify-center rounded-lg text-ink-secondary hover:bg-subtle">
         <ChevronLeft className="h-4 w-4" />
       </button>
-      <span className="w-[74px] text-center text-[13px] font-semibold text-ink">{monthLabel}</span>
-      <button onClick={() => onShift(7)} aria-label="Next week" className="rounded-lg p-1.5 text-ink-secondary hover:bg-subtle">
+      <span className="w-[74px] text-center text-[13px] font-medium text-ink">{monthLabel}</span>
+      <button onClick={() => onShift(7)} aria-label="Next week" className="flex h-10 w-7 items-center justify-center rounded-lg text-ink-secondary hover:bg-subtle">
         <ChevronRight className="h-4 w-4" />
       </button>
 
-      <div className="flex gap-1.5">
+      <div className="flex gap-1">
         {days.map((d) => {
           const date = new Date(2025, 4, d);
           const on = d === selDay;
@@ -536,28 +536,20 @@ function DateStrip({
               key={d}
               onClick={() => onSelect(d)}
               title={`${n} ${n === 1 ? "arrival" : "arrivals"}`}
-              className={`w-[52px] rounded-lg border py-1 text-center transition-colors ${
-                on
-                  ? "border-brand bg-brand text-white"
-                  : isToday
-                    ? "border-brand/40 bg-brand-tint/40 text-ink hover:bg-brand-tint"
-                    : "border-line bg-white text-ink hover:border-brand/40 hover:bg-subtle"
+              className={`flex h-10 items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 text-[13px] transition-colors ${
+                on ? "bg-brand text-white" : "text-ink-secondary hover:bg-subtle"
               }`}
             >
-              <div className={`text-[10px] font-medium lowercase leading-tight ${on ? "text-white/80" : "text-ink-tertiary"}`}>
-                {isToday ? "today" : DOW[date.getDay()]}
-              </div>
-              <div className="text-[15px] font-bold leading-tight">{date.getDate()}</div>
-              <div className={`text-[10px] leading-tight ${on ? "text-white/85" : n ? "text-brand" : "text-ink-tertiary"}`}>
-                {n || "–"}
-              </div>
+              <span className={`text-[12px] capitalize ${on ? "text-white/85" : "text-ink-tertiary"}`}>{isToday ? "Today" : DOW[date.getDay()]}</span>
+              <span className={`font-semibold ${on ? "text-white" : "text-ink"}`}>{date.getDate()}</span>
+              {n > 0 && <span className={`text-[11px] font-medium ${on ? "text-white/85" : "text-brand"}`}>{n}</span>}
             </button>
           );
         })}
       </div>
 
       {selDay !== 24 && (
-        <button onClick={onToday} className="ml-1 rounded-lg px-2 py-1 text-[12px] font-semibold text-brand hover:bg-brand-tint">
+        <button onClick={onToday} className="ml-1 flex h-10 items-center rounded-lg px-2 text-[12px] font-semibold text-brand hover:bg-brand-tint">
           Today
         </button>
       )}
