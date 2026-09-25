@@ -32,7 +32,8 @@ import { Page, Card, Select } from "../components/ui";
 import { GUESTS } from "../data/guests";
 import { TASKS, type Priority } from "../data/tasks";
 import { usePersona } from "../persona";
-import { HealthOrb, scoreBand } from "../components/HealthOrb";
+import Orb from "../components/Orb";
+import { scoreBand } from "../data/scoreBand";
 
 type Icon = React.ComponentType<{ className?: string }>;
 
@@ -159,12 +160,13 @@ export default function Home() {
         <div className="mt-5">
           <Card className="overflow-hidden px-8 pb-8 pt-4">
             <div className="flex flex-col items-center">
-              <div className="-mx-8 w-[calc(100%+4rem)]">
-                <HealthOrb score={score} size={340} wide>
-                  <span className="text-[60px] font-bold leading-none tracking-tight transition-colors duration-700" style={{ color: band.color }}>{score}%</span>
-                </HealthOrb>
+              <div className="relative h-[340px] w-[340px] max-w-full">
+                <Orb hue={band.hue} hoverIntensity={0.2} rotateOnHover backgroundColor="#ffffff" />
+                <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                  <span className={`text-[60px] font-bold leading-none tracking-tight transition-colors duration-700 ${band.text}`}>{score}%</span>
+                </div>
               </div>
-              <div className="-mt-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-ink-tertiary">Hotel Health Score</div>
+              <div className="mt-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-ink-tertiary">Hotel Health Score</div>
               <p className="mt-2 text-[14px] text-ink-secondary">
                 {band.key === "excellent"
                   ? "Your hotel is performing strong."
