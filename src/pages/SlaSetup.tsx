@@ -84,62 +84,8 @@ export default function SlaSetup() {
           Define response times, service SLAs, and escalation paths.
         </p>
 
-        {/* Priority defaults — one compact card per priority */}
-        <div className="mb-1 flex items-baseline justify-between">
-          <h3 className="text-[15px] font-semibold text-ink">Default SLA by Priority</h3>
-          <span className="text-[12px] text-ink-tertiary">
-            Applied to any task without a service-level override
-          </span>
-        </div>
-        <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {PRIORITIES.map((p) => {
-            const m = PRIORITY_META[p];
-            return (
-              <div key={p} className={`rounded-card border p-4 ${m.card}`}>
-                <div className="flex items-center gap-2">
-                  <span className={`h-2.5 w-2.5 rounded-full ${m.dot}`} />
-                  <span className={`text-[14px] font-semibold ${m.text}`}>{p}</span>
-                </div>
-                <p className="mt-1 text-[12px] text-ink-secondary">{m.desc}</p>
-                <div className="mt-3 grid grid-cols-2 gap-3">
-                  <label>
-                    <span className="mb-1 block text-[11px] text-ink-secondary">First response</span>
-                    <span className="relative block">
-                      <Input
-                        value={defaults[p].response}
-                        onChange={(e) =>
-                          setDefaults((d) => ({ ...d, [p]: { ...d[p], response: e.target.value } }))
-                        }
-                        className="pr-10 bg-white"
-                      />
-                      <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[11px] text-ink-tertiary">
-                        min
-                      </span>
-                    </span>
-                  </label>
-                  <label>
-                    <span className="mb-1 block text-[11px] text-ink-secondary">Resolve within</span>
-                    <span className="relative block">
-                      <Input
-                        value={defaults[p].resolve}
-                        onChange={(e) =>
-                          setDefaults((d) => ({ ...d, [p]: { ...d[p], resolve: e.target.value } }))
-                        }
-                        className="pr-10 bg-white"
-                      />
-                      <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[11px] text-ink-tertiary">
-                        min
-                      </span>
-                    </span>
-                  </label>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
         {/* Service SLAs (left) + Escalation (right) */}
-        <div className="mt-6 grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">
+        <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">
           <Card className="overflow-hidden">
             <div className="border-b border-line px-5 py-4">
               <h3 className="text-[15px] font-semibold text-ink">Service-Level SLA</h3>

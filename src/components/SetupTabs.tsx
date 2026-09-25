@@ -4,8 +4,8 @@ const STEPS = [
   { label: "Hotel Profile", to: "/onboarding/property" },
   { label: "WhatsApp & PMS", to: "/onboarding/whatsapp-pms" },
   { label: "Knowledge Base", to: "/onboarding/knowledge-base" },
-  { label: "Team Members", to: "/onboarding/staff" },
   { label: "Departments", to: "/onboarding/departments" },
+  { label: "Team Members", to: "/onboarding/staff" },
   { label: "SLA & Escalation", to: "/onboarding/sla" },
   { label: "Rooms & QR", to: "/onboarding/rooms-qr" },
 ];
