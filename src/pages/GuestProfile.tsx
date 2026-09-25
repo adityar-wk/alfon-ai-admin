@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
 import { Search, Plus, User, Lightbulb, Bell, BedDouble, UtensilsCrossed, Target, MessageCircle, AlarmClock, Thermometer, Wine, Newspaper, Calendar, Hourglass, History, SlidersHorizontal, Check } from "lucide-react";
 import { Topbar } from "../components/Topbar";
-import { Card } from "../components/ui";
+import { Card, Modal, Button, Field, Input, Select } from "../components/ui";
 import { Flag } from "../components/Flag";
 import { GUESTS, type Guest } from "../data/guests";
 import { type ChatMsg } from "../components/GuestChat";
@@ -418,6 +418,8 @@ export default function GuestProfile() {
   const [done, setDone] = useState<Record<string, boolean>>({});
   const [noteOpen, setNoteOpen] = useState(false);
   const [draft, setDraft] = useState("");
+  const [editOpen, setEditOpen] = useState(false);
+  const [, refresh] = useState(0);
 
   useEffect(() => {
     setNoteOpen(false);
@@ -463,9 +465,14 @@ export default function GuestProfile() {
                     <span className="flex items-center gap-1.5"><History className="h-3.5 w-3.5 text-ink-tertiary" /> Previous stays <b className="text-ink">{p.previousStays}</b></span>
                   </div>
                 </div>
-                <Link to={`/guest-chats?guest=${guest.id}`} className="shrink-0 rounded-lg border border-line px-3.5 py-2 text-[13px] font-semibold text-ink hover:bg-subtle">
-                  Open chat
-                </Link>
+                <div className="flex shrink-0 items-center gap-2">
+                  <button onClick={() => setEditOpen(true)} className="rounded-lg border border-line px-3.5 py-2 text-[13px] font-semibold text-ink hover:bg-subtle">
+                    Edit profile
+                  </button>
+                  <Link to={`/guest-chats?guest=${guest.id}`} className="rounded-lg border border-line px-3.5 py-2 text-[13px] font-semibold text-ink hover:bg-subtle">
+                    Open chat
+                  </Link>
+                </div>
               </div>
             </Card>
 
@@ -563,6 +570,66 @@ export default function GuestProfile() {
           </div>
         </div>
       </div>
+      {editOpen && (
+        <EditGuestModal
+          guest={guest}
+          onClose={() => setEditOpen(false)}
+          onSave={(patch) => { Object.assign(guest, patch); setEditOpen(false); refresh((n) => n + 1); }}
+        />
+      )}
     </>
+  );
+}
+
+function EditGuestModal({ guest, onClose, onSave }: { guest: Guest; onClose: () => void; onSave: (patch: Partial<Guest>) => void }) {
+  const [f, setF] = useState({
+    name: guest.name, contact: guest.contact, country: guest.country, type: guest.type,
+    room: guest.room, roomType: guest.roomType, from: guest.from, to: guest.to, nights: String(guest.nights),
+  });
+  const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setF((x) => ({ ...x, [k]: e.target.value }));
+  const valid = f.name.trim() && f.room.trim();
+  const save = () => {
+    const name = f.name.trim();
+    onSave({
+      name,
+      initials: name.split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase(),
+      contact: f.contact.trim(),
+      country: f.country.trim(),
+      type: f.type as Guest["type"],
+      room: f.room.trim(),
+      roomType: f.roomType.trim(),
+      from: f.from.trim(),
+      to: f.to.trim(),
+      nights: Math.max(1, parseInt(f.nights, 10) || guest.nights),
+    });
+  };
+  return (
+    <Modal
+      title="Edit guest profile"
+      onClose={onClose}
+      footer={
+        <>
+          <Button variant="outline" onClick={onClose}>Cancel</Button>
+          <Button disabled={!valid} onClick={save} className="disabled:opacity-40">Save changes</Button>
+        </>
+      }
+    >
+      <div className="grid grid-cols-2 gap-4">
+        <div className="col-span-2"><Field label="Full name" required><Input value={f.name} onChange={set("name")} /></Field></div>
+        <Field label="Phone or email"><Input value={f.contact} onChange={set("contact")} /></Field>
+        <Field label="Country">
+          <Input list="guest-countries" value={f.country} onChange={set("country")} />
+          <datalist id="guest-countries">{Array.from(new Set(GUESTS.map((g) => g.country))).map((c) => <option key={c} value={c} />)}</datalist>
+        </Field>
+        <Field label="Guest type">
+          <Select value={f.type} onChange={set("type")}><option>Leisure</option><option>Business</option></Select>
+        </Field>
+        <Field label="Room" required><Input value={f.room} onChange={set("room")} /></Field>
+        <Field label="Room type"><Input value={f.roomType} onChange={set("roomType")} /></Field>
+        <Field label="Nights"><Input inputMode="numeric" value={f.nights} onChange={set("nights")} /></Field>
+        <Field label="Check-in"><Input value={f.from} onChange={set("from")} placeholder="May 14" /></Field>
+        <Field label="Check-out"><Input value={f.to} onChange={set("to")} placeholder="May 18" /></Field>
+      </div>
+    </Modal>
   );
 }
