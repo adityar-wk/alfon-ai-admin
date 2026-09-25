@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import {
   AlertTriangle,
-  Clock,
   X,
   Wrench,
   ConciergeBell,
@@ -28,7 +27,8 @@ import { GuestChat, type ChatMsg, type ChatMode } from "../components/GuestChat"
 import { Page, Card, Button, Field, Input, Select, Textarea } from "../components/ui";
 import { TASKS, HELP_REQUESTS, AI_DRAFTS, logAudit, pendingHelpFor, resolveHelp, shortName, type Task, type Priority } from "../data/tasks";
 import { GUESTS } from "../data/guests";
-import { taskStatus, STATUS_PILL, COMPLAINT_PILL, slaShort } from "../data/attention";
+import { taskStatus, STATUS_PILL, COMPLAINT_PILL, slaSecs, useClock } from "../data/attention";
+import { SlaClock } from "../components/SlaClock";
 import { usePersona } from "../persona";
 import { ScopePicker } from "../components/ScopePicker";
 
@@ -121,14 +121,7 @@ function StatusLabel({ t }: { t: Pick<Task, "status" | "owner" | "sla"> }) {
   return <span className={`whitespace-nowrap text-[13px] font-medium ${STATUS_PILL[label]}`}>{label}</span>;
 }
 
-function SlaText({ sla }: { sla: Task["sla"] }) {
-  const tone = sla.kind === "overdue" ? "text-red-600 font-medium" : sla.kind === "due" ? "text-brand font-medium" : "text-ink-secondary";
-  return (
-    <span className={`inline-flex items-center gap-1 text-[12px] ${tone}`}>
-      <Clock className="h-3.5 w-3.5" /> {slaShort(sla.text)}
-    </span>
-  );
-}
+const SlaText = ({ sla }: { sla: Task["sla"] }) => <SlaClock sla={sla} />;
 
 function DeptIcon({ dept }: { dept: string }) {
   const Icon = DEPT_ICON[dept] ?? Building2;
@@ -151,6 +144,7 @@ const BOARD_COLS: { key: string; label: string; dot: string; test: (t: Task) => 
 const cap = (t: Task) => (t.tag === "Complaint" ? "Complaint" : null);
 
 export default function Tasks() {
+  useClock();
   const [tasks, setTasks] = useState<Task[]>(() => [...TASKS]);
   const [view, setView] = useState<View>("action");
   const [layout, setLayout] = useState<"list" | "board">("list");
@@ -664,12 +658,8 @@ function SlaTimer({ task }: { task: Task }) {
   const target = SLA_TARGET[task.priority];
   const met = task.sla.kind === "met" || task.status === "Completed";
   const start = task.sla.kind === "overdue" ? -slaMinutes(task.sla.text) * 60 : slaMinutes(task.sla.text) * 60;
-  const [secs, setSecs] = useState(start);
-  useEffect(() => {
-    if (met) return;
-    const id = window.setInterval(() => setSecs((x) => x - 1), 1000);
-    return () => window.clearInterval(id);
-  }, [met]);
+  useClock();
+  const secs = slaSecs(task.sla) ?? start;
   const total = Math.max(target, Math.ceil(Math.abs(start) / 60)) * 60;
   const over = !met && secs < 0;
   const frac = met ? 1 : over ? 1 : Math.max(0.03, Math.min(1, secs / total));

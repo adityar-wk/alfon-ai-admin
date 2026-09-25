@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import type { Task } from "./tasks";
 
 /**
@@ -19,7 +20,8 @@ export type TaskStatusLabel =
 export function taskStatus(t: Pick<Task, "status" | "owner" | "sla">): TaskStatusLabel {
   if (t.status === "Completed" || t.status === "Unable to Complete" || t.status === "Void") return t.status;
   if (t.status === "Escalated") return "Escalated";
-  if (t.sla.kind === "overdue") return "SLA breached";
+  const secs = slaSecs(t.sla);
+  if (t.sla.kind === "overdue" || (secs !== null && secs < 0)) return "SLA breached";
   if (t.sla.kind === "due") return "SLA at risk";
   if (t.status === "In Progress") return "In Progress";
   return t.owner ? "Assigned" : "Pending";
@@ -40,5 +42,44 @@ export const STATUS_PILL: Record<TaskStatusLabel, string> = {
 
 export const COMPLAINT_PILL = "bg-violet-50 text-violet-600";
 
-/** "Overdue 12 min" reads "-12 min"; "Due in 4 min" and "22 min left" read "4 min" and "22 min" */
-export const slaShort = (text: string) => text.replace(/^Overdue\s+/, "-").replace(/^Due in\s+/, "").replace(/\s+left$/, "");
+/* ---------- live SLA clock ---------- */
+
+const EPOCH = Date.now(); // every list and the task window count from the same moment
+
+const minutesIn = (text: string) => {
+  const h = text.match(/(\d+)\s*hr/);
+  const m = text.match(/(\d+)\s*min/);
+  return (h ? Number(h[1]) * 60 : 0) + (m ? Number(m[1]) : 0);
+};
+
+/** seconds left on the SLA right now; negative once breached (and growing). null when no timer is running */
+export function slaSecs(sla: Task["sla"]): number | null {
+  if (sla.kind === "met") return null;
+  const elapsed = Math.floor((Date.now() - EPOCH) / 1000);
+  const base = minutesIn(sla.text) * 60;
+  return sla.kind === "overdue" ? -(base + elapsed) : base - elapsed;
+}
+
+/** 4:05, 1:04:05, or -12:34 once breached */
+export function formatClock(secs: number): string {
+  const abs = Math.abs(secs);
+  const h = Math.floor(abs / 3600);
+  const m = Math.floor((abs % 3600) / 60);
+  const ss = String(abs % 60).padStart(2, "0");
+  const body = h ? `${h}:${String(m).padStart(2, "0")}:${ss}` : `${String(m).padStart(2, "0")}:${ss}`;
+  return secs < 0 ? `-${body}` : body;
+}
+
+export function slaLabel(sla: Task["sla"]): string {
+  const secs = slaSecs(sla);
+  return secs === null ? sla.text : formatClock(secs);
+}
+
+/** re-renders the caller every second so SLA clocks tick */
+export function useClock() {
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const id = window.setInterval(() => setTick((n) => n + 1), 1000);
+    return () => window.clearInterval(id);
+  }, []);
+}

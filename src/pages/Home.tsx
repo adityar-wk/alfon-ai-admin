@@ -7,7 +7,6 @@ import {
   Smile,
   Heart,
   Users,
-  Clock,
   ArrowDown,
   ArrowUp,
   Minus,
@@ -24,7 +23,8 @@ import { Page, Card, Select } from "../components/ui";
 import { TASKS } from "../data/tasks";
 import Orb from "../components/Orb";
 import { scoreBand } from "../data/scoreBand";
-import { taskStatus, STATUS_PILL, COMPLAINT_PILL, slaShort, type TaskStatusLabel } from "../data/attention";
+import { taskStatus, STATUS_PILL, COMPLAINT_PILL, useClock, type TaskStatusLabel } from "../data/attention";
+import { SlaClock } from "../components/SlaClock";
 
 type Icon = React.ComponentType<{ className?: string }>;
 
@@ -83,6 +83,7 @@ function Trend({ t }: { t: "up" | "down" | "flat" }) {
 const ATTENTION: TaskStatusLabel[] = ["Escalated", "SLA breached", "SLA at risk", "Pending"];
 
 export default function Home() {
+  useClock();
   const navigate = useNavigate();
   const [dept, setDept] = useState("all");
 
@@ -212,9 +213,7 @@ export default function Home() {
                     return (
                       <tr key={t.id} onClick={() => navigate(`/tasks?open=${t.id}`)} className="cursor-pointer border-b border-line/70 last:border-0 hover:bg-subtle/60">
                         <td className="whitespace-nowrap py-3 pl-5 pr-3">
-                          <span className={`flex items-center gap-1 text-[13px] ${t.sla.kind === "overdue" ? "font-medium text-red-600" : t.sla.kind === "due" ? "font-medium text-brand" : "text-ink-secondary"}`}>
-                            <Clock className="h-3.5 w-3.5" />{slaShort(t.sla.text)}
-                          </span>
+                          <SlaClock sla={t.sla} />
                         </td>
                         <td className="py-3 pr-3">
                           <div className="flex items-center gap-2 text-[13px] font-semibold text-ink">

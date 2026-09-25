@@ -1,14 +1,16 @@
 import { Link, useNavigate } from "react-router-dom";
-import { Clock, ChevronRight } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { Page, Card } from "../components/ui";
 import { ScopePicker } from "../components/ScopePicker";
 import { TASKS, shortName } from "../data/tasks";
 import { INITIAL } from "../data/staff";
 import { usePersona } from "../persona";
-import { taskStatus, STATUS_PILL, COMPLAINT_PILL, slaShort } from "../data/attention";
+import { taskStatus, STATUS_PILL, COMPLAINT_PILL, slaLabel, useClock } from "../data/attention";
+import { SlaClock } from "../components/SlaClock";
 
 export default function DepartmentDashboard() {
+  useClock();
   const navigate = useNavigate();
   const { scopeDepts, inScope } = usePersona();
 
@@ -85,9 +87,7 @@ export default function DepartmentDashboard() {
                       </div>
                     </div>
                     <span className={`w-24 shrink-0 text-[13px] font-medium ${STATUS_PILL[taskStatus(t)]}`}>{taskStatus(t)}</span>
-                    <span className={`flex w-20 shrink-0 items-center gap-1 text-[12px] ${t.sla.kind === "overdue" ? "font-medium text-red-600" : t.sla.kind === "due" ? "font-medium text-brand" : "text-ink-secondary"}`}>
-                      <Clock className="h-3.5 w-3.5" /> {slaShort(t.sla.text)}
-                    </span>
+                    <SlaClock sla={t.sla} className="w-24 shrink-0" />
                     <Link to={`/tasks?open=${t.id}`} className="shrink-0 rounded-lg border border-line px-3 py-1.5 text-[12px] font-semibold text-ink hover:bg-subtle">
                       View
                     </Link>
@@ -149,7 +149,7 @@ export default function DepartmentDashboard() {
                   <div key={t.id} className="flex items-center gap-3 py-2.5">
                     <div className="min-w-0 flex-1 leading-tight">
                       <div className="truncate text-[13px] font-medium text-ink">{t.title}</div>
-                      <div className="text-[11px] text-ink-tertiary">{scopeDepts.length > 1 && <>{t.dept} · </>}Room {t.room} · {slaShort(t.sla.text)}</div>
+                      <div className="text-[11px] text-ink-tertiary">{scopeDepts.length > 1 && <>{t.dept} · </>}Room {t.room} · {slaLabel(t.sla)}</div>
                     </div>
                     <Link to={`/tasks?open=${t.id}`} className="shrink-0 rounded-lg border border-line px-3 py-1.5 text-[12px] font-semibold text-ink hover:bg-subtle">
                       View
