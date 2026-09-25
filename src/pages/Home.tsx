@@ -78,23 +78,34 @@ function Trend({ t }: { t: "up" | "down" | "flat" }) {
   return <Minus className="h-3.5 w-3.5 text-ink-tertiary" />;
 }
 
+type Reason = "Escalated" | "SLA breached" | "SLA at risk" | "Complaint";
+const REASONS: Reason[] = ["Escalated", "SLA breached", "Complaint", "SLA at risk"];
+const REASON_PILL: Record<Reason, string> = {
+  Escalated: "bg-red-100 text-red-700",
+  "SLA breached": "bg-orange-100 text-orange-700",
+  "SLA at risk": "bg-amber-100 text-amber-700",
+  Complaint: "bg-violet-100 text-violet-700",
+};
+const reasonOf = (t: (typeof TASKS)[number]): Reason | null =>
+  t.status === "Escalated" ? "Escalated" : t.sla.kind === "overdue" ? "SLA breached" : t.tag === "Complaint" ? "Complaint" : t.sla.kind === "due" ? "SLA at risk" : null;
+
 export default function Home() {
   const navigate = useNavigate();
   const [dept, setDept] = useState("all");
 
   const open = TASKS.filter((t) => t.status !== "Completed" && t.status !== "Unable to Complete" && t.status !== "Void");
 
-  const rank = (t: (typeof TASKS)[number]) => (t.status === "Escalated" ? 0 : t.sla.kind === "overdue" ? 1 : t.sla.kind === "due" ? 2 : 3);
   const depts = Array.from(new Set(open.map((t) => t.dept))).sort();
-  const pending = useMemo(
-    () =>
-      open
-        .filter((t) => dept === "all" || t.dept === dept)
-        .sort((a, b) => rank(a) - rank(b))
-        .slice(0, 6),
+  // a mix of what needs attention: escalations, SLA breaches, SLA at risk and complaints
+  const pending = useMemo(() => {
+    const buckets = REASONS.map((r) => open.filter((t) => (dept === "all" || t.dept === dept) && reasonOf(t) === r));
+    const picked: (typeof TASKS)[number][] = [];
+    for (let i = 0; picked.length < 6 && buckets.some((b) => i < b.length); i++) {
+      for (const b of buckets) if (i < b.length && picked.length < 6) picked.push(b[i]);
+    }
+    return picked.sort((x, y) => REASONS.indexOf(reasonOf(x)!) - REASONS.indexOf(reasonOf(y)!));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [TASKS.length, dept],
-  );
+  }, [TASKS.length, dept]);
 
   const score = Math.max(0, Math.min(100, Math.round(82 + BASELINE - penalty(TASKS))));
   const band = scoreBand(score);
@@ -208,11 +219,7 @@ export default function Home() {
                       <tr key={t.id} onClick={() => navigate(`/tasks?open=${t.id}`)} className="cursor-pointer border-b border-line/70 last:border-0 hover:bg-subtle/60">
                         <td className="py-3 pl-5 pr-3">
                           <div className="flex flex-wrap items-center gap-x-2.5 gap-y-0.5">
-                            {t.status === "Escalated" ? (
-                              <span className="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-[12px] font-semibold text-red-700">Escalated</span>
-                            ) : (
-                              <span className="text-[13px] text-ink-secondary">{t.status === "Yet to Assign" ? (t.owner ? "Assigned" : "Unassigned") : t.status}</span>
-                            )}
+                            <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[12px] font-semibold ${REASON_PILL[reasonOf(t)!]}`}>{reasonOf(t)}</span>
                             <span className={`flex items-center gap-1 whitespace-nowrap text-[12px] ${t.sla.kind === "overdue" ? "font-medium text-red-600" : t.sla.kind === "due" ? "font-medium text-brand" : "text-ink-secondary"}`}>
                               <Clock className="h-3.5 w-3.5" />{t.sla.text.replace(/^Overdue\s+/, "-")}
                             </span>
@@ -221,7 +228,7 @@ export default function Home() {
                         <td className="py-3 pr-3">
                           <div className="flex items-center gap-2 text-[13px] font-semibold text-ink">
                             {t.title}
-                            {t.tag === "Complaint" && <span className="rounded-full bg-violet-100 px-2 py-0.5 text-[11px] font-semibold text-violet-700">Complaint</span>}
+                            {t.tag === "Complaint" && reasonOf(t) !== "Complaint" && <span className="rounded-full bg-violet-100 px-2 py-0.5 text-[11px] font-semibold text-violet-700">Complaint</span>}
                           </div>
                           <div className="text-[12px] text-ink-tertiary">{t.guest}</div>
                         </td>
