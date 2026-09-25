@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { Signal, Wifi, BatteryFull, ChevronLeft, ChevronRight, ChevronDown, X, Clock } from "lucide-react";
+import { AlertTriangle, Signal, Wifi, BatteryFull, ChevronLeft, ChevronRight, ChevronDown, X, Clock } from "lucide-react";
 
 /* ============================================================
    Shared mobile kit — used by the Line Staff, Supervisor and
@@ -243,34 +243,34 @@ const CHAT_TIMES = ["19:45", "19:12", "18:30", "17:05", "15:48", "Yesterday", "M
 export const chatTime = (name: string) => CHAT_TIMES[name.split("").reduce((a, c) => a + c.charCodeAt(0), 0) % CHAT_TIMES.length];
 
 export function ChatRow({
-  name, room, preview, unread = 0, tone, tag, onOpen, onAvatar,
+  name, room, preview, unread = 0, tone, complaint = false, onOpen, onAvatar,
 }: {
-  name: string; room: string; preview: string; unread?: number; tone?: string; tag?: string; onOpen: () => void; onAvatar?: () => void;
+  name: string; room: string; preview: string; unread?: number; tone?: string; complaint?: boolean; onOpen: () => void; onAvatar?: () => void;
 }) {
   const body = (
     <>
       <span className="min-w-0 flex-1 leading-tight">
-        <span className="flex items-center gap-2">
-          <span className="truncate text-[15px] font-semibold text-ink">{name}</span>
-          <span className="shrink-0 text-[12px] text-ink-tertiary">{room}</span>
-          {tag && <span className="shrink-0 rounded-full bg-red-50 px-1.5 py-0.5 text-[9px] font-bold text-red-600">{tag}</span>}
-        </span>
-        <span className="mt-1 block truncate text-[13px] text-ink-secondary">{preview}</span>
+        <span className="block truncate text-[15px] font-semibold text-ink">{name}</span>
+        <span className="mt-1 block text-[12px] text-ink-tertiary">{room}</span>
+        <span className="mt-1.5 block truncate text-[13px] text-ink-secondary">{preview}</span>
       </span>
-      <span className="flex shrink-0 flex-col items-end gap-1.5 self-stretch pt-0.5">
+      <span className="flex shrink-0 flex-col items-end justify-between gap-2 self-stretch py-0.5">
+        <span className="flex h-5 items-center gap-1.5">
+          {complaint && <AlertTriangle aria-label="Complaint" className="h-[18px] w-[18px] text-red-500" />}
+          {unread > 0 && <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-[11px] font-semibold text-white">{unread}</span>}
+        </span>
         <span className="text-[12px] text-ink-tertiary">{chatTime(name)}</span>
-        {unread > 0 && <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-[11px] font-semibold text-white">{unread}</span>}
       </span>
     </>
   );
   return (
-    <div className="flex items-center gap-3.5 border-b border-[#EEEEF1] py-3.5 last:border-b-0">
+    <div className="flex items-center gap-3.5 border-b border-[#EEEEF1] py-5 last:border-b-0">
       {onAvatar ? (
         <button onClick={onAvatar} aria-label={`View ${name} profile`} className="shrink-0"><Avatar name={name} size={52} tone={tone} /></button>
       ) : (
         <Avatar name={name} size={52} tone={tone} />
       )}
-      <button onClick={onOpen} className="flex min-w-0 flex-1 items-center gap-3 text-left">{body}</button>
+      <button onClick={onOpen} className="flex min-w-0 flex-1 items-stretch gap-3 text-left">{body}</button>
     </div>
   );
 }

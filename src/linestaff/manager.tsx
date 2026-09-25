@@ -687,7 +687,7 @@ export function ManagerPrototype() {
             room={g.room}
             preview={g.convo !== "—" ? g.convo : "No messages yet"}
             tone={g.complaint ? "bg-red-50 text-red-600" : undefined}
-            tag={g.complaint ? "Complaint" : undefined}
+            complaint={!!g.complaint}
             onOpen={() => nav.push({ name: "guestProfile", id: g.name })}
           />
         ))}
