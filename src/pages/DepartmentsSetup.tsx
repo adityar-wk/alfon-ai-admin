@@ -38,10 +38,6 @@ function DeptCard({ d, onboarding }: { d: (typeof DEPARTMENTS)[number]; onboardi
               <span className="text-ink-tertiary">—</span>
             )}
           </div>
-          <div className="flex items-center justify-between text-[13px]">
-            <span className="text-ink-secondary">Services Covered</span>
-            <span className="font-semibold text-ink">{d.services.length}</span>
-          </div>
         </div>
       </Card>
     </Link>
