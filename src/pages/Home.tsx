@@ -203,9 +203,7 @@ export default function Home() {
                     <th className="py-3 pl-5 font-medium">Task</th>
                     <th className="py-3 font-medium">Department</th>
                     <th className="py-3 font-medium">Assigned To</th>
-                    <th className="py-3 font-medium">Priority</th>
-                    <th className="py-3 font-medium">Status</th>
-                    <th className="py-3 pr-5 font-medium">Due</th>
+                    <th className="py-3 pr-5 font-medium">Status</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -231,15 +229,16 @@ export default function Home() {
                             <span className="font-medium text-brand">Unassigned</span>
                           )}
                         </td>
-                        <td className="py-3 pr-3"><span className="inline-flex items-center gap-1.5 text-[13px] text-ink"><span className={`h-2 w-2 rounded-full ${PRIORITY_DOT[t.priority]}`} />{t.priority}</span></td>
-                        <td className="py-3 pr-3 text-[13px] text-ink-secondary">{t.status}</td>
-                        <td className={`whitespace-nowrap py-3 pr-5 text-[13px] ${t.sla.kind === "overdue" ? "font-medium text-red-600" : t.sla.kind === "due" ? "font-medium text-brand" : "text-ink-secondary"}`}>
-                          <span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" />{t.sla.text}</span>
+                        <td className="whitespace-nowrap py-3 pr-5">
+                          <div className="text-[13px] text-ink-secondary">{t.status === "Yet to Assign" ? (t.owner ? "Assigned" : "Unassigned") : t.status}</div>
+                          <div className={`mt-0.5 flex items-center gap-1 text-[12px] ${t.sla.kind === "overdue" ? "font-medium text-red-600" : t.sla.kind === "due" ? "font-medium text-brand" : "text-ink-secondary"}`}>
+                            <Clock className="h-3.5 w-3.5" />{t.sla.text}
+                          </div>
                         </td>
                       </tr>
                     );
                   })}
-                  {!pending.length && <tr><td colSpan={6} className="py-10 text-center text-[13px] text-ink-tertiary">No pending tasks match.</td></tr>}
+                  {!pending.length && <tr><td colSpan={4} className="py-10 text-center text-[13px] text-ink-tertiary">No pending tasks match.</td></tr>}
                 </tbody>
               </table>
             </div>
