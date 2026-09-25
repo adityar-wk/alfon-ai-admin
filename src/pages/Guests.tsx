@@ -203,7 +203,7 @@ export default function Guests() {
                       </span>
                     </td>
                     <td className="py-3.5 pr-5">
-                      <Badge tone={g.status === "In House" ? "success" : "info"}>{g.status}</Badge>
+                      <span className={`text-[13px] font-medium ${g.status === "In House" ? "text-emerald-600" : g.status === "Arriving" ? "text-blue-600" : "text-slate-500"}`}>{g.status}</span>
                     </td>
                   </tr>
                 ))}

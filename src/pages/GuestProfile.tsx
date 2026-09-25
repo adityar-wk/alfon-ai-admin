@@ -297,9 +297,9 @@ export function buildProfile(g: Guest): Profile {
 
 const STATUS_LABEL: Record<Guest["status"], string> = { "In House": "In-House", Arriving: "Pre-Arrival", "Checked Out": "Checked Out" };
 const STATUS_PILL: Record<Guest["status"], string> = {
-  "In House": "bg-emerald-50 text-emerald-600",
-  Arriving: "bg-blue-50 text-blue-600",
-  "Checked Out": "bg-slate-100 text-slate-500",
+  "In House": "text-emerald-600",
+  Arriving: "text-blue-600",
+  "Checked Out": "text-slate-500",
 };
 const LIST_FILTERS = ["All", "In House", "Arriving", "Checked Out"] as const;
 
@@ -453,7 +453,7 @@ export default function GuestProfile() {
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <h1 className="text-[22px] font-bold leading-tight text-ink">{guest.name}</h1>
-                    <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${STATUS_PILL[guest.status]}`}>{STATUS_LABEL[guest.status]}</span>
+                    <span className={`text-[13px] font-medium ${STATUS_PILL[guest.status]}`}>{STATUS_LABEL[guest.status]}</span>
                   </div>
                   <div className="mt-1.5 flex flex-wrap items-center gap-x-2 text-[13px] text-ink-secondary">
                     <Flag country={guest.country} /> {guest.country} <span>·</span> Room {guest.room} <span>·</span> {guest.roomType}
