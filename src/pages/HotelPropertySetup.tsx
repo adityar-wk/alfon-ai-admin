@@ -1,6 +1,6 @@
 import { Topbar } from "../components/Topbar";
 import { SetupTabs } from "../components/SetupTabs";
-import { Page, Card, Button, Field, Input, Select, Stars } from "../components/ui";
+import { Page, Card, Button, Field, Input, Select } from "../components/ui";
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -39,11 +39,6 @@ export default function HotelPropertySetup() {
                     <option>Boutique Hotel</option>
                     <option>Resort</option>
                   </Select>
-                </Field>
-                <Field label="Star Rating" required>
-                  <div className="flex h-10 items-center rounded-lg border border-line px-3">
-                    <Stars value={5} />
-                  </div>
                 </Field>
                 <Field label="Total Rooms" required>
                   <Input defaultValue="245" />

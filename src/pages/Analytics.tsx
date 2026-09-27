@@ -111,7 +111,6 @@ export default function Analytics() {
   const [from, setFrom] = useState("2026-05-01");
   const [to, setTo] = useState("2026-05-15");
   const [breakdown, setBreakdown] = useState<{ title: string; items: [string, number][]; total: number } | null>(null);
-  const [sortBy, setSortBy] = useState<"n" | "done" | "overdue" | "delta">("n");
   const [toast, setToast] = useState<string | null>(null);
 
   const days = Math.max(1, Math.round((new Date(to).getTime() - new Date(from).getTime()) / 86400000) + 1);
@@ -149,6 +148,7 @@ export default function Analytics() {
   const avgResp = manager ? fmtSecs(mine.reduce((a, d) => a + secs(METRICS[d.name].resp), 0) / Math.max(mine.length, 1)) : "2m 45s";
   const sorted = [...depts].sort((a, b) => b.n - a.n);
   const maxDept = sorted[0].n;
+  const maxDeptN = Math.max(...depts.map((d) => d.n));
   // each department keeps the same colour everywhere
   const deptIdx = (name: string) => Math.max(0, DEPTS.findIndex((x) => x.name === name)) % TAGS.length;
   const deptColors = sorted.map((d) => TAGS[deptIdx(d.name)].mid);
@@ -178,11 +178,6 @@ export default function Analytics() {
 
   const complaintTotal = COMPLAINTS.reduce((a, [, v]) => a + v, 0);
   const requestTotal = REQUESTS.reduce((a, [, v]) => a + v, 0);
-  const rows = depts
-    .map((d) => ({ ...d, m: METRICS[d.name] }))
-    .sort((a, b) =>
-      sortBy === "n" ? b.n - a.n : sortBy === "done" ? b.m.done - a.m.done : sortBy === "overdue" ? b.m.overdue - a.m.overdue : b.m.delta - a.m.delta,
-    );
 
   return (
     <>
@@ -356,42 +351,30 @@ export default function Analytics() {
         {/* tasks by department */}
         <div className="mb-3 mt-7 flex items-baseline justify-between">
           <h3 className="text-[15px] font-semibold text-ink">Tasks by Department</h3>
-          <span className="text-[12px] text-ink-tertiary">Use View more for a department's task breakdown</span>
+          <span className="text-[12px] text-ink-tertiary">Tap a department for its task breakdown</span>
         </div>
-        <Card table className="overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full table-fixed min-w-[720px] text-left">
-              <thead>
-                <tr className="bg-[#F4F4F5] text-[12px] uppercase tracking-wide text-[#6B7280]">
-                  <th className="py-3.5 pl-6 font-medium">Department</th>
-                  <SortTh label="Tasks" k="n" cur={sortBy} set={setSortBy} />
-                  <SortTh label="Completed" k="done" cur={sortBy} set={setSortBy} />
-                  <SortTh label="Overdue" k="overdue" cur={sortBy} set={setSortBy} />
-                  <th className="py-3.5 pl-6 font-medium">Avg response</th>
-                  <SortTh label="vs last period" k="delta" cur={sortBy} set={setSortBy} />
-                  <th className="w-24 py-3.5 pr-6" />
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((d) => (
-                  <tr key={d.name} className="border-b border-line/50 last:border-0">
-                    <td className="py-3.5 pl-6 pr-3 text-[14px] font-medium text-ink">{d.name}</td>
-                    <td className="text-[14px] font-bold text-ink py-3.5 pl-6 pr-3">{d.n.toLocaleString()}</td>
-                    <td className="text-[14px] text-ink-secondary py-3.5 pl-6 pr-3">{d.m.done}%</td>
-                    <td className={`py-3 text-[13px] ${d.m.overdue / d.tasks > 0.04 ? "font-semibold text-rose-500" : "text-ink-secondary"}`}>{scale(d.m.overdue)}</td>
-                    <td className="text-[14px] text-ink-secondary py-3.5 pl-6 pr-3">{d.m.resp}</td>
-                    <td className="text-[14px] py-3.5 pl-6 pr-3"><Delta v={d.m.delta} /></td>
-                    <td className="text-right py-3.5 pr-6">
-                      <button onClick={() => setBreakdown({ title: `${d.name} — Task Breakdown`, items: d.items, total: d.n })} className="whitespace-nowrap text-[12px] font-semibold text-brand hover:underline">
-                        View more
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Card>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {depts.map((d) => {
+            const color = TAGS[deptIdx(d.name)].mid;
+            return (
+              <button
+                key={d.name}
+                onClick={() => setBreakdown({ title: `${d.name} — Task Breakdown`, items: d.items, total: d.n })}
+                className="rounded-card border border-line bg-white p-4 text-left hover:border-brand/40"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="truncate text-[14px] font-semibold text-ink">{d.name}</span>
+                  <ChevronRight className="h-4 w-4 shrink-0 text-ink-tertiary" />
+                </div>
+                <div className="mt-2 text-[26px] font-bold leading-none text-ink">{d.n.toLocaleString()}</div>
+                <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-subtle">
+                  <div className="h-full rounded-full" style={{ width: `${(d.n / maxDeptN) * 100}%`, background: color }} />
+                </div>
+                <div className="mt-2 text-[12px] text-ink-tertiary">tasks this period</div>
+              </button>
+            );
+          })}
+        </div>
 
         {/* complaints + comparison */}
         <div className="mt-5 grid grid-cols-1 gap-4 lg:grid-cols-2">
@@ -592,15 +575,6 @@ function BreakdownModal({ title, items: raw, total, onClose }: { title: string; 
   );
 }
 
-function SortTh({ label, k, cur, set }: { label: string; k: "n" | "done" | "overdue" | "delta"; cur: string; set: (k: "n" | "done" | "overdue" | "delta") => void }) {
-  return (
-    <th className="py-3 font-medium">
-      <button onClick={() => set(k)} className={`flex items-center gap-1 uppercase tracking-wide ${cur === k ? "text-brand" : "hover:text-ink"}`}>
-        {label} {cur === k && <ArrowDown className="h-3 w-3" />}
-      </button>
-    </th>
-  );
-}
 
 /** change vs last period; for complaints, an increase is the bad direction */
 function Delta({ v, badWhenUp = false }: { v: number; badWhenUp?: boolean }) {

@@ -45,7 +45,7 @@ export default function GuestChats() {
       ? [{
           id: ORPHAN_ID, name: orphanName, initials: orphanName.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase(), contact: "+1 (555) 123-4567",
           room: params.get("room") ?? "—", roomType: "Standard Room", from: "May 22", to: "May 26", nights: 4, country: "United Kingdom",
-          status: "In House" as const, type: "Leisure" as const, last: null, tint: "bg-orange-100 text-orange-700",
+          status: "In House" as const, type: "Leisure" as const, last: null, tint: "bg-subtle text-ink-secondary",
         }]
       : []),
     ...BASE_GUESTS,
@@ -177,6 +177,7 @@ export default function GuestChats() {
             setMode={(m) => setModes((x) => ({ ...x, [guest.id]: m }))}
             onSend={(text) => setChats((c) => ({ ...c, [guest.id]: [...msgs, { from: "staff", text, time: "Now" }] }))}
             emptyText="No messages yet. This guest has not been contacted."
+            summary={p.actions.filter((a) => a.status === "Completed").map((a) => a.text)}
             insert={insert}
             aiDraft={AI_DRAFTS[guest.name]}
             onDraftChange={(text) => { AI_DRAFTS[guest.name] = text; refreshDrafts((n) => n + 1); }}

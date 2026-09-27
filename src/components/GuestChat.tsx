@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Send, Sparkles, Hand, FileText, Paperclip, Smile, CheckCheck } from "lucide-react";
+import { Send, Sparkles, Hand, FileText, Paperclip, Smile, CheckCheck, Check } from "lucide-react";
 import { usePersona } from "../persona";
 
 export type MessageTemplate = { label: string; text: string };
@@ -21,6 +21,7 @@ export function GuestChat({
   aiDraft,
   onDraftChange,
   onApproveDraft,
+  summary,
 }: {
   name: string;
   msgs: ChatMsg[];
@@ -37,6 +38,8 @@ export function GuestChat({
   aiDraft?: string;
   onDraftChange?: (text: string) => void;
   onApproveDraft?: () => void;
+  /** confirmed items pulled from the guest's profile — quick context above the composer */
+  summary?: string[];
 }) {
   const { me } = usePersona();
   const [editing, setEditing] = useState(false);
@@ -91,6 +94,22 @@ export function GuestChat({
         })}
         <div ref={endRef} />
       </div>
+
+      {!!summary?.length && (
+        <div className="mx-6 mb-3 rounded-2xl bg-[#EEF3FF] p-4">
+          <div className="mb-2 flex items-center gap-1.5 text-[12px] font-bold text-blue-700">
+            <Sparkles className="h-3.5 w-3.5 text-blue-600" /> Guest Summary
+          </div>
+          <ul className="space-y-1.5">
+            {summary.map((t, i) => (
+              <li key={i} className="flex items-start gap-2 text-[13px] leading-snug text-ink">
+                <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-600" />
+                {t}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {aiDraft !== undefined && (
         <div className="mx-6 mb-3 rounded-2xl border border-brand/25 bg-brand-tint/60 p-4">
