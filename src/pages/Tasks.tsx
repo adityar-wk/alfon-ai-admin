@@ -260,7 +260,7 @@ export default function Tasks() {
               className="rounded-card border border-line bg-white p-4 text-left shadow-card transition duration-200 hover:-translate-y-0.5 hover:shadow-lift"
             >
               <div className="text-[13px] text-ink-secondary">{s.label}</div>
-              <div className={`mt-1 text-[26px] font-bold leading-tight ${s.label === "Escalated" ? "text-red-600" : s.label === "Complaints" ? "text-cyan-600" : "text-ink"}`}>{s.value}</div>
+              <div className="mt-1 text-[26px] font-bold leading-tight text-ink">{s.value}</div>
               <div className="text-[12px] text-ink-tertiary">{s.foot}</div>
             </button>
           ))}
