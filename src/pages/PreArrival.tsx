@@ -279,7 +279,31 @@ export default function PreArrival() {
 
   return (
     <>
-      <Topbar title="Pre-Arrival" hideQuickActions />
+      <Topbar
+        title="Pre-Arrival"
+        hideQuickActions
+        actions={
+          <div className="flex items-center gap-3">
+            <input
+              ref={fileRef}
+              type="file"
+              accept=".csv"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) importReport(f);
+                e.target.value = "";
+              }}
+            />
+            <Button variant="outline" onClick={() => fileRef.current?.click()}>
+              <Upload className="h-4 w-4" /> Upload report
+            </Button>
+            <Button disabled={!unsent.length} onClick={() => setConfirmSend(true)} className="disabled:opacity-40">
+              <Send className="h-4 w-4" /> Send to all unsent{unsent.length ? ` (${unsent.length})` : ""}
+            </Button>
+          </div>
+        }
+      />
       <Page>
         {/* KPIs */}
         <div className="grid grid-cols-2 gap-5 lg:grid-cols-4">
@@ -366,26 +390,6 @@ export default function PreArrival() {
               </div>
             </div>
           )}
-          </div>
-
-          <div className="ml-auto flex items-center gap-3">
-            <input
-              ref={fileRef}
-              type="file"
-              accept=".csv"
-              className="hidden"
-              onChange={(e) => {
-                const f = e.target.files?.[0];
-                if (f) importReport(f);
-                e.target.value = "";
-              }}
-            />
-            <Button variant="outline" onClick={() => fileRef.current?.click()}>
-              <Upload className="h-4 w-4" /> Upload report
-            </Button>
-            <Button disabled={!unsent.length} onClick={() => setConfirmSend(true)} className="disabled:opacity-40">
-              <Send className="h-4 w-4" /> Send to all unsent{unsent.length ? ` (${unsent.length})` : ""}
-            </Button>
           </div>
         </div>
 

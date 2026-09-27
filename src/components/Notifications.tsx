@@ -8,7 +8,7 @@ export type Kind = "Escalations" | "SLA breaches" | "Complaints" | "Guest reques
 export const NOTIF_KINDS: { key: Kind; hint: string; dot: string }[] = [
   { key: "Escalations", hint: "Tasks escalated to you", dot: "bg-red-400" },
   { key: "SLA breaches", hint: "Overdue or about to breach", dot: "bg-amber-400" },
-  { key: "Complaints", hint: "Guest complaints and compensation", dot: "bg-rose-400" },
+  { key: "Complaints", hint: "Guest complaints and compensation", dot: "bg-cyan-400" },
   { key: "Guest requests", hint: "New requests and unassigned tasks", dot: "bg-sky-400" },
   { key: "Pre-arrival", hint: "Arrivals needing action", dot: "bg-violet-400" },
   { key: "Staff & system", hint: "Help requests, shifts, PMS sync", dot: "bg-emerald-400" },
@@ -33,7 +33,7 @@ const NOTES: Note[] = [
 const LABEL_TONE: Record<Kind, string> = {
   Escalations: "text-red-600",
   "SLA breaches": "text-orange-600",
-  Complaints: "text-violet-600",
+  Complaints: "text-cyan-600",
   "Guest requests": "text-sky-600",
   "Pre-arrival": "text-purple",
   "Staff & system": "text-emerald-600",

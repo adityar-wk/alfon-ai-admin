@@ -120,7 +120,7 @@ const HK_DONUT_COLORS = pastel(HK_DEPT.items.length);
 const NOTIFS = [
   { label: "Escalation", tone: "text-red-600", task: "Deep clean", sub: "Room 1204 · Staffing risk", time: "10:20 AM", to: "t5" },
   { label: "SLA breach", tone: "text-orange-600", task: "Stained bedding", sub: "Room 1103 · 14 min over", time: "10:10 AM", to: "t6" },
-  { label: "Complaint", tone: "text-violet-600", task: "Guest complaint", sub: "Michael Johnson · Negative sentiment", time: "10:15 AM", to: "t6" },
+  { label: "Complaint", tone: "text-cyan-600", task: "Guest complaint", sub: "Michael Johnson · Negative sentiment", time: "10:15 AM", to: "t6" },
   { label: "SLA breach", tone: "text-orange-600", task: "Extra pillows", sub: "Room 908 · Breached twice today", time: "10:25 AM", to: "t10" },
   { label: "Help request", tone: "text-emerald-600", task: "Aanya Khan is overloaded", sub: "2 tasks, 1 overdue", time: "10:28 AM", to: "team" },
   { label: "Unassigned", tone: "text-sky-600", task: "Extra towels", sub: "Room 2104 · High priority", time: "10:31 AM", to: "t12" },
@@ -220,7 +220,7 @@ export function ManagerPrototype() {
     const flags = escalated
       ? [{ label: "Escalation", tone: "text-red-600" }]
       : t.complaint
-        ? [{ label: "Complaint", tone: "text-violet-600" }]
+        ? [{ label: "Complaint", tone: "text-cyan-600" }]
         : [];
     return {
       room: t.room,

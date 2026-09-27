@@ -1,6 +1,6 @@
 import { Button } from "../components/ui";
 import { useEffect, useRef, useState } from "react";
-import { Sparkles, Pencil, Plus, X, ChevronLeft, User, BedDouble, UtensilsCrossed, Languages, Thermometer, AlarmClock, Wine, Phone, Mail, MessageSquare, Send } from "lucide-react";
+import { Sparkles, Pencil, Plus, X, ChevronLeft, User, BedDouble, UtensilsCrossed, Languages, Thermometer, AlarmClock, Wine, Phone, Mail, MessageSquare, ArrowUp } from "lucide-react";
 import { Avatar, CARD_SHADOW } from "./mobile";
 import { GUEST_PROFILES, PRE_ARRIVAL_GUESTS, CHECKED_OUT_GUESTS } from "./data";
 
@@ -349,8 +349,13 @@ export function GuestChatScreen({
           placeholder={manual ? "Reply as hotel staff…" : "Take over to reply"}
           className="h-11 flex-1 rounded-full border border-[#DAD7CF] px-4 text-[14px] outline-none focus:border-brand disabled:bg-[#F6F6F8]"
         />
-        <button onClick={send} disabled={!manual || !draft.trim()} aria-label="Send" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand text-white disabled:opacity-40">
-          <Send className="h-4 w-4" />
+        <button
+          onClick={send}
+          disabled={!manual || !draft.trim()}
+          aria-label="Send"
+          className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-white transition-colors ${manual && draft.trim() ? "bg-brand" : "bg-brand/25"}`}
+        >
+          <ArrowUp className="h-5 w-5" strokeWidth={2.5} />
         </button>
       </div>
     </div>

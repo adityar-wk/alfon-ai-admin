@@ -10,7 +10,6 @@ import {
   BedDouble,
   Wine,
   Headset,
-  Plus,
   Sparkles,
   Building2,
   MessageCircle,
@@ -261,7 +260,7 @@ export default function Tasks() {
               className="rounded-card border border-line bg-white p-4 text-left shadow-card transition duration-200 hover:-translate-y-0.5 hover:shadow-lift"
             >
               <div className="text-[13px] text-ink-secondary">{s.label}</div>
-              <div className={`mt-1 text-[26px] font-bold leading-tight ${s.label === "Escalated" ? "text-red-600" : s.label === "Complaints" ? "text-violet-600" : "text-ink"}`}>{s.value}</div>
+              <div className={`mt-1 text-[26px] font-bold leading-tight ${s.label === "Escalated" ? "text-red-600" : s.label === "Complaints" ? "text-cyan-600" : "text-ink"}`}>{s.value}</div>
               <div className="text-[12px] text-ink-tertiary">{s.foot}</div>
             </button>
           ))}
@@ -334,9 +333,6 @@ export default function Tasks() {
                 </button>
               ))}
             </div>
-            <Button onClick={() => { setPrefill({ guest: "", room: "" }); setNewOpen(true); }}>
-              <Plus className="h-4 w-4" /> Create task
-            </Button>
           </div>
 
         </div>

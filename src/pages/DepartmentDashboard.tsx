@@ -48,7 +48,7 @@ export default function DepartmentDashboard() {
     { label: "SLA at risk", value: atRisk.length, tone: "text-amber-600", to: "/tasks?view=risk" },
     { label: "Overdue", value: overdue.length, tone: "text-red-600", to: "/tasks?view=overdue" },
     { label: "Escalations", value: escalated.length, tone: "text-brand", to: "/tasks?view=escalated" },
-    { label: "Complaints", value: complaints.length, tone: "text-violet-600", to: "/tasks?view=complaints" },
+    { label: "Complaints", value: complaints.length, tone: "text-cyan-600", to: "/tasks?view=complaints" },
     { label: "Unassigned critical", value: unassignedCritical.length, tone: "text-red-600", to: "/tasks?view=unassigned" },
   ];
   return (

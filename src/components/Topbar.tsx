@@ -33,7 +33,7 @@ function QuickActions({ newTask = false }: { newTask?: boolean }) {
       </Button>
       {newTask && (
         <Button onClick={() => navigate("/tasks?new=1")}>
-          <Plus className="h-4 w-4" /> New Task
+          <Plus className="h-4 w-4" /> Create task
         </Button>
       )}
     </div>

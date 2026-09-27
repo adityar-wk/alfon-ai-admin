@@ -90,7 +90,7 @@ function Swatch({ name, hex, cls }: { name: string; hex: string; cls: string }) 
   );
 }
 
-const STATUSES: TaskStatusLabel[] = ["Escalated", "SLA breached", "SLA at risk", "In Progress", "Assigned", "Pending", "Completed"];
+const STATUSES: TaskStatusLabel[] = ["Escalated", "SLA breached", "SLA at risk", "In Progress", "Pending", "Completed"];
 
 /* ------------------------------------------------------------------ page */
 
@@ -290,7 +290,7 @@ export default function ComponentDesign() {
           {/* ------------------------------------------------ data display */}
           <Section id="card" title="Card & stat card" note="Cards are white with a hairline border; stat cards show a number and a label.">
             <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-              {[["Escalated", "7", "text-red-600"], ["Complaints", "8", "text-violet-600"], ["SLA at risk", "24", "text-ink"], ["Unassigned", "8", "text-ink"]].map(([l, v, c]) => (
+              {[["Escalated", "7", "text-red-600"], ["Complaints", "8", "text-cyan-600"], ["SLA at risk", "24", "text-ink"], ["Unassigned", "8", "text-ink"]].map(([l, v, c]) => (
                 <Card key={l} className="p-4"><div className="text-[13px] text-ink-secondary">{l}</div><div className={`mt-1 text-[26px] font-bold leading-tight ${c}`}>{v}</div></Card>
               ))}
             </div>
@@ -305,7 +305,7 @@ export default function ComponentDesign() {
                   </tr>
                 </thead>
                 <tbody>
-                  {[["overdue", "Overdue 12 min", "AC Not Working", "#001", "Escalated", "Engineering", "Mike R."], ["due", "Due in 4 min", "Airport Pickup", "#002", "SLA at risk", "Concierge", "John S."], ["left", "22 min left", "Late Checkout Request", "#003", "Assigned", "Front Desk", "Sarah K."]].map(([k, t, n, id, st, d, o]) => (
+                  {[["overdue", "Overdue 12 min", "AC Not Working", "#001", "Escalated", "Engineering", "Mike R."], ["due", "Due in 4 min", "Airport Pickup", "#002", "SLA at risk", "Concierge", "John S."], ["left", "22 min left", "Late Checkout Request", "#003", "In Progress", "Front Desk", "Sarah K."]].map(([k, t, n, id, st, d, o]) => (
                     <tr key={id} className="border-b border-line/50 last:border-0">
                       <td className="py-3.5 pl-6"><SlaClock sla={{ kind: k as "overdue" | "due" | "left", text: t }} /></td>
                       <td className="py-3.5 pl-6"><div className="text-[13px] font-semibold text-ink">{n}</div><div className="text-[12px] text-ink-tertiary">{id}</div></td>
@@ -410,7 +410,7 @@ export default function ComponentDesign() {
           <Section id="m-cards" title="Task card, stat card, SLA clock" note="White cards with the soft phone shadow; the live SLA clock sits at the right of each task card.">
             <Phone grey>
               <div className="mb-3 grid grid-cols-3 gap-3"><StatCard label="Open" value={9} /><StatCard label="At risk" value={2} tone="text-amber-600" /><StatCard label="Overdue" value={2} tone="text-red-600" /></div>
-              <TaskCard room="Room 1104" note="Stained bed sheets" staff="Maria Santos" left={-14} total={45} flags={[{ label: "Escalated", tone: "text-red-600" }, { label: "Complaint", tone: "text-violet-600" }]} />
+              <TaskCard room="Room 1104" note="Stained bed sheets" staff="Maria Santos" left={-14} total={45} flags={[{ label: "Escalated", tone: "text-red-600" }, { label: "Complaint", tone: "text-cyan-600" }]} />
               <div className="mt-3"><TaskCard room="Room 2104" note="Extra towels" staff={null} status={{ label: "Unassigned", tone: "text-red-600" }} left={9} total={45} /></div>
               <div className="mt-3 flex items-center gap-5"><SlaClockChip left={40} total={45} /><SlaClockChip left={12} total={45} /><SlaClockChip left={-8} total={45} /></div>
             </Phone>

@@ -11,7 +11,6 @@ export type TaskStatusLabel =
   | "SLA breached"
   | "SLA at risk"
   | "In Progress"
-  | "Assigned"
   | "Pending"
   | "Completed"
   | "Unable to Complete"
@@ -24,7 +23,7 @@ export function taskStatus(t: Pick<Task, "status" | "owner" | "sla">): TaskStatu
   if (t.sla.kind === "overdue" || (secs !== null && secs < 0)) return "SLA breached";
   if (t.sla.kind === "due") return "SLA at risk";
   if (t.status === "In Progress") return "In Progress";
-  return t.owner ? "Assigned" : "Pending";
+  return t.owner ? "In Progress" : "Pending";
 }
 
 /** text colour only, no chip */
@@ -33,14 +32,13 @@ export const STATUS_PILL: Record<TaskStatusLabel, string> = {
   "SLA breached": "text-orange-600",
   "SLA at risk": "text-amber-600",
   "In Progress": "text-[#5B9EE8]",
-  Assigned: "text-[#4DB98B]",
   Pending: "text-slate-500",
   Completed: "text-emerald-600",
   "Unable to Complete": "text-gray-500",
   Void: "text-gray-400",
 };
 
-export const COMPLAINT_PILL = "bg-violet-50 text-violet-600";
+export const COMPLAINT_PILL = "bg-cyan-50 text-cyan-600";
 
 /* ---------- live SLA clock ---------- */
 
