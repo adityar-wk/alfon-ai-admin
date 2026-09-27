@@ -279,7 +279,7 @@ export default function PreArrival() {
 
   return (
     <>
-      <Topbar title="Pre-Arrival" />
+      <Topbar title="Pre-Arrival" hideQuickActions />
       <Page>
         {/* KPIs */}
         <div className="grid grid-cols-2 gap-5 lg:grid-cols-4">

@@ -24,12 +24,9 @@ import {
   Zap,
   ChevronDown,
   Check,
-  Calendar,
-  MessageSquare,
-  Plus,
 } from "lucide-react";
 import { Topbar } from "../components/Topbar";
-import { Page, Card, Select, Button, RoomNo } from "../components/ui";
+import { Page, Card, Select, RoomNo } from "../components/ui";
 import { TASKS } from "../data/tasks";
 import Orb from "../components/Orb";
 import { scoreBand } from "../data/scoreBand";
@@ -125,22 +122,7 @@ export default function Home() {
 
   return (
     <>
-      <Topbar
-        title={HOTEL}
-        actions={
-          <div className="flex items-center gap-3">
-            <span className="flex h-9 items-center gap-2 rounded-control border border-line bg-white px-3 text-[13px] font-medium text-ink-secondary">
-              <Calendar className="h-4 w-4 text-ink-tertiary" /> Sep 23, 2026 <ChevronDown className="h-3.5 w-3.5 text-ink-tertiary" />
-            </span>
-            <Button variant="outline" onClick={() => navigate("/guest-chats")}>
-              <MessageSquare className="h-4 w-4" /> New Chat
-            </Button>
-            <Button onClick={() => navigate("/tasks?new=1")}>
-              <Plus className="h-4 w-4" /> New Task
-            </Button>
-          </div>
-        }
-      />
+      <Topbar title={HOTEL} />
       <Page>
         {/* pillars | orb | department performance + occupancy */}
         <div className="grid grid-cols-1 items-stretch gap-5 xl:grid-cols-[260px_minmax(0,1fr)_320px]">

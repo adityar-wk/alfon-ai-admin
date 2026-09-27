@@ -1,7 +1,8 @@
-import { Search, ArrowLeft } from "lucide-react";
+import { Search, ArrowLeft, Calendar, ChevronDown, MessageSquare, Plus } from "lucide-react";
 import { NotificationBell } from "./Notifications";
 import type { ReactNode } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { Button } from "./ui";
 
 export function SearchBar({ placeholder = "Search anything..." }: { placeholder?: string }) {
   return (
@@ -15,6 +16,26 @@ export function SearchBar({ placeholder = "Search anything..." }: { placeholder?
       <kbd className="absolute right-3 top-1/2 -translate-y-1/2 rounded border border-line bg-white px-1.5 py-0.5 text-[10px] font-medium text-ink-tertiary">
         ⌘K
       </kbd>
+    </div>
+  );
+}
+
+/** today's date + a shortcut to start a guest chat; shown on every screen except where told not to. "New Task" only joins it on the Tasks page. */
+function QuickActions({ newTask = false }: { newTask?: boolean }) {
+  const navigate = useNavigate();
+  return (
+    <div className="flex items-center gap-3">
+      <span className="flex h-9 items-center gap-2 rounded-control border border-line bg-white px-3 text-[13px] font-medium text-ink-secondary">
+        <Calendar className="h-4 w-4 text-ink-tertiary" /> Sep 23, 2026 <ChevronDown className="h-3.5 w-3.5 text-ink-tertiary" />
+      </span>
+      <Button variant="outline" onClick={() => navigate("/guest-chats")}>
+        <MessageSquare className="h-4 w-4" /> New Chat
+      </Button>
+      {newTask && (
+        <Button onClick={() => navigate("/tasks?new=1")}>
+          <Plus className="h-4 w-4" /> New Task
+        </Button>
+      )}
     </div>
   );
 }
@@ -34,6 +55,8 @@ export function Topbar({
   searchPlaceholder,
   actions,
   backTo,
+  hideQuickActions = false,
+  newTask = false,
 }: {
   title: string;
   subtitle?: string;
@@ -41,6 +64,10 @@ export function Topbar({
   searchPlaceholder?: string;
   actions?: ReactNode;
   backTo?: string;
+  /** hide the date + New Chat shortcut (Pre-Arrival has its own date-driven filter instead) */
+  hideQuickActions?: boolean;
+  /** also show "New Task" next to New Chat — the Tasks page only */
+  newTask?: boolean;
 }) {
   return (
     <header className="flex h-16 shrink-0 items-center gap-6 border-b border-line bg-white px-6">
@@ -68,6 +95,7 @@ export function Topbar({
       )}
       <div className="ml-auto flex shrink-0 items-center gap-3">
         {actions}
+        {!hideQuickActions && <QuickActions newTask={newTask} />}
         <DefaultTopbarActions />
       </div>
     </header>
