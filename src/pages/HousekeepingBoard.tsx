@@ -7,7 +7,7 @@ import {
   CircleSlash,
   Timer,
   ArrowRight,
-  SlidersHorizontal,
+  Filter,
   Check,
   Wrench,
 } from "lucide-react";
@@ -185,7 +185,7 @@ export default function HousekeepingBoard() {
               onClick={() => setFilterOpen((o) => !o)}
               className={`relative flex h-10 w-10 items-center justify-center rounded-lg border ${filterOpen || activeFilters ? "border-brand bg-brand-tint text-brand" : "border-line bg-white text-ink-secondary hover:bg-subtle"}`}
             >
-              <SlidersHorizontal className="h-4 w-4" />
+              <Filter className="h-4 w-4" />
               {activeFilters > 0 && (
                 <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-brand px-1 text-[10px] font-semibold text-white">{activeFilters}</span>
               )}
