@@ -24,6 +24,7 @@ import {
   Zap,
   ChevronDown,
   Check,
+  AlertTriangle,
 } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { Page, Card, Select, RoomNo } from "../components/ui";
@@ -274,7 +275,11 @@ export default function Home() {
                         <td className="py-3.5 pl-6 pr-3">
                           <div className="flex items-center gap-2 text-[13px] font-semibold text-ink">
                             {t.title}
-                            {t.tag === "Complaint" && <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${COMPLAINT_PILL}`}>Complaint</span>}
+                            {t.tag === "Complaint" && (
+                              <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ${COMPLAINT_PILL}`}>
+                                <AlertTriangle className="h-3 w-3" /> Complaint
+                              </span>
+                            )}
                           </div>
                           <div className="text-[12px] text-ink-tertiary"><RoomNo room={t.room} /></div>
                         </td>

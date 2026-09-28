@@ -1,12 +1,12 @@
 import { Link, useNavigate } from "react-router-dom";
-import { ChevronRight, ListChecks, Building2 } from "lucide-react";
+import { ChevronRight, ListChecks, Building2, AlertTriangle } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { Page, Card, RoomNo } from "../components/ui";
 import { ScopePicker } from "../components/ScopePicker";
 import { TASKS, shortName } from "../data/tasks";
 import { INITIAL } from "../data/staff";
 import { usePersona } from "../persona";
-import { taskStatus, STATUS_PILL, COMPLAINT_PILL, slaLabel, useClock } from "../data/attention";
+import { taskStatus, STATUS_PILL, COMPLAINT_PILL, useClock } from "../data/attention";
 import { SlaClock } from "../components/SlaClock";
 import { DEPT_ICON } from "./Home";
 
@@ -38,10 +38,8 @@ export default function DepartmentDashboard() {
     return { ...s, n };
   });
   const totalPicked = team.reduce((sum, s) => sum + s.n, 0);
-  const onDuty = team.filter((s) => s.status === "On Duty").length;
   const maxPicked = Math.max(1, ...team.map((s) => s.n));
   const busiest = Math.max(...team.map((s) => s.n));
-  const busier = open.length > onDuty * 2;
 
   const ops = [
     { label: "Open tasks", value: open.length, tone: "text-ink", to: "/tasks?view=all" },
@@ -103,7 +101,11 @@ export default function DepartmentDashboard() {
                           <td className="py-3.5 pl-6 pr-3">
                             <div className="flex items-center gap-2 text-[13px] font-semibold text-ink">
                               {t.title}
-                              {t.tag === "Complaint" && <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${COMPLAINT_PILL}`}>Complaint</span>}
+                              {t.tag === "Complaint" && (
+                                <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ${COMPLAINT_PILL}`}>
+                                  <AlertTriangle className="h-3 w-3" /> Complaint
+                                </span>
+                              )}
                             </div>
                             <div className="text-[12px] text-ink-tertiary"><RoomNo room={t.room} /></div>
                           </td>
@@ -127,9 +129,7 @@ export default function DepartmentDashboard() {
             <Card className="p-5">
               <h3 className="text-[15px] font-semibold text-ink">Team availability &amp; workload</h3>
               <div className="mt-3 flex items-center gap-2 text-[12px]">
-                <span className="rounded bg-red-600 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">Live</span>
-                <span className="italic text-ink-secondary">{busier ? "Busier than usual" : "As busy as usual"}</span>
-                <span className="ml-auto text-ink-tertiary">{totalPicked} picked up today</span>
+                <span className="text-ink-tertiary">{totalPicked} picked up today</span>
               </div>
               <div className="mt-3 overflow-x-auto border-t border-dashed border-line/90 pb-1">
                 <div className="flex h-40 items-end gap-3" style={{ minWidth: team.length * 52 }} role="img" aria-label="Tasks picked up today by team member">
@@ -149,12 +149,15 @@ export default function DepartmentDashboard() {
                   ))}
                 </div>
               </div>
-              <div className="mt-3 divide-y divide-line/70 border-t border-line/70">
+              <div className="mt-3 flex items-center gap-2.5 border-t border-line/70 pt-2.5 text-[11px] font-semibold uppercase tracking-wide text-ink-tertiary">
+                <span className="min-w-0 flex-1">Staff</span>
+                <span className="shrink-0">Tasks</span>
+              </div>
+              <div className="divide-y divide-line/70">
                 {team.map((s) => (
                   <div key={s.id} className="flex items-center gap-2.5 py-2">
-                    <span className={`h-2 w-2 shrink-0 rounded-full ${s.status === "On Duty" ? "bg-emerald-500" : s.status === "On Break" ? "bg-amber-400" : "bg-gray-300"}`} />
                     <span className="min-w-0 flex-1 truncate text-[13px] font-medium text-ink">{s.name}</span>
-                    <span className="text-[11px] text-ink-tertiary">{s.status}</span>
+                    <span className="shrink-0 text-[13px] font-semibold text-ink">{s.n}</span>
                   </div>
                 ))}
               </div>
@@ -168,13 +171,21 @@ export default function DepartmentDashboard() {
                 <h3 className="text-[15px] font-semibold text-ink">Open tasks to pick up</h3>
                 <span className="text-[12px] text-ink-tertiary">{pickable.length} unassigned</span>
               </div>
-              <div className="mt-2 divide-y divide-line/70">
+              {!!pickable.length && (
+                <div className="mt-3 flex items-center gap-3 pb-1.5 text-[11px] font-semibold uppercase tracking-wide text-ink-tertiary">
+                  <span className="min-w-0 flex-1">Task</span>
+                  <span className="w-16 shrink-0">SLA</span>
+                  <span className="w-[68px] shrink-0" />
+                </div>
+              )}
+              <div className="divide-y divide-line/70 border-t border-line/70">
                 {pickable.map((t) => (
                   <div key={t.id} className="flex items-center gap-3 py-2.5">
                     <div className="min-w-0 flex-1 leading-tight">
                       <div className="truncate text-[13px] font-medium text-ink">{t.title}</div>
-                      <div className="text-[11px] text-ink-tertiary">{scopeDepts.length > 1 && <>{t.dept} · </>}<RoomNo room={t.room} /> · {slaLabel(t.sla)}</div>
+                      <div className="text-[11px] text-ink-tertiary">{scopeDepts.length > 1 && <>{t.dept} · </>}<RoomNo room={t.room} /></div>
                     </div>
+                    <div className="w-16 shrink-0"><SlaClock sla={t.sla} className="text-[12px]" /></div>
                     <Link to={`/tasks?open=${t.id}`} className="shrink-0 rounded-lg border border-line px-3 py-1.5 text-[12px] font-semibold text-ink hover:bg-subtle">
                       View
                     </Link>

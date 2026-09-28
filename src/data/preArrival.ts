@@ -36,14 +36,7 @@ export type PreGuest = {
   convo: Msg[];
 };
 
-const TINTS = [
-  "bg-orange-100 text-orange-700",
-  "bg-sky-100 text-sky-700",
-  "bg-rose-100 text-rose-700",
-  "bg-violet-100 text-violet-700",
-  "bg-teal-100 text-teal-700",
-  "bg-amber-100 text-amber-700",
-];
+const TINTS = ["bg-brand-tint text-brand"];
 
 type Opts = {
   tags?: Tag[];

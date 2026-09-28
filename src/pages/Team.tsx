@@ -6,7 +6,6 @@ import {
   ChevronDown,
   Filter,
   Search,
-  MoreHorizontal,
   MessageCircle,
   MessageSquare,
   Plus,
@@ -317,17 +316,18 @@ export default function Team() {
 
           <Card table className="mt-4">
             <div className="overflow-x-auto">
-              <table className="w-full table-fixed min-w-[820px] text-left">
+              <table className="table-fixed text-left" style={{ width: "min(50%, 640px)", minWidth: 480 }}>
+                <colgroup>
+                  <col className="w-[45%]" />
+                  <col className="w-[27.5%]" />
+                  <col className="w-[27.5%]" />
+                </colgroup>
                 <thead>
                   <tr className="bg-[#F4F4F5] text-[12px] uppercase tracking-wide text-[#6B7280]">
-                    
+
                     <th className="py-3.5 pl-6 font-medium">Staff Member</th>
                     <th className="py-3.5 pl-6 font-medium">Role</th>
                     <th className="py-3.5 pl-6 font-medium">Department</th>
-                    {manager && <th className="py-3.5 pl-6 font-medium">Status</th>}
-                    <th className="py-3.5 pl-6 font-medium">Current Task</th>
-                    {manager && <th className="py-3.5 pl-6 font-medium">Open tasks</th>}
-                    <th className="py-3.5 pl-6 font-medium">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -351,25 +351,11 @@ export default function Team() {
                       </td>
                       <td className="text-[14px] text-ink-secondary py-3.5 pl-6 pr-3">{s.role}</td>
                       <td className="text-[14px] text-ink-secondary py-3.5 pl-6 pr-3">{s.dept}</td>
-                      {manager && (
-                        <td className="py-3.5 pl-6 pr-3">
-                          <StatusPill s={s.status} />
-                        </td>
-                      )}
-                      <td className="text-[14px] text-ink-secondary py-3.5 pl-6 pr-3">{s.task ?? "—"}</td>
-                      {manager && (
-                        <td className="whitespace-nowrap leading-tight py-3.5 pl-6 pr-3">
-                          <WorkloadCell s={s} />
-                        </td>
-                      )}
-                      <td className="py-3.5 pl-6 pr-3">
-                        <MoreHorizontal className="h-4 w-4 text-ink-tertiary" />
-                      </td>
                     </tr>
                   ))}
                   {!rows.length && (
                     <tr>
-                      <td colSpan={manager ? 7 : 5} className="text-center text-[14px] text-ink-tertiary py-3.5 pl-6 pr-3">
+                      <td colSpan={3} className="text-center text-[14px] text-ink-tertiary py-3.5 pl-6 pr-3">
                         No staff match your filters.
                       </td>
                     </tr>
@@ -551,17 +537,6 @@ export function StaffDetails({ s, perms, onSaveAccess, manager }: { s: Staff; pe
         </div>
       )}
     </div>
-  );
-}
-
-function WorkloadCell({ s }: { s: Staff }) {
-  const n = TASKS.filter((t) => t.owner === shortName(s.name) && t.status !== "Completed" && t.status !== "Unable to Complete" && t.status !== "Void").length + (s.task ? 1 : 0);
-  const heavy = n >= 3;
-  return (
-    <>
-      <div className={`text-[13px] ${heavy ? "font-semibold text-brand" : "text-ink"}`}>{n}</div>
-      <div className="text-[11px] text-ink-tertiary">{heavy ? "High workload" : n === 0 ? "Available" : "Normal"}</div>
-    </>
   );
 }
 

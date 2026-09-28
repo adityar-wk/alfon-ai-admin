@@ -112,7 +112,11 @@ function PriorityLabel({ p }: { p: Priority }) {
 }
 
 function ComplaintPill({ className = "" }: { className?: string }) {
-  return <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${COMPLAINT_PILL} ${className}`}>Complaint</span>;
+  return (
+    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ${COMPLAINT_PILL} ${className}`}>
+      <AlertTriangle className="h-3 w-3" /> Complaint
+    </span>
+  );
 }
 
 function StatusLabel({ t }: { t: Pick<Task, "status" | "owner" | "sla"> }) {
@@ -209,6 +213,7 @@ export default function Tasks() {
 
   const stats = manager
     ? [
+        { label: "Open tasks", value: counts.action, foot: "Needs action", go: "action" as View },
         { label: "Escalated", value: counts.escalated, foot: "Waiting on you", go: "escalated" as View },
         { label: "Complaints", value: counts.complaints, foot: "Guest complaints open", go: "complaints" as View },
         { label: "SLA at risk", value: counts.risk, foot: "Due within the hour", go: "risk" as View },
@@ -216,6 +221,7 @@ export default function Tasks() {
         { label: "Unassigned", value: counts.unassigned, foot: "Awaiting an owner", go: "unassigned" as View },
       ]
     : [
+        { label: "Open tasks", value: counts.action, foot: "Needs action", go: "action" as View },
         { label: "Escalated", value: counts.escalated, foot: "Needs a decision", go: "escalated" as View },
         { label: "Complaints", value: counts.complaints, foot: "Guest complaints open", go: "complaints" as View },
         { label: "SLA at risk", value: counts.risk, foot: "Due within the hour", go: "risk" as View },
@@ -250,7 +256,7 @@ export default function Tasks() {
       />
       <Page>
 
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-6">
           {stats.map((s) => (
             <button
               key={s.label}
@@ -464,7 +470,7 @@ export default function Tasks() {
         />
       )}
 
-      {newOpen && <NewTask prefill={prefill} deptOptions={manager ? scopeDepts : DEPTS} onClose={() => setNewOpen(false)} onCreate={createTask} />}
+      {newOpen && <NewTask prefill={prefill} deptOptions={DEPTS} onClose={() => setNewOpen(false)} onCreate={createTask} />}
 
       {toast && (
         <div className="pointer-events-none fixed inset-x-0 bottom-6 z-[70] flex justify-center">
@@ -798,7 +804,11 @@ function ManagerTaskWindow({
           </div>
           <div className="mt-3 flex flex-wrap items-center gap-2">
             <span className={`text-[13px] font-medium ${STATUS_PILL[taskStatus(task)]}`}>{taskStatus(task)}</span>
-            {task.tag === "Complaint" && <span className={`rounded-full px-2.5 py-1 text-[12px] font-semibold ${COMPLAINT_PILL}`}>Complaint</span>}
+            {task.tag === "Complaint" && (
+              <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px] font-semibold ${COMPLAINT_PILL}`}>
+                <AlertTriangle className="h-3.5 w-3.5" /> Complaint
+              </span>
+            )}
           </div>
         </div>
 

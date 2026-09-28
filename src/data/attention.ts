@@ -38,7 +38,7 @@ export const STATUS_PILL: Record<TaskStatusLabel, string> = {
   Void: "text-gray-400",
 };
 
-export const COMPLAINT_PILL = "bg-cyan-50 text-cyan-600";
+export const COMPLAINT_PILL = "bg-amber-50 text-amber-600";
 
 /* ---------- live SLA clock ---------- */
 

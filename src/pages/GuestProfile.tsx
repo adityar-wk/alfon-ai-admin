@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
-import { Search, Plus, User, Lightbulb, Bell, BedDouble, UtensilsCrossed, Target, MessageCircle, AlarmClock, Thermometer, Wine, Newspaper, Calendar, Hourglass, History, SlidersHorizontal, Check } from "lucide-react";
+import { Search, Plus, User, Lightbulb, Bell, BedDouble, UtensilsCrossed, Target, MessageCircle, AlarmClock, Thermometer, Wine, Newspaper, Calendar, Hourglass, History, SlidersHorizontal, StickyNote, Check } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { Card, Modal, Button, Field, Input, Select, RoomNo } from "../components/ui";
 import { Flag } from "../components/Flag";
@@ -374,21 +374,22 @@ export function seedChat(g: Guest): ChatMsg[] {
   ];
 }
 
-const PREF_CARDS: { key: keyof Prefs; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
-  { key: "room", label: "Room preferences", icon: BedDouble },
-  { key: "dietary", label: "Dietary requirements", icon: UtensilsCrossed },
-  { key: "purpose", label: "Purpose of visit", icon: Target },
-  { key: "language", label: "Communication language", icon: MessageCircle },
-  { key: "wake", label: "Wake up call preference", icon: AlarmClock },
-  { key: "temp", label: "Temperature preference", icon: Thermometer },
-  { key: "minibar", label: "Minibar preference", icon: Wine },
-  { key: "newspaper", label: "Newspaper preference", icon: Newspaper },
+const PREF_CARDS: { key: keyof Prefs; label: string; icon: React.ComponentType<{ className?: string }>; tone: string }[] = [
+  { key: "room", label: "Room preferences", icon: BedDouble, tone: "bg-sky-50 text-sky-600" },
+  { key: "dietary", label: "Dietary requirements", icon: UtensilsCrossed, tone: "bg-emerald-50 text-emerald-600" },
+  { key: "purpose", label: "Purpose of visit", icon: Target, tone: "bg-violet-50 text-violet-600" },
+  { key: "language", label: "Communication language", icon: MessageCircle, tone: "bg-blue-50 text-blue-600" },
+  { key: "wake", label: "Wake up call preference", icon: AlarmClock, tone: "bg-amber-50 text-amber-600" },
+  { key: "temp", label: "Temperature preference", icon: Thermometer, tone: "bg-cyan-50 text-cyan-600" },
+  { key: "minibar", label: "Minibar preference", icon: Wine, tone: "bg-rose-50 text-rose-600" },
+  { key: "newspaper", label: "Newspaper preference", icon: Newspaper, tone: "bg-orange-50 text-orange-600" },
 ];
 
 function Heading({ icon: Icon, tone, children }: { icon: React.ComponentType<{ className?: string }>; tone: string; children: React.ReactNode }) {
   return (
-    <div className={`mb-2 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide ${tone}`}>
-      <Icon className="h-3.5 w-3.5" /> {children}
+    <div className="mb-3 flex items-center gap-2">
+      <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md ${tone}`}><Icon className="h-3.5 w-3.5" /></span>
+      <span className="text-[11px] font-bold uppercase tracking-wide text-ink-tertiary">{children}</span>
     </div>
   );
 }
@@ -461,20 +462,22 @@ export default function GuestProfile() {
             {/* profile + needs on top, preferences then stay history below, actions + notes stacked on the right */}
             <div className="grid grid-cols-1 items-start gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_320px]">
               <Card className="min-w-0 p-6">
-                <Heading icon={User} tone="text-ink-tertiary">Guest profile</Heading>
-                <p className="text-[14px] leading-relaxed text-ink-secondary">{p.summary}</p>
+                <Heading icon={User} tone="bg-sky-50 text-sky-600">Guest profile</Heading>
+                <p className="text-[14px] leading-relaxed text-ink">{p.summary}</p>
               </Card>
               <Card className="min-w-0 p-6">
-                <Heading icon={Lightbulb} tone="text-ink-tertiary">Anticipated needs</Heading>
-                <p className="text-[14px] leading-relaxed text-ink-secondary">{p.anticipated}</p>
+                <Heading icon={Lightbulb} tone="bg-amber-50 text-amber-600">Anticipated needs</Heading>
+                <p className="text-[14px] leading-relaxed text-ink">{p.anticipated}</p>
               </Card>
 
               <Card className="min-w-0 p-6 xl:col-span-2 xl:col-start-1 xl:row-start-2">
-                <div className="mb-4 text-[11px] font-bold uppercase tracking-wide text-ink-tertiary">Preferences</div>
+                <Heading icon={SlidersHorizontal} tone="bg-brand-tint text-brand">Preferences</Heading>
                 <div className="grid grid-cols-1 gap-x-8 gap-y-5 md:grid-cols-2">
-                  {PREF_CARDS.map(({ key, label, icon: Icon }) => (
+                  {PREF_CARDS.map(({ key, label, icon: Icon, tone }) => (
                     <div key={key}>
-                      <div className="mb-1.5 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-ink-tertiary"><Icon className="h-3.5 w-3.5" /> {label}</div>
+                      <div className="mb-1.5 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-ink-tertiary">
+                        <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded ${tone}`}><Icon className="h-3 w-3" /></span> {label}
+                      </div>
                       <div className="flex flex-wrap gap-1.5">
                         {p.prefs[key].map((v) => <span key={v} className="rounded-full bg-subtle px-2.5 py-0.5 text-[13px] text-ink-secondary">{v}</span>)}
                       </div>
@@ -484,7 +487,7 @@ export default function GuestProfile() {
               </Card>
 
               <Card className="min-w-0 p-6 xl:col-span-2 xl:col-start-1 xl:row-start-3">
-                <Heading icon={History} tone="text-ink-tertiary">Stay history</Heading>
+                <Heading icon={History} tone="bg-violet-50 text-violet-600">Stay history</Heading>
                 <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
                   {p.history.map((h) => <div key={h} className="rounded-lg bg-subtle/70 px-3 py-2 text-[13px] text-ink-secondary">{h}</div>)}
                   {!p.history.length && <p className="text-[13px] text-ink-tertiary">No previous stays.</p>}
@@ -493,7 +496,7 @@ export default function GuestProfile() {
 
               <div className="flex min-w-0 flex-col gap-4 xl:col-start-3 xl:row-span-3 xl:row-start-1">
                 <Card className="p-6">
-                  <Heading icon={Bell} tone="text-red-700">Actions</Heading>
+                  <Heading icon={Bell} tone="bg-red-50 text-red-600">Actions</Heading>
                   <div className="divide-y divide-line/70">
                     {actions.map((a, i) => {
                       const isDone = a.status === "Completed" || done[a.key];
@@ -522,7 +525,10 @@ export default function GuestProfile() {
 
                 <Card className="p-6">
                   <div className="mb-3 flex items-center justify-between">
-                    <div className="text-[11px] font-bold uppercase tracking-wide text-ink-tertiary">Notes</div>
+                    <div className="flex items-center gap-2">
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-blue-50 text-blue-600"><StickyNote className="h-3.5 w-3.5" /></span>
+                      <span className="text-[11px] font-bold uppercase tracking-wide text-ink-tertiary">Notes</span>
+                    </div>
                     <button onClick={() => setNoteOpen((o) => !o)} className="flex items-center gap-1 text-[12px] font-medium text-brand"><Plus className="h-3.5 w-3.5" /> Add note</button>
                   </div>
                   {noteOpen && (

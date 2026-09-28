@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from "react";
-import { Bell, Filter, Plus, Search, Menu as MenuIcon, ChevronRight, ChevronLeft, SlidersHorizontal, LogOut, ListChecks, MessageCircle, Home as HomeIcon, Wrench, Trash2, Download } from "lucide-react";
+import { Bell, Filter, Plus, Search, Menu as MenuIcon, ChevronRight, ChevronLeft, SlidersHorizontal, LogOut, ListChecks, MessageCircle, Home as HomeIcon, Wrench, Trash2, Download, AlertTriangle } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { Page, Card, Badge, Button, Field, Input, Select, Textarea, PhoneInput, Toggle, Stars, Modal, Tabs, Avatar as UiAvatar } from "../components/ui";
 import { Drawer } from "../components/Drawer";
@@ -266,7 +266,7 @@ export default function ComponentDesign() {
             <div className="space-y-5">
               <div><Label>Priority</Label><div className="flex flex-wrap gap-3"><Badge tone="brand" dot>High</Badge><Badge tone="warning" dot>Medium</Badge><Badge tone="success" dot>Low</Badge></div></div>
               <div><Label>Status</Label><div className="flex flex-wrap gap-3"><Badge tone="brand">Open</Badge><Badge tone="warning">In Progress</Badge><Badge tone="neutral">Pending</Badge><Badge tone="success">Completed</Badge></div></div>
-              <div><Label>Other tones</Label><div className="flex flex-wrap gap-3"><Badge tone="danger">Critical</Badge><Badge tone="info">Info</Badge><span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${COMPLAINT_PILL}`}>Complaint</span></div></div>
+              <div><Label>Other tones</Label><div className="flex flex-wrap gap-3"><Badge tone="danger">Critical</Badge><Badge tone="info">Info</Badge><span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ${COMPLAINT_PILL}`}><AlertTriangle className="h-3 w-3" /> Complaint</span></div></div>
             </div>
           </Section>
 

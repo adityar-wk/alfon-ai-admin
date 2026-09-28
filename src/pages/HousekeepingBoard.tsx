@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   LayoutGrid,
   CheckCircle2,
@@ -10,6 +10,8 @@ import {
   Filter,
   Check,
   Wrench,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { Page, Card, Badge, Button, Field, Select, Input, Modal } from "../components/ui";
@@ -87,9 +89,11 @@ const STATUS_ICON_TONE: Record<RoomStatus, string> = {
   inspected: "bg-emerald-50 text-emerald-600",
   progress: "bg-blue-50 text-blue-600",
   inspection: "bg-amber-50 text-amber-600",
-  oos: "bg-gray-100 text-gray-500",
-  ooo: "bg-red-50 text-red-600",
+  oos: "bg-red-50 text-red-600",
+  ooo: "bg-gray-100 text-gray-500",
 };
+
+const PAGE_SIZE = 50;
 
 const OPEN_TASK = "__open__";
 const STATUS_OPTIONS: RoomStatus[] = ["inspected", "progress", "inspection", "oos", "ooo"];
@@ -104,6 +108,7 @@ export default function HousekeepingBoard() {
   const [filterOpen, setFilterOpen] = useState(false);
   const [assignFor, setAssignFor] = useState<Room | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
   const toastTimer = useRef<number>();
 
   const visible = useMemo(() => {
@@ -118,6 +123,11 @@ export default function HousekeepingBoard() {
   const activeFilters = (floor !== "all" ? 1 : 0) + (occ !== "all" ? 1 : 0) + (statuses.length ? 1 : 0);
   const clearFilters = () => { setFloor("all"); setOcc("all"); setStatuses([]); };
   const toggleStatus = (st: RoomStatus) => setStatuses((cur) => (cur.includes(st) ? cur.filter((x) => x !== st) : [...cur, st]));
+
+  useEffect(() => setPage(1), [floor, occ, statuses]);
+  const totalPages = Math.max(1, Math.ceil(visible.length / PAGE_SIZE));
+  const pageSafe = Math.min(page, totalPages);
+  const paged = visible.slice((pageSafe - 1) * PAGE_SIZE, pageSafe * PAGE_SIZE);
 
   const count = (st: RoomStatus) => rooms.filter((r) => r.status === st).length;
   const HEAD: { status: RoomStatus; icon: React.ComponentType<{ className?: string }> }[] = [
@@ -227,12 +237,13 @@ export default function HousekeepingBoard() {
         </div>
 
         <div className="mt-3 text-[12px] text-ink-tertiary">
-          Showing {visible.length} of {rooms.length} rooms
+          Showing {visible.length ? (pageSafe - 1) * PAGE_SIZE + 1 : 0}–{Math.min(pageSafe * PAGE_SIZE, visible.length)} of {visible.length} rooms
         </div>
 
         <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-          {visible.map((r) => {
+          {paged.map((r) => {
             const occupied = !!r.guest;
+            const dulled = r.status === "ooo";
             return (
               <div
                 key={r.no}
@@ -241,10 +252,12 @@ export default function HousekeepingBoard() {
                 aria-label={`Open room ${r.no}`}
                 onClick={() => setAssignFor(r)}
                 onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && setAssignFor(r)}
-                className="flex h-[156px] cursor-pointer flex-col rounded-xl border border-brand/25 bg-white p-4 transition-colors hover:border-brand/50"
+                className={`flex h-[156px] cursor-pointer flex-col rounded-xl border p-4 transition-colors ${
+                  dulled ? "border-line bg-subtle hover:border-line" : "border-brand/25 bg-white hover:border-brand/50"
+                }`}
               >
                 {(() => { const Icon = STATUS_ICON[r.status]; return <span title={STATUS_LABEL[r.status]} aria-label={STATUS_LABEL[r.status]} role="img" className={`flex h-8 w-8 items-center justify-center rounded-lg ${STATUS_ICON_TONE[r.status]}`}><Icon className="h-[18px] w-[18px]" /></span>; })()}
-                <div className="mt-3 text-[14px] font-bold text-ink">Room {r.no}</div>
+                <div className={`mt-3 text-[14px] font-bold ${dulled ? "text-ink-tertiary" : "text-ink"}`}>Room {r.no}</div>
                 <div className="mt-0.5 truncate text-[12px] text-ink-secondary">{r.type}</div>
                 <div className="truncate text-[12px] text-ink-tertiary">{occupied ? "Occupied" : "Vacant"}</div>
                 <div className="mt-auto flex items-center justify-between">
@@ -264,6 +277,41 @@ export default function HousekeepingBoard() {
             </div>
           )}
         </div>
+
+        {totalPages > 1 && (
+          <div className="mt-4 flex items-center justify-between">
+            <span className="text-[12px] text-ink-tertiary">Page {pageSafe} of {totalPages}</span>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={pageSafe === 1}
+                className="flex h-8 w-8 items-center justify-center rounded-lg border border-line text-ink-secondary hover:bg-subtle disabled:cursor-not-allowed disabled:opacity-40"
+                aria-label="Previous page"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                <button
+                  key={p}
+                  onClick={() => setPage(p)}
+                  className={`h-8 min-w-8 rounded-lg border px-2.5 text-[13px] font-medium ${
+                    p === pageSafe ? "border-brand bg-brand-tint text-brand" : "border-line text-ink-secondary hover:bg-subtle"
+                  }`}
+                >
+                  {p}
+                </button>
+              ))}
+              <button
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={pageSafe === totalPages}
+                className="flex h-8 w-8 items-center justify-center rounded-lg border border-line text-ink-secondary hover:bg-subtle disabled:cursor-not-allowed disabled:opacity-40"
+                aria-label="Next page"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        )}
       </Page>
 
       {assignFor && (
