@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Lock, Instagram, Facebook } from "lucide-react";
+import { Lock, Instagram, Facebook, Search, X } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { SetupTabs } from "../components/SetupTabs";
 import { Page, Card, Button, Field, Input, Select } from "../components/ui";
@@ -23,11 +23,17 @@ function Locked({ value }: { value: string }) {
   );
 }
 
-const LANGUAGES = ["English", "Arabic", "Spanish", "French", "Hindi", "Mandarin", "German", "Russian"];
+const LANGUAGES = [
+  "English", "Arabic", "Spanish", "French", "Hindi", "Mandarin", "German", "Russian",
+  "Portuguese", "Italian", "Japanese", "Korean", "Turkish", "Urdu", "Tagalog", "Bengali",
+];
 
 export default function HotelPropertySetup() {
   const [languages, setLanguages] = useState<string[]>(["English"]);
+  const [langQuery, setLangQuery] = useState("");
+  const [langOpen, setLangOpen] = useState(false);
   const toggleLang = (l: string) => setLanguages((ls) => (ls.includes(l) ? ls.filter((x) => x !== l) : [...ls, l]));
+  const langMatches = LANGUAGES.filter((l) => l.toLowerCase().includes(langQuery.trim().toLowerCase()));
 
   return (
     <>
@@ -46,20 +52,48 @@ export default function HotelPropertySetup() {
                 </Field>
               </div>
               <Field className="mt-4" label="Languages Spoken" required hint="Select every language your team can support guests in.">
-                <div className="flex flex-wrap gap-2">
-                  {LANGUAGES.map((l) => {
-                    const on = languages.includes(l);
-                    return (
-                      <button
-                        key={l}
-                        type="button"
-                        onClick={() => toggleLang(l)}
-                        className={`rounded-full border px-3 py-1.5 text-[13px] font-medium ${on ? "border-brand bg-brand-tint text-brand" : "border-line bg-white text-ink-secondary hover:bg-subtle"}`}
-                      >
-                        {l}
-                      </button>
-                    );
-                  })}
+                <div className="relative">
+                  {!!languages.length && (
+                    <div className="mb-2 flex flex-wrap gap-1.5">
+                      {languages.map((l) => (
+                        <span key={l} className="flex items-center gap-1 rounded-full bg-brand-tint py-1 pl-3 pr-1.5 text-[12px] font-medium text-brand">
+                          {l}
+                          <button type="button" onClick={() => toggleLang(l)} aria-label={`Remove ${l}`} className="rounded-full p-0.5 hover:bg-brand/15">
+                            <X className="h-3 w-3" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  <div className="relative">
+                    <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-tertiary" />
+                    <Input
+                      className="pl-9"
+                      value={langQuery}
+                      onChange={(e) => setLangQuery(e.target.value)}
+                      onFocus={() => setLangOpen(true)}
+                      placeholder="Search languages…"
+                    />
+                  </div>
+                  {langOpen && (
+                    <>
+                      <button aria-label="Close" className="fixed inset-0 z-10" onClick={() => setLangOpen(false)} />
+                      <div className="absolute left-0 top-[calc(100%+4px)] z-20 max-h-56 w-full overflow-y-auto rounded-xl border border-line bg-white p-1.5 shadow-lg">
+                        {langMatches.map((l) => {
+                          const on = languages.includes(l);
+                          return (
+                            <label key={l} className="flex cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] text-ink hover:bg-subtle">
+                              <input type="checkbox" className="h-4 w-4 accent-brand" checked={on} onChange={() => toggleLang(l)} />
+                              {l}
+                            </label>
+                          );
+                        })}
+                        {!langMatches.length && (
+                          <p className="px-2.5 py-3 text-center text-[12px] text-ink-tertiary">No language matches "{langQuery.trim()}".</p>
+                        )}
+                      </div>
+                    </>
+                  )}
                 </div>
               </Field>
             </Section>
