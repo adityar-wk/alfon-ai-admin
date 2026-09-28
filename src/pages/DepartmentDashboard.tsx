@@ -151,7 +151,7 @@ export default function DepartmentDashboard() {
               </div>
               <div className="mt-3 flex items-center gap-2.5 border-t border-line/70 pt-2.5 text-[11px] font-semibold uppercase tracking-wide text-ink-tertiary">
                 <span className="min-w-0 flex-1">Staff</span>
-                <span className="shrink-0">Tasks</span>
+                <span className="shrink-0">Current Tasks</span>
               </div>
               <div className="divide-y divide-line/70">
                 {team.map((s) => (
