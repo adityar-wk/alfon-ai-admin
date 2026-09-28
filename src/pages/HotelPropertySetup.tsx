@@ -1,4 +1,5 @@
-import { Lock } from "lucide-react";
+import { useState } from "react";
+import { Lock, Instagram, Facebook } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { SetupTabs } from "../components/SetupTabs";
 import { Page, Card, Button, Field, Input, Select } from "../components/ui";
@@ -22,7 +23,12 @@ function Locked({ value }: { value: string }) {
   );
 }
 
+const LANGUAGES = ["English", "Arabic", "Spanish", "French", "Hindi", "Mandarin", "German", "Russian"];
+
 export default function HotelPropertySetup() {
+  const [languages, setLanguages] = useState<string[]>(["English"]);
+  const toggleLang = (l: string) => setLanguages((ls) => (ls.includes(l) ? ls.filter((x) => x !== l) : [...ls, l]));
+
   return (
     <>
       <Topbar title="Hotel Property Setup" backTo="/onboarding" />
@@ -35,33 +41,27 @@ export default function HotelPropertySetup() {
                 <Field label="Hotel Name" required hint="Set by Alfon when this hotel was added.">
                   <Locked value="Sea View Hotel" />
                 </Field>
-                <Field
-                  label="Hotel Code (Internal)"
-                  required
-                  hint="This code will be used internally in the system."
-                >
-                  <Input defaultValue="SVH001" />
-                </Field>
-              </div>
-              <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <Field label="Property Type" required>
-                  <Select defaultValue="Luxury Hotel">
-                    <option>Luxury Hotel</option>
-                    <option>Boutique Hotel</option>
-                    <option>Resort</option>
-                  </Select>
-                </Field>
                 <Field label="Total Rooms" required>
                   <Input defaultValue="245" />
                 </Field>
-                <Field label="Primary Language" required>
-                  <Select defaultValue="English">
-                    <option>English</option>
-                    <option>Spanish</option>
-                    <option>French</option>
-                  </Select>
-                </Field>
               </div>
+              <Field className="mt-4" label="Languages Spoken" required hint="Select every language your team can support guests in.">
+                <div className="flex flex-wrap gap-2">
+                  {LANGUAGES.map((l) => {
+                    const on = languages.includes(l);
+                    return (
+                      <button
+                        key={l}
+                        type="button"
+                        onClick={() => toggleLang(l)}
+                        className={`rounded-full border px-3 py-1.5 text-[13px] font-medium ${on ? "border-brand bg-brand-tint text-brand" : "border-line bg-white text-ink-secondary hover:bg-subtle"}`}
+                      >
+                        {l}
+                      </button>
+                    );
+                  })}
+                </div>
+              </Field>
             </Section>
 
             <Section title="Address">
@@ -88,6 +88,9 @@ export default function HotelPropertySetup() {
                 <Field label="ZIP / Postal Code">
                   <Input defaultValue="33139" />
                 </Field>
+                <Field className="sm:col-span-2" label="Google Maps Location (Optional)" hint="Paste a Google Maps link so guests and staff can find the hotel.">
+                  <Input placeholder="https://maps.google.com/…" />
+                </Field>
               </div>
             </Section>
 
@@ -101,6 +104,20 @@ export default function HotelPropertySetup() {
                 </Field>
                 <Field label="Website">
                   <Input defaultValue="www.seaviewhotel.com" />
+                </Field>
+              </div>
+              <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <Field label="Instagram (Optional)">
+                  <div className="relative">
+                    <Instagram className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-tertiary" />
+                    <Input className="pl-9" placeholder="instagram.com/seaviewhotel" />
+                  </div>
+                </Field>
+                <Field label="Facebook (Optional)">
+                  <div className="relative">
+                    <Facebook className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-tertiary" />
+                    <Input className="pl-9" placeholder="facebook.com/seaviewhotel" />
+                  </div>
                 </Field>
               </div>
             </Section>
