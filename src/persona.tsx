@@ -5,7 +5,7 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
  * A Mid Manager is scoped to the department(s) they are explicitly assigned to;
  * hotel-wide oversight belongs to the General Manager.
  */
-export type PersonaKey = "gm" | "mid";
+export type PersonaKey = "gm" | "mid" | "superadmin";
 
 export type Persona = {
   key: PersonaKey;
@@ -37,7 +37,19 @@ export const PERSONAS: Record<PersonaKey, Persona> = {
     home: "/department",
     depts: ["Housekeeping"],
   },
+  superadmin: {
+    key: "superadmin",
+    name: "Alex Rivera",
+    initials: "AR",
+    role: "Super Admin",
+    blurb: "Alfon — adds hotels, watches every hotel",
+    home: "/admin/hotels",
+    depts: [],
+  },
 };
+
+/** every route that belongs to Super Admin's own app, not a single hotel's */
+export const ADMIN_PREFIX = "/admin";
 
 /** Routes a Mid Manager does not have (setup, configuration, hotel-wide directories, other personas). */
 export const MID_BLOCKED = ["/onboarding", "/departments", "/settings", "/pre-arrival", "/team/roles", "/home", "/components"];
@@ -77,7 +89,7 @@ export function PersonaProvider({ children }: { children: ReactNode }) {
   const [persona, setPersonaState] = useState<PersonaKey>(() => {
     try {
       const v = localStorage.getItem(KEY);
-      return v === "mid" ? v : "gm";
+      return v === "mid" || v === "superadmin" ? v : "gm";
     } catch {
       return "gm";
     }
@@ -94,7 +106,7 @@ export function PersonaProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<Ctx>(() => {
     const me = PERSONAS[persona];
-    const manager = persona !== "gm";
+    const manager = persona === "mid";
     const scopeDepts = !manager ? [] : scope !== "all" && me.depts.includes(scope) ? [scope] : me.depts;
     return {
       persona,

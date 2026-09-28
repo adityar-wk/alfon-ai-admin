@@ -17,9 +17,13 @@ import {
   Check,
   ChevronsUpDown,
   MessageSquare,
+  Building2 as HotelIcon,
+  FlaskConical,
+  ShieldCheck,
 } from "lucide-react";
 import { Logo } from "./Logo";
 import { PERSONAS, usePersona, type PersonaKey } from "../persona";
+import { useImpersonation } from "../impersonation";
 import { TASKS } from "../data/tasks";
 
 type Item = {
@@ -58,15 +62,27 @@ const MID_NAV: Item[] = [
   { label: "Mobile App", to: "/line-staff", icon: Smartphone },
 ];
 
+/** Super Admin's own app: adds and watches hotels, never does hotel work itself */
+const SUPERADMIN_NAV: Item[] = [
+  { label: "Hotels", to: "/admin/hotels", icon: HotelIcon, match: "/admin/hotels" },
+  { label: "AI Controls", to: "/admin/ai-controls", icon: ShieldCheck },
+  { label: "Training Lab", to: "/admin/training-lab", icon: FlaskConical },
+  { label: "Settings", to: "/admin/settings", icon: Settings },
+];
+
 export function Sidebar() {
   const { persona, setPersona, me, manager, inScope } = usePersona();
+  const { hotel: steppedInto } = useImpersonation();
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-  const nav = manager
-    ? MID_NAV.filter((i) => i.label !== "Housekeeping" || me.depts.includes("Housekeeping"))
-    : GM_NAV;
+  const nav =
+    persona === "superadmin"
+      ? SUPERADMIN_NAV
+      : manager
+        ? MID_NAV.filter((i) => i.label !== "Housekeeping" || me.depts.includes("Housekeeping"))
+        : GM_NAV;
   const escalated = TASKS.filter((t) => t.status === "Escalated" && inScope(t.dept)).length;
 
   useEffect(() => {
@@ -146,10 +162,12 @@ export function Sidebar() {
         )}
 
         <button
-          onClick={() => setOpen((o) => !o)}
+          onClick={() => !steppedInto && setOpen((o) => !o)}
+          disabled={!!steppedInto}
+          title={steppedInto ? "Leave the hotel first to switch persona" : undefined}
           aria-label="Switch persona"
           aria-expanded={open}
-          className="flex w-full items-center gap-3 rounded-lg px-1.5 py-1.5 text-left hover:bg-subtle"
+          className="flex w-full items-center gap-3 rounded-lg px-1.5 py-1.5 text-left hover:bg-subtle disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-transparent"
         >
           <div className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-tint font-display text-xs font-semibold text-brand">
             {me.initials}
@@ -158,7 +176,7 @@ export function Sidebar() {
             <div className="text-[13px] font-semibold text-ink">{me.name}</div>
             <div className="text-xs text-ink-secondary">{me.role}</div>
           </div>
-          <ChevronsUpDown className="h-4 w-4 text-ink-tertiary" />
+          {!steppedInto && <ChevronsUpDown className="h-4 w-4 text-ink-tertiary" />}
         </button>
       </div>
     </aside>
