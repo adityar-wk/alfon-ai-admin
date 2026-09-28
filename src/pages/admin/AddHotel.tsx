@@ -21,7 +21,7 @@ const DEPT_OPTIONS = [
   { name: "Human Resources", desc: "Staff management and training" },
 ];
 
-const PMS_PROVIDERS = ["Opera (Oracle)", "Cloudbeds", "Mews", "Guestline", "Protel", "Other (Custom Integration)"];
+const PMS_PROVIDERS = ["Opera (Oracle)", "Mews"];
 
 type Details = {
   name: string; location: string; currency: string; timeZone: string; description: string;
@@ -36,7 +36,6 @@ export default function AddHotel() {
     region: "Middle East", propertyType: "Resort", rooms: "", address: "",
   });
   const [depts, setDepts] = useState<Record<string, boolean>>({ Housekeeping: true, "Room Service": true });
-  const [supervisors, setSupervisors] = useState<Record<string, string>>({});
   const [wa, setWa] = useState({ code: "+971", number: "", displayName: "", businessId: "" });
   const [waConnected, setWaConnected] = useState(false);
   const [pms, setPms] = useState({ provider: "" });
@@ -68,7 +67,7 @@ export default function AddHotel() {
         <h2 className="mt-2 font-display text-[26px] font-bold leading-tight text-ink">Add New Hotel</h2>
         <p className="mt-1 text-[13px] text-ink-secondary">
           {step === 0 && "Create a new hotel and connect its systems to get started."}
-          {step === 1 && "Select the departments available at this hotel and assign initial supervisors."}
+          {step === 1 && "Select the departments available at this hotel."}
           {step === 2 && "Connect WhatsApp and PMS to enable guest communication and booking information."}
           {step === 3 && "Review the details and create the hotel."}
         </p>
@@ -90,7 +89,7 @@ export default function AddHotel() {
           ))}
         </div>
 
-        <div className="mt-6 grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="mt-6 max-w-3xl">
           <div className="min-w-0 space-y-5">
             {step === 0 && (
               <>
@@ -141,7 +140,7 @@ export default function AddHotel() {
             {step === 1 && (
               <Card className="p-6">
                 <h3 className="text-[16px] font-semibold text-ink">Configure Departments</h3>
-                <p className="mt-1 text-[13px] text-ink-secondary">Select the departments available at this hotel and assign initial supervisors. You can add or modify these later.</p>
+                <p className="mt-1 text-[13px] text-ink-secondary">Select the departments available at this hotel. You can add or modify these later.</p>
                 <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
                   {DEPT_OPTIONS.map((d) => {
                     const Icon = deptIcon(d.name);
@@ -153,19 +152,6 @@ export default function AddHotel() {
                         <span className="min-w-0 flex-1">
                           <span className="block text-[14px] font-semibold text-ink">{d.name}</span>
                           <span className="block text-[12px] text-ink-tertiary">{d.desc}</span>
-                          {on && (
-                            <span className="mt-2 block">
-                              <Select
-                                className="h-9 text-[12px]"
-                                aria-label={`Supervisor for ${d.name}`}
-                                value={supervisors[d.name] ?? ""}
-                                onChange={(e) => setSupervisors((s) => ({ ...s, [d.name]: e.target.value }))}
-                              >
-                                <option value="">Select supervisor (optional)</option>
-                                {["Aisha Khan", "Diego Alvarez", "Priya Nair", "Tom Hughes"].map((n) => <option key={n}>{n}</option>)}
-                              </Select>
-                            </span>
-                          )}
                         </span>
                       </label>
                     );
@@ -305,46 +291,6 @@ export default function AddHotel() {
                 <Button onClick={create}>Create Hotel <ChevronRight className="h-4 w-4" /></Button>
               )}
             </div>
-          </div>
-
-          {/* progress rail */}
-          <div className="space-y-5">
-            <Card className="p-5">
-              <div className="flex items-center gap-3">
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-brand-tint text-brand"><Building2 className="h-5 w-5" /></span>
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="truncate text-[15px] font-bold text-ink">{details.name || "New Hotel"}</span>
-                    <span className="shrink-0 rounded-full bg-brand-tint px-2 py-0.5 text-[10px] font-semibold text-brand">New Hotel</span>
-                  </div>
-                  <div className="truncate text-[12px] text-ink-tertiary">{details.location || "Location"} · {details.propertyType}</div>
-                </div>
-              </div>
-              <div className="mt-4 space-y-0 divide-y divide-line">
-                {STEPS.map((label, i) => (
-                  <div key={label} className="flex items-start gap-3 py-3 first:pt-0 last:pb-0">
-                    <span className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold ${stepStatus(i as Step) === "done" ? "bg-emerald-500 text-white" : stepStatus(i as Step) === "current" ? "bg-brand text-white" : "bg-subtle text-ink-tertiary"}`}>
-                      {stepStatus(i as Step) === "done" ? <Check className="h-3.5 w-3.5" /> : i + 1}
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="flex items-center justify-between gap-2">
-                        <span className="text-[13px] font-semibold text-ink">{label}</span>
-                        <span className={`shrink-0 text-[11px] font-medium ${stepStatus(i as Step) === "done" ? "text-emerald-600" : stepStatus(i as Step) === "current" ? "text-brand" : "text-ink-tertiary"}`}>
-                          {stepStatus(i as Step) === "done" ? "Completed" : stepStatus(i as Step) === "current" ? "In Progress" : "Pending"}
-                        </span>
-                      </span>
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </Card>
-
-            <Card className="p-5">
-              <div className="flex items-center gap-1.5 text-[13px] font-semibold text-ink"><Lightbulb className="h-4 w-4 text-brand" /> What happens next?</div>
-              <p className="mt-2 text-[13px] leading-relaxed text-ink-secondary">
-                After adding the hotel, you'll set up departments, connect WhatsApp and PMS, and test the connections before the hotel becomes active.
-              </p>
-            </Card>
           </div>
         </div>
       </Page>
