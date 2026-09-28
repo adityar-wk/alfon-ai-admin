@@ -370,9 +370,11 @@ export default function Tasks() {
                             </div>
                           </div>
                         </div>
-                        <div className="mt-3">
-                          <SlaText sla={t.sla} />
-                        </div>
+                        {t.status !== "Completed" && (
+                          <div className="mt-3">
+                            <SlaText sla={t.sla} />
+                          </div>
+                        )}
                         <div className="mt-3 flex items-center justify-between border-t border-line/70 pt-3 text-[12px]">
                           <span className="text-ink-tertiary">{t.dept}</span>
                           {t.owner && <span className="text-ink-secondary">{t.owner}</span>}
@@ -412,7 +414,7 @@ export default function Tasks() {
                   const D = DEPT_ICON[t.dept] ?? Building2;
                   return (
                     <tr key={t.id} onClick={() => setSelectedId(t.id)} className={`cursor-pointer border-b border-line/50 last:border-0 hover:bg-subtle/60 ${t.status === "Completed" ? "opacity-50" : ""}`}>
-                      <td className="whitespace-nowrap py-3.5 pl-6 pr-3"><SlaText sla={t.sla} /></td>
+                      <td className="whitespace-nowrap py-3.5 pl-6 pr-3">{t.status !== "Completed" && <SlaText sla={t.sla} />}</td>
                       <td className="py-3.5 pl-6 pr-3">
                         <div className="text-[13px] font-semibold text-ink">{t.title}</div>
                         <div className="mt-0.5 flex items-center gap-2 text-[12px] text-ink-tertiary">
