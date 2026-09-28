@@ -133,11 +133,9 @@ function DeptIcon({ dept }: { dept: string }) {
 
 const BOARD_COLS: { key: string; label: string; dot: string; test: (t: Task) => boolean }[] = [
   { key: "unassigned", label: "Unassigned", dot: "bg-gray-300", test: (t) => t.status === "Yet to Assign" && !t.owner },
-  { key: "assigned", label: "Assigned", dot: "bg-sky-400", test: (t) => t.status === "Yet to Assign" && !!t.owner },
-  { key: "progress", label: "In Progress", dot: "bg-brand", test: (t) => t.status === "In Progress" },
+  { key: "progress", label: "In Progress", dot: "bg-brand", test: (t) => t.status === "In Progress" || (t.status === "Yet to Assign" && !!t.owner) },
   { key: "escalated", label: "Escalated", dot: "bg-red-500", test: (t) => t.status === "Escalated" },
   { key: "completed", label: "Completed", dot: "bg-emerald-500", test: (t) => t.status === "Completed" },
-  { key: "unable", label: "Unable to Complete", dot: "bg-amber-400", test: (t) => t.status === "Unable to Complete" },
 ];
 
 const cap = (t: Task) => (t.tag === "Complaint" ? "Complaint" : null);
@@ -364,7 +362,12 @@ export default function Tasks() {
                           <div className="min-w-0">
                             <div className="text-[13px] font-semibold leading-snug text-ink">{t.title}</div>
                             <div className="mt-0.5 text-[12px] text-ink-tertiary">{t.guest} · <RoomNo room={t.room} /></div>
-                            {cap(t) && <ComplaintPill className="mt-1.5" />}
+                            <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
+                              {cap(t) && <ComplaintPill />}
+                              {(taskStatus(t) === "SLA at risk" || taskStatus(t) === "SLA breached") && (
+                                <span className={`text-[12px] font-medium ${STATUS_PILL[taskStatus(t)]}`}>{taskStatus(t)}</span>
+                              )}
+                            </div>
                           </div>
                         </div>
                         <div className="mt-3">
@@ -372,7 +375,7 @@ export default function Tasks() {
                         </div>
                         <div className="mt-3 flex items-center justify-between border-t border-line/70 pt-3 text-[12px]">
                           <span className="text-ink-tertiary">{t.dept}</span>
-                          <span className={t.owner ? "text-ink-secondary" : "text-ink-tertiary"}>{t.owner ?? "Unassigned"}</span>
+                          {t.owner && <span className="text-ink-secondary">{t.owner}</span>}
                         </div>
                       </button>
                     ))}
