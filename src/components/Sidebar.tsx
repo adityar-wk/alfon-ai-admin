@@ -65,6 +65,7 @@ const MID_NAV: Item[] = [
 /** Super Admin's own app: adds and watches hotels, never does hotel work itself */
 const SUPERADMIN_NAV: Item[] = [
   { label: "Hotels", to: "/admin/hotels", icon: HotelIcon, match: "/admin/hotels" },
+  { label: "AI Analytics", to: "/admin/analytics", icon: BarChart3 },
   { label: "AI Controls", to: "/admin/ai-controls", icon: ShieldCheck },
   { label: "Training Lab", to: "/admin/training-lab", icon: FlaskConical },
   { label: "Settings", to: "/admin/settings", icon: Settings },
