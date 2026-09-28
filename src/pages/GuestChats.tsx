@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import {
   Search, Phone, Mail, Calendar, Hourglass, BedDouble, Users, UtensilsCrossed, Wine, SlidersHorizontal, PanelLeftClose, PanelLeftOpen, Check,
@@ -8,6 +8,7 @@ import { Topbar } from "../components/Topbar";
 import { GuestChat, type ChatMsg, type ChatMode } from "../components/GuestChat";
 import { Flag } from "../components/Flag";
 import { SIDE_PANEL, SIDE_ROW, sideRowTone, SideSearch, SideFilterButton } from "../components/SidePanel";
+import { Modal, Field, Input, PhoneInput, Button } from "../components/ui";
 import { GUESTS as BASE_GUESTS, type Guest } from "../data/guests";
 import { buildProfile, seedChat } from "./GuestProfile";
 import { AI_DRAFTS, TASKS } from "../data/tasks";
@@ -37,10 +38,14 @@ const TEMPLATES = [
 
 const clock = (mins: number) => `${Math.floor(mins / 60) % 12 || 12}:${String(mins % 60).padStart(2, "0")} ${mins < 720 ? "AM" : "PM"}`;
 
+const NEW_GUEST_ID = 2000;
+
 export default function GuestChats() {
-  const [params] = useSearchParams();
+  const [params, setParams] = useSearchParams();
   const orphanName = params.get("name");
+  const [extra, setExtra] = useState<Guest | null>(null);
   const GUESTS: Guest[] = [
+    ...(extra ? [extra] : []),
     ...(orphanName && !BASE_GUESTS.some((g) => g.name === orphanName)
       ? [{
           id: ORPHAN_ID, name: orphanName, initials: orphanName.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase(), contact: "+1 (555) 123-4567",
@@ -60,6 +65,38 @@ export default function GuestChats() {
   const [filterOpen, setFilterOpen] = useState(false);
   const [tplOpen, setTplOpen] = useState(false);
   const [insert, setInsert] = useState<{ text: string; nonce: number }>({ text: "", nonce: 0 });
+  const [newChatOpen, setNewChatOpen] = useState(() => !!params.get("new"));
+
+  // the top bar's "New Chat" arrives as ?new=1 — reopens the dialog even when already on this page, then drops it from the URL
+  useEffect(() => {
+    if (!params.get("new")) return;
+    setNewChatOpen(true);
+    const next = new URLSearchParams(params);
+    next.delete("new");
+    setParams(next, { replace: true });
+  }, [params, setParams]);
+
+  const startChat = (name: string, code: string, number: string, room: string) => {
+    const id = NEW_GUEST_ID + Math.floor(Math.random() * 1000);
+    setExtra({
+      id,
+      name,
+      initials: name.trim().split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase(),
+      contact: `${code} ${number}`.trim(),
+      room: room.trim() || "—",
+      roomType: "—",
+      from: "—",
+      to: "—",
+      nights: 0,
+      country: "",
+      status: "In House",
+      type: "Leisure",
+      last: null,
+      tint: "bg-subtle text-ink-secondary",
+    });
+    setSelectedId(id);
+    setNewChatOpen(false);
+  };
 
   const list = GUESTS.filter((g) => {
     const q = query.trim().toLowerCase();
@@ -166,7 +203,10 @@ export default function GuestChats() {
             <span className={`flex h-11 w-11 items-center justify-center rounded-full font-display text-[13px] font-semibold ${guest.tint}`}>{guest.initials}</span>
             <div className="min-w-0 flex-1">
               <div className="text-[17px] font-bold leading-tight text-ink">{guest.name}</div>
-              <div className="mt-0.5 flex items-center gap-1 text-[13px] text-ink-tertiary"><DoorOpen className="h-3.5 w-3.5" />{guest.room} <span>·</span> {guest.nights} Nights Stay</div>
+              <div className="mt-0.5 flex items-center gap-1 text-[13px] text-ink-tertiary">
+                <DoorOpen className="h-3.5 w-3.5" />{guest.room}
+                {guest.nights > 0 && <><span>·</span> {guest.nights} Nights Stay</>}
+              </div>
             </div>
           </div>
           <GuestChat
@@ -203,12 +243,16 @@ export default function GuestChats() {
           <div className="mt-6 space-y-3.5 text-[14px] text-ink">
             <div className="flex items-center gap-3"><Phone className="h-4 w-4 text-ink-tertiary" /> {guest.contact.startsWith("+") ? guest.contact : "+1 (555) 123-4567"}</div>
             <div className="flex items-center gap-3"><Mail className="h-4 w-4 text-ink-tertiary" /> {guest.contact.includes("@") ? guest.contact : `${guest.name.split(" ")[0].toLowerCase()}@email.com`}</div>
-            <div className="flex items-center gap-3"><Flag country={guest.country} /> {guest.country}</div>
-            <div className="flex items-center gap-3"><Calendar className="h-4 w-4 text-ink-tertiary" /> Check-in: {guest.from}, 2025</div>
-            <div className="flex items-center gap-3"><Calendar className="h-4 w-4 text-ink-tertiary" /> Check-out: {guest.to}, 2025</div>
-            <div className="flex items-center gap-3"><Hourglass className="h-4 w-4 text-ink-tertiary" /> {guest.nights} Nights</div>
-            <div className="flex items-center gap-3"><BedDouble className="h-4 w-4 text-ink-tertiary" /> {guest.roomType}</div>
-            <div className="flex items-center gap-3"><Users className="h-4 w-4 text-ink-tertiary" /> 2 Adults</div>
+            {guest.country && <div className="flex items-center gap-3"><Flag country={guest.country} /> {guest.country}</div>}
+            {guest.nights > 0 && (
+              <>
+                <div className="flex items-center gap-3"><Calendar className="h-4 w-4 text-ink-tertiary" /> Check-in: {guest.from}, 2025</div>
+                <div className="flex items-center gap-3"><Calendar className="h-4 w-4 text-ink-tertiary" /> Check-out: {guest.to}, 2025</div>
+                <div className="flex items-center gap-3"><Hourglass className="h-4 w-4 text-ink-tertiary" /> {guest.nights} Nights</div>
+                <div className="flex items-center gap-3"><BedDouble className="h-4 w-4 text-ink-tertiary" /> {guest.roomType}</div>
+                <div className="flex items-center gap-3"><Users className="h-4 w-4 text-ink-tertiary" /> 2 Adults</div>
+              </>
+            )}
           </div>
 
           <div className="mt-7 border-t border-line/60 pt-6">
@@ -280,6 +324,41 @@ export default function GuestChats() {
           </div>
         </div>
       )}
+
+      {newChatOpen && <NewChatModal onClose={() => setNewChatOpen(false)} onStart={startChat} />}
     </>
+  );
+}
+
+function NewChatModal({ onClose, onStart }: { onClose: () => void; onStart: (name: string, code: string, number: string, room: string) => void }) {
+  const [name, setName] = useState("");
+  const [code, setCode] = useState("+971");
+  const [number, setNumber] = useState("");
+  const [room, setRoom] = useState("");
+  const valid = name.trim().length > 1 && number.replace(/\D/g, "").length >= 6;
+
+  return (
+    <Modal
+      title="Start New Guest Conversation"
+      onClose={onClose}
+      footer={
+        <>
+          <Button variant="outline" onClick={onClose}>Cancel</Button>
+          <Button disabled={!valid} className="disabled:opacity-40" onClick={() => onStart(name.trim(), code, number.trim(), room)}>
+            Start Chat
+          </Button>
+        </>
+      }
+    >
+      <Field label="Guest Name" required>
+        <Input autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder="Enter guest full name" />
+      </Field>
+      <Field className="mt-3" label="WhatsApp Number" required>
+        <PhoneInput code={code} number={number} onChange={(c, n) => { setCode(c); setNumber(n); }} placeholder="50 000 0000" />
+      </Field>
+      <Field className="mt-3" label="Room Number" hint="Can be assigned later">
+        <Input value={room} onChange={(e) => setRoom(e.target.value)} placeholder="e.g. 1608 (optional)" />
+      </Field>
+    </Modal>
   );
 }

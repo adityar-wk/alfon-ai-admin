@@ -28,7 +28,7 @@ function QuickActions({ newTask = false }: { newTask?: boolean }) {
       <span className="flex h-9 items-center gap-2 rounded-control border border-line bg-white px-3 text-[13px] font-medium text-ink-secondary">
         <Calendar className="h-4 w-4 text-ink-tertiary" /> Sep 23, 2026 <ChevronDown className="h-3.5 w-3.5 text-ink-tertiary" />
       </span>
-      <Button variant="outline" onClick={() => navigate("/guest-chats")}>
+      <Button onClick={() => navigate("/guest-chats?new=1")}>
         <MessageSquare className="h-4 w-4" /> New Chat
       </Button>
       {newTask && (
