@@ -1,8 +1,10 @@
-import { Search, ArrowLeft, Calendar, ChevronDown, MessageSquare, Plus } from "lucide-react";
+import { Search, ArrowLeft, MessageSquare, Plus } from "lucide-react";
 import { NotificationBell } from "./Notifications";
 import type { ReactNode } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "./ui";
+import { DatePicker } from "./DatePicker";
+import { useSelectedDate } from "../dateContext";
 
 export function SearchBar({ placeholder = "Search anything..." }: { placeholder?: string }) {
   return (
@@ -20,14 +22,13 @@ export function SearchBar({ placeholder = "Search anything..." }: { placeholder?
   );
 }
 
-/** today's date + a shortcut to start a guest chat; shown on every screen except where told not to. "New Task" only joins it on the Tasks page. */
+/** a date picker for which day's data you're viewing + a shortcut to start a guest chat; shown on every screen except where told not to. "New Task" only joins it on the Tasks page. */
 function QuickActions({ newTask = false }: { newTask?: boolean }) {
   const navigate = useNavigate();
+  const { date, setDate } = useSelectedDate();
   return (
     <div className="flex items-center gap-3">
-      <span className="flex h-9 items-center gap-2 rounded-control border border-line bg-white px-3 text-[13px] font-medium text-ink-secondary">
-        <Calendar className="h-4 w-4 text-ink-tertiary" /> Sep 23, 2026 <ChevronDown className="h-3.5 w-3.5 text-ink-tertiary" />
-      </span>
+      <DatePicker date={date} onChange={setDate} />
       <Button onClick={() => navigate("/guest-chats?new=1")}>
         <MessageSquare className="h-4 w-4" /> New Chat
       </Button>

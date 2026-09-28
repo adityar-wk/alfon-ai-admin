@@ -1,6 +1,7 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { Sidebar } from "./Sidebar";
 import { MID_BLOCKED, PERSONAS, PersonaProvider, usePersona } from "../persona";
+import { DateProvider } from "../dateContext";
 
 function Shell() {
   const { manager, me } = usePersona();
@@ -30,7 +31,9 @@ function Shell() {
 export function AppLayout() {
   return (
     <PersonaProvider>
-      <Shell />
+      <DateProvider>
+        <Shell />
+      </DateProvider>
     </PersonaProvider>
   );
 }
