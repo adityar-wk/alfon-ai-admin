@@ -7,13 +7,12 @@ import { usePersona } from "../../persona";
 const ALERTS = [
   { key: "health", label: "Hotel Health Score drops", hint: "A hotel's score falls sharply against its own average" },
   { key: "pms", label: "A PMS or WhatsApp connection breaks", hint: "Catch a broken connection before a hotel does" },
-  { key: "onboarding", label: "A new hotel finishes onboarding", hint: "Departments, connections and Training Lab are all set" },
-  { key: "training", label: "A Training Lab run finishes", hint: "Pass rate and score are ready to review" },
+  { key: "onboarding", label: "A new hotel finishes onboarding", hint: "Departments and connections are all set" },
 ] as const;
 
 export default function SuperAdminSettings() {
   const { me } = usePersona();
-  const [enabled, setEnabled] = useState<string[]>(["health", "pms", "onboarding", "training"]);
+  const [enabled, setEnabled] = useState<string[]>(["health", "pms", "onboarding"]);
   const toggle = (k: string) => setEnabled((e) => (e.includes(k) ? e.filter((x) => x !== k) : [...e, k]));
 
   return (
