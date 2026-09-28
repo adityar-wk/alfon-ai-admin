@@ -6,7 +6,7 @@ import {
   Check,
 } from "lucide-react";
 import { Topbar } from "../components/Topbar";
-import { Page, Card, Button, Field, Input, Modal } from "../components/ui";
+import { Page, Card, Button, Field, Input, Textarea, Modal } from "../components/ui";
 import { getDepartment, type DeptMember, type DeptService } from "../data/departments";
 import { deptIcon } from "../data/deptIcons";
 
@@ -24,11 +24,17 @@ export default function DepartmentDetail() {
   const [managerName, setManagerName] = useState<string | null>(null); // set once the manager is edited or added
   const [editingManager, setEditingManager] = useState(false);
   const [managerDraft, setManagerDraft] = useState("");
+  const [description, setDescription] = useState(dept?.description ?? "");
+  const [editingDesc, setEditingDesc] = useState(false);
+  const [descDraft, setDescDraft] = useState("");
+  const [editingService, setEditingService] = useState<string | null>(null);
+  const [serviceDescDraft, setServiceDescDraft] = useState("");
 
   useEffect(() => {
     if (!dept) return;
     setMembers(dept.members);
     setServices(dept.services);
+    setDescription(dept.description);
   }, [dept]);
 
   useEffect(() => {
@@ -54,6 +60,12 @@ export default function DepartmentDetail() {
     ]);
     setNewService({ name: "", description: "" });
     setAddingService(false);
+  };
+
+  const saveServiceDesc = (name: string) => {
+    setServices((s) => s.map((sv) => (sv.name === name ? { ...sv, description: serviceDescDraft.trim() || undefined } : sv)));
+    setEditingService(null);
+    setToast("Service description updated");
   };
 
   return (
@@ -86,7 +98,15 @@ export default function DepartmentDetail() {
               </div>
             </div>
           </div>
-          <p className="mt-3 max-w-3xl text-[13px] leading-relaxed text-ink-tertiary">{dept.description}</p>
+          <div className="mt-3 flex max-w-3xl items-start gap-3">
+            <p className="min-w-0 flex-1 text-[13px] leading-relaxed text-ink-tertiary">{description || "No description yet."}</p>
+            <button
+              onClick={() => { setDescDraft(description); setEditingDesc(true); }}
+              className="shrink-0 text-[12px] font-semibold text-brand hover:underline"
+            >
+              {description ? "Edit" : "Add description"}
+            </button>
+          </div>
 
           <div className="mt-6 max-w-2xl">
             <Card className="p-6">
@@ -98,9 +118,42 @@ export default function DepartmentDetail() {
               </div>
 
               <div className="mt-3 divide-y divide-line/70">
-                {services.map((sv) => (
-                  <div key={sv.name} className="py-3 text-[14px] text-ink">{sv.name}</div>
-                ))}
+                {services.map((sv) => {
+                  const editing = editingService === sv.name;
+                  return (
+                    <div key={sv.name} className="py-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0 flex-1">
+                          <div className="text-[14px] font-medium text-ink">{sv.name}</div>
+                          {sv.description && !editing && <p className="mt-1 text-[12px] leading-relaxed text-ink-tertiary">{sv.description}</p>}
+                        </div>
+                        {!editing && (
+                          <button
+                            onClick={() => { setEditingService(sv.name); setServiceDescDraft(sv.description ?? ""); }}
+                            className="shrink-0 text-[12px] font-semibold text-brand hover:underline"
+                          >
+                            {sv.description ? "Edit" : "Add description"}
+                          </button>
+                        )}
+                      </div>
+                      {editing && (
+                        <div className="mt-2 space-y-2">
+                          <Textarea
+                            autoFocus
+                            rows={2}
+                            placeholder="What does this service cover?"
+                            value={serviceDescDraft}
+                            onChange={(e) => setServiceDescDraft(e.target.value)}
+                          />
+                          <div className="flex gap-2">
+                            <Button className="h-8 px-3 text-[12px]" onClick={() => saveServiceDesc(sv.name)}>Save</Button>
+                            <Button variant="outline" className="h-8 px-3 text-[12px]" onClick={() => setEditingService(null)}>Cancel</Button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
                 {!services.length && <p className="py-6 text-center text-[13px] text-ink-tertiary">No services added yet.</p>}
               </div>
 
@@ -108,6 +161,9 @@ export default function DepartmentDetail() {
                 <div className="mt-3 space-y-3 rounded-lg border border-line bg-subtle p-4">
                   <Field label="Service Name" required>
                     <Input autoFocus placeholder="e.g. Pillow Menu" value={newService.name} onChange={(e) => setNewService((sv) => ({ ...sv, name: e.target.value }))} />
+                  </Field>
+                  <Field label="Description (Optional)">
+                    <Textarea rows={2} placeholder="What does this service cover?" value={newService.description} onChange={(e) => setNewService((sv) => ({ ...sv, description: e.target.value }))} />
                   </Field>
                   <div className="flex gap-2">
                     <Button onClick={addService}>Add</Button>
@@ -139,6 +195,27 @@ export default function DepartmentDetail() {
           <Field label="Manager name" required>
             <Input list="dept-staff" autoFocus value={managerDraft} onChange={(e) => setManagerDraft(e.target.value)} placeholder="Pick from the team or type a name" />
             <datalist id="dept-staff">{members.map((m) => <option key={m.name} value={m.name} />)}</datalist>
+          </Field>
+        </Modal>
+      )}
+
+      {editingDesc && (
+        <Modal
+          title="Edit department description"
+          onClose={() => setEditingDesc(false)}
+          footer={
+            <>
+              <Button variant="outline" onClick={() => setEditingDesc(false)}>Cancel</Button>
+              <Button
+                onClick={() => { setDescription(descDraft.trim()); setEditingDesc(false); setToast("Department description updated"); }}
+              >
+                Save
+              </Button>
+            </>
+          }
+        >
+          <Field label="Description">
+            <Textarea rows={4} autoFocus value={descDraft} onChange={(e) => setDescDraft(e.target.value)} placeholder="What does this department do?" />
           </Field>
         </Modal>
       )}
