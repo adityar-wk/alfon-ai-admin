@@ -314,9 +314,9 @@ export default function Team() {
             )}
           </div>
 
-          <Card table className="mt-4">
+          <Card table className="mt-4 max-w-[640px]">
             <div className="overflow-x-auto">
-              <table className="table-fixed text-left" style={{ width: "min(50%, 640px)", minWidth: 480 }}>
+              <table className="w-full table-fixed text-left">
                 <colgroup>
                   <col className="w-[45%]" />
                   <col className="w-[27.5%]" />

@@ -303,13 +303,13 @@ export function LineStaffPrototype() {
           </div>
         </div>
 
-        <div className="mt-5"><SectionTitle dot={false} small action={<span className="text-[12px] text-ink-tertiary">{inProgress.length}</span>}>Active</SectionTitle></div>
+        <div className="mt-5"><SectionTitle dot={false} small action={<span className="text-[12px] text-ink-tertiary">{inProgress.length}</span>}>Active tasks</SectionTitle></div>
         <div className="mt-2.5 space-y-3 px-6">
           {inProgress.map((t) => <LsCard key={t.id} t={t} onOpen={() => openTask(t.id)} />)}
           {!inProgress.length && <p className="rounded-2xl bg-white p-4 text-center text-[12px] text-ink-tertiary">Nothing active. Accept a pending task.</p>}
         </div>
 
-        <div className="mt-6"><SectionTitle dot={false} small action={<span className="text-[12px] text-ink-tertiary">{pending.length}</span>}>Pending</SectionTitle></div>
+        <div className="mt-6"><SectionTitle dot={false} small action={<span className="text-[12px] text-ink-tertiary">{pending.length}</span>}>Open tasks</SectionTitle></div>
         <div className="mt-2.5 space-y-3 px-6">
           {pending.map((t) => <LsCard key={t.id} t={t} onOpen={() => openTask(t.id)} onAccept={() => accept(t.id)} />)}
           {!pending.length && <p className="rounded-2xl bg-white p-4 text-center text-[12px] text-ink-tertiary">You&apos;re all caught up.</p>}
