@@ -2,9 +2,10 @@ import { Link } from "react-router-dom";
 import { Plus } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { SetupTabs } from "../components/SetupTabs";
-import { Page, Card } from "../components/ui";
+import { Page, Card, Button } from "../components/ui";
 import { DEPARTMENTS, initials } from "../data/departments";
 import { deptIcon } from "../data/deptIcons";
+import { useGoNextStep } from "../data/onboarding";
 
 function DeptCard({ d, onboarding }: { d: (typeof DEPARTMENTS)[number]; onboarding: boolean }) {
   const head = d.members.find((m) => m.role === "Department Head");
@@ -45,6 +46,7 @@ function DeptCard({ d, onboarding }: { d: (typeof DEPARTMENTS)[number]; onboardi
 }
 
 export default function DepartmentsSetup({ onboarding = false }: { onboarding?: boolean }) {
+  const goNext = useGoNextStep(5);
   return (
     <>
       <Topbar
@@ -73,6 +75,12 @@ export default function DepartmentsSetup({ onboarding = false }: { onboarding?: 
             </Link>
           )}
         </div>
+
+        {onboarding && (
+          <div className="mt-6">
+            <Button onClick={goNext}>Continue →</Button>
+          </div>
+        )}
       </Page>
     </>
   );

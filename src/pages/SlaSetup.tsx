@@ -4,6 +4,7 @@ import { Topbar } from "../components/Topbar";
 import { SetupTabs } from "../components/SetupTabs";
 import { Page, Card, Button, Input, Select } from "../components/ui";
 import { DEPARTMENTS, type Department } from "../data/departments";
+import { useGoNextStep } from "../data/onboarding";
 
 type Priority = "Urgent" | "High" | "Medium" | "Low";
 type Target = { response: string; resolve: string };
@@ -50,6 +51,7 @@ function seedSla(): SlaMap {
 }
 
 export default function SlaSetup() {
+  const goNext = useGoNextStep(7);
   const [defaults, setDefaults] = useState(DEFAULTS);
   const [deptSlug, setDeptSlug] = useState(DEPARTMENTS[0].slug);
   const [sla, setSla] = useState<SlaMap>(seedSla);
@@ -84,8 +86,7 @@ export default function SlaSetup() {
     setLevels((l) => [...l, { id: Date.now(), trigger: "+30 min after previous level", to: "General Manager" }]);
 
   const save = () => {
-    setToast("SLA settings saved");
-    window.setTimeout(() => setToast(null), 2000);
+    goNext();
   };
 
   return (

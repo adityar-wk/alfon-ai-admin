@@ -5,7 +5,7 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
  * A Mid Manager is scoped to the department(s) they are explicitly assigned to;
  * hotel-wide oversight belongs to the General Manager.
  */
-export type PersonaKey = "gm" | "mid" | "superadmin";
+export type PersonaKey = "gm" | "mid" | "superadmin" | "hoteladmin";
 
 export type Persona = {
   key: PersonaKey;
@@ -44,6 +44,15 @@ export const PERSONAS: Record<PersonaKey, Persona> = {
     role: "Super Admin",
     blurb: "Alfon — adds hotels, watches every hotel",
     home: "/admin/hotels",
+    depts: [],
+  },
+  hoteladmin: {
+    key: "hoteladmin",
+    name: "Marcus Webb",
+    initials: "MW",
+    role: "Hotel Admin",
+    blurb: "Hotel-wide — finishing setup and onboarding",
+    home: "/home",
     depts: [],
   },
 };
@@ -89,7 +98,7 @@ export function PersonaProvider({ children }: { children: ReactNode }) {
   const [persona, setPersonaState] = useState<PersonaKey>(() => {
     try {
       const v = localStorage.getItem(KEY);
-      return v === "mid" || v === "superadmin" ? v : "gm";
+      return v === "mid" || v === "superadmin" || v === "hoteladmin" ? v : "gm";
     } catch {
       return "gm";
     }

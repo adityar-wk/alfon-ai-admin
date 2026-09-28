@@ -4,6 +4,7 @@ import { Topbar } from "../components/Topbar";
 import { SetupTabs } from "../components/SetupTabs";
 import { Drawer } from "../components/Drawer";
 import { Page, Card, Button, Field, Input, Select } from "../components/ui";
+import { useGoNextStep } from "../data/onboarding";
 
 type Member = {
   id: number;
@@ -39,6 +40,7 @@ const IMPORTED: Omit<Member, "id">[] = [
 type DrawerState = { mode: "add" } | { mode: "edit"; member: Member } | null;
 
 export default function StaffTeamManagement() {
+  const goNext = useGoNextStep(4);
   const [members, setMembers] = useState<Member[]>(SEED);
   const [query, setQuery] = useState("");
   const [drawer, setDrawer] = useState<DrawerState>(null);
@@ -221,6 +223,10 @@ export default function StaffTeamManagement() {
             </Button>
             {invited && <p className="mt-3 text-center text-[13px] text-emerald-600">Email sent to {members.length} team members</p>}
           </Card>
+          </div>
+
+          <div className="mt-6 max-w-6xl">
+            <Button onClick={goNext}>Continue →</Button>
           </div>
         </Page>
       </div>

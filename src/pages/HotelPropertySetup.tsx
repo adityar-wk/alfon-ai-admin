@@ -3,6 +3,7 @@ import { Lock, Instagram, Facebook, Search, X } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { SetupTabs } from "../components/SetupTabs";
 import { Page, Card, Button, Field, Input, Select } from "../components/ui";
+import { useGoNextStep } from "../data/onboarding";
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -29,6 +30,7 @@ const LANGUAGES = [
 ];
 
 export default function HotelPropertySetup() {
+  const goNext = useGoNextStep(1);
   const [languages, setLanguages] = useState<string[]>(["English"]);
   const [langQuery, setLangQuery] = useState("");
   const [langOpen, setLangOpen] = useState(false);
@@ -169,7 +171,7 @@ export default function HotelPropertySetup() {
           </div>
 
           <div className="mt-6 flex items-center gap-3">
-            <Button>Continue →</Button>
+            <Button onClick={goNext}>Continue →</Button>
             <Button variant="outline">Save Draft</Button>
           </div>
         </div>

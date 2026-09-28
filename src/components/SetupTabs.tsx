@@ -1,22 +1,11 @@
 import { NavLink } from "react-router-dom";
-
-const STEPS = [
-  { label: "Hotel Profile", to: "/onboarding/property" },
-  { label: "WhatsApp & PMS", to: "/onboarding/whatsapp-pms" },
-  { label: "Knowledge Base", to: "/onboarding/knowledge-base" },
-  { label: "Team Members", to: "/onboarding/staff" },
-  { label: "Departments", to: "/onboarding/departments" },
-  { label: "Roles & Permissions", to: "/onboarding/roles" },
-  { label: "SLA & Escalation", to: "/onboarding/sla" },
-  { label: "Rooms & QR", to: "/onboarding/rooms-qr" },
-  { label: "Notifications", to: "/onboarding/notifications" },
-];
+import { ONBOARDING_STEPS } from "../data/onboarding";
 
 /** Horizontal tab strip so any onboarding-step screen can jump directly to another step. */
 export function SetupTabs({ className = "" }: { className?: string }) {
   return (
     <div className={`mb-6 flex items-center gap-6 overflow-x-auto border-b border-line no-scrollbar ${className}`}>
-      {STEPS.map((s) => (
+      {ONBOARDING_STEPS.map((s) => (
         <NavLink
           key={s.to}
           to={s.to}
@@ -30,7 +19,7 @@ export function SetupTabs({ className = "" }: { className?: string }) {
             ].join(" ")
           }
         >
-          {s.label}
+          {s.title}
         </NavLink>
       ))}
     </div>

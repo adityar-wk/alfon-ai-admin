@@ -19,6 +19,7 @@ import { SetupTabs } from "../components/SetupTabs";
 import { Drawer } from "../components/Drawer";
 import { Page, Card, Badge, Button, Field, Input, Select } from "../components/ui";
 import { FakeQR } from "../components/FakeQR";
+import { useGoNextStep } from "../data/onboarding";
 
 type QR = "Generated" | "Pending" | "None";
 
@@ -64,6 +65,7 @@ function QrCell({ qr }: { qr: QR }) {
 type Room = (typeof ROOMS)[number];
 
 export default function RoomsQrSetup({ onboarding = false }: { onboarding?: boolean }) {
+  const goNext = useGoNextStep(8);
   const [drawer, setDrawer] = useState<Room | "new" | null>(null);
   const [query, setQuery] = useState("");
   const [floor, setFloor] = useState("all");
@@ -238,6 +240,12 @@ export default function RoomsQrSetup({ onboarding = false }: { onboarding?: bool
               </span>
             </div>
           </Card>
+
+          {onboarding && (
+            <div className="mt-6">
+              <Button onClick={goNext}>Continue →</Button>
+            </div>
+          )}
         </Page>
       </div>
 

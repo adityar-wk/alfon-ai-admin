@@ -50,7 +50,7 @@ const GM_NAV: Item[] = [
 ];
 
 const MID_NAV: Item[] = [
-  { label: "Dashboard", to: "/department", icon: LayoutDashboard },
+  { label: "Home", to: "/department", icon: LayoutDashboard },
   { label: "Tasks", to: "/tasks", icon: CheckSquare },
   { label: "Guest Chats", to: "/guest-chats", icon: MessageSquare },
   { label: "Guests", to: "/guests", icon: UserRound },
@@ -64,7 +64,6 @@ const MID_NAV: Item[] = [
 /** Super Admin's own app: adds and watches hotels, never does hotel work itself */
 const SUPERADMIN_NAV: Item[] = [
   { label: "Hotels", to: "/admin/hotels", icon: HotelIcon, match: "/admin/hotels" },
-  { label: "AI Analytics", to: "/admin/analytics", icon: BarChart3 },
   { label: "AI Controls", to: "/admin/ai-controls", icon: ShieldCheck },
   { label: "Settings", to: "/admin/settings", icon: Settings },
 ];

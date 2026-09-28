@@ -2,7 +2,8 @@ import { MessageCircle, Database } from "lucide-react";
 import type { ReactNode } from "react";
 import { Topbar } from "../components/Topbar";
 import { SetupTabs } from "../components/SetupTabs";
-import { Page, Card } from "../components/ui";
+import { Page, Card, Button } from "../components/ui";
+import { useGoNextStep } from "../data/onboarding";
 
 const WA = "#25D366";
 
@@ -54,6 +55,7 @@ function ConnectionCard({
 }
 
 export default function WhatsAppPmsSetup() {
+  const goNext = useGoNextStep(2);
   return (
     <>
       <Topbar title="WhatsApp and PMS Setup" backTo="/onboarding" />
@@ -86,6 +88,10 @@ export default function WhatsAppPmsSetup() {
               <span className="text-emerald-600">Active</span>
             </Row>
           </ConnectionCard>
+        </div>
+
+        <div className="mt-6 flex items-center gap-3">
+          <Button onClick={goNext}>Continue →</Button>
         </div>
       </Page>
     </>

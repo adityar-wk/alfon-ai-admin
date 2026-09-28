@@ -29,7 +29,6 @@ import HousekeepingBoard from "./pages/HousekeepingBoard";
 import HotelsList from "./pages/admin/HotelsList";
 import AddHotel from "./pages/admin/AddHotel";
 import HotelDetail from "./pages/admin/HotelDetail";
-import AiAnalytics from "./pages/admin/AiAnalytics";
 import AiControls from "./pages/admin/AiControls";
 import SuperAdminSettings from "./pages/admin/SuperAdminSettings";
 
@@ -69,7 +68,6 @@ export const router = createBrowserRouter([
       { path: "/admin/hotels", element: <HotelsList /> },
       { path: "/admin/hotels/new", element: <AddHotel /> },
       { path: "/admin/hotels/:id", element: <HotelDetail /> },
-      { path: "/admin/analytics", element: <AiAnalytics /> },
       { path: "/admin/ai-controls", element: <AiControls /> },
       { path: "/admin/settings", element: <SuperAdminSettings /> },
       { path: "*", element: <Navigate to="/onboarding" replace /> },

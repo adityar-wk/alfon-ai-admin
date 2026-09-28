@@ -3,6 +3,7 @@ import { UploadCloud, Link2, FileText, Plus, Trash2, Globe } from "lucide-react"
 import { Topbar } from "../components/Topbar";
 import { SetupTabs } from "../components/SetupTabs";
 import { Page, Card, Button, Input } from "../components/ui";
+import { useGoNextStep } from "../data/onboarding";
 
 type Item = { id: number; kind: "file" | "link"; name: string; detail: string };
 
@@ -16,6 +17,7 @@ const SEED: Item[] = [
 ];
 
 export default function KnowledgeBaseSetup() {
+  const goNext = useGoNextStep(3);
   const [items, setItems] = useState<Item[]>(SEED);
   const [links, setLinks] = useState([{ name: "", url: "" }]);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -166,7 +168,7 @@ export default function KnowledgeBaseSetup() {
           </Card>
 
           <div className="flex items-center gap-3">
-            <Button>Continue →</Button>
+            <Button onClick={goNext}>Continue →</Button>
             <Button variant="outline">Save as Draft</Button>
           </div>
         </div>

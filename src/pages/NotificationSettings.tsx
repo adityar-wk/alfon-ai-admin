@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { Topbar } from "../components/Topbar";
 import { SetupTabs } from "../components/SetupTabs";
-import { Page, Card } from "../components/ui";
+import { Page, Card, Button } from "../components/ui";
 import { NOTIF_KINDS, LS_KINDS, load, save, type Kind } from "../components/Notifications";
+import { useGoNextStep } from "../data/onboarding";
 
 /** Setup step: choose which kinds of notification reach the bell. */
 export default function NotificationSettings() {
+  const goNext = useGoNextStep(9);
   const [enabled, setEnabled] = useState<Kind[]>(() => load(LS_KINDS, NOTIF_KINDS.map((k) => k.key)));
   useEffect(() => save(LS_KINDS, enabled), [enabled]);
   const toggle = (k: Kind) => setEnabled((e) => (e.includes(k) ? e.filter((x) => x !== k) : [...e, k]));
@@ -41,6 +43,9 @@ export default function NotificationSettings() {
               })}
             </div>
           </Card>
+          <div className="mt-6">
+            <Button onClick={goNext}>Finish Setup →</Button>
+          </div>
         </div>
       </Page>
     </>

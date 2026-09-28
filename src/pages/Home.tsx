@@ -9,6 +9,7 @@ import {
   Users,
   ArrowDown,
   ArrowUp,
+  ArrowRight,
   Minus,
   Wrench,
   ConciergeBell,
@@ -24,6 +25,8 @@ import {
   Zap,
   ChevronDown,
   Check,
+  CheckCircle2,
+  Circle,
   AlertTriangle,
 } from "lucide-react";
 import { Topbar } from "../components/Topbar";
@@ -33,6 +36,9 @@ import Orb from "../components/Orb";
 import { scoreBand } from "../data/scoreBand";
 import { taskStatus, STATUS_PILL, COMPLAINT_PILL, useClock, type TaskStatusLabel } from "../data/attention";
 import { SlaClock } from "../components/SlaClock";
+import { usePersona } from "../persona";
+import { useOnboardingProgress } from "../data/onboarding";
+import { OnboardingStepsGrid } from "../components/OnboardingSteps";
 
 type Icon = React.ComponentType<{ className?: string }>;
 
@@ -89,6 +95,55 @@ function Spark({ data }: { data: readonly number[] }) {
   );
 }
 
+function OnboardingProgressCard() {
+  const { steps, isDone, currentStep, allDone, percent } = useOnboardingProgress();
+  const r = 44;
+  const c = 2 * Math.PI * r;
+  return (
+    <Card className="flex flex-col p-6">
+      <div className="flex items-center gap-6">
+        <div className="relative h-24 w-24 shrink-0">
+          <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90">
+            <circle cx="50" cy="50" r={r} fill="none" stroke="#F0F0F0" strokeWidth="10" />
+            <circle
+              cx="50" cy="50" r={r} fill="none" stroke="#E8623A" strokeWidth="10" strokeLinecap="round"
+              strokeDasharray={c} strokeDashoffset={c * (1 - percent / 100)}
+            />
+          </svg>
+          <div className="absolute inset-0 flex items-center justify-center text-[20px] font-bold text-ink">{percent}%</div>
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-ink-tertiary">Hotel Setup Progress</div>
+          <div className="mt-1 text-[17px] font-bold leading-snug text-ink">
+            {allDone ? "All set — ready to launch" : `Step ${currentStep.id} of ${steps.length}: ${currentStep.title}`}
+          </div>
+          <p className="mt-1 text-[13px] text-ink-secondary">{allDone ? "Every setup step is complete." : currentStep.desc}</p>
+          {!allDone && (
+            <Link
+              to={currentStep.to}
+              className="mt-3 inline-flex items-center gap-1.5 rounded-control bg-brand px-4 py-2 text-[13px] font-semibold text-white transition-colors duration-200 hover:bg-brand-hover"
+            >
+              Continue Setup <ArrowRight className="h-4 w-4" />
+            </Link>
+          )}
+        </div>
+      </div>
+      <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-1.5 border-t border-line pt-4">
+        {steps.map((s) => {
+          const done = isDone(s.id);
+          const current = s.id === currentStep.id && !allDone;
+          return (
+            <span key={s.id} className={`flex items-center gap-1.5 text-[12px] ${current ? "font-semibold text-brand" : done ? "text-ink-secondary" : "text-ink-tertiary"}`}>
+              {done ? <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-500" /> : <Circle className="h-3.5 w-3.5 shrink-0" />}
+              {s.title}
+            </span>
+          );
+        })}
+      </div>
+    </Card>
+  );
+}
+
 function Trend({ t }: { t: "up" | "down" | "flat" }) {
   if (t === "up") return <ArrowUp className="h-3.5 w-3.5 text-emerald-500" />;
   if (t === "down") return <ArrowDown className="h-3.5 w-3.5 text-brand" />;
@@ -101,6 +156,7 @@ const ATTENTION: TaskStatusLabel[] = ["Escalated", "SLA breached", "SLA at risk"
 export default function Home() {
   useClock();
   const navigate = useNavigate();
+  const { persona } = usePersona();
   const [dept, setDept] = useState("all");
   const [scoreOpen, setScoreOpen] = useState(false);
 
@@ -120,6 +176,24 @@ export default function Home() {
 
   const score = Math.max(0, Math.min(100, Math.round(82 + BASELINE - penalty(TASKS))));
   const band = scoreBand(score);
+
+  if (persona === "hoteladmin") {
+    return (
+      <>
+        <Topbar title={HOTEL} />
+        <Page>
+          <OnboardingProgressCard />
+          <div className="mt-6">
+            <div className="mb-3 flex items-baseline justify-between">
+              <h3 className="text-[15px] font-semibold text-ink">Setup steps</h3>
+              <span className="text-[12px] text-ink-tertiary">About 1 hour in total</span>
+            </div>
+            <OnboardingStepsGrid />
+          </div>
+        </Page>
+      </>
+    );
+  }
 
   return (
     <>

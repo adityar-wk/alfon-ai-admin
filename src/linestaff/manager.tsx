@@ -733,22 +733,24 @@ export function ManagerPrototype() {
 
         {task.complaint && (
         <div className="rounded-2xl border border-line bg-white p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-[12px] font-semibold text-ink-tertiary">Compensation</span>
-            <button onClick={() => setCompOpen(true)} className="text-[13px] font-semibold text-brand">Add compensation</button>
-          </div>
           {task.compensation?.length ? (
-            <div className="mt-2 space-y-2">
-              {task.compensation.map((c, i) => (
-                <div key={i} className="rounded-xl bg-[#F6F6F8] p-3">
-                  <div className="text-[14px] font-medium text-ink">{c.type}</div>
-                  <p className="text-[12px] text-ink-secondary">{c.reason}</p>
-                  <p className="mt-0.5 text-[11px] text-ink-tertiary">Approved by {c.by}</p>
-                </div>
-              ))}
-            </div>
+            <>
+              <div className="flex items-center justify-between">
+                <span className="text-[12px] font-semibold text-ink-tertiary">Compensation</span>
+                <button onClick={() => setCompOpen(true)} className="text-[13px] font-semibold text-brand">Add compensation</button>
+              </div>
+              <div className="mt-2 space-y-2">
+                {task.compensation.map((c, i) => (
+                  <div key={i} className="rounded-xl bg-[#F6F6F8] p-3">
+                    <div className="text-[14px] font-medium text-ink">{c.type}</div>
+                    <p className="text-[12px] text-ink-secondary">{c.reason}</p>
+                    <p className="mt-0.5 text-[11px] text-ink-tertiary">Approved by {c.by}</p>
+                  </div>
+                ))}
+              </div>
+            </>
           ) : (
-            <p className="mt-1.5 text-[13px] text-ink-tertiary">None given.</p>
+            <button onClick={() => setCompOpen(true)} className="block w-full text-center text-[13px] font-semibold text-brand">Add compensation</button>
           )}
         </div>
         )}
