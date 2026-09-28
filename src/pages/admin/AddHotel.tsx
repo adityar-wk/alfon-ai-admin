@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  Building2, Upload, ChevronRight, MessageSquare, Server, Check, Lightbulb, Users2, ArrowLeft, ArrowRight,
+  Building2, ChevronRight, MessageSquare, Server, Check, Lightbulb, Users2, ArrowLeft, ArrowRight, Plus, KeyRound,
 } from "lucide-react";
 import { Topbar } from "../../components/Topbar";
 import { Page, Card, Button, Field, Input, Select, Textarea, PhoneInput } from "../../components/ui";
@@ -23,8 +23,10 @@ const DEPT_OPTIONS = [
 
 const PMS_PROVIDERS = ["Opera (Oracle)", "Mews"];
 
+const COUNTRIES = ["United Arab Emirates", "Saudi Arabia", "Qatar", "Oman", "Bahrain", "Kuwait", "United Kingdom", "Philippines", "Indonesia", "Switzerland"];
+
 type Details = {
-  name: string; location: string; currency: string; timeZone: string; description: string;
+  name: string; country: string; city: string; currency: string; timeZone: string; description: string;
   region: string; propertyType: string; rooms: string; address: string;
 };
 
@@ -32,26 +34,45 @@ export default function AddHotel() {
   const navigate = useNavigate();
   const [step, setStep] = useState<Step>(0);
   const [details, setDetails] = useState<Details>({
-    name: "", location: "", currency: "AED (UAE Dirham)", timeZone: "Asia/Dubai (GMT+4)", description: "",
+    name: "", country: "United Arab Emirates", city: "", currency: "AED (UAE Dirham)", timeZone: "Asia/Dubai (GMT+4)", description: "",
     region: "Middle East", propertyType: "Resort", rooms: "", address: "",
   });
   const [depts, setDepts] = useState<Record<string, boolean>>({ Housekeeping: true, "Room Service": true });
-  const [wa, setWa] = useState({ code: "+971", number: "", displayName: "", businessId: "" });
+  const [customDept, setCustomDept] = useState<string | null>(null);
+  const [addingCustom, setAddingCustom] = useState(false);
+  const [customName, setCustomName] = useState("");
+
+  const [wa, setWa] = useState({ code: "+971", number: "", displayName: "", apiKey: "", businessId: "" });
+  const [otpSent, setOtpSent] = useState(false);
+  const [otp, setOtp] = useState("");
   const [waConnected, setWaConnected] = useState(false);
-  const [pms, setPms] = useState({ provider: "" });
+
+  const [pms, setPms] = useState({ provider: "", webhook: "", mewsToken: "" });
   const [pmsConnected, setPmsConnected] = useState(false);
 
   const set = <K extends keyof Details>(k: K) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
     setDetails((d) => ({ ...d, [k]: e.target.value }));
 
-  const detailsValid = details.name.trim() && details.location.trim();
+  const allDepts = [...DEPT_OPTIONS, ...(customDept ? [{ name: customDept, desc: "Custom department added for this hotel" }] : [])];
+
+  const detailsValid = details.name.trim() && details.country.trim() && details.city.trim();
   const deptCount = Object.values(depts).filter(Boolean).length;
+  const pmsValid = !!pms.provider && (pms.provider !== "Mews" || pms.mewsToken.trim());
   const canNext = step === 0 ? !!detailsValid : step === 1 ? deptCount > 0 : true;
 
   const stepStatus = (i: Step) => (i < step ? "done" : i === step ? "current" : "pending");
 
   const goNext = () => setStep((s) => (Math.min(3, s + 1) as Step));
   const goBack = () => setStep((s) => (Math.max(0, s - 1) as Step));
+
+  const addCustomDept = () => {
+    const name = customName.trim();
+    if (!name) return;
+    setCustomDept(name);
+    setDepts((x) => ({ ...x, [name]: true }));
+    setAddingCustom(false);
+    setCustomName("");
+  };
 
   const create = () => {
     navigate(`/admin/hotels?created=${encodeURIComponent(details.name)}`);
@@ -98,7 +119,12 @@ export default function AddHotel() {
                   <p className="mt-1 text-[13px] text-ink-secondary">Add the core information for this hotel.</p>
                   <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <Field label="Hotel Name" required><Input value={details.name} onChange={set("name")} placeholder="e.g. The Palm Retreat" /></Field>
-                    <Field label="Location" required><Input value={details.location} onChange={set("location")} placeholder="e.g. Dubai, UAE" /></Field>
+                    <Field label="Country" required>
+                      <Select value={details.country} onChange={set("country")}>
+                        {COUNTRIES.map((c) => <option key={c}>{c}</option>)}
+                      </Select>
+                    </Field>
+                    <Field label="City" required><Input value={details.city} onChange={set("city")} placeholder="e.g. Dubai" /></Field>
                     <Field label="Currency" required>
                       <Select value={details.currency} onChange={set("currency")}>
                         {["AED (UAE Dirham)", "SAR (Saudi Riyal)", "USD (US Dollar)", "GBP (British Pound)", "QAR (Qatari Riyal)"].map((c) => <option key={c}>{c}</option>)}
@@ -131,7 +157,7 @@ export default function AddHotel() {
                       </Select>
                     </Field>
                     <Field label="No. of Rooms (Optional)"><Input inputMode="numeric" value={details.rooms} onChange={set("rooms")} placeholder="e.g. 245" /></Field>
-                    <Field label="Address (Optional)"><Input value={details.address} onChange={set("address")} placeholder="e.g. Palm Jumeirah, Dubai, UAE" /></Field>
+                    <Field label="Address (Optional)"><Input value={details.address} onChange={set("address")} placeholder="e.g. Palm Jumeirah" /></Field>
                   </div>
                 </Card>
               </>
@@ -142,7 +168,7 @@ export default function AddHotel() {
                 <h3 className="text-[16px] font-semibold text-ink">Configure Departments</h3>
                 <p className="mt-1 text-[13px] text-ink-secondary">Select the departments available at this hotel. You can add or modify these later.</p>
                 <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  {DEPT_OPTIONS.map((d) => {
+                  {allDepts.map((d) => {
                     const Icon = deptIcon(d.name);
                     const on = !!depts[d.name];
                     return (
@@ -156,6 +182,23 @@ export default function AddHotel() {
                       </label>
                     );
                   })}
+
+                  {!customDept && (
+                    addingCustom ? (
+                      <div className="flex items-center gap-2 rounded-xl border border-dashed border-line p-3.5 sm:col-span-2">
+                        <Input autoFocus value={customName} onChange={(e) => setCustomName(e.target.value)} placeholder="Department name" className="h-9" onKeyDown={(e) => e.key === "Enter" && addCustomDept()} />
+                        <Button className="h-9 shrink-0 px-3 text-[12px]" disabled={!customName.trim()} onClick={addCustomDept}>Add</Button>
+                        <Button variant="outline" className="h-9 shrink-0 px-3 text-[12px]" onClick={() => { setAddingCustom(false); setCustomName(""); }}>Cancel</Button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => setAddingCustom(true)}
+                        className="flex items-center justify-center gap-2 rounded-xl border border-dashed border-line p-3.5 text-[13px] font-medium text-brand hover:bg-brand-tint/20 sm:col-span-2"
+                      >
+                        <Plus className="h-4 w-4" /> Add a custom department
+                      </button>
+                    )
+                  )}
                 </div>
               </Card>
             )}
@@ -180,16 +223,33 @@ export default function AddHotel() {
                       </Field>
                       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                         <Field label="Display Name"><Input value={wa.displayName} onChange={(e) => setWa((x) => ({ ...x, displayName: e.target.value }))} placeholder={details.name || "Hotel name"} /></Field>
+                        <Field label="API Key" required><Input type="password" value={wa.apiKey} onChange={(e) => setWa((x) => ({ ...x, apiKey: e.target.value }))} placeholder="Enter WhatsApp API key" /></Field>
                         <Field label="Business Account ID (Optional)"><Input value={wa.businessId} onChange={(e) => setWa((x) => ({ ...x, businessId: e.target.value }))} placeholder="Enter Business Account ID" /></Field>
                       </div>
-                      <Button disabled={!wa.number.trim()} className="disabled:opacity-40" onClick={() => setWaConnected(true)}>
-                        <MessageSquare className="h-4 w-4" /> Connect WhatsApp
-                      </Button>
+
+                      {waConnected ? (
+                        <span className="inline-flex items-center gap-1.5 text-[13px] font-medium text-emerald-600"><Check className="h-4 w-4" /> Number verified and connected</span>
+                      ) : otpSent ? (
+                        <div className="flex flex-wrap items-end gap-2">
+                          <div className="w-40">
+                            <span className="mb-1.5 block text-xs font-medium text-ink-secondary">Enter OTP</span>
+                            <Input value={otp} onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))} placeholder="6-digit code" maxLength={6} />
+                          </div>
+                          <Button disabled={otp.trim().length < 4} className="disabled:opacity-40" onClick={() => setWaConnected(true)}>
+                            <KeyRound className="h-4 w-4" /> Verify OTP
+                          </Button>
+                          <button onClick={() => { setOtp(""); setOtpSent(false); }} className="h-10 px-2 text-[12px] font-medium text-brand">Resend code</button>
+                        </div>
+                      ) : (
+                        <Button disabled={!wa.number.trim() || !wa.apiKey.trim()} className="disabled:opacity-40" onClick={() => setOtpSent(true)}>
+                          <MessageSquare className="h-4 w-4" /> Send OTP
+                        </Button>
+                      )}
                     </div>
                     <div className="rounded-xl bg-emerald-50/60 p-3.5 text-[12px] text-emerald-800">
                       <div className="mb-1.5 font-semibold">What happens next?</div>
                       <ul className="space-y-1.5 text-emerald-700">
-                        <li>We will verify the number and connect it to your hotel.</li>
+                        <li>We'll text a one-time code to verify the number.</li>
                         <li>ALFON will send and receive guest messages through this number.</li>
                         <li>Only this hotel can use this WhatsApp number.</li>
                       </ul>
@@ -208,28 +268,28 @@ export default function AddHotel() {
                     </div>
                     <span className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold ${pmsConnected ? "bg-emerald-50 text-emerald-600" : "bg-subtle text-ink-tertiary"}`}>{pmsConnected ? "Connected" : "Not Connected"}</span>
                   </div>
-                  <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-[1fr_260px]">
-                    <div className="space-y-3">
-                      <Field label="PMS Provider" required>
-                        <Select value={pms.provider} onChange={(e) => setPms({ provider: e.target.value })}>
-                          <option value="">Select PMS provider</option>
-                          {PMS_PROVIDERS.map((p) => <option key={p}>{p}</option>)}
-                        </Select>
+                  <div className="mt-4 max-w-md space-y-3">
+                    <Field label="PMS Provider" required>
+                      <Select value={pms.provider} onChange={(e) => setPms((x) => ({ ...x, provider: e.target.value }))}>
+                        <option value="">Select PMS provider</option>
+                        {PMS_PROVIDERS.map((p) => <option key={p}>{p}</option>)}
+                      </Select>
+                    </Field>
+                    <Field label="Webhook URL (Optional)" hint="ALFON will send booking update events to this URL.">
+                      <Input value={pms.webhook} onChange={(e) => setPms((x) => ({ ...x, webhook: e.target.value }))} placeholder="https://yourpms.com/webhooks/alfon" />
+                    </Field>
+                    {pms.provider === "Mews" && (
+                      <Field label="Mews Access Token" required>
+                        <Input type="password" value={pms.mewsToken} onChange={(e) => setPms((x) => ({ ...x, mewsToken: e.target.value }))} placeholder="Enter your Mews access token" />
                       </Field>
-                      <div className="flex items-start gap-2 rounded-lg bg-sky-50 px-3 py-2.5 text-[12px] text-sky-700">
-                        <Lightbulb className="mt-0.5 h-4 w-4 shrink-0" />
-                        ALFON only reads reservation information such as bookings, check-in/check-out dates, guest details and room status, and only if the hotel has a PMS.
-                      </div>
-                      <Button disabled={!pms.provider} className="disabled:opacity-40" onClick={() => setPmsConnected(true)}>
-                        <Server className="h-4 w-4" /> Connect PMS
-                      </Button>
+                    )}
+                    <div className="flex items-start gap-2 rounded-lg bg-sky-50 px-3 py-2.5 text-[12px] text-sky-700">
+                      <Lightbulb className="mt-0.5 h-4 w-4 shrink-0" />
+                      ALFON only reads reservation information such as bookings, check-in/check-out dates, guest details and room status, and only if the hotel has a PMS.
                     </div>
-                    <div className="rounded-xl border border-line p-3.5 text-[12px]">
-                      <div className="mb-1.5 font-semibold text-ink">Supported PMS Providers</div>
-                      <ul className="space-y-1.5 text-ink-secondary">
-                        {PMS_PROVIDERS.map((p) => <li key={p}>{p}</li>)}
-                      </ul>
-                    </div>
+                    <Button disabled={!pmsValid} className="disabled:opacity-40" onClick={() => setPmsConnected(true)}>
+                      <Server className="h-4 w-4" /> Connect PMS
+                    </Button>
                   </div>
                 </Card>
               </>
@@ -246,7 +306,7 @@ export default function AddHotel() {
                 <div className="mt-4 rounded-xl border border-line p-4">
                   <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-ink-tertiary"><Building2 className="h-3.5 w-3.5" /> Hotel Overview</div>
                   <dl className="mt-3 grid grid-cols-1 gap-x-6 gap-y-2 text-[13px] sm:grid-cols-2">
-                    {[["Hotel Name", details.name || "—"], ["Location", details.location || "—"], ["Currency", details.currency], ["Time Zone", details.timeZone], ["Property Type", details.propertyType], ["No. of Rooms", details.rooms || "—"]].map(([k, v]) => (
+                    {[["Hotel Name", details.name || "—"], ["Country", details.country], ["City", details.city || "—"], ["Currency", details.currency], ["Time Zone", details.timeZone], ["Property Type", details.propertyType], ["No. of Rooms", details.rooms || "—"]].map(([k, v]) => (
                       <div key={k} className="flex items-center justify-between border-b border-line/60 py-1.5"><dt className="text-ink-secondary">{k}</dt><dd className="font-medium text-ink">{v}</dd></div>
                     ))}
                   </dl>

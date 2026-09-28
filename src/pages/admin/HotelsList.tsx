@@ -73,16 +73,21 @@ export default function HotelsList() {
         </div>
 
         <div className="mt-5 flex flex-wrap items-center gap-3">
-          <div className="flex rounded-lg border border-line bg-white p-1">
-            {TABS.map((t) => (
-              <button
-                key={t}
-                onClick={() => setTab(t)}
-                className={`rounded-md px-3 py-1.5 text-[13px] font-medium ${tab === t ? "bg-brand-tint text-brand" : "text-ink-secondary hover:text-ink"}`}
-              >
-                {t} Hotels{t === "All" ? "" : ""}
-              </button>
-            ))}
+          <div className="flex h-10 shrink-0 items-center gap-1 rounded-control border border-line bg-white p-1">
+            {TABS.map((t) => {
+              const count = t === "All" ? HOTELS.length : HOTELS.filter((h) => h.status === t).length;
+              const on = tab === t;
+              return (
+                <button
+                  key={t}
+                  onClick={() => setTab(t)}
+                  className={`flex h-full items-center gap-1.5 rounded-md px-3 text-[13px] font-medium transition-colors ${on ? "bg-brand-tint text-brand" : "text-ink-secondary hover:bg-subtle hover:text-ink"}`}
+                >
+                  {t}
+                  <span className={`text-[11px] ${on ? "text-brand/70" : "text-ink-tertiary"}`}>{count}</span>
+                </button>
+              );
+            })}
           </div>
           <div className="relative min-w-0 max-w-xs flex-1">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-tertiary" />
@@ -93,7 +98,7 @@ export default function HotelsList() {
               className="h-10 w-full rounded-control border border-line bg-white pl-9 pr-3 text-[13px] outline-none placeholder:text-ink-tertiary focus:border-brand"
             />
           </div>
-          <div className="w-44">
+          <div className="w-44 shrink-0">
             <Select value={region} onChange={(e) => setRegion(e.target.value)} aria-label="Region">
               <option value="all">All Regions</option>
               {REGIONS.map((r) => <option key={r}>{r}</option>)}
