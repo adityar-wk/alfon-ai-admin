@@ -1,3 +1,4 @@
+import { Lock } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { SetupTabs } from "../components/SetupTabs";
 import { Page, Card, Button, Field, Input, Select } from "../components/ui";
@@ -11,6 +12,16 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
+/** set by Super Admin when the hotel was added — Hotel Admin can see it, not change it here */
+function Locked({ value }: { value: string }) {
+  return (
+    <div className="flex h-10 items-center justify-between rounded-control border border-line bg-subtle px-3 text-[13px] text-ink-secondary">
+      <span className="truncate">{value}</span>
+      <Lock className="h-3.5 w-3.5 shrink-0 text-ink-tertiary" />
+    </div>
+  );
+}
+
 export default function HotelPropertySetup() {
   return (
     <>
@@ -21,8 +32,8 @@ export default function HotelPropertySetup() {
           <div className="space-y-5">
             <Section title="Basic Information">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <Field label="Hotel Name" required>
-                  <Input defaultValue="Sea View Hotel" />
+                <Field label="Hotel Name" required hint="Set by Alfon when this hotel was added.">
+                  <Locked value="Sea View Hotel" />
                 </Field>
                 <Field
                   label="Hotel Code (Internal)"
@@ -96,17 +107,11 @@ export default function HotelPropertySetup() {
 
             <Section title="Preferences">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <Field label="Time Zone" required>
-                  <Select defaultValue="et">
-                    <option value="et">(GMT-05:00) Eastern Time (US &amp; Canada)</option>
-                    <option value="pt">(GMT-08:00) Pacific Time (US &amp; Canada)</option>
-                  </Select>
+                <Field label="Time Zone" required hint="Set by Alfon when this hotel was added.">
+                  <Locked value="(GMT-05:00) Eastern Time (US & Canada)" />
                 </Field>
-                <Field label="Date Format" required>
-                  <Select defaultValue="mmm">
-                    <option value="mmm">May 24, 2025 (MMM DD, YYYY)</option>
-                    <option value="dmy">24/05/2025 (DD/MM/YYYY)</option>
-                  </Select>
+                <Field label="Date Format" required hint="Set by Alfon when this hotel was added.">
+                  <Locked value="May 24, 2025 (MMM DD, YYYY)" />
                 </Field>
               </div>
             </Section>

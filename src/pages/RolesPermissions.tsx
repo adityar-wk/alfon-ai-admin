@@ -167,6 +167,11 @@ export default function RolesPermissions({ embedded = false }: { embedded?: bool
     flash("Member removed");
   };
 
+  const addToRole = (id: number, roleId: string) => {
+    setUsers((us) => us.map((u) => (u.id === id ? { ...u, roleId, status: u.status === "Deactivated" ? "Active" : u.status } : u)));
+    flash(`Added to ${roles.find((r) => r.id === roleId)?.name}`);
+  };
+
   const set = <K extends keyof Role>(k: K, v: Role[K]) => setDraft((d) => ({ ...d, [k]: v }));
   const cfg = DEPT_ICON[draft.dept];
 
@@ -380,9 +385,12 @@ export default function RolesPermissions({ embedded = false }: { embedded?: bool
                 ) : (
                   <RoleMembers
                     role={saved}
+                    roles={roles}
                     members={users.filter((u) => u.roleId === saved.id)}
+                    allUsers={users}
                     onRemove={removeUser}
-                    onInvite={() => setInviteRole(saved.id)}
+                    onAdd={(id) => addToRole(id, saved.id)}
+                    onInviteNew={() => setInviteRole(saved.id)}
                   />
                 )}
 
@@ -426,15 +434,22 @@ export default function RolesPermissions({ embedded = false }: { embedded?: bool
 /* ---------- members of a role ---------- */
 
 function RoleMembers({
-  role, members, onRemove, onInvite,
+  role, roles, members, allUsers, onRemove, onAdd, onInviteNew,
 }: {
   role: Role;
+  roles: Role[];
   members: User[];
+  allUsers: User[];
   onRemove: (id: number) => void;
-  onInvite: () => void;
+  onAdd: (id: number) => void;
+  onInviteNew: () => void;
 }) {
   const [q, setQ] = useState("");
-  const list = members.filter((u) => !q.trim() || `${u.name} ${u.email}`.toLowerCase().includes(q.trim().toLowerCase()));
+  const query = q.trim().toLowerCase();
+  const searching = query.length > 0;
+  // searching looks across every hotel member, not just this role's own list — pick a match and invite them in
+  const candidates = allUsers.filter((u) => u.roleId !== role.id && `${u.name} ${u.email}`.toLowerCase().includes(query));
+
   return (
     <div className="pt-5">
       <div className="flex items-center gap-3">
@@ -443,40 +458,57 @@ function RoleMembers({
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder={`Search ${role.name} members…`}
+            placeholder="Search hotel members by name to add to this role…"
             className="h-10 w-full rounded-control border border-line bg-white pl-9 pr-3 text-[13px] outline-none placeholder:text-ink-tertiary focus:border-brand"
           />
         </div>
-        <Button variant="outline" onClick={onInvite}><Plus className="h-4 w-4" /> Invite</Button>
+        <Button variant="outline" onClick={onInviteNew}><Plus className="h-4 w-4" /> Invite New</Button>
       </div>
 
-      <div className="mt-4 max-h-[440px] divide-y divide-line/70 overflow-y-auto rounded-xl border border-line">
-        {list.map((u) => (
-          <div key={u.id} className="flex items-center gap-3 px-4 py-2.5">
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-subtle text-[11px] font-semibold text-ink-secondary">
-              {u.name.split(" ").map((w) => w[0]).join("").slice(0, 2)}
-            </span>
-            <div className="min-w-0 flex-1 leading-tight">
-              <div className="truncate text-[13px] font-medium text-ink">{u.name}</div>
-              <div className="truncate text-[11px] text-ink-tertiary">{u.email}</div>
+      {searching ? (
+        <div className="mt-4 max-h-[440px] divide-y divide-line/70 overflow-y-auto rounded-xl border border-line">
+          {candidates.map((u) => (
+            <div key={u.id} className="flex items-center gap-3 px-4 py-2.5">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-subtle text-[11px] font-semibold text-ink-secondary">
+                {u.name.split(" ").map((w) => w[0]).join("").slice(0, 2)}
+              </span>
+              <div className="min-w-0 flex-1 leading-tight">
+                <div className="truncate text-[13px] font-medium text-ink">{u.name}</div>
+                <div className="truncate text-[11px] text-ink-tertiary">{u.email}</div>
+              </div>
+              <span className="shrink-0 text-[12px] text-ink-tertiary">{roles.find((r) => r.id === u.roleId)?.name ?? "No role"}</span>
+              <Button className="h-8 shrink-0 px-3 text-[12px]" onClick={() => onAdd(u.id)}>Invite</Button>
             </div>
-            <span className={`shrink-0 text-[12px] ${u.status === "Active" ? "text-emerald-600" : u.status === "Invited" ? "text-amber-600" : "text-ink-tertiary"}`}>{u.status}</span>
-            <button
-              onClick={() => onRemove(u.id)}
-              aria-label={`Remove ${u.name}`}
-              title="Remove"
-              className="shrink-0 rounded-md p-1.5 text-ink-tertiary hover:bg-red-50 hover:text-red-600"
-            >
-              <Trash2 className="h-4 w-4" />
-            </button>
-          </div>
-        ))}
-        {!list.length && (
-          <p className="px-4 py-10 text-center text-[13px] text-ink-tertiary">
-            {members.length ? "No members match." : "No one has this role yet. Invite someone or move a user here."}
-          </p>
-        )}
-      </div>
+          ))}
+          {!candidates.length && <p className="px-4 py-10 text-center text-[13px] text-ink-tertiary">No hotel member matches “{q.trim()}”.</p>}
+        </div>
+      ) : (
+        <div className="mt-4 max-h-[440px] divide-y divide-line/70 overflow-y-auto rounded-xl border border-line">
+          {members.map((u) => (
+            <div key={u.id} className="flex items-center gap-3 px-4 py-2.5">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-subtle text-[11px] font-semibold text-ink-secondary">
+                {u.name.split(" ").map((w) => w[0]).join("").slice(0, 2)}
+              </span>
+              <div className="min-w-0 flex-1 leading-tight">
+                <div className="truncate text-[13px] font-medium text-ink">{u.name}</div>
+                <div className="truncate text-[11px] text-ink-tertiary">{u.email}</div>
+              </div>
+              <span className={`shrink-0 text-[12px] ${u.status === "Active" ? "text-emerald-600" : u.status === "Invited" ? "text-amber-600" : "text-ink-tertiary"}`}>{u.status}</span>
+              <button
+                onClick={() => onRemove(u.id)}
+                aria-label={`Remove ${u.name}`}
+                title="Remove"
+                className="shrink-0 rounded-md p-1.5 text-ink-tertiary hover:bg-red-50 hover:text-red-600"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </div>
+          ))}
+          {!members.length && (
+            <p className="px-4 py-10 text-center text-[13px] text-ink-tertiary">No one has this role yet. Search above for a hotel member to add.</p>
+          )}
+        </div>
+      )}
     </div>
   );
 }
