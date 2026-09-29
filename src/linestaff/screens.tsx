@@ -35,11 +35,10 @@ type Screen = { name: "home" | "notifications" | "taskDetail" | "create" | "gues
 
 const CHAT_FILTERS = ["All", "Unread", "Open tasks"] as const;
 
-type HelpKind = "escalate" | "support" | "reassign";
-const HELP_OPTIONS: { key: HelpKind; label: string; sub: string; cta: string; placeholder: string }[] = [
-  { key: "escalate", label: "Escalate task", sub: "Send it up to your supervisor", cta: "Escalate", placeholder: "Tell your supervisor what's blocking you…" },
-  { key: "support", label: "Request support", sub: "Ask a colleague to help you with this task", cta: "Request support", placeholder: "What kind of help do you need…" },
-  { key: "reassign", label: "Request reassign", sub: "Hand this task to someone else", cta: "Send request", placeholder: "Why does this need to be reassigned…" },
+type HelpKind = "escalate" | "reassign";
+const HELP_OPTIONS: { key: HelpKind; label: string; cta: string; placeholder: string }[] = [
+  { key: "escalate", label: "Escalate task", cta: "Escalate", placeholder: "Tell your supervisor what's blocking you…" },
+  { key: "reassign", label: "Reassign", cta: "Send request", placeholder: "Why does this need to be reassigned…" },
 ];
 type Status = "pending" | "progress" | "completed";
 type Task = {
@@ -489,8 +488,7 @@ export function LineStaffPrototype() {
   );
 
   const helpSubmit = () => {
-    const msg =
-      helpKind === "escalate" ? "Escalated to your supervisor" : helpKind === "support" ? "Support request sent" : "Reassignment request sent to your supervisor";
+    const msg = helpKind === "escalate" ? "Escalated to your supervisor" : "Reassignment request sent to your supervisor";
     if (helpKind === "escalate") setTasks((ts) => ts.map((t) => (t.id === active.id ? { ...t, escalatedTo: "Supervisor" } : t)));
     flash(msg);
     setHelpOpen(false);
@@ -512,10 +510,7 @@ export function LineStaffPrototype() {
               <span className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${on ? "border-brand" : "border-line"}`}>
                 {on && <span className="h-2.5 w-2.5 rounded-full bg-brand" />}
               </span>
-              <span className="min-w-0">
-                <span className="block text-[14px] font-semibold text-ink">{o.label}</span>
-                <span className="block text-[12px] text-ink-secondary">{o.sub}</span>
-              </span>
+              <span className="min-w-0 text-[14px] font-semibold text-ink">{o.label}</span>
             </button>
           );
         })}
