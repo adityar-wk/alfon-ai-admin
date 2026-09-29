@@ -40,15 +40,16 @@ const GUEST_FILTERS = ["All", "Unread", "Complaints", "Open requests", "Pre-arri
 type GuestFilter = (typeof GUEST_FILTERS)[number];
 const ROSTER_STAGE_FILTERS = ["All", "In-house", "Pre-arrival", "Checked out"] as const;
 type RosterStage = (typeof ROSTER_STAGE_FILTERS)[number];
-const ROOM_STATUS_FILTERS = ["All", "Cleaning", "Needs Inspection", "Out of Service", "Out of Order", "Clean"] as const;
+const ROOM_STATUS_FILTERS = ["All", "In Progress", "Needs Inspection", "Out of Service", "Out of Order", "Inspected"] as const;
 type RoomStatusFilter = (typeof ROOM_STATUS_FILTERS)[number];
-const ROOM_STATUSES = ["Clean", "Cleaning", "Needs Inspection", "Out of Service", "Out of Order"] as const;
+const ROOM_STATUSES = ["Inspected", "In Progress", "Needs Inspection", "Out of Service", "Out of Order"] as const;
+/** matches the colour coding used on the web Housekeeping tab */
 const ROOM_STATUS_TONE: Record<RoomStatus, string> = {
-  Clean: "text-emerald-600",
-  "Cleaning": "text-blue-600",
+  Inspected: "text-emerald-600",
+  "In Progress": "text-blue-600",
   "Needs Inspection": "text-amber-600",
   "Out of Service": "text-red-600",
-  "Out of Order": "text-red-800",
+  "Out of Order": "text-gray-500",
 };
 const TASK_FILTERS = ["All", "Unassigned", "At Risk", "Overdue", "Completed"] as const;
 type TaskFilter = (typeof TASK_FILTERS)[number];
@@ -569,11 +570,11 @@ export function ManagerPrototype() {
         <div className="mb-4 flex items-center gap-3 rounded-2xl bg-[#F6F6F8] p-3">
           <Avatar name={roomEntry.assignee} />
           <div className="leading-tight">
-            <div className="text-[11px] text-ink-tertiary">{roomEntry.status === "Cleaning" ? "Cleaning by" : "Inspection assigned to"}</div>
+            <div className="text-[11px] text-ink-tertiary">{roomEntry.status === "In Progress" ? "Cleaning by" : "Inspection assigned to"}</div>
             <div className="text-[14px] font-semibold text-ink">{roomEntry.assignee}</div>
           </div>
         </div>
-      ) : roomEntry.status === "Cleaning" ? (
+      ) : roomEntry.status === "In Progress" ? (
         <p className={`mb-4 rounded-2xl p-3 text-[13px] ${roomEntry.open ? "bg-amber-50 text-amber-700" : "bg-[#F6F6F8] text-ink-secondary"}`}>
           {roomEntry.open ? "Open task — waiting for a line staff member to pick it up." : "No staff assigned yet."}
         </p>
@@ -584,10 +585,10 @@ export function ManagerPrototype() {
         active={roomEntry.status}
         onChange={(v) => { setRooms((rs) => rs.map((r) => (r.number === roomEntry.number ? { ...r, status: v, assignee: v === r.status ? r.assignee : null, open: v === r.status ? r.open : false } : r))); flash(`${roomEntry.number} marked ${v}`); }}
       />
-      {(roomEntry.status === "Needs Inspection" || roomEntry.status === "Cleaning") && !roomEntry.assignee && (
+      {(roomEntry.status === "Needs Inspection" || roomEntry.status === "In Progress") && !roomEntry.assignee && (
         <>
           <div className="mt-5" />
-          {roomEntry.status === "Cleaning" && !roomEntry.open && (
+          {roomEntry.status === "In Progress" && !roomEntry.open && (
             <>
               <Button variant="outline" className="w-full" onClick={() => { setRooms((rs) => rs.map((r) => (r.number === roomEntry.number ? { ...r, open: true } : r))); flash(`${roomEntry.number} is now open for line staff to pick up`); }}>
                 Make it an open task — anyone can pick it up
@@ -597,7 +598,7 @@ export function ManagerPrototype() {
               </div>
             </>
           )}
-          <Label>{roomEntry.status === "Cleaning" ? "Assign cleaner" : "Assign inspector"}</Label>
+          <Label>{roomEntry.status === "In Progress" ? "Assign cleaner" : "Assign inspector"}</Label>
           <StaffPicker
             tasks={tasks}
             exclude={roomEntry.assignee ? [roomEntry.assignee] : []}

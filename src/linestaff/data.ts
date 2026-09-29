@@ -287,21 +287,21 @@ export const GUEST_PROFILES: Record<string, GuestProfileInfo> = {
   "Omar Haddad": gp("Room 1012", "Deluxe King", "United Arab Emirates", "🇦🇪", "Sep 19, 2026", "Sep 21, 2026", 2, "Omar stayed for a short business trip and preferred Arabic-language communication.", ["High floor, king bed", "Halal only", "Arabic, English", "Cool (21°C)", "6:00 AM", "Standard inventory"], "+971 50 555 0166", "omar.haddad@email.com"),
 };
 
-export type RoomStatus = "Clean" | "Cleaning" | "Needs Inspection" | "Out of Service" | "Out of Order";
+export type RoomStatus = "Inspected" | "In Progress" | "Needs Inspection" | "Out of Service" | "Out of Order";
 export type HkRoom = { number: string; floor: number; status: RoomStatus; assignee: string | null; /** cleaning left open for any line staff to pick up (never for inspections) */ open?: boolean };
 export const ROOMS: HkRoom[] = [
-  { number: "Room 305", floor: 3, status: "Cleaning", assignee: "Maria Santos" },
-  { number: "Room 410", floor: 4, status: "Clean", assignee: null },
-  { number: "Room 501", floor: 5, status: "Cleaning", assignee: "Aanya Khan" },
+  { number: "Room 305", floor: 3, status: "In Progress", assignee: "Maria Santos" },
+  { number: "Room 410", floor: 4, status: "Inspected", assignee: null },
+  { number: "Room 501", floor: 5, status: "In Progress", assignee: "Aanya Khan" },
   { number: "Room 623", floor: 6, status: "Needs Inspection", assignee: null },
   { number: "Room 704", floor: 7, status: "Needs Inspection", assignee: null },
   { number: "Room 812", floor: 8, status: "Needs Inspection", assignee: null },
-  { number: "Room 908", floor: 9, status: "Cleaning", assignee: "Aanya Khan" },
+  { number: "Room 908", floor: 9, status: "In Progress", assignee: "Aanya Khan" },
   { number: "Room 1103", floor: 11, status: "Out of Service", assignee: null },
-  { number: "Room 1204", floor: 12, status: "Cleaning", assignee: "Fatima Khan" },
+  { number: "Room 1204", floor: 12, status: "In Progress", assignee: "Fatima Khan" },
   { number: "Room 1501", floor: 15, status: "Out of Service", assignee: null },
-  { number: "Room 2104", floor: 21, status: "Clean", assignee: null },
-  { number: "Room 227", floor: 2, status: "Clean", assignee: null },
+  { number: "Room 2104", floor: 21, status: "Inspected", assignee: null },
+  { number: "Room 227", floor: 2, status: "Inspected", assignee: null },
   { number: "Room 618", floor: 6, status: "Out of Order", assignee: null },
   { number: "Room 1010", floor: 10, status: "Out of Order", assignee: null },
   { number: "Room 1407", floor: 14, status: "Out of Order", assignee: null },
