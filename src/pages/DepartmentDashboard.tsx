@@ -68,16 +68,17 @@ export default function DepartmentDashboard() {
             <Card table className="overflow-hidden">
               <div className="flex flex-wrap items-center gap-3 px-5 py-4">
                 <ListChecks className="h-[18px] w-[18px] text-brand" />
-                <h3 className="text-[16px] font-semibold text-ink">Needs Your Attention</h3>
+                <h3 className="text-[16px] font-semibold text-ink">Tasks</h3>
                 <Link to="/tasks" className="ml-auto flex items-center gap-1 text-[13px] font-semibold text-brand">
                   All department tasks <ChevronRight className="h-3.5 w-3.5" />
                 </Link>
               </div>
               <div className="overflow-x-auto border-t border-line">
-                <table className="w-full min-w-[760px] table-fixed text-left">
+                <table className="w-full min-w-[860px] table-fixed text-left">
                   <colgroup>
                     <col className="w-[120px]" />
                     <col />
+                    <col className="w-[140px]" />
                     <col className="w-[140px]" />
                     <col className="w-[170px]" />
                     <col className="w-[130px]" />
@@ -86,6 +87,7 @@ export default function DepartmentDashboard() {
                     <tr className="bg-[#F4F4F5] text-[12px] uppercase tracking-wide text-[#6B7280]">
                       <th className="py-3.5 pl-6 font-medium">SLA</th>
                       <th className="py-3.5 pl-6 font-medium">Task</th>
+                      <th className="py-3.5 pl-6 font-medium">Guest</th>
                       <th className="py-3.5 pl-6 font-medium">Status</th>
                       <th className="py-3.5 pl-6 font-medium">Department</th>
                       <th className="py-3.5 pl-6 font-medium">Assigned To</th>
@@ -109,6 +111,7 @@ export default function DepartmentDashboard() {
                             </div>
                             <div className="text-[12px] text-ink-tertiary"><RoomNo room={t.room} /></div>
                           </td>
+                          <td className="whitespace-nowrap py-3.5 pl-6 pr-3 text-[14px] text-ink-secondary">{t.guest}</td>
                           <td className="whitespace-nowrap py-3.5 pl-6 pr-3"><span className={`text-[13px] font-medium ${STATUS_PILL[status]}`}>{status}</span></td>
                           <td className="whitespace-nowrap py-3.5 pl-6 pr-3 text-[14px] text-ink-secondary"><span className="flex items-center gap-2"><D className="h-4 w-4 text-ink-tertiary" />{t.dept}</span></td>
                           <td className="whitespace-nowrap py-3.5 pl-6 pr-3 text-[14px]">
@@ -117,7 +120,7 @@ export default function DepartmentDashboard() {
                         </tr>
                       );
                     })}
-                    {!attention.length && <tr><td colSpan={5} className="py-8 pl-6 pr-3 text-center text-[14px] text-ink-tertiary">Nothing needs attention in your department.</td></tr>}
+                    {!attention.length && <tr><td colSpan={6} className="py-8 pl-6 pr-3 text-center text-[14px] text-ink-tertiary">Nothing needs attention in your department.</td></tr>}
                   </tbody>
                 </table>
               </div>
