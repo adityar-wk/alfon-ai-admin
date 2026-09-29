@@ -130,7 +130,7 @@ export function GuestLandingPrototype() {
                 </label>
                 <label className="flex items-start gap-2.5 text-[12px] leading-relaxed text-ink-secondary">
                   <input type="checkbox" checked={marketing} onChange={(e) => setMarketing(e.target.checked)} className="mt-0.5 h-4 w-4 shrink-0 accent-brand" />
-                  <span>I agree to receive occasional offers and updates from the hotel via WhatsApp. I can opt out at any time.</span>
+                  <span><span className="text-ink-tertiary">(Optional)</span> I agree to receive occasional offers and updates from the hotel via WhatsApp. I can opt out at any time.</span>
                 </label>
               </div>
 
