@@ -395,18 +395,20 @@ export default function Tasks() {
         ) : (
         <Card table className="overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[1080px] table-fixed text-left">
+            <table className="w-full min-w-[1180px] table-fixed text-left">
               <colgroup>
                 <col className="w-[140px]" />
                 <col />
-                <col className="w-[190px]" />
-                <col className="w-[200px]" />
+                <col className="w-[160px]" />
+                <col className="w-[170px]" />
                 <col className="w-[180px]" />
+                <col className="w-[160px]" />
               </colgroup>
               <thead>
                 <tr className="bg-[#F4F4F5] text-[12px] uppercase tracking-wide text-[#6B7280]">
                   <th className="py-3.5 pl-6 font-medium">SLA</th>
                   <th className="py-3.5 pl-6 font-medium">Task</th>
+                  <th className="py-3.5 pl-10 font-medium">Guest</th>
                   <th className="py-3.5 pl-10 font-medium">Status</th>
                   <th className="py-3.5 pl-10 font-medium">Department</th>
                   <th className="py-3.5 pl-10 font-medium">Assigned To</th>
@@ -423,8 +425,9 @@ export default function Tasks() {
                           {t.title}
                           {cap(t) && <ComplaintPill />}
                         </div>
-                        <div className="mt-0.5 text-[12px] text-ink-tertiary">{t.guest} · <RoomNo room={t.room} /></div>
+                        <div className="mt-0.5 text-[12px] text-ink-tertiary"><RoomNo room={t.room} /></div>
                       </td>
+                      <td className="whitespace-nowrap py-3.5 pl-10 pr-3 text-[14px] text-ink-secondary">{t.guest}</td>
                       <td className="whitespace-nowrap py-3.5 pl-10 pr-3"><StatusLabel t={t} /></td>
                       <td className="whitespace-nowrap py-3.5 pl-10 pr-3 text-[14px] text-ink-secondary"><span className="flex items-center gap-2"><D className="h-4 w-4 text-ink-tertiary" />{t.dept}</span></td>
                       <td className="whitespace-nowrap py-3.5 pl-10 pr-3 text-[14px]">
@@ -435,7 +438,7 @@ export default function Tasks() {
                 })}
                 {!rows.length && (
                   <tr>
-                    <td colSpan={5} className="py-3.5 pl-6 pr-3 text-center text-[14px] text-ink-tertiary">No tasks in this view.</td>
+                    <td colSpan={6} className="py-3.5 pl-6 pr-3 text-center text-[14px] text-ink-tertiary">No tasks in this view.</td>
                   </tr>
                 )}
               </tbody>

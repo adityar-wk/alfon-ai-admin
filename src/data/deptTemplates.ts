@@ -12,7 +12,8 @@ export const SLA_BY_PRIORITY: Record<Priority, { response: string; resolve: stri
 export type TemplateService = {
   name: string;
   description: string;
-  priority: Priority;
+  response: string;
+  resolve: string;
 };
 
 export type DeptTemplateData = {
@@ -22,7 +23,10 @@ export type DeptTemplateData = {
   services: TemplateService[];
 };
 
-export const DEPT_TEMPLATES: DeptTemplateData[] = [
+type SeedService = { name: string; description: string; priority: Priority };
+type SeedDept = { slug: string; name: string; description: string; services: SeedService[] };
+
+const SEED_TEMPLATES: SeedDept[] = [
   {
     slug: "front-desk",
     name: "Front Desk",
@@ -179,6 +183,16 @@ export const DEPT_TEMPLATES: DeptTemplateData[] = [
   },
 ];
 
+export const DEPT_TEMPLATES: DeptTemplateData[] = SEED_TEMPLATES.map((d) => ({
+  ...d,
+  services: d.services.map((s) => ({ name: s.name, description: s.description, ...SLA_BY_PRIORITY[s.priority] })),
+}));
+
+/** in-memory store so edits made in the Super Admin UI stick for the session */
+export const STORE = {
+  depts: DEPT_TEMPLATES.map((d) => ({ ...d, services: d.services.map((s) => ({ ...s })) })),
+};
+
 export function getDeptTemplate(slug: string) {
-  return DEPT_TEMPLATES.find((d) => d.slug === slug);
+  return STORE.depts.find((d) => d.slug === slug);
 }

@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Topbar } from "../../components/Topbar";
 import { Page, Card } from "../../components/ui";
-import { DEPT_TEMPLATES } from "../../data/deptTemplates";
+import { STORE } from "../../data/deptTemplates";
 import { deptIcon } from "../../data/deptIcons";
 
 export default function DeptTemplates() {
@@ -15,7 +15,7 @@ export default function DeptTemplates() {
         </p>
 
         <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {DEPT_TEMPLATES.map((d) => {
+          {STORE.depts.map((d) => {
             const Icon = deptIcon(d.name);
             return (
               <Link key={d.slug} to={`/admin/department-templates/${d.slug}`} className="block">
