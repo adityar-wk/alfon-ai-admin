@@ -2,8 +2,6 @@ import { useState } from "react";
 import {
   Plus,
   Upload,
-  BedDouble,
-  Crown,
   MoreVertical,
   SlidersHorizontal,
   Search,
@@ -202,16 +200,7 @@ export default function RoomsQrSetup({ onboarding = false }: { onboarding?: bool
                   <tr key={r.no} onClick={() => setDrawer(r)} className="cursor-pointer border-b border-line/50 hover:bg-subtle/50">
                     <td className="text-[14px] font-medium text-ink py-3.5 pl-6 pr-3">{r.no}</td>
                     <td className="text-[14px] text-ink-secondary py-3.5 pl-6 pr-3">{r.floor}</td>
-                    <td className="py-3.5 pl-6 pr-3">
-                      <span className="flex items-center gap-2 text-[13px] text-ink">
-                        {r.type === "Suite" ? (
-                          <Crown className="h-4 w-4 text-amber-500" />
-                        ) : (
-                          <BedDouble className="h-4 w-4 text-ink-secondary" />
-                        )}
-                        {r.type}
-                      </span>
-                    </td>
+                    <td className="text-[13px] text-ink py-3.5 pl-6 pr-3">{r.type}</td>
                     <td className="py-3.5 pl-6 pr-3">
                       <Badge tone={r.status === "Active" ? "success" : "neutral"}>{r.status}</Badge>
                     </td>

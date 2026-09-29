@@ -14,7 +14,7 @@ export type OnboardingStep = {
 export const ONBOARDING_STEPS: OnboardingStep[] = [
   { id: 1, title: "Hotel Property", desc: "Hotel details, address, time zone and preferences.", to: "/onboarding/property", icon: Building2, time: "5 min" },
   { id: 2, title: "WhatsApp & PMS", desc: "Connect WhatsApp Business and your PMS.", to: "/onboarding/whatsapp-pms", icon: Plug, time: "10 min" },
-  { id: 3, title: "Knowledge Base", desc: "Upload documents and reference links for the AI.", to: "/onboarding/knowledge-base", icon: FileText, time: "10 min" },
+  { id: 3, title: "Knowledge Base", desc: "Upload documents for the AI.", to: "/onboarding/knowledge-base", icon: FileText, time: "10 min" },
   { id: 4, title: "Users", desc: "Import your staff with their name, email and phone number.", to: "/onboarding/staff", icon: Users, time: "8 min" },
   { id: 5, title: "Departments", desc: "Review your departments and the services they cover.", to: "/onboarding/departments", icon: LayoutGrid, time: "15 min" },
   { id: 6, title: "Roles & Permissions", desc: "Create roles and set what each one can access.", to: "/onboarding/roles", icon: ShieldCheck, time: "10 min" },

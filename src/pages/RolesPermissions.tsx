@@ -117,7 +117,7 @@ export default function RolesPermissions({ embedded = false }: { embedded?: bool
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return roles.filter((r) => (deptFilter === "All" || r.dept === deptFilter) && (!q || `${r.name} ${r.desc}`.toLowerCase().includes(q)));
+    return roles.filter((r) => (deptFilter === "All" || r.dept === deptFilter || r.crossDepts.includes(deptFilter)) && (!q || `${r.name} ${r.desc}`.toLowerCase().includes(q)));
   }, [roles, query, deptFilter]);
 
   const save = () => {
@@ -367,6 +367,70 @@ export default function RolesPermissions({ embedded = false }: { embedded?: bool
   );
 }
 
+/* ---------- department multi-select, used in place of a single Department dropdown ---------- */
+
+function DeptMultiSelect({ draft, set }: { draft: Role; set: <K extends keyof Role>(k: K, v: Role[K]) => void }) {
+  const [open, setOpen] = useState(false);
+  const selected = new Set<string>([draft.dept, ...draft.crossDepts]);
+  const allSelected = DEPARTMENTS.every((d) => selected.has(d));
+  const label = allSelected ? "All departments" : selected.size > 1 ? `${draft.dept} +${selected.size - 1} more` : draft.dept;
+
+  const toggle = (d: string) => {
+    if (d === draft.dept) {
+      if (draft.crossDepts.length > 0) {
+        const [next, ...rest] = draft.crossDepts;
+        set("dept", next as Role["dept"]);
+        set("crossDepts", rest);
+      }
+      return;
+    }
+    set("crossDepts", selected.has(d) ? draft.crossDepts.filter((x) => x !== d) : [...draft.crossDepts, d]);
+  };
+
+  const toggleAll = (checked: boolean) => {
+    if (checked) {
+      const [first, ...rest] = DEPARTMENTS;
+      set("dept", first as Role["dept"]);
+      set("crossDepts", rest as string[]);
+    } else {
+      set("dept", DEPARTMENTS[0]);
+      set("crossDepts", []);
+    }
+  };
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="flex h-11 w-full items-center justify-between rounded-control border border-line bg-white px-3.5 text-[14px] text-ink outline-none focus:border-brand"
+      >
+        <span className="truncate">{label}</span>
+        <ChevronDown className={`h-4 w-4 shrink-0 text-ink-tertiary transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+      {open && (
+        <>
+          <button type="button" className="fixed inset-0 z-10 cursor-default" aria-label="Close" onClick={() => setOpen(false)} />
+          <div className="absolute left-0 top-12 z-20 w-full min-w-[240px] rounded-xl border border-line bg-white p-3 shadow-lg">
+            <label className="flex items-center gap-2 border-b border-line/70 pb-2.5 text-[13px] font-semibold text-ink">
+              <input type="checkbox" className="h-4 w-4 accent-brand" checked={allSelected} onChange={(e) => toggleAll(e.target.checked)} />
+              All departments
+            </label>
+            <div className="mt-2.5 space-y-2">
+              {DEPARTMENTS.map((d) => (
+                <label key={d} className="flex items-center gap-2 text-[13px] text-ink">
+                  <input type="checkbox" className="h-4 w-4 accent-brand" checked={selected.has(d)} onChange={() => toggle(d)} />
+                  {d}
+                </label>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 /* ---------- basic configuration fields, shared by the create and edit flows ---------- */
 
 function RoleBasicFields({
@@ -377,9 +441,6 @@ function RoleBasicFields({
   onViewMembers?: () => void;
   membersCount?: number;
 }) {
-  const otherDepts = DEPARTMENTS.filter((d) => d !== draft.dept && d !== "System");
-  const allOtherSelected = otherDepts.length > 0 && otherDepts.every((d) => draft.crossDepts.includes(d));
-
   return (
     <>
       <h3 className="text-[15px] font-semibold text-ink">Role Details</h3>
@@ -392,10 +453,8 @@ function RoleBasicFields({
         </Field>
         <Field label="Description"><Textarea rows={3} value={draft.desc} onChange={(e) => set("desc", e.target.value)} /></Field>
         <div>
-          <Field label="Department">
-            <Select value={draft.dept} onChange={(e) => set("dept", e.target.value as Role["dept"])}>
-              {DEPARTMENTS.map((d) => <option key={d}>{d}</option>)}
-            </Select>
+          <Field label="Department" hint="Select more than one, or all of them.">
+            <DeptMultiSelect draft={draft} set={set} />
           </Field>
           {onViewMembers && (
             <button onClick={onViewMembers} className="mt-2 flex w-full items-center justify-end gap-1 text-[12px] font-medium text-brand hover:underline">
@@ -403,35 +462,6 @@ function RoleBasicFields({
             </button>
           )}
         </div>
-      </div>
-
-      <div className="mt-8 flex items-center justify-between gap-3">
-        <div>
-          <h3 className="text-[15px] font-semibold text-ink">Departments</h3>
-          <p className="text-[12px] text-ink-secondary">Give this role access to more than one department, or all of them.</p>
-        </div>
-        <label className="flex shrink-0 items-center gap-2 text-[13px] font-medium text-ink">
-          <input
-            type="checkbox"
-            className="h-4 w-4 accent-brand"
-            checked={allOtherSelected}
-            onChange={(e) => set("crossDepts", e.target.checked ? otherDepts : [])}
-          />
-          All departments
-        </label>
-      </div>
-      <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-3">
-        {otherDepts.map((d) => (
-          <label key={d} className="flex items-center gap-2 text-[13px] text-ink">
-            <input
-              type="checkbox"
-              className="h-4 w-4 accent-brand"
-              checked={draft.crossDepts.includes(d)}
-              onChange={(e) => set("crossDepts", e.target.checked ? [...draft.crossDepts, d] : draft.crossDepts.filter((x) => x !== d))}
-            />
-            {d}
-          </label>
-        ))}
       </div>
 
       <h3 className="mt-8 text-[15px] font-semibold text-ink">Module Access</h3>
