@@ -1,4 +1,4 @@
-/** A glossy glass-sphere visual: a solid-colour ball with drifting internal light and a specular glass shell. */
+/** A hollow glass-bubble visual: a pale glassy centre ringed by a thick glossy coloured rim, like a soap bubble. */
 interface OrbProps {
   color?: string;
 }
@@ -20,31 +20,30 @@ const lighten = (hex: string, amount: number) => mix(hex, 255, amount);
 const darken = (hex: string, amount: number) => mix(hex, 0, amount);
 
 export default function Orb({ color = "#5FD3A9" }: OrbProps) {
-  const veryLight = lighten(color, 0.85);
-  const light = lighten(color, 0.55);
-  const dark = darken(color, 0.35);
+  const centerPale = lighten(color, 0.94);
+  const mint = lighten(color, 0.8);
+  const rimBright = lighten(color, 0.42);
+  const shade = darken(color, 0.22);
+  const rimOuter = lighten(color, 0.5);
+  const edge = darken(color, 0.08);
 
   return (
-    <div className="relative h-full w-full">
+    <div className="relative flex h-full w-full items-center justify-center">
+      {/* soft colour-matched ambient glow so the bubble feels grounded */}
+      <div className="orb-glow absolute inset-[6%] rounded-full blur-3xl" style={{ background: color }} />
+
       <div
-        className="absolute inset-0 overflow-hidden rounded-full"
+        className="relative h-[92%] w-[92%] rounded-full"
         style={{
-          background: `radial-gradient(circle at 42% 36%, ${veryLight} 0%, ${light} 32%, ${color} 64%, ${dark} 100%)`,
-          boxShadow: "0 30px 54px -18px rgba(0,0,0,0.28), 0 10px 22px -10px rgba(0,0,0,0.14)",
+          background: `radial-gradient(circle at 50% 50%, ${centerPale} 0%, ${centerPale} 46%, ${mint} 56%, ${rimBright} 65%, ${color} 73%, ${shade} 84%, ${rimOuter} 93%, ${edge} 100%)`,
+          boxShadow: `0 24px 46px -16px ${color}77, 0 10px 22px -10px rgba(0,0,0,0.12)`,
         }}
       >
-        <div className="orb-blob orb-blob-a" style={{ background: veryLight }} />
-        <div className="orb-blob orb-blob-b" style={{ background: light }} />
-        <div className="orb-blob orb-blob-c" style={{ background: dark }} />
+        {/* directional gloss: bright highlight up top, a shaded patch and a bright streak lower down, like light on curved glass */}
+        <div className="orb-shimmer pointer-events-none absolute left-[8%] top-[4%] h-[32%] w-[48%] rounded-full bg-white/75 blur-[14px]" />
+        <div className="pointer-events-none absolute bottom-[6%] right-[8%] h-[26%] w-[36%] rounded-full blur-[16px]" style={{ background: shade, opacity: 0.5 }} />
+        <div className="pointer-events-none absolute bottom-[9%] left-[14%] h-[9%] w-[18%] rounded-full bg-white/85 blur-[6px]" />
       </div>
-
-      {/* glass shell: volumetric shading + specular highlights so it reads as a glass ball, not a flat disc */}
-      <div
-        className="pointer-events-none absolute inset-0 rounded-full"
-        style={{ boxShadow: "inset -20px -26px 54px rgba(0,0,0,0.22), inset 16px 20px 40px rgba(255,255,255,0.55), inset 0 0 0 1px rgba(255,255,255,0.35)" }}
-      />
-      <div className="pointer-events-none absolute left-[12%] top-[8%] h-[34%] w-[40%] rounded-full bg-white/80 blur-[10px]" />
-      <div className="pointer-events-none absolute left-[58%] top-[60%] h-[9%] w-[11%] rounded-full bg-white/55 blur-[4px]" />
     </div>
   );
 }
