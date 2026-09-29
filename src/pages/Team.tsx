@@ -14,6 +14,7 @@ import {
   UserRound,
   Circle,
   ShieldCheck,
+  Lock,
 } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { Breadcrumb } from "../components/Breadcrumb";
@@ -89,8 +90,6 @@ export function levelOf(p: Perms): string {
   return Object.keys(PRESETS).find((n) => samePerms(PRESETS[n], p)) ?? "Custom";
 }
 
-const clonePerms = (p: Perms): Perms => JSON.parse(JSON.stringify(p));
-
 const DEPT_OPTIONS = ["Housekeeping", "Engineering", "Guest Services", "Front Desk", "F&B", "Security", "Concierge"];
 
 function initials(name: string) {
@@ -142,7 +141,6 @@ export default function Team() {
   const [selected, setSelected] = useState<Staff | null>(null);
   const [checked, setChecked] = useState<Set<string>>(new Set());
   const [adding, setAdding] = useState(false);
-  const [access, setAccess] = useState<Record<string, Perms>>({});
   const [toast, setToast] = useState<string | null>(null);
   const [assigning, setAssigning] = useState(false);
   const [, bump] = useState(0);
@@ -153,12 +151,7 @@ export default function Team() {
     setToast(m);
     window.setTimeout(() => setToast(null), 1800);
   };
-  const permsOf = (st: Staff): Perms => access[st.id] ?? PRESETS[presetFor(st)];
-  const saveAccess = (st: Staff, p: Perms) => {
-    setAccess((a) => ({ ...a, [st.id]: p }));
-    setToast(`Access updated for ${st.name}`);
-    window.setTimeout(() => setToast(null), 1800);
-  };
+  const permsOf = (st: Staff): Perms => PRESETS[presetFor(st)];
 
   const rows = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -431,7 +424,7 @@ export default function Team() {
           width={400}
           onClose={() => setSelected(null)}
         >
-          <StaffDetails key={selected.id} s={selected} perms={permsOf(selected)} onSaveAccess={(p) => saveAccess(selected, p)} manager={manager} />
+          <StaffDetails key={selected.id} s={selected} perms={permsOf(selected)} manager={manager} />
         </Drawer>
       )}
 
@@ -471,7 +464,7 @@ function KV({ label, children }: { label: string; children: React.ReactNode }) {
 
 const DETAIL_TABS = ["Performance", "Access"] as const;
 
-export function StaffDetails({ s, perms, onSaveAccess, manager }: { s: Staff; perms: Perms; onSaveAccess: (p: Perms) => void; manager?: boolean }) {
+export function StaffDetails({ s, perms, manager }: { s: Staff; perms: Perms; manager?: boolean }) {
   const [tab, setTab] = useState<(typeof DETAIL_TABS)[number]>("Performance");
   const first = s.name.split(" ")[0].toLowerCase();
   const last = s.name.split(" ").slice(-1)[0].toLowerCase();
@@ -512,7 +505,7 @@ export function StaffDetails({ s, perms, onSaveAccess, manager }: { s: Staff; pe
         ))}
       </div>
 
-      {tab === "Access" && <AccessEditor saved={perms} onSave={onSaveAccess} />}
+      {tab === "Access" && <AccessEditor saved={perms} />}
 
       {tab === "Performance" && (
         <div className="mt-4">
@@ -626,51 +619,19 @@ export function AddTaskModal({
   );
 }
 
-function AccessEditor({ saved, onSave }: { saved: Perms; onSave: (p: Perms) => void }) {
-  const [draft, setDraft] = useState<Perms>(() => clonePerms(saved));
-  const dirty = !samePerms(draft, saved);
-  const level = levelOf(draft);
-
-  const toggle = (k: ModKey, f: "view" | "edit") =>
-    setDraft((d) => {
-      const cur = d[k];
-      const next = { ...cur, [f]: !cur[f] };
-      if (f === "edit" && next.edit) next.view = true; // editing implies viewing
-      if (f === "view" && !next.view) next.edit = false;
-      return { ...d, [k]: next };
-    });
-
-  const setAll = (f: "view" | "edit", on: boolean) =>
-    setDraft((d) => Object.fromEntries(ALL.map((k) => [k, {
-      view: f === "view" ? on : on ? true : d[k].view,
-      edit: f === "edit" ? on : on ? d[k].edit : false,
-    }])) as Perms);
-
+/** view-only — access levels are set by Alfon Super Admin and can't be changed by a Mid Manager or General Manager here */
+function AccessEditor({ saved }: { saved: Perms }) {
   return (
     <div className="mt-4">
+      <div className="mb-3 flex items-center gap-2 rounded-lg bg-subtle px-3 py-2 text-[12px] text-ink-secondary">
+        <Lock className="h-3.5 w-3.5 shrink-0 text-ink-tertiary" />
+        View only — access levels are managed by Alfon Super Admin.
+      </div>
       <div className="overflow-hidden rounded-xl border border-line">
         <div className="grid grid-cols-[1fr_52px_52px] items-center gap-2 border-b border-line bg-subtle/50 px-3 py-2 text-[11px] font-medium text-ink-secondary">
           <span>Module</span>
-          <label className="flex items-center justify-center gap-1">
-            <input
-              type="checkbox"
-              aria-label="View all"
-              className="h-3.5 w-3.5 accent-brand"
-              checked={ALL.every((k) => draft[k].view)}
-              onChange={(e) => setAll("view", e.target.checked)}
-            />
-            View
-          </label>
-          <label className="flex items-center justify-center gap-1">
-            <input
-              type="checkbox"
-              aria-label="Edit all"
-              className="h-3.5 w-3.5 accent-brand"
-              checked={ALL.every((k) => draft[k].edit)}
-              onChange={(e) => setAll("edit", e.target.checked)}
-            />
-            Edit
-          </label>
+          <span className="text-center">View</span>
+          <span className="text-center">Edit</span>
         </div>
         {MODULES.map((m) => (
           <div key={m.key} className="grid grid-cols-[1fr_52px_52px] items-center gap-2 border-b border-line/70 px-3 py-2.5 last:border-0">
@@ -679,39 +640,13 @@ function AccessEditor({ saved, onSave }: { saved: Perms; onSave: (p: Perms) => v
               <div className="text-[11px] text-ink-tertiary">{m.hint}</div>
             </div>
             <span className="flex justify-center">
-              <input
-                type="checkbox"
-                aria-label={`${m.label} view`}
-                className="h-4 w-4 accent-brand"
-                checked={draft[m.key].view}
-                onChange={() => toggle(m.key, "view")}
-              />
+              <input type="checkbox" aria-label={`${m.label} view`} className="h-4 w-4 accent-ink-tertiary" checked={saved[m.key].view} disabled readOnly />
             </span>
             <span className="flex justify-center">
-              <input
-                type="checkbox"
-                aria-label={`${m.label} edit`}
-                className="h-4 w-4 accent-brand"
-                checked={draft[m.key].edit}
-                onChange={() => toggle(m.key, "edit")}
-              />
+              <input type="checkbox" aria-label={`${m.label} edit`} className="h-4 w-4 accent-ink-tertiary" checked={saved[m.key].edit} disabled readOnly />
             </span>
           </div>
         ))}
-      </div>
-
-      <div className="mt-4 flex items-center justify-between">
-        <span className="text-[12px] text-ink-tertiary">Edit includes view access.</span>
-        <div className="flex gap-2">
-          {dirty && (
-            <Button variant="outline" onClick={() => setDraft(clonePerms(saved))}>
-              Reset
-            </Button>
-          )}
-          <Button disabled={!dirty} className="disabled:opacity-40" onClick={() => onSave(clonePerms(draft))}>
-            Save access
-          </Button>
-        </div>
       </div>
     </div>
   );

@@ -42,4 +42,43 @@
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+
+  /* a branded, higher-contrast range slider (fill colour is set inline per instance via --range-pct) */
+  .range-fancy {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 8px;
+    border-radius: 9999px;
+    outline: none;
+  }
+  .range-fancy::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 9999px;
+    background: #e8623a;
+    border: 3px solid #ffffff;
+    box-shadow: 0 2px 8px rgba(232, 98, 58, 0.5), 0 0 0 1px rgba(232, 98, 58, 0.18);
+    cursor: pointer;
+    transition: transform 0.15s ease;
+  }
+  .range-fancy::-webkit-slider-thumb:hover,
+  .range-fancy:active::-webkit-slider-thumb {
+    transform: scale(1.12);
+  }
+  .range-fancy::-moz-range-thumb {
+    width: 24px;
+    height: 24px;
+    border-radius: 9999px;
+    background: #e8623a;
+    border: 3px solid #ffffff;
+    box-shadow: 0 2px 8px rgba(232, 98, 58, 0.5), 0 0 0 1px rgba(232, 98, 58, 0.18);
+    cursor: pointer;
+  }
+  .range-fancy::-moz-range-track {
+    height: 8px;
+    border-radius: 9999px;
+    background: transparent;
+  }
 }

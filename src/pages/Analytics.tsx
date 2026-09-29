@@ -1,4 +1,4 @@
-import { pastel, PASTEL, TAGS } from "../data/pastel";
+import { pastel, shade, PASTEL, TAGS } from "../data/pastel";
 import { useEffect, useMemo, useState } from "react";
 import { ListChecks, CheckCircle2, AlertTriangle, Timer, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, Download, Filter, CalendarDays, X } from "lucide-react";
 import { Field, Input, Select } from "../components/ui";
@@ -154,10 +154,10 @@ export default function Analytics() {
   const deptColors = sorted.map((d) => TAGS[deptIdx(d.name)].mid);
 
   const kpis = [
-    { label: "Total Tasks", value: total.toLocaleString(), delta: "16% vs last period", up: true, icon: ListChecks, chip: "bg-orange-50 text-orange-500" },
-    { label: "Completed", value: completed.toLocaleString(), delta: "18% vs last period", up: true, icon: CheckCircle2, chip: "bg-orange-100 text-orange-600" },
-    { label: "Overdue", value: overdue.toLocaleString(), delta: "8% vs last period", up: false, icon: AlertTriangle, chip: "bg-orange-200 text-orange-700" },
-    { label: "Avg Response", value: avgResp, delta: "12% vs last period", up: false, icon: Timer, chip: "bg-orange-300 text-orange-800" },
+    { label: "Total Tasks", value: total.toLocaleString(), delta: "16% vs last period", up: true, icon: ListChecks, tint: shade(0.08), fg: "#6b5225" },
+    { label: "Completed", value: completed.toLocaleString(), delta: "18% vs last period", up: true, icon: CheckCircle2, tint: shade(0.32), fg: "#6b5225" },
+    { label: "Overdue", value: overdue.toLocaleString(), delta: "8% vs last period", up: false, icon: AlertTriangle, tint: shade(0.58), fg: "#ffffff" },
+    { label: "Avg Response", value: avgResp, delta: "12% vs last period", up: false, icon: Timer, tint: shade(0.85), fg: "#ffffff" },
   ];
 
   const flash = (m: string) => {
@@ -250,7 +250,7 @@ export default function Analytics() {
         <div className="mt-5 grid grid-cols-2 gap-4 lg:grid-cols-4">
           {kpis.map((k) => (
             <Card key={k.label} className="p-5">
-              <span className={`flex h-9 w-9 items-center justify-center rounded-lg ${k.chip}`}>
+              <span className="flex h-9 w-9 items-center justify-center rounded-lg" style={{ background: k.tint, color: k.fg }}>
                 <k.icon className="h-[18px] w-[18px]" />
               </span>
               <div className="mt-3 text-[13px] text-ink-secondary">{k.label}</div>
@@ -441,7 +441,7 @@ export default function Analytics() {
         {/* peak hours */}
         <Card className="mt-4 p-6">
           <h3 className="text-[15px] font-semibold text-ink">Peak Hours by Department</h3>
-          <p className="text-[12px] text-ink-tertiary">Request volume per hour — deeper orange = higher demand</p>
+          <p className="text-[12px] text-ink-tertiary">Request volume per hour — deeper gold = higher demand</p>
           <div className="mt-4 overflow-x-auto">
             <div className="min-w-[720px]">
               <div className="ml-[156px] grid grid-cols-24 text-[10px] text-ink-tertiary" style={{ gridTemplateColumns: "repeat(24, 1fr)" }}>
@@ -460,7 +460,7 @@ export default function Analytics() {
                           key={h}
                           title={`${name} · ${h}:00 — ${Math.round(v * 100)}% of peak`}
                           className="h-7 rounded"
-                          style={{ background: `rgba(232,98,58,${0.08 + v * 0.62})` }}
+                          style={{ background: `rgba(176,141,79,${0.08 + v * 0.62})` }}
                         />
                       );
                     })}
@@ -470,7 +470,7 @@ export default function Analytics() {
               <div className="mt-3 flex items-center justify-end gap-1.5 text-[11px] text-ink-tertiary">
                 Low
                 {[0.1, 0.3, 0.5, 0.7, 0.9].map((v) => (
-                  <span key={v} className="h-3.5 w-3.5 rounded" style={{ background: `rgba(232,98,58,${0.08 + v * 0.62})` }} />
+                  <span key={v} className="h-3.5 w-3.5 rounded" style={{ background: `rgba(176,141,79,${0.08 + v * 0.62})` }} />
                 ))}
                 High
               </div>
@@ -612,8 +612,8 @@ function SatisfactionChart({ values }: { values: number[] }) {
     <svg viewBox={`0 0 ${W} ${H}`} className="mt-3 w-full">
       <defs>
         <linearGradient id="satFill" gradientUnits="userSpaceOnUse" x1="0" x2="0" y1={T} y2={H - B}>
-          <stop offset="0" stopColor="#E8623A" stopOpacity="0.26" />
-          <stop offset="1" stopColor="#E8623A" stopOpacity="0" />
+          <stop offset="0" stopColor="#B08D4F" stopOpacity="0.26" />
+          <stop offset="1" stopColor="#B08D4F" stopOpacity="0" />
         </linearGradient>
         <clipPath id="satClip"><rect x={L} y={T} width={W - L - R} height={H - T - B} /></clipPath>
       </defs>
@@ -624,12 +624,12 @@ function SatisfactionChart({ values }: { values: number[] }) {
         </g>
       ))}
       <path d={area} fill="url(#satFill)" clipPath="url(#satClip)" />
-      <path d={d} fill="none" stroke="#E8623A" strokeWidth="2.5" strokeLinecap="round" />
+      <path d={d} fill="none" stroke="#B08D4F" strokeWidth="2.5" strokeLinecap="round" />
       {pts.map(([px, py], i) => (
         <g key={i} onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)}>
           <text x={px} y={H - 8} textAnchor="middle" fontSize="10" fill="#9CA3AF">W{i + 1}</text>
           <circle cx={px} cy={py} r="14" fill="transparent" />
-          <circle cx={px} cy={py} r={hover === i ? 5 : 3} fill="#fff" stroke="#E8623A" strokeWidth="2" />
+          <circle cx={px} cy={py} r={hover === i ? 5 : 3} fill="#fff" stroke="#B08D4F" strokeWidth="2" />
           {hover === i && (
             <g>
               <rect x={px - 22} y={py - 30} width="44" height="20" rx="5" fill="#1A1A1A" />

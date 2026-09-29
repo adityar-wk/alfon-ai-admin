@@ -558,7 +558,6 @@ function UserManagement({
   const [acct, setAcct] = useState("all");
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [assigning, setAssigning] = useState(false);
-  const [access, setAccess] = useState<Record<number, Perms>>({});
   const [, bump] = useState(0);
 
   const roleOf = (id: string) => roles.find((r) => r.id === id);
@@ -583,7 +582,7 @@ function UserManagement({
 
   const selected = users.find((u) => u.id === selectedId) ?? null;
   const selStaff = selected ? toStaff(selected, roleOf(selected.roleId)?.name ?? "Staff") : null;
-  const permsOf = (u: User): Perms => access[u.id] ?? PRESETS[presetFor(toStaff(u, roleOf(u.roleId)?.name ?? "Staff"))];
+  const permsOf = (u: User): Perms => PRESETS[presetFor(toStaff(u, roleOf(u.roleId)?.name ?? "Staff"))];
 
   return (
     <div className="mt-6">
@@ -712,7 +711,6 @@ function UserManagement({
                 key={selected.id}
                 s={selStaff}
                 perms={permsOf(selected)}
-                onSaveAccess={(p) => { setAccess((a) => ({ ...a, [selected.id]: p })); flash(`Access updated for ${selected.name}`); }}
               />
             </Drawer>
           </div>

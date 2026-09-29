@@ -43,9 +43,10 @@ export default function AiControls() {
               max={99}
               value={draft}
               onChange={(e) => setDraft(Number(e.target.value))}
-              className="h-1.5 flex-1 cursor-pointer appearance-none rounded-full bg-subtle accent-brand"
+              className="range-fancy flex-1 cursor-pointer"
+              style={{ background: `linear-gradient(to right, #E8623A ${((draft - 50) / 49) * 100}%, #F0F0F0 ${((draft - 50) / 49) * 100}%)` }}
             />
-            <span className="w-16 shrink-0 text-right text-[26px] font-bold text-ink">{draft}%</span>
+            <span className="w-16 shrink-0 text-right text-[26px] font-bold text-brand">{draft}%</span>
           </div>
           <div className="mt-2 flex justify-between text-[11px] text-ink-tertiary"><span>More answers handled by the AI</span><span>More answers handed to a person</span></div>
           <div className="mt-5 flex items-center gap-3">

@@ -103,12 +103,12 @@ const STATUS_TEXT_TONE: Record<RoomStatus, string> = {
   ooo: "text-gray-500",
 };
 
-/** only statuses that need attention get a coloured border */
+/** only the two statuses awaiting action (In Progress, Needs Inspection) get a highlighted border */
 const STATUS_BORDER: Record<RoomStatus, string> = {
   inspected: "border-line",
-  progress: "border-line",
+  progress: "border-blue-300",
   inspection: "border-amber-300",
-  oos: "border-red-300",
+  oos: "border-line",
   ooo: "border-line",
 };
 
