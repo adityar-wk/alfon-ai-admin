@@ -331,7 +331,7 @@ export default function ComponentDesign() {
             <div className="flex flex-wrap items-center gap-12">
               <Donut size={140} thickness={22} segments={[{ label: "Done", value: 52, color: "#6FDDB7" }, { label: "Open", value: 30, color: "#8DC3F0" }, { label: "Late", value: 18, color: "#F595A5" }]} />
               <div className="relative h-[220px] w-[220px]">
-                <Orb hue={110} backgroundColor="#ffffff" />
+                <Orb color="#5FD3A9" />
                 <div className="pointer-events-none absolute inset-0 flex items-center justify-center text-[36px] font-bold text-emerald-600">88%</div>
               </div>
             </div>

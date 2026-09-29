@@ -81,4 +81,48 @@
     border-radius: 9999px;
     background: transparent;
   }
+
+  /* soft drifting light inside the glass orb (src/components/Orb.tsx) */
+  .orb-blob {
+    position: absolute;
+    border-radius: 9999px;
+    filter: blur(18px);
+    mix-blend-mode: soft-light;
+  }
+  .orb-blob-a {
+    top: -8%;
+    left: -10%;
+    width: 65%;
+    height: 65%;
+    opacity: 0.55;
+    animation: orb-drift-a 10s ease-in-out infinite;
+  }
+  .orb-blob-b {
+    bottom: -14%;
+    right: -8%;
+    width: 55%;
+    height: 55%;
+    opacity: 0.5;
+    animation: orb-drift-b 13s ease-in-out infinite;
+  }
+  .orb-blob-c {
+    top: 30%;
+    left: 30%;
+    width: 40%;
+    height: 40%;
+    opacity: 0.4;
+    animation: orb-drift-c 8s ease-in-out infinite;
+  }
+  @keyframes orb-drift-a {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(14%, 10%) scale(1.12); }
+  }
+  @keyframes orb-drift-b {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(-12%, -14%) scale(1.15); }
+  }
+  @keyframes orb-drift-c {
+    0%, 100% { transform: translate(-6%, 4%) scale(0.9); }
+    50% { transform: translate(8%, -8%) scale(1.1); }
+  }
 }

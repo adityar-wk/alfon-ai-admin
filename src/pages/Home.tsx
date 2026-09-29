@@ -224,7 +224,7 @@ export default function Home() {
 
           <Card className="flex flex-col items-center justify-center overflow-hidden px-6 pb-8 pt-4">
             <div className="relative h-[340px] w-[340px] max-w-full">
-              <Orb hue={band.hue} hoverIntensity={0.2} rotateOnHover backgroundColor="#ffffff" />
+              <Orb color={band.color} />
               <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
                 <span className={`text-[60px] font-bold leading-none tracking-tight transition-colors duration-700 ${band.text}`}>{score}%</span>
               </div>
