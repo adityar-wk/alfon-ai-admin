@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Building2, CheckCircle2, AlertTriangle, Activity, Search, Plus, ChevronRight, Check, X, Clock } from "lucide-react";
+import { Building2, CheckCircle2, AlertTriangle, Activity, Search, Plus, MoreHorizontal, Check, X, Clock } from "lucide-react";
 import { Topbar } from "../../components/Topbar";
 import { Page, Card, Button, Select } from "../../components/ui";
 import { HOTELS, REGIONS, type Hotel, type ConnStatus } from "../../data/hotels";
@@ -100,7 +100,7 @@ export default function HotelsList() {
               );
             })}
           </div>
-          <div className="relative min-w-0 max-w-xs flex-1">
+          <div className="relative w-full max-w-xs shrink-0">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-tertiary" />
             <input
               value={query}
@@ -109,11 +109,13 @@ export default function HotelsList() {
               className="h-10 w-full rounded-control border border-line bg-white pl-9 pr-3 text-[13px] outline-none placeholder:text-ink-tertiary focus:border-brand"
             />
           </div>
-          <div className="w-44 shrink-0">
-            <Select value={region} onChange={(e) => setRegion(e.target.value)} aria-label="Region">
-              <option value="all">All Regions</option>
-              {REGIONS.map((r) => <option key={r}>{r}</option>)}
-            </Select>
+          <div className="ml-auto flex items-center gap-2">
+            <div className="w-44 shrink-0">
+              <Select value={region} onChange={(e) => setRegion(e.target.value)} aria-label="Region">
+                <option value="all">All Regions</option>
+                {REGIONS.map((r) => <option key={r}>{r}</option>)}
+              </Select>
+            </div>
           </div>
         </div>
 
@@ -122,14 +124,14 @@ export default function HotelsList() {
             <table className="w-full min-w-[1080px] table-fixed text-left">
               <colgroup>
                 <col />
-                <col className="w-[90px]" />
-                <col className="w-[90px]" />
-                <col className="w-[70px]" />
+                <col className="w-[110px]" />
+                <col className="w-[110px]" />
+                <col className="w-[110px]" />
+                <col className="w-[130px]" />
+                <col className="w-[130px]" />
                 <col className="w-[130px]" />
                 <col className="w-[110px]" />
-                <col className="w-[120px]" />
-                <col className="w-[70px]" />
-                <col className="w-[130px]" />
+                <col className="w-[56px]" />
               </colgroup>
               <thead>
                 <tr className="bg-[#F4F4F5] text-[12px] uppercase tracking-wide text-[#6B7280]">
@@ -140,8 +142,8 @@ export default function HotelsList() {
                   <th className="py-3.5 pl-6 font-medium">Last Sync</th>
                   <th className="py-3.5 pl-6 font-medium">Health Score</th>
                   <th className="py-3.5 pl-6 font-medium">Onboarding Date</th>
-                  <th className="py-3.5 pl-6 font-medium">Rooms</th>
-                  <th className="w-32 py-3.5 pr-6" />
+                  <th className="py-3.5 pl-6 font-medium">Departments</th>
+                  <th className="py-3.5 pr-6" />
                 </tr>
               </thead>
               <tbody>
@@ -171,9 +173,11 @@ export default function HotelsList() {
                       )}
                     </td>
                     <td className="py-3.5 pl-6 pr-3 text-[13px] text-ink-secondary">{h.onboarded}</td>
-                    <td className="py-3.5 pl-6 pr-3 text-[13px] text-ink-secondary">{h.rooms}</td>
+                    <td className="py-3.5 pl-6 pr-3 text-[13px] text-ink-secondary">{h.departments}</td>
                     <td className="py-3.5 pr-6 text-right">
-                      <span className="inline-flex items-center gap-1 text-[12px] font-semibold text-brand">View Details <ChevronRight className="h-3.5 w-3.5" /></span>
+                      <button aria-label={`Actions for ${h.name}`} className="rounded-md p-1 text-ink-tertiary hover:bg-subtle hover:text-ink">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </button>
                     </td>
                   </tr>
                 ))}
