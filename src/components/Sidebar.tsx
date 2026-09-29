@@ -18,6 +18,7 @@ import {
   ChevronsUpDown,
   MessageSquare,
   Building2 as HotelIcon,
+  LayoutTemplate,
 } from "lucide-react";
 import { Logo } from "./Logo";
 import { PERSONAS, usePersona, type PersonaKey } from "../persona";
@@ -63,6 +64,7 @@ const MID_NAV: Item[] = [
 /** Super Admin's own app: adds and watches hotels, never does hotel work itself */
 const SUPERADMIN_NAV: Item[] = [
   { label: "Hotels", to: "/admin/hotels", icon: HotelIcon, match: "/admin/hotels" },
+  { label: "Department Templates", to: "/admin/department-templates", icon: LayoutTemplate, match: "/admin/department-templates" },
   { label: "Settings", to: "/admin/settings", icon: Settings },
 ];
 

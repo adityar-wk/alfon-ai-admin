@@ -29,6 +29,8 @@ import HotelsList from "./pages/admin/HotelsList";
 import AddHotel from "./pages/admin/AddHotel";
 import HotelDetail from "./pages/admin/HotelDetail";
 import SuperAdminSettings from "./pages/admin/SuperAdminSettings";
+import DeptTemplates from "./pages/admin/DeptTemplates";
+import DeptTemplateDetail from "./pages/admin/DeptTemplateDetail";
 
 export const router = createBrowserRouter([
   {
@@ -65,6 +67,8 @@ export const router = createBrowserRouter([
       { path: "/admin/hotels", element: <HotelsList /> },
       { path: "/admin/hotels/new", element: <AddHotel /> },
       { path: "/admin/hotels/:id", element: <HotelDetail /> },
+      { path: "/admin/department-templates", element: <DeptTemplates /> },
+      { path: "/admin/department-templates/:slug", element: <DeptTemplateDetail /> },
       { path: "/admin/settings", element: <SuperAdminSettings /> },
       { path: "*", element: <Navigate to="/onboarding" replace /> },
     ],
