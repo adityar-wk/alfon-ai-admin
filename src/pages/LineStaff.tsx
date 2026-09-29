@@ -3,12 +3,14 @@ import { Check, X } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { LineStaffPrototype } from "../linestaff/screens";
 import { ManagerPrototype } from "../linestaff/manager";
+import { GuestLandingPrototype } from "../linestaff/guestLanding";
 
-type Tab = "line" | "manager";
+type Tab = "line" | "manager" | "guest";
 
 const TABS: { key: Tab; label: string }[] = [
   { key: "line", label: "Line Staff" },
   { key: "manager", label: "Mid Manager" },
+  { key: "guest", label: "Guest QR Landing" },
 ];
 
 const INFO: Record<Tab, { title: string; blurb: string; flows: string[]; included: string[]; excluded: string[] }> = {
@@ -47,6 +49,20 @@ const INFO: Record<Tab, { title: string; blurb: string; flows: string[]; include
     included: ["Department-only scope", "Reasons required for unable / override / GM escalation"],
     excluded: ["Department analytics and SLA trend charts", "Staff performance and Hotel Health Score drill-down", "Reports, SLA / department / role / knowledge-base configuration"],
   },
+  guest: {
+    title: "Guest QR Landing",
+    blurb: "What a guest sees the moment they scan the hotel's QR code — a branded landing page that hands them off to WhatsApp to talk to Alfon.",
+    flows: [
+      "QR code (in the room, at the desk, on a table tent) opens this page in the guest's own mobile browser — no app or login required",
+      "Full-bleed hero with the hotel's name and branding, so it feels like the hotel's own page rather than a generic form",
+      "Captures First Name, Surname and Room Number — enough to personalise the AI conversation and route requests to the right room",
+      "Two consent checkboxes: AI guest service processing (required) and marketing messages (optional)",
+      "Connect on WhatsApp is disabled until the required fields and consent are filled in",
+      "On submit, the guest is handed off to WhatsApp already carrying their name and room — Alfon picks up the conversation from there",
+    ],
+    included: ["Per-hotel branding on the hero", "Minimal required fields", "Consent captured before any AI messaging begins"],
+    excluded: ["Guest login or account creation", "Anything beyond the handoff into WhatsApp"],
+  },
 };
 
 export default function LineStaff() {
@@ -74,6 +90,7 @@ export default function LineStaff() {
             {/* remount on tab change so each phone starts fresh */}
             {tab === "line" && <LineStaffPrototype />}
             {tab === "manager" && <ManagerPrototype />}
+            {tab === "guest" && <GuestLandingPrototype />}
 
             <div className="space-y-5">
               <div className="rounded-card border border-line bg-white p-5">
