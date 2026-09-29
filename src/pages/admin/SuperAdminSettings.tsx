@@ -4,6 +4,9 @@ import { Topbar } from "../../components/Topbar";
 import { Page, Card } from "../../components/ui";
 import { usePersona } from "../../persona";
 
+const CONF_MIN = 50;
+const CONF_MAX = 99;
+
 const ALERTS = [
   { key: "health", label: "Hotel Health Score drops", hint: "A hotel's score falls sharply against its own average" },
   { key: "pms", label: "A PMS or WhatsApp connection breaks", hint: "Catch a broken connection before a hotel does" },
@@ -14,6 +17,8 @@ export default function SuperAdminSettings() {
   const { me } = usePersona();
   const [enabled, setEnabled] = useState<string[]>(["health", "pms", "onboarding"]);
   const toggle = (k: string) => setEnabled((e) => (e.includes(k) ? e.filter((x) => x !== k) : [...e, k]));
+  const [confidence, setConfidence] = useState(82);
+  const confPct = ((confidence - CONF_MIN) / (CONF_MAX - CONF_MIN)) * 100;
 
   return (
     <>
@@ -30,6 +35,23 @@ export default function SuperAdminSettings() {
                 <div className="text-[16px] font-semibold text-ink">{me.name}</div>
                 <div className="text-[13px] text-ink-secondary">{me.role}</div>
               </div>
+            </div>
+          </Card>
+
+          <Card className="p-6">
+            <h3 className="text-[15px] font-semibold text-ink">AI Controls</h3>
+            <p className="mt-1 text-[13px] text-ink-secondary">The confidence threshold that decides when the AI answers a guest itself versus handing off to a person.</p>
+            <div className="mt-5 flex items-center gap-5">
+              <input
+                type="range"
+                min={CONF_MIN}
+                max={CONF_MAX}
+                value={confidence}
+                onChange={(e) => setConfidence(Number(e.target.value))}
+                className="range-fancy flex-1 cursor-pointer"
+                style={{ background: `linear-gradient(to right, #E8623A ${confPct}%, #F0F0F0 ${confPct}%)` }}
+              />
+              <span className="w-16 shrink-0 text-right text-[26px] font-bold text-brand">{confidence}%</span>
             </div>
           </Card>
 

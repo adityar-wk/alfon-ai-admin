@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useParams, Navigate } from "react-router-dom";
 import {
-  Building2, MessageSquare, Server, HeartPulse, Activity, Home as HomeIcon, Users2, Zap, Power, Pencil, AlertTriangle,
+  Building2, MessageSquare, Server, HeartPulse, Activity, Home as HomeIcon, Users2, Zap, Power, Pencil, AlertTriangle, Languages,
 } from "lucide-react";
 import { Topbar } from "../../components/Topbar";
 import { Page, Card, Button, Badge } from "../../components/ui";
@@ -84,6 +84,18 @@ export default function HotelDetail() {
                   </div>
                 )}
               </div>
+            </div>
+          </div>
+
+          <div className="mt-6 border-t border-line pt-6">
+            <h3 className="text-[15px] font-semibold text-ink">Languages Spoken</h3>
+            <p className="mt-1 text-[13px] text-ink-secondary">Languages the AI concierge and on-site team can support guests in.</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {hotel.languages.map((l) => (
+                <span key={l} className="flex items-center gap-1.5 rounded-full bg-brand-tint px-3 py-1.5 text-[12px] font-medium text-brand">
+                  <Languages className="h-3.5 w-3.5" /> {l}
+                </span>
+              ))}
             </div>
           </div>
         </Card>
