@@ -311,7 +311,7 @@ export default function Home() {
           <Card table className="overflow-hidden">
             <div className="flex flex-wrap items-center gap-3 px-5 py-4">
               <ListChecks className="h-[18px] w-[18px] text-brand" />
-              <h3 className="text-[16px] font-semibold text-ink">Needs Your Attention</h3>
+              <h3 className="text-[16px] font-semibold text-ink">Tasks</h3>
               <div className="ml-auto flex items-center gap-2">
                 <div className="w-40"><Select className="h-9 text-[12px]" value={dept} onChange={(e) => setDept(e.target.value)} aria-label="Department">
                   <option value="all">All Departments</option>{depts.map((d) => <option key={d}>{d}</option>)}

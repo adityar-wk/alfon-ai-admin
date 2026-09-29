@@ -226,7 +226,6 @@ export default function Tasks() {
         { label: "Complaints", value: counts.complaints, foot: "Guest complaints open", go: "complaints" as View },
         { label: "SLA at risk", value: counts.risk, foot: "Due within the hour", go: "risk" as View },
         { label: "Unassigned", value: counts.unassigned, foot: "Awaiting an owner", go: "unassigned" as View },
-        { label: "Completed today", value: counts.completed, foot: "Across all departments", go: "completed" as View },
       ];
 
   const applyUpdate = (t: Task, patch: Partial<Task>, action: string, detail: string, msg: string) => {
@@ -256,7 +255,7 @@ export default function Tasks() {
       />
       <Page>
 
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-6">
+        <div className={`grid grid-cols-2 gap-4 lg:grid-cols-3 ${manager ? "xl:grid-cols-6" : "xl:grid-cols-5"}`}>
           {stats.map((s) => (
             <button
               key={s.label}

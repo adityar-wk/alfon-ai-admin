@@ -154,10 +154,10 @@ export default function Analytics() {
   const deptColors = sorted.map((d) => TAGS[deptIdx(d.name)].mid);
 
   const kpis = [
-    { label: "Total Tasks", value: total.toLocaleString(), delta: "16% vs last period", up: true, icon: ListChecks, chip: "bg-sky-100 text-sky-700" },
-    { label: "Completed", value: completed.toLocaleString(), delta: "18% vs last period", up: true, icon: CheckCircle2, chip: "bg-emerald-100 text-emerald-700" },
-    { label: "Overdue", value: overdue.toLocaleString(), delta: "8% vs last period", up: false, icon: AlertTriangle, chip: "bg-rose-100 text-rose-600" },
-    { label: "Avg Response", value: avgResp, delta: "12% vs last period", up: false, icon: Timer, chip: "bg-violet-100 text-violet-700" },
+    { label: "Total Tasks", value: total.toLocaleString(), delta: "16% vs last period", up: true, icon: ListChecks, chip: "bg-orange-50 text-orange-500" },
+    { label: "Completed", value: completed.toLocaleString(), delta: "18% vs last period", up: true, icon: CheckCircle2, chip: "bg-orange-100 text-orange-600" },
+    { label: "Overdue", value: overdue.toLocaleString(), delta: "8% vs last period", up: false, icon: AlertTriangle, chip: "bg-orange-200 text-orange-700" },
+    { label: "Avg Response", value: avgResp, delta: "12% vs last period", up: false, icon: Timer, chip: "bg-orange-300 text-orange-800" },
   ];
 
   const flash = (m: string) => {
@@ -612,8 +612,8 @@ function SatisfactionChart({ values }: { values: number[] }) {
     <svg viewBox={`0 0 ${W} ${H}`} className="mt-3 w-full">
       <defs>
         <linearGradient id="satFill" gradientUnits="userSpaceOnUse" x1="0" x2="0" y1={T} y2={H - B}>
-          <stop offset="0" stopColor="#8DB7F0" stopOpacity="0.26" />
-          <stop offset="1" stopColor="#8DB7F0" stopOpacity="0" />
+          <stop offset="0" stopColor="#E8623A" stopOpacity="0.26" />
+          <stop offset="1" stopColor="#E8623A" stopOpacity="0" />
         </linearGradient>
         <clipPath id="satClip"><rect x={L} y={T} width={W - L - R} height={H - T - B} /></clipPath>
       </defs>
@@ -624,12 +624,12 @@ function SatisfactionChart({ values }: { values: number[] }) {
         </g>
       ))}
       <path d={area} fill="url(#satFill)" clipPath="url(#satClip)" />
-      <path d={d} fill="none" stroke="#7FA8E0" strokeWidth="2.5" strokeLinecap="round" />
+      <path d={d} fill="none" stroke="#E8623A" strokeWidth="2.5" strokeLinecap="round" />
       {pts.map(([px, py], i) => (
         <g key={i} onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)}>
           <text x={px} y={H - 8} textAnchor="middle" fontSize="10" fill="#9CA3AF">W{i + 1}</text>
           <circle cx={px} cy={py} r="14" fill="transparent" />
-          <circle cx={px} cy={py} r={hover === i ? 5 : 3} fill="#fff" stroke="#7FA8E0" strokeWidth="2" />
+          <circle cx={px} cy={py} r={hover === i ? 5 : 3} fill="#fff" stroke="#E8623A" strokeWidth="2" />
           {hover === i && (
             <g>
               <rect x={px - 22} y={py - 30} width="44" height="20" rx="5" fill="#1A1A1A" />
