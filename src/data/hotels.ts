@@ -41,10 +41,3 @@ export const HOTELS: Hotel[] = [
 ];
 
 export const REGIONS = Array.from(new Set(HOTELS.map((h) => h.region)));
-
-export const hotelStats = () => ({
-  total: HOTELS.length,
-  active: HOTELS.filter((h) => h.status === "Active").length,
-  inactive: HOTELS.filter((h) => h.status === "Inactive").length,
-  connections: HOTELS.reduce((n, h) => n + (h.whatsapp === "Connected" ? 1 : 0) + (h.pms === "Connected" ? 1 : 0), 0),
-});

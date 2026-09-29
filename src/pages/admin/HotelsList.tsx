@@ -1,22 +1,19 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Building2, CheckCircle2, PauseCircle, Link2, Search, Plus, ChevronRight, MessageSquare, Server } from "lucide-react";
+import { Building2, CheckCircle2, AlertTriangle, Activity, Search, Plus, ChevronRight, Check, X, Clock } from "lucide-react";
 import { Topbar } from "../../components/Topbar";
 import { Page, Card, Button, Select } from "../../components/ui";
-import { HOTELS, REGIONS, hotelStats, type Hotel } from "../../data/hotels";
+import { HOTELS, REGIONS, type Hotel, type ConnStatus } from "../../data/hotels";
 
 const TABS = ["All", "Active", "Inactive", "New"] as const;
 
 const STATUS_TONE: Record<Hotel["status"], string> = { Active: "text-emerald-600", Inactive: "text-red-600", New: "text-sky-600" };
-const CONN_TONE: Record<Hotel["whatsapp"], string> = { Connected: "text-emerald-600", Pending: "text-amber-600", Disconnected: "text-red-500" };
-const CONN_DOT: Record<Hotel["whatsapp"], string> = { Connected: "bg-emerald-500", Pending: "bg-amber-400", Disconnected: "bg-red-400" };
 
-const KPIS = [
-  { label: "Total Hotels", icon: Building2, key: "total" as const, tint: "bg-brand-tint text-brand", foot: "20% vs last month" },
-  { label: "Active Hotels", icon: CheckCircle2, key: "active" as const, tint: "bg-emerald-50 text-emerald-600", foot: "11% vs last month" },
-  { label: "Inactive Hotels", icon: PauseCircle, key: "inactive" as const, tint: "bg-amber-50 text-amber-600", foot: "0% vs last month" },
-  { label: "System Connections", icon: Link2, key: "connections" as const, tint: "bg-sky-50 text-sky-600", foot: "28% vs last month" },
-];
+function ConnIcon({ status }: { status: ConnStatus }) {
+  if (status === "Connected") return <Check className="h-4 w-4 text-emerald-600" aria-label="Connected" />;
+  if (status === "Disconnected") return <X className="h-4 w-4 text-red-500" aria-label="Disconnected" />;
+  return <Clock className="h-4 w-4 text-amber-500" aria-label="Pending" />;
+}
 
 export default function HotelsList() {
   const navigate = useNavigate();
@@ -25,7 +22,21 @@ export default function HotelsList() {
   const [query, setQuery] = useState("");
   const [region, setRegion] = useState("all");
   const [toast, setToast] = useState<string | null>(null);
-  const stats = hotelStats();
+
+  const total = HOTELS.length;
+  const active = HOTELS.filter((h) => h.status === "Active").length;
+  const inactive = HOTELS.filter((h) => h.status === "Inactive").length;
+  const connIssues = HOTELS.filter((h) => h.status !== "Inactive" && (h.whatsapp !== "Connected" || h.pms !== "Connected")).length;
+  const needsAttention = inactive + connIssues;
+  const scored = HOTELS.filter((h) => h.healthScore !== null);
+  const avgHealth = scored.length ? Math.round(scored.reduce((n, h) => n + (h.healthScore ?? 0), 0) / scored.length) : 0;
+
+  const KPIS = [
+    { label: "Total Hotels", icon: Building2, tint: "bg-brand-tint text-brand", value: total, foot: `Across ${REGIONS.length} regions` },
+    { label: "Needs Attention", icon: AlertTriangle, tint: "bg-amber-50 text-amber-600", value: needsAttention, foot: `${inactive} inactive · ${connIssues} connection issue${connIssues === 1 ? "" : "s"}` },
+    { label: "Active Hotels", icon: CheckCircle2, tint: "bg-emerald-50 text-emerald-600", value: active, foot: `${Math.round((active / total) * 100)}% of the network` },
+    { label: "Avg Health Score", icon: Activity, tint: "bg-sky-50 text-sky-600", value: `${avgHealth}%`, foot: `Across ${scored.length} scored hotels` },
+  ];
 
   useEffect(() => {
     const created = params.get("created");
@@ -66,7 +77,7 @@ export default function HotelsList() {
                 <k.icon className="h-[18px] w-[18px]" />
               </span>
               <div className="mt-3 text-[13px] text-ink-secondary">{k.label}</div>
-              <div className="text-[26px] font-bold leading-tight text-ink">{stats[k.key]}</div>
+              <div className="text-[26px] font-bold leading-tight text-ink">{k.value}</div>
               <div className="text-[12px] text-ink-tertiary">{k.foot}</div>
             </Card>
           ))}
@@ -111,24 +122,26 @@ export default function HotelsList() {
             <table className="w-full min-w-[1080px] table-fixed text-left">
               <colgroup>
                 <col />
-                <col className="w-[100px]" />
-                <col className="w-[160px]" />
-                <col className="w-[110px]" />
+                <col className="w-[90px]" />
                 <col className="w-[90px]" />
                 <col className="w-[70px]" />
-                <col className="w-[150px]" />
-                <col className="w-[140px]" />
+                <col className="w-[130px]" />
+                <col className="w-[110px]" />
+                <col className="w-[120px]" />
+                <col className="w-[70px]" />
+                <col className="w-[130px]" />
               </colgroup>
               <thead>
                 <tr className="bg-[#F4F4F5] text-[12px] uppercase tracking-wide text-[#6B7280]">
                   <th className="py-3.5 pl-6 font-medium">Hotel</th>
                   <th className="py-3.5 pl-6 font-medium">Status</th>
-                  <th className="py-3.5 pl-6 font-medium">Connections</th>
-                  <th className="py-3.5 pl-6 font-medium">Departments</th>
-                  <th className="py-3.5 pl-6 font-medium">Staff</th>
-                  <th className="py-3.5 pl-6 font-medium">Health</th>
-                  <th className="py-3.5 pl-6 font-medium" />
-                  <th className="w-24 py-3.5 pr-6" />
+                  <th className="py-3.5 pl-6 font-medium">WhatsApp</th>
+                  <th className="py-3.5 pl-6 font-medium">PMS</th>
+                  <th className="py-3.5 pl-6 font-medium">Last Sync</th>
+                  <th className="py-3.5 pl-6 font-medium">Health Score</th>
+                  <th className="py-3.5 pl-6 font-medium">Onboarding Date</th>
+                  <th className="py-3.5 pl-6 font-medium">Rooms</th>
+                  <th className="w-32 py-3.5 pr-6" />
                 </tr>
               </thead>
               <tbody>
@@ -139,17 +152,14 @@ export default function HotelsList() {
                         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-tint text-brand"><Building2 className="h-4 w-4" /></span>
                         <div className="min-w-0">
                           <div className="truncate text-[13px] font-semibold text-ink">{h.name}</div>
-                          <div className="truncate text-[12px] text-ink-tertiary">{h.location} · {h.rooms} Rooms</div>
+                          <div className="truncate text-[12px] text-ink-tertiary">{h.location}</div>
                         </div>
                       </div>
                     </td>
                     <td className="py-3.5 pl-6 pr-3"><span className={`text-[13px] font-medium ${STATUS_TONE[h.status]}`}>{h.status}</span></td>
-                    <td className="py-3.5 pl-6 pr-3">
-                      <div className="flex items-center gap-1.5 text-[12px]"><MessageSquare className="h-3.5 w-3.5 text-ink-tertiary" /><span className={`flex items-center gap-1 ${CONN_TONE[h.whatsapp]}`}><span className={`h-1.5 w-1.5 rounded-full ${CONN_DOT[h.whatsapp]}`} />{h.whatsapp}</span></div>
-                      <div className="mt-1 flex items-center gap-1.5 text-[12px]"><Server className="h-3.5 w-3.5 text-ink-tertiary" /><span className={`flex items-center gap-1 ${CONN_TONE[h.pms]}`}><span className={`h-1.5 w-1.5 rounded-full ${CONN_DOT[h.pms]}`} />{h.pms}</span></div>
-                    </td>
-                    <td className="py-3.5 pl-6 pr-3 text-[13px] text-ink-secondary">{h.departments}</td>
-                    <td className="py-3.5 pl-6 pr-3 text-[13px] text-ink-secondary">{h.staff}</td>
+                    <td className="py-3.5 pl-6 pr-3"><ConnIcon status={h.whatsapp} /></td>
+                    <td className="py-3.5 pl-6 pr-3"><ConnIcon status={h.pms} /></td>
+                    <td className="py-3.5 pl-6 pr-3 text-[13px] text-ink-secondary">{h.lastSync}</td>
                     <td className="py-3.5 pl-6 pr-3">
                       {h.healthScore === null ? (
                         <span className="text-[13px] text-ink-tertiary">—</span>
@@ -160,13 +170,14 @@ export default function HotelsList() {
                         </div>
                       )}
                     </td>
-                    <td />
+                    <td className="py-3.5 pl-6 pr-3 text-[13px] text-ink-secondary">{h.onboarded}</td>
+                    <td className="py-3.5 pl-6 pr-3 text-[13px] text-ink-secondary">{h.rooms}</td>
                     <td className="py-3.5 pr-6 text-right">
                       <span className="inline-flex items-center gap-1 text-[12px] font-semibold text-brand">View Details <ChevronRight className="h-3.5 w-3.5" /></span>
                     </td>
                   </tr>
                 ))}
-                {!rows.length && <tr><td colSpan={8} className="py-10 text-center text-[13px] text-ink-tertiary">No hotels match.</td></tr>}
+                {!rows.length && <tr><td colSpan={9} className="py-10 text-center text-[13px] text-ink-tertiary">No hotels match.</td></tr>}
               </tbody>
             </table>
           </div>
