@@ -55,8 +55,9 @@ const INFO: Record<Tab, { title: string; blurb: string; flows: string[]; include
     flows: [
       "QR code (in the room, at the desk, on a table tent) opens this page in the guest's own mobile browser — no app or login required",
       "Full-bleed hero with the hotel's name and branding, so it feels like the hotel's own page rather than a generic form",
-      "Captures First Name, Surname and Room Number — enough to personalise the AI conversation and route requests to the right room",
-      "Two consent checkboxes: AI guest service processing (required) and marketing messages (optional)",
+      "Captures Full Name, Telephone Number (with country code) and Room Number — enough to personalise the AI conversation and route requests to the right room",
+      "A single consent checkbox for AI concierge and guest service processing via WhatsApp, linked to the hotel's Privacy Policy",
+      "A Secure / Verified / Instant Access trust strip under the button reassures the guest before they hand over any details",
       "Connect on WhatsApp is disabled until the required fields and consent are filled in",
       "On submit, the guest is handed off to WhatsApp already carrying their name and room — Alfon picks up the conversation from there",
     ],
