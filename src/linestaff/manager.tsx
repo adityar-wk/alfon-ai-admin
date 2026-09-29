@@ -4,7 +4,9 @@ import { useMemo, useState } from "react";
 import {
   Bell, Home as HomeIcon, Plus, Users, UserCog, UserPlus, ArrowUpRight, MessageCircle, Send, Filter, ChevronRight, ChevronLeft, Search,
   Menu as MenuIcon, ListChecks, BarChart3, AlertTriangle, User, BedDouble, DoorOpen, Building2, FileText, Download, Lock, UtensilsCrossed, Languages, Thermometer, AlarmClock, Wine, Phone, Mail, Sparkles, SlidersHorizontal, LogOut,
+  CheckCircle2, Loader, AlertCircle, CircleSlash, Wrench, ClipboardCheck,
 } from "lucide-react";
+import { CLEANING_CHECKLIST, INSPECTION_CHECKLIST, TAG_TONE } from "../data/housekeepingChecklists";
 import { DEPARTMENTS } from "../data/departments";
 import { DetailRow, ProfileSection, GuestProfileScreen, GuestChatScreen } from "./guestviews";
 import { pastel } from "../data/pastel";
@@ -50,6 +52,20 @@ const ROOM_STATUS_TONE: Record<RoomStatus, string> = {
   "Needs Inspection": "text-amber-600",
   "Out of Service": "text-red-600",
   "Out of Order": "text-gray-500",
+};
+const ROOM_STATUS_ICON: Record<RoomStatus, React.ComponentType<{ className?: string }>> = {
+  Inspected: CheckCircle2,
+  "In Progress": Loader,
+  "Needs Inspection": AlertCircle,
+  "Out of Service": CircleSlash,
+  "Out of Order": Wrench,
+};
+const ROOM_STATUS_ICON_TONE: Record<RoomStatus, string> = {
+  Inspected: "bg-emerald-50 text-emerald-600",
+  "In Progress": "bg-blue-50 text-blue-600",
+  "Needs Inspection": "bg-amber-50 text-amber-600",
+  "Out of Service": "bg-red-50 text-red-600",
+  "Out of Order": "bg-gray-100 text-gray-500",
 };
 const TASK_FILTERS = ["All", "Unassigned", "At Risk", "Overdue", "Completed"] as const;
 type TaskFilter = (typeof TASK_FILTERS)[number];
@@ -168,6 +184,7 @@ export function ManagerPrototype() {
   const [roomFilter, setRoomFilter] = useState<RoomStatusFilter>("All");
   const [roomQuery, setRoomQuery] = useState("");
   const [roomSheet, setRoomSheet] = useState<string | null>(null);
+  const [roomChecklist, setRoomChecklist] = useState<{ number: string; kind: "cleaning" | "inspection" } | null>(null);
   const [sheet, setSheet] = useState<SheetState>(null);
   const [needHelpReason, setNeedHelpReason] = useState("");
   const [chat, setChat] = useState<Record<string, { from: "guest" | "ai" | "me"; text: string }[]>>({});
@@ -315,6 +332,7 @@ export function ManagerPrototype() {
   const roomsFiltered = rooms.filter((r) => (roomFilter === "All" || r.status === roomFilter) && (!roomQuery.trim() || r.number.toLowerCase().includes(roomQuery.trim().toLowerCase()) || (r.assignee ?? "").toLowerCase().includes(roomQuery.trim().toLowerCase())));
   const roomChipCounts = Object.fromEntries(ROOM_STATUS_FILTERS.map((f) => [f, f === "All" ? rooms.length : rooms.filter((r) => r.status === f).length])) as Record<RoomStatusFilter, number>;
   const roomEntry = roomSheet ? rooms.find((r) => r.number === roomSheet) : undefined;
+  const checklistRoom = roomChecklist ? rooms.find((r) => r.number === roomChecklist.number) : undefined;
 
   const staffName = cur.name === "staffDetail" ? cur.id : undefined;
   const staffEntry = staffName ? STAFF.find((s) => s.name === staffName) : undefined;
@@ -580,11 +598,33 @@ export function ManagerPrototype() {
         </p>
       ) : null}
       <Label>Status</Label>
-      <Chips
-        items={ROOM_STATUSES}
-        active={roomEntry.status}
-        onChange={(v) => { setRooms((rs) => rs.map((r) => (r.number === roomEntry.number ? { ...r, status: v, assignee: v === r.status ? r.assignee : null, open: v === r.status ? r.open : false } : r))); flash(`${roomEntry.number} marked ${v}`); }}
-      />
+      <div className="space-y-2">
+        {ROOM_STATUSES.map((v) => {
+          const on = v === roomEntry.status;
+          const Icon = ROOM_STATUS_ICON[v];
+          const gated = (roomEntry.status === "In Progress" && v === "Needs Inspection") || (roomEntry.status === "Needs Inspection" && v === "Inspected");
+          return (
+            <button
+              key={v}
+              onClick={() => {
+                if (gated) return setRoomChecklist({ number: roomEntry.number, kind: roomEntry.status === "In Progress" ? "cleaning" : "inspection" });
+                setRooms((rs) => rs.map((r) => (r.number === roomEntry.number ? { ...r, status: v, assignee: v === r.status ? r.assignee : null, open: v === r.status ? r.open : false } : r)));
+                flash(`${roomEntry.number} marked ${v}`);
+              }}
+              className={`flex w-full items-center gap-3 rounded-2xl border p-3 text-left ${on ? "border-brand bg-brand-tint/40" : "border-line bg-white"}`}
+            >
+              <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${ROOM_STATUS_ICON_TONE[v]}`}><Icon className="h-4 w-4" /></span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-[14px] font-medium text-ink">{v}</span>
+                {gated && <span className="flex items-center gap-1 text-[11px] text-ink-tertiary"><ClipboardCheck className="h-3 w-3" /> Requires checklist</span>}
+              </span>
+              <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${on ? "border-brand" : "border-line"}`}>
+                {on && <span className="h-2.5 w-2.5 rounded-full bg-brand" />}
+              </span>
+            </button>
+          );
+        })}
+      </div>
       {(roomEntry.status === "Needs Inspection" || roomEntry.status === "In Progress") && !roomEntry.assignee && (
         <>
           <div className="mt-5" />
@@ -1139,6 +1179,33 @@ export function ManagerPrototype() {
         {NewChatSheet}
         {RosterFilterSheet}
         {RoomSheet}
+        {roomChecklist?.kind === "cleaning" && checklistRoom && (
+          <CleaningChecklistSheet
+            room={checklistRoom}
+            onClose={() => setRoomChecklist(null)}
+            onSubmit={() => {
+              setRooms((rs) => rs.map((r) => (r.number === checklistRoom.number ? { ...r, status: "Needs Inspection", assignee: null, open: false } : r)));
+              flash(`${checklistRoom.number} submitted for inspection`);
+              setRoomChecklist(null);
+            }}
+          />
+        )}
+        {roomChecklist?.kind === "inspection" && checklistRoom && (
+          <InspectionChecklistSheet
+            room={checklistRoom}
+            onClose={() => setRoomChecklist(null)}
+            onApprove={() => {
+              setRooms((rs) => rs.map((r) => (r.number === checklistRoom.number ? { ...r, status: "Inspected", assignee: null, open: false } : r)));
+              flash(`${checklistRoom.number} approved and cleared`);
+              setRoomChecklist(null);
+            }}
+            onFlag={() => {
+              setRooms((rs) => rs.map((r) => (r.number === checklistRoom.number ? { ...r, status: "In Progress" } : r)));
+              flash(`${checklistRoom.number} flagged for re-cleaning`);
+              setRoomChecklist(null);
+            }}
+          />
+        )}
         {compOpen && task && (
           <CompensationSheet
             subtitle={`${task.title} · ${task.room}`}
@@ -1159,7 +1226,7 @@ export function ManagerPrototype() {
           onClick={() => {
             nav.reset(); setTasks(SEED_TASKS); setRooms(ROOMS); setSheet(null); setNeedHelpReason(""); setChat({}); setManual({});
             setFilter("All"); setRoleFilter("All"); setGuestFilter("All"); setGuestQuery("");
-            setTaskFilter("All"); setTaskQuery(""); setStageFilter("All"); setRosterQuery(""); setTeamQuery(""); setStaffTab("Overview"); setRoomFilter("All"); setRoomQuery(""); setRoomSheet(null);
+            setTaskFilter("All"); setTaskQuery(""); setStageFilter("All"); setRosterQuery(""); setTeamQuery(""); setStaffTab("Overview"); setRoomFilter("All"); setRoomQuery(""); setRoomSheet(null); setRoomChecklist(null);
           }}
         >
           Reset
@@ -1167,5 +1234,110 @@ export function ManagerPrototype() {
       </div>
       <p className="text-center text-[12px] text-ink-tertiary">Current screen: <span className="font-medium text-ink-secondary">{cur.name}</span> · open Guests to chat with a guest, or Room 1103 to see full task context.</p>
     </div>
+  );
+}
+
+function CleaningChecklistSheet({
+  room,
+  onClose,
+  onSubmit,
+}: {
+  room: HkRoom;
+  onClose: () => void;
+  onSubmit: () => void;
+}) {
+  const [checked, setChecked] = useState<boolean[]>(() => CLEANING_CHECKLIST.map(() => false));
+  const doneCount = checked.filter(Boolean).length;
+  const allDone = checked.every(Boolean);
+  const toggle = (i: number) => setChecked((c) => c.map((v, idx) => (idx === i ? !v : v)));
+
+  return (
+    <Sheet title={`${room.number} — Room Cleaning`} onClose={onClose}>
+      <div className="mb-4 flex items-center justify-between rounded-2xl bg-[#F6F6F8] p-3 text-[13px]">
+        <span className="text-ink-secondary">Housekeeper: <span className="font-medium text-ink">{room.assignee ?? "Unassigned"}</span></span>
+        <span className="text-ink-tertiary">{doneCount} / {CLEANING_CHECKLIST.length}</span>
+      </div>
+      <div className="space-y-2">
+        {CLEANING_CHECKLIST.map((item, i) => (
+          <label
+            key={item}
+            className={`flex cursor-pointer items-start gap-3 rounded-2xl border p-3.5 text-[13px] ${checked[i] ? "border-emerald-200 bg-emerald-50/50" : "border-line bg-white"}`}
+          >
+            <input type="checkbox" className="mt-0.5 h-4 w-4 shrink-0 accent-brand" checked={checked[i]} onChange={() => toggle(i)} />
+            <span className={checked[i] ? "text-ink" : "text-ink-secondary"}>{item}</span>
+          </label>
+        ))}
+      </div>
+      <Button className="mt-5 w-full disabled:opacity-40" disabled={!allDone} onClick={onSubmit}>
+        Submit for Inspection
+      </Button>
+      {!allDone && <p className="mt-2.5 text-center text-[12px] text-ink-tertiary">Complete every item to submit this room for inspection.</p>}
+    </Sheet>
+  );
+}
+
+function InspectionChecklistSheet({
+  room,
+  onClose,
+  onApprove,
+  onFlag,
+}: {
+  room: HkRoom;
+  onClose: () => void;
+  onApprove: () => void;
+  onFlag: () => void;
+}) {
+  const [checked, setChecked] = useState<boolean[]>(() => INSPECTION_CHECKLIST.map(() => false));
+  const doneCount = checked.filter(Boolean).length;
+  const allDone = doneCount === INSPECTION_CHECKLIST.length;
+  const pct = Math.round((doneCount / INSPECTION_CHECKLIST.length) * 100);
+  const toggle = (i: number) => setChecked((c) => c.map((v, idx) => (idx === i ? !v : v)));
+  const sections = Array.from(new Set(INSPECTION_CHECKLIST.map((it) => it.section)));
+
+  return (
+    <Sheet title={`${room.number} — LQA Inspection`} onClose={onClose}>
+      <div className="rounded-2xl bg-[#F6F6F8] p-3">
+        <div className="text-[11px] font-semibold uppercase tracking-wide text-ink-tertiary">Leading Quality Assurance Standard</div>
+        <div className="mt-1 text-[13px] text-ink-secondary">Housekeeper: <span className="font-medium text-ink">{room.assignee ?? "Unassigned"}</span></div>
+        <div className="mt-2 flex items-center justify-between text-[12px] text-ink-tertiary">
+          <span>{doneCount} / {INSPECTION_CHECKLIST.length} verified</span>
+          <span className="font-semibold text-ink">{pct}%</span>
+        </div>
+        <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white">
+          <div className="h-full rounded-full bg-brand transition-all" style={{ width: `${pct}%` }} />
+        </div>
+      </div>
+
+      <div className="mt-4 space-y-5">
+        {sections.map((sec) => (
+          <div key={sec}>
+            <div className="mb-2 text-[12px] font-bold uppercase tracking-wide text-ink-tertiary">{sec}</div>
+            <div className="space-y-2">
+              {INSPECTION_CHECKLIST.filter((it) => it.section === sec).map((it) => (
+                <label
+                  key={it.n}
+                  className={`flex cursor-pointer items-start gap-2.5 rounded-2xl border p-3 text-[13px] ${checked[it.n - 1] ? "border-emerald-200 bg-emerald-50/50" : "border-line bg-white"}`}
+                >
+                  <input type="checkbox" className="mt-0.5 h-4 w-4 shrink-0 accent-brand" checked={checked[it.n - 1]} onChange={() => toggle(it.n - 1)} />
+                  <span className="min-w-0 flex-1">
+                    <span className={checked[it.n - 1] ? "text-ink" : "text-ink-secondary"}><span className="mr-1 text-ink-tertiary">{it.n}.</span>{it.text}</span>
+                    <span className={`ml-2 inline-block rounded px-1.5 py-0.5 align-middle text-[10px] font-medium ${TAG_TONE[it.tag]}`}>{it.tag}</span>
+                  </span>
+                </label>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-5 grid grid-cols-2 gap-2">
+        <Button variant="outline" className="border-red-300 text-red-600 hover:bg-red-50" onClick={onFlag}>
+          Flag for Re-cleaning
+        </Button>
+        <Button disabled={!allDone} className="disabled:opacity-40" onClick={onApprove}>
+          Approve & Clear
+        </Button>
+      </div>
+    </Sheet>
   );
 }

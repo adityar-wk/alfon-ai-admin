@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
-import { Search, Plus, User, Lightbulb, Bell, BedDouble, UtensilsCrossed, Target, MessageCircle, AlarmClock, Thermometer, Wine, Newspaper, Calendar, Hourglass, History, SlidersHorizontal, StickyNote, Check } from "lucide-react";
+import { Search, Plus, User, Lightbulb, Bell, BedDouble, UtensilsCrossed, Target, MessageCircle, AlarmClock, Thermometer, Wine, Newspaper, Calendar, Hourglass, History, Check } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { Card, Modal, Button, Field, Input, Select, RoomNo } from "../components/ui";
 import { Flag } from "../components/Flag";
@@ -394,6 +394,38 @@ function Heading({ icon: Icon, tone, children }: { icon: React.ComponentType<{ c
   );
 }
 
+function PrefCategory({
+  label, icon: Icon, tone, text, editing, onChange,
+}: {
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  tone: string;
+  text: string;
+  editing: boolean;
+  onChange: (v: string) => void;
+}) {
+  return (
+    <div>
+      <div className="mb-1.5 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-ink-tertiary">
+        <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded ${tone}`}><Icon className="h-3 w-3" /></span> {label}
+      </div>
+      {editing ? (
+        <textarea
+          rows={2}
+          value={text}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="Add details for this preference…"
+          className="w-full rounded-lg border border-line bg-white p-2.5 text-[13px] text-ink outline-none placeholder:text-ink-tertiary focus:border-brand"
+        />
+      ) : (
+        <div className="rounded-lg bg-subtle px-3 py-2.5 text-[13px] leading-relaxed text-ink">
+          {text || <span className="text-ink-tertiary">None yet</span>}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function GuestProfile() {
   const { id } = useParams();
   const guest = GUESTS.find((g) => String(g.id) === id);
@@ -402,16 +434,22 @@ export default function GuestProfile() {
   const [noteOpen, setNoteOpen] = useState(false);
   const [draft, setDraft] = useState("");
   const [editOpen, setEditOpen] = useState(false);
+  const [editingPrefs, setEditingPrefs] = useState(false);
+  const [prefTextOverride, setPrefTextOverride] = useState<Record<number, Partial<Record<keyof Prefs, string>>>>({});
   const [, refresh] = useState(0);
 
   useEffect(() => {
     setNoteOpen(false);
     setDraft("");
+    setEditingPrefs(false);
   }, [id]);
 
   if (!guest) return <Navigate to={`/guests/${GUESTS[0].id}`} replace />;
 
   const p = buildProfile(guest);
+  const prefText = (key: keyof Prefs) => prefTextOverride[guest.id]?.[key] ?? p.prefs[key].join(", ");
+  const setPrefText = (key: keyof Prefs, v: string) =>
+    setPrefTextOverride((o) => ({ ...o, [guest.id]: { ...o[guest.id], [key]: v } }));
   const notes = [...(extraNotes[guest.id] ?? []), ...p.notes];
   const actions = p.actions.map((a, i) => ({ ...a, key: `${guest.id}:${i}` }));
 
@@ -459,42 +497,50 @@ export default function GuestProfile() {
               </div>
             </Card>
 
-            {/* profile + needs on top, preferences then stay history below, actions + notes stacked on the right */}
-            <div className="grid grid-cols-1 items-start gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_320px]">
-              <Card className="min-w-0 p-6">
-                <Heading icon={User} tone="bg-sky-50 text-sky-600">Guest profile</Heading>
-                <p className="text-[14px] leading-relaxed text-ink">{p.summary}</p>
-              </Card>
-              <Card className="min-w-0 p-6">
-                <Heading icon={Lightbulb} tone="bg-amber-50 text-amber-600">Anticipated needs</Heading>
-                <p className="text-[14px] leading-relaxed text-ink">{p.anticipated}</p>
-              </Card>
+            {/* left: guest profile, anticipated needs, preferences and stay history stacked; right: actions and notes stacked */}
+            <div className="grid grid-cols-1 items-start gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
+              <div className="flex min-w-0 flex-col gap-4">
+                <Card className="p-6">
+                  <Heading icon={User} tone="bg-sky-50 text-sky-600">Guest profile</Heading>
+                  <p className="text-[14px] leading-relaxed text-ink">{p.summary}</p>
+                </Card>
+                <Card className="p-6">
+                  <Heading icon={Lightbulb} tone="bg-amber-50 text-amber-600">Anticipated needs</Heading>
+                  <p className="text-[14px] leading-relaxed text-ink">{p.anticipated}</p>
+                </Card>
 
-              <Card className="min-w-0 p-6 xl:col-span-2 xl:col-start-1 xl:row-start-2">
-                <Heading icon={SlidersHorizontal} tone="bg-brand-tint text-brand">Preferences</Heading>
-                <div className="grid grid-cols-1 gap-x-8 gap-y-5 md:grid-cols-2">
-                  {PREF_CARDS.map(({ key, label, icon: Icon, tone }) => (
-                    <div key={key}>
-                      <div className="mb-1.5 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-ink-tertiary">
-                        <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded ${tone}`}><Icon className="h-3 w-3" /></span> {label}
-                      </div>
-                      <div className="flex flex-wrap gap-1.5">
-                        {p.prefs[key].map((v) => <span key={v} className="rounded-full bg-subtle px-2.5 py-0.5 text-[13px] text-ink-secondary">{v}</span>)}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </Card>
+                <Card className="p-6">
+                  <div className="mb-3 flex items-center justify-between">
+                    <span className="text-[11px] font-bold uppercase tracking-wide text-ink-tertiary">Preferences</span>
+                    <button onClick={() => setEditingPrefs((e) => !e)} className="text-[13px] font-medium text-brand hover:underline">
+                      {editingPrefs ? "Done" : "Edit"}
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-1 gap-x-8 gap-y-5 md:grid-cols-2">
+                    {PREF_CARDS.map(({ key, label, icon: Icon, tone }) => (
+                      <PrefCategory
+                        key={key}
+                        label={label}
+                        icon={Icon}
+                        tone={tone}
+                        text={prefText(key)}
+                        editing={editingPrefs}
+                        onChange={(v) => setPrefText(key, v)}
+                      />
+                    ))}
+                  </div>
+                </Card>
 
-              <Card className="min-w-0 p-6 xl:col-span-2 xl:col-start-1 xl:row-start-3">
-                <Heading icon={History} tone="bg-violet-50 text-violet-600">Stay history</Heading>
-                <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
-                  {p.history.map((h) => <div key={h} className="rounded-lg bg-subtle/70 px-3 py-2 text-[13px] text-ink-secondary">{h}</div>)}
-                  {!p.history.length && <p className="text-[13px] text-ink-tertiary">No previous stays.</p>}
-                </div>
-              </Card>
+                <Card className="p-6">
+                  <Heading icon={History} tone="bg-violet-50 text-violet-600">Stay history</Heading>
+                  <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
+                    {p.history.map((h) => <div key={h} className="rounded-lg bg-subtle/70 px-3 py-2 text-[13px] text-ink-secondary">{h}</div>)}
+                    {!p.history.length && <p className="text-[13px] text-ink-tertiary">No previous stays.</p>}
+                  </div>
+                </Card>
+              </div>
 
-              <div className="flex min-w-0 flex-col gap-4 xl:col-start-3 xl:row-span-3 xl:row-start-1">
+              <div className="flex min-w-0 flex-col gap-4">
                 <Card className="p-6">
                   <Heading icon={Bell} tone="bg-red-50 text-red-600">Actions</Heading>
                   <div className="divide-y divide-line/70">
@@ -504,7 +550,7 @@ export default function GuestProfile() {
                         <div key={a.key} className="flex items-start gap-3 py-3">
                           <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-50 text-[11px] font-bold text-red-600">{i + 1}</span>
                           <div className="min-w-0 flex-1">
-                            <p className="text-[13px] leading-snug text-ink-secondary">{a.text}</p>
+                            <p className="text-[13px] leading-snug text-ink">{a.text}</p>
                             <div className="mt-2 flex flex-wrap items-center gap-2">
                               <span className="rounded-full bg-subtle px-2 py-0.5 text-[11px] font-medium text-ink-secondary">{a.dept}</span>
                               <span className="flex h-5 w-5 items-center justify-center rounded-full bg-brand-tint text-[9px] font-bold text-brand">{a.who}</span>
@@ -525,10 +571,7 @@ export default function GuestProfile() {
 
                 <Card className="p-6">
                   <div className="mb-3 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-blue-50 text-blue-600"><StickyNote className="h-3.5 w-3.5" /></span>
-                      <span className="text-[11px] font-bold uppercase tracking-wide text-ink-tertiary">Notes</span>
-                    </div>
+                    <span className="text-[11px] font-bold uppercase tracking-wide text-ink-tertiary">Notes</span>
                     <button onClick={() => setNoteOpen((o) => !o)} className="flex items-center gap-1 text-[12px] font-medium text-brand"><Plus className="h-3.5 w-3.5" /> Add note</button>
                   </div>
                   {noteOpen && (
@@ -548,7 +591,7 @@ export default function GuestProfile() {
                     {notes.map((n, i) => (
                       <div key={i} className="rounded-lg bg-subtle/70 p-3">
                         <p className="text-[11px] text-ink-tertiary">{n.author} · {n.time}</p>
-                        <p className="mt-1 text-[13px] leading-snug text-ink-secondary">{n.text}</p>
+                        <p className="mt-1 text-[13px] leading-snug text-ink">{n.text}</p>
                       </div>
                     ))}
                   </div>

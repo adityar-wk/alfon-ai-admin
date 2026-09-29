@@ -1,21 +1,23 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  LayoutGrid,
   CheckCircle2,
   Loader,
   AlertCircle,
   CircleSlash,
   Timer,
-  ArrowRight,
   Filter,
   Check,
   Wrench,
   ChevronLeft,
   ChevronRight,
+  User,
+  DoorClosed,
+  ClipboardCheck,
 } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { Page, Card, Badge, Button, Field, Select, Input, Modal } from "../components/ui";
 import { getDepartment } from "../data/departments";
+import { CLEANING_CHECKLIST, INSPECTION_CHECKLIST, TAG_TONE } from "../data/housekeepingChecklists";
 
 type RoomStatus = "inspected" | "progress" | "inspection" | "oos" | "ooo";
 
@@ -93,6 +95,25 @@ const STATUS_ICON_TONE: Record<RoomStatus, string> = {
   ooo: "bg-gray-100 text-gray-500",
 };
 
+const STATUS_TEXT_TONE: Record<RoomStatus, string> = {
+  inspected: "text-emerald-600",
+  progress: "text-blue-600",
+  inspection: "text-amber-600",
+  oos: "text-red-600",
+  ooo: "text-gray-500",
+};
+
+/** only statuses that need attention get a coloured border */
+const STATUS_BORDER: Record<RoomStatus, string> = {
+  inspected: "border-line",
+  progress: "border-line",
+  inspection: "border-amber-300",
+  oos: "border-red-300",
+  ooo: "border-line",
+};
+
+const OCC_TONE = { occupied: "bg-violet-100 text-violet-600", vacant: "bg-gray-100 text-gray-400" };
+
 const PAGE_SIZE = 50;
 
 const OPEN_TASK = "__open__";
@@ -107,6 +128,7 @@ export default function HousekeepingBoard() {
   const [statuses, setStatuses] = useState<RoomStatus[]>([]);
   const [filterOpen, setFilterOpen] = useState(false);
   const [assignFor, setAssignFor] = useState<Room | null>(null);
+  const [checklistFor, setChecklistFor] = useState<{ room: Room; kind: "cleaning" | "inspection" } | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const toastTimer = useRef<number>();
@@ -240,10 +262,12 @@ export default function HousekeepingBoard() {
           Showing {visible.length ? (pageSafe - 1) * PAGE_SIZE + 1 : 0}–{Math.min(pageSafe * PAGE_SIZE, visible.length)} of {visible.length} rooms
         </div>
 
-        <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+        <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {paged.map((r) => {
             const occupied = !!r.guest;
             const dulled = r.status === "ooo";
+            const initials = r.assignedTo?.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
+            const progressPct = r.mins != null ? Math.max(10, Math.min(95, 100 - r.mins)) : 0;
             return (
               <div
                 key={r.no}
@@ -252,22 +276,38 @@ export default function HousekeepingBoard() {
                 aria-label={`Open room ${r.no}`}
                 onClick={() => setAssignFor(r)}
                 onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && setAssignFor(r)}
-                className={`flex h-[156px] cursor-pointer flex-col rounded-xl border p-4 transition-colors ${
-                  dulled ? "border-line bg-subtle hover:border-line" : "border-brand/25 bg-white hover:border-brand/50"
-                }`}
+                className={`flex cursor-pointer flex-col rounded-2xl border p-4 transition-colors hover:border-brand/40 ${
+                  dulled ? "bg-subtle" : "bg-white"
+                } ${STATUS_BORDER[r.status]}`}
               >
-                {(() => { const Icon = STATUS_ICON[r.status]; return <span title={STATUS_LABEL[r.status]} aria-label={STATUS_LABEL[r.status]} role="img" className={`flex h-8 w-8 items-center justify-center rounded-lg ${STATUS_ICON_TONE[r.status]}`}><Icon className="h-[18px] w-[18px]" /></span>; })()}
-                <div className={`mt-3 text-[14px] font-bold ${dulled ? "text-ink-tertiary" : "text-ink"}`}>Room {r.no}</div>
-                <div className="mt-0.5 truncate text-[12px] text-ink-secondary">{r.type}</div>
-                <div className="truncate text-[12px] text-ink-tertiary">{occupied ? "Occupied" : "Vacant"}</div>
-                <div className="mt-auto flex items-center justify-between">
-                  {r.mins != null ? (
-                    <span className="flex items-center gap-1 text-[12px] font-medium text-ink-secondary">
-                      <Timer className="h-3 w-3" /> {r.mins} mins
-                    </span>
-                  ) : <span />}
-                  <ArrowRight className="h-4 w-4 text-ink-tertiary" />
+                <div className="flex items-start justify-between">
+                  {(() => { const Icon = STATUS_ICON[r.status]; return <span title={STATUS_LABEL[r.status]} aria-label={STATUS_LABEL[r.status]} role="img" className={`flex h-9 w-9 items-center justify-center rounded-full ${STATUS_ICON_TONE[r.status]}`}><Icon className="h-[18px] w-[18px]" /></span>; })()}
+                  <span
+                    title={occupied ? "Occupied" : "Vacant"}
+                    aria-label={occupied ? "Occupied" : "Vacant"}
+                    className={`flex h-8 w-8 items-center justify-center rounded-lg ${occupied ? OCC_TONE.occupied : OCC_TONE.vacant}`}
+                  >
+                    {occupied ? <User className="h-4 w-4" /> : <DoorClosed className="h-4 w-4" />}
+                  </span>
                 </div>
+                <div className={`mt-3 text-[15px] font-bold ${dulled ? "text-ink-tertiary" : "text-ink"}`}>Room {r.no}</div>
+                <div className="truncate text-[12px] text-ink-tertiary">{r.type} · Floor {r.floor}</div>
+                <div className={`mt-2 text-[13px] font-semibold ${STATUS_TEXT_TONE[r.status]}`}>{STATUS_LABEL[r.status]}</div>
+                {r.mins != null && (
+                  <div className="mt-2.5">
+                    <div className="h-1.5 overflow-hidden rounded-full bg-subtle">
+                      <div className="h-full rounded-full bg-emerald-500" style={{ width: `${progressPct}%` }} />
+                    </div>
+                    <div className="mt-1.5 flex items-center justify-between">
+                      <span className="flex items-center gap-1 text-[12px] font-medium text-emerald-600">
+                        <Timer className="h-3 w-3" /> {r.mins} mins left
+                      </span>
+                      {initials && (
+                        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-brand text-[9px] font-bold text-white">{initials}</span>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             );
           })}
@@ -319,6 +359,24 @@ export default function HousekeepingBoard() {
           room={assignFor}
           onClose={() => setAssignFor(null)}
           onSave={saveRoom}
+          onRequestChecklist={(kind) => { setChecklistFor({ room: assignFor, kind }); setAssignFor(null); }}
+        />
+      )}
+
+      {checklistFor?.kind === "cleaning" && (
+        <CleaningChecklistModal
+          room={checklistFor.room}
+          onClose={() => setChecklistFor(null)}
+          onSubmit={() => { saveRoom(checklistFor.room.no, "inspection", null, ""); setChecklistFor(null); }}
+        />
+      )}
+
+      {checklistFor?.kind === "inspection" && (
+        <InspectionChecklistModal
+          room={checklistFor.room}
+          onClose={() => setChecklistFor(null)}
+          onApprove={() => { saveRoom(checklistFor.room.no, "inspected", null, ""); setChecklistFor(null); }}
+          onFlag={() => { saveRoom(checklistFor.room.no, "progress", checklistFor.room.assignedTo ?? null, "Flagged for re-cleaning after inspection"); setChecklistFor(null); }}
         />
       )}
 
@@ -337,10 +395,12 @@ function EditRoomModal({
   room,
   onClose,
   onSave,
+  onRequestChecklist,
 }: {
   room: Room;
   onClose: () => void;
   onSave: (no: number, status: RoomStatus, staff: string | null, note: string) => void;
+  onRequestChecklist: (kind: "cleaning" | "inspection") => void;
 }) {
   const [status, setStatus] = useState<RoomStatus>(room.status);
   const initialStaff = (st: RoomStatus) => (st !== room.status ? "" : st === "progress" && room.open ? OPEN_TASK : room.assignedTo ?? "");
@@ -350,6 +410,8 @@ function EditRoomModal({
   const cleaner = status === "progress" && room.status === "progress" ? room.assignedTo : undefined;
   const canAssign = status === "inspection" || (status === "progress" && !cleaner);
   const pickStatus = (s: RoomStatus) => {
+    if (room.status === "progress" && s === "inspection") return onRequestChecklist("cleaning");
+    if (room.status === "inspection" && s === "inspected") return onRequestChecklist("inspection");
     setStatus(s);
     setStaff(initialStaff(s));
   };
@@ -408,6 +470,7 @@ function EditRoomModal({
             {STATUS_OPTIONS.map((st) => {
               const active = st === status;
               const Icon = STATUS_ICON[st];
+              const gated = (room.status === "progress" && st === "inspection") || (room.status === "inspection" && st === "inspected");
               return (
                 <button
                   key={st}
@@ -417,7 +480,10 @@ function EditRoomModal({
                   }`}
                 >
                   <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${STATUS_ICON_TONE[st]}`}><Icon className="h-4 w-4" /></span>
-                  {STATUS_LABEL[st]}
+                  <span className="min-w-0 flex-1">
+                    {STATUS_LABEL[st]}
+                    {gated && <span className="mt-0.5 flex items-center gap-1 text-[11px] font-normal text-ink-tertiary"><ClipboardCheck className="h-3 w-3" /> Requires checklist</span>}
+                  </span>
                 </button>
               );
             })}
@@ -447,6 +513,137 @@ function EditRoomModal({
             </div>
           </div>
         )}
+      </div>
+    </Modal>
+  );
+}
+
+function CleaningChecklistModal({
+  room,
+  onClose,
+  onSubmit,
+}: {
+  room: Room;
+  onClose: () => void;
+  onSubmit: () => void;
+}) {
+  const [checked, setChecked] = useState<boolean[]>(() => CLEANING_CHECKLIST.map(() => false));
+  const allDone = checked.every(Boolean);
+  const toggle = (i: number) => setChecked((c) => c.map((v, idx) => (idx === i ? !v : v)));
+
+  const doneCount = checked.filter(Boolean).length;
+
+  return (
+    <Modal
+      size="lg"
+      title={`Room ${room.no} — ${room.guest ? "Occupied" : "Vacant"} Room Cleaning`}
+      onClose={onClose}
+      footer={
+        <Button className="w-full disabled:opacity-40" disabled={!allDone} onClick={onSubmit}>
+          Submit for Inspection
+        </Button>
+      }
+    >
+      <div className="flex items-center justify-between rounded-xl bg-subtle/70 px-4 py-3 text-[13px]">
+        <span className="text-ink-secondary">
+          Housekeeper: <span className="font-medium text-ink">{room.assignedTo ?? "Unassigned"}</span>
+          {room.mins != null && <> · Timer: <span className="font-medium text-ink">{room.mins} min left</span></>}
+        </span>
+        <span className="text-ink-tertiary">{doneCount} / {CLEANING_CHECKLIST.length} done</span>
+      </div>
+
+      <div className="mt-5 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+        {CLEANING_CHECKLIST.map((item, i) => (
+          <label
+            key={item}
+            className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3.5 text-[13px] transition-colors ${
+              checked[i] ? "border-emerald-200 bg-emerald-50/50" : "border-line hover:bg-subtle/50"
+            }`}
+          >
+            <input type="checkbox" className="mt-0.5 h-4 w-4 shrink-0 accent-brand" checked={checked[i]} onChange={() => toggle(i)} />
+            <span className={checked[i] ? "text-ink" : "text-ink-secondary"}>{item}</span>
+          </label>
+        ))}
+      </div>
+      {!allDone && (
+        <p className="mt-4 text-center text-[12px] text-ink-tertiary">Complete every item before submitting this room for inspection.</p>
+      )}
+    </Modal>
+  );
+}
+
+function InspectionChecklistModal({
+  room,
+  onClose,
+  onApprove,
+  onFlag,
+}: {
+  room: Room;
+  onClose: () => void;
+  onApprove: () => void;
+  onFlag: () => void;
+}) {
+  const [checked, setChecked] = useState<boolean[]>(() => INSPECTION_CHECKLIST.map(() => false));
+  const doneCount = checked.filter(Boolean).length;
+  const allDone = doneCount === INSPECTION_CHECKLIST.length;
+  const pct = Math.round((doneCount / INSPECTION_CHECKLIST.length) * 100);
+  const toggle = (i: number) => setChecked((c) => c.map((v, idx) => (idx === i ? !v : v)));
+  const sections = Array.from(new Set(INSPECTION_CHECKLIST.map((it) => it.section)));
+
+  return (
+    <Modal
+      size="xl"
+      title={`Room ${room.no} — LQA Room Inspection`}
+      onClose={onClose}
+      footer={
+        <>
+          <Button variant="outline" className="flex-1 border-red-300 text-red-600 hover:bg-red-50" onClick={onFlag}>
+            Flag for Re-cleaning
+          </Button>
+          <Button className="flex-1 disabled:opacity-40" disabled={!allDone} onClick={onApprove}>
+            Approve & Clear Room
+          </Button>
+        </>
+      }
+    >
+      <div className="flex items-center justify-between rounded-xl bg-subtle/70 px-4 py-3">
+        <div className="text-[13px] text-ink-secondary">
+          <span className="mr-1 text-[10px] font-semibold uppercase tracking-wide text-ink-tertiary">LQA Standard</span>
+          <div>Housekeeper: <span className="font-medium text-ink">{room.assignedTo ?? "Unassigned"}</span></div>
+        </div>
+        <div className="w-48 shrink-0">
+          <div className="flex items-center justify-between text-[12px] text-ink-tertiary">
+            <span>{doneCount} / {INSPECTION_CHECKLIST.length} verified</span>
+            <span className="font-semibold text-ink">{pct}%</span>
+          </div>
+          <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-line/60">
+            <div className="h-full rounded-full bg-brand transition-all" style={{ width: `${pct}%` }} />
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-5 max-h-[460px] space-y-6 overflow-y-auto pr-1">
+        {sections.map((sec) => (
+          <div key={sec}>
+            <div className="mb-3 text-[12px] font-bold uppercase tracking-wide text-ink-tertiary">{sec}</div>
+            <div className="grid grid-cols-1 gap-2.5 lg:grid-cols-2">
+              {INSPECTION_CHECKLIST.filter((it) => it.section === sec).map((it) => (
+                <label
+                  key={it.n}
+                  className={`flex cursor-pointer items-start gap-2.5 rounded-xl border p-3 text-[13px] transition-colors ${
+                    checked[it.n - 1] ? "border-emerald-200 bg-emerald-50/40" : "border-line hover:bg-subtle/50"
+                  }`}
+                >
+                  <input type="checkbox" className="mt-0.5 h-4 w-4 shrink-0 accent-brand" checked={checked[it.n - 1]} onChange={() => toggle(it.n - 1)} />
+                  <span className="min-w-0 flex-1">
+                    <span className={checked[it.n - 1] ? "text-ink" : "text-ink-secondary"}><span className="mr-1 text-ink-tertiary">{it.n}.</span>{it.text}</span>
+                    <span className={`ml-2 inline-block rounded px-1.5 py-0.5 align-middle text-[10px] font-medium ${TAG_TONE[it.tag]}`}>{it.tag}</span>
+                  </span>
+                </label>
+              ))}
+            </div>
+          </div>
+        ))}
       </div>
     </Modal>
   );

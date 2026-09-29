@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import {
   Users,
   ArrowUp,
+  ArrowDown,
+  Minus,
   ChevronDown,
   Filter,
   Search,
@@ -110,6 +112,21 @@ export function StatusPill({ s }: { s: Status }) {
   return (
     <span className={`inline-flex rounded-full px-2.5 py-1 text-[12px] font-medium ${STATUS_STYLE[s]}`}>{s}</span>
   );
+}
+
+/** deterministic per-staff performance numbers, shared by the Team table and the Staff Details drawer */
+function perfOf(s: Staff) {
+  const n = Number(s.id.replace(/\D/g, ""));
+  const tasksDone = 20 + n;
+  const avgTime = 14 + n * 2;
+  const trendPct = ((n * 13) % 21) - 6;
+  return { tasksDone, avgTime, trendPct };
+}
+
+function TrendCell({ pct }: { pct: number }) {
+  if (pct > 0) return <span className="inline-flex items-center gap-1 text-[13px] font-medium text-emerald-600"><ArrowUp className="h-3.5 w-3.5" /> +{pct}%</span>;
+  if (pct < 0) return <span className="inline-flex items-center gap-1 text-[13px] font-medium text-red-600"><ArrowDown className="h-3.5 w-3.5" /> {pct}%</span>;
+  return <span className="inline-flex items-center gap-1 text-[13px] font-medium text-ink-tertiary"><Minus className="h-3.5 w-3.5" /> 0%</span>;
 }
 
 type GroupBy = "none" | "dept" | "shift" | "availability";
@@ -314,13 +331,16 @@ export default function Team() {
             )}
           </div>
 
-          <Card table className="mt-4 max-w-[640px]">
+          <Card table className="mt-4">
             <div className="overflow-x-auto">
-              <table className="w-full table-fixed text-left">
+              <table className="w-full min-w-[900px] table-fixed text-left">
                 <colgroup>
-                  <col className="w-[45%]" />
-                  <col className="w-[27.5%]" />
-                  <col className="w-[27.5%]" />
+                  <col className="w-[26%]" />
+                  <col className="w-[16%]" />
+                  <col className="w-[16%]" />
+                  <col className="w-[14%]" />
+                  <col className="w-[14%]" />
+                  <col className="w-[14%]" />
                 </colgroup>
                 <thead>
                   <tr className="bg-[#F4F4F5] text-[12px] uppercase tracking-wide text-[#6B7280]">
@@ -328,10 +348,15 @@ export default function Team() {
                     <th className="py-3.5 pl-6 font-medium">Staff Member</th>
                     <th className="py-3.5 pl-6 font-medium">Role</th>
                     <th className="py-3.5 pl-6 font-medium">Department</th>
+                    <th className="py-3.5 pl-6 font-medium">Tasks Done</th>
+                    <th className="py-3.5 pl-6 font-medium">Avg Time</th>
+                    <th className="py-3.5 pl-6 font-medium">Trend</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {rows.map((s) => (
+                  {rows.map((s) => {
+                    const perf = perfOf(s);
+                    return (
                     <tr
                       key={s.id}
                       onClick={() => setSelected(s)}
@@ -339,7 +364,7 @@ export default function Team() {
                         selected?.id === s.id ? "bg-brand-tint/40" : "hover:bg-subtle/60"
                       }`}
                     >
-                      
+
                       <td className="py-3.5 pl-6 pr-3">
                         <span className="flex items-center gap-3">
                           <Avatar s={s} />
@@ -351,11 +376,15 @@ export default function Team() {
                       </td>
                       <td className="text-[14px] text-ink-secondary py-3.5 pl-6 pr-3">{s.role}</td>
                       <td className="text-[14px] text-ink-secondary py-3.5 pl-6 pr-3">{s.dept}</td>
+                      <td className="text-[14px] text-ink-secondary py-3.5 pl-6 pr-3">{perf.tasksDone} tasks</td>
+                      <td className="text-[14px] text-ink-secondary py-3.5 pl-6 pr-3">{perf.avgTime} min</td>
+                      <td className="py-3.5 pl-6 pr-3"><TrendCell pct={perf.trendPct} /></td>
                     </tr>
-                  ))}
+                    );
+                  })}
                   {!rows.length && (
                     <tr>
-                      <td colSpan={3} className="text-center text-[14px] text-ink-tertiary py-3.5 pl-6 pr-3">
+                      <td colSpan={6} className="text-center text-[14px] text-ink-tertiary py-3.5 pl-6 pr-3">
                         No staff match your filters.
                       </td>
                     </tr>

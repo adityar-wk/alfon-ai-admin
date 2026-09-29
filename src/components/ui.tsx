@@ -246,16 +246,20 @@ export function Stars({ value = 5 }: { value?: number }) {
   );
 }
 
+const MODAL_SIZE = { md: "max-w-md", lg: "max-w-2xl", xl: "max-w-4xl" };
+
 export function Modal({
   title,
   onClose,
   children,
   footer,
+  size = "md",
 }: {
   title: string;
   onClose: () => void;
   children: ReactNode;
   footer?: ReactNode;
+  size?: keyof typeof MODAL_SIZE;
 }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -264,7 +268,7 @@ export function Modal({
         onClick={onClose}
         className="absolute inset-0 bg-ink/40"
       />
-      <div className="relative w-full max-w-md rounded-card bg-white shadow-xl">
+      <div className={`relative w-full ${MODAL_SIZE[size]} rounded-card bg-white shadow-xl`}>
         <div className="flex items-center justify-between border-b border-line px-5 py-4">
           <h3 className="text-[15px] font-semibold text-ink">{title}</h3>
           <button
@@ -274,7 +278,7 @@ export function Modal({
             <X className="h-4 w-4" />
           </button>
         </div>
-        <div className="max-h-[70vh] overflow-y-auto p-5">{children}</div>
+        <div className="max-h-[75vh] overflow-y-auto p-5">{children}</div>
         {footer && (
           <div className="flex justify-end gap-2 border-t border-line px-5 py-4">{footer}</div>
         )}
