@@ -133,6 +133,7 @@ function LsCard({ t, onOpen, onAccept }: { t: Task; onOpen?: () => void; onAccep
   return (
     <TaskCard
       room={t.room}
+      dept={t.dept ?? "Housekeeping"}
       note={t.title}
       by={!done && t.assignedBy ? t.assignedBy.split(" · ")[1] : undefined}
       left={done ? undefined : t.left}

@@ -1,7 +1,7 @@
 import { Button } from "../components/ui";
 import { useClock, secsFromMinutes, formatClock } from "../data/attention";
 import { useEffect, useState, type ReactNode } from "react";
-import { AlertCircle, Search, DoorOpen, User, UserRoundPlus, Signal, Wifi, BatteryFull, ChevronLeft, ChevronRight, ChevronDown, X, Clock } from "lucide-react";
+import { AlertCircle, Search, DoorOpen, User, UserRoundPlus, Signal, Wifi, BatteryFull, ChevronLeft, ChevronRight, ChevronDown, X, Clock, Building2 } from "lucide-react";
 
 /* ============================================================
    Shared mobile kit — used by the Line Staff, Supervisor and
@@ -180,6 +180,7 @@ export type CardFlag = { label: string; tone: string };
  */
 export function TaskCard({
   room,
+  dept,
   note,
   staff,
   by,
@@ -193,6 +194,8 @@ export function TaskCard({
   done,
 }: {
   room: string;
+  /** department the task belongs to, shown on its own line under the room */
+  dept?: string;
   note: string;
   /** assignee: a name, or null for "Unassigned"; leave undefined to hide the slot */
   staff?: string | null;
@@ -219,6 +222,11 @@ export function TaskCard({
           {status && <span className={`text-[12px] ${status.tone}`}>{status.label}</span>}
           {flags.map((f) => <span key={f.label} className={`text-[12px] ${f.tone}`}>{f.label}</span>)}
         </div>
+        {dept && (
+          <div className="mt-1 flex items-center gap-1 text-[12px] text-ink-tertiary">
+            <Building2 className="h-3 w-3" /> {dept}
+          </div>
+        )}
         {meta && <div className="mt-2 text-[12px] text-ink-tertiary">{meta}</div>}
         <div className="mt-3.5 flex min-h-[26px] items-center justify-between gap-3">
           {staff !== undefined ? (

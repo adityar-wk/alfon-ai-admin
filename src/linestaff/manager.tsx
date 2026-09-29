@@ -242,6 +242,7 @@ export function ManagerPrototype() {
         : [];
     return {
       room: t.room,
+      dept: "Housekeeping",
       note: t.title,
       staff: t.owner,
       left: t.status === "completed" ? undefined : t.slaLeft,
