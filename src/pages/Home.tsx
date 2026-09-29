@@ -246,6 +246,19 @@ export default function Home() {
             >
               {scoreOpen ? "View less" : "View more"} <ChevronDown className={`h-4 w-4 transition-transform ${scoreOpen ? "rotate-180" : ""}`} />
             </button>
+
+            <div className="mt-6 w-full max-w-[280px]">
+              <div className="relative h-2 w-full rounded-full" style={{ background: "linear-gradient(90deg, #F0776C 0%, #F5B15D 50%, #5FD3A9 100%)" }}>
+                <div
+                  className="absolute top-1/2 h-4 w-4 -translate-y-1/2 rounded-full border-[3px] border-white shadow-[0_1px_4px_rgba(0,0,0,0.35)] transition-[left] duration-700"
+                  style={{ left: `calc(${score}% - 8px)`, background: band.color }}
+                />
+              </div>
+              <div className="mt-2 flex items-center justify-between text-[11px] font-medium text-ink-tertiary">
+                <span>Needs Attention</span>
+                <span>Thriving</span>
+              </div>
+            </div>
           </Card>
 
           <div className="flex flex-col gap-5">

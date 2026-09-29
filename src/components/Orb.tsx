@@ -290,7 +290,22 @@ export default function Orb({
     };
   }, [hue, hoverIntensity, rotateOnHover, forceHoverState, backgroundColor]);
 
-  return <div ref={ctnDom} className="h-full w-full" />;
+  return (
+    <div className="relative h-full w-full">
+      <div
+        ref={ctnDom}
+        className="absolute inset-0 overflow-hidden rounded-full"
+        style={{ boxShadow: "0 30px 54px -18px rgba(0,0,0,0.28), 0 10px 22px -10px rgba(0,0,0,0.14)" }}
+      />
+      {/* glass shell: volumetric shading + specular highlights so the animated core reads as light trapped inside a glass sphere */}
+      <div
+        className="pointer-events-none absolute inset-0 rounded-full"
+        style={{ boxShadow: "inset -20px -26px 54px rgba(0,0,0,0.22), inset 16px 20px 40px rgba(255,255,255,0.55), inset 0 0 0 1px rgba(255,255,255,0.35)" }}
+      />
+      <div className="pointer-events-none absolute left-[12%] top-[8%] h-[34%] w-[40%] rounded-full bg-white/80 blur-[10px]" />
+      <div className="pointer-events-none absolute left-[58%] top-[60%] h-[9%] w-[11%] rounded-full bg-white/55 blur-[4px]" />
+    </div>
+  );
 }
 
 function hslToRgb(h: number, s: number, l: number) {
