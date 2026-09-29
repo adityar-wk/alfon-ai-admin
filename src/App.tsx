@@ -30,7 +30,6 @@ import AddHotel from "./pages/admin/AddHotel";
 import HotelDetail from "./pages/admin/HotelDetail";
 import AiControls from "./pages/admin/AiControls";
 import SuperAdminSettings from "./pages/admin/SuperAdminSettings";
-import AuditLogs from "./pages/admin/AuditLogs";
 
 export const router = createBrowserRouter([
   {
@@ -68,7 +67,6 @@ export const router = createBrowserRouter([
       { path: "/admin/hotels/new", element: <AddHotel /> },
       { path: "/admin/hotels/:id", element: <HotelDetail /> },
       { path: "/admin/ai-controls", element: <AiControls /> },
-      { path: "/admin/audit-logs", element: <AuditLogs /> },
       { path: "/admin/settings", element: <SuperAdminSettings /> },
       { path: "*", element: <Navigate to="/onboarding" replace /> },
     ],
