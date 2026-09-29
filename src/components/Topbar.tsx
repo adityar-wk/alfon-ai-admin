@@ -22,13 +22,13 @@ export function SearchBar({ placeholder = "Search anything..." }: { placeholder?
   );
 }
 
-/** a date picker for which day's data you're viewing + a shortcut to start a guest chat; shown on every screen except where told not to. "New Task" only joins it on the Tasks page. */
+/** shows which day's data you're viewing (informational only) + a shortcut to start a guest chat; shown on every screen except where told not to. "New Task" only joins it on the Tasks page. */
 function QuickActions({ newTask = false }: { newTask?: boolean }) {
   const navigate = useNavigate();
-  const { date, setDate } = useSelectedDate();
+  const { date } = useSelectedDate();
   return (
     <div className="flex items-center gap-3">
-      <DatePicker date={date} onChange={setDate} />
+      <DatePicker date={date} />
       <Button onClick={() => navigate("/guest-chats?new=1")}>
         <MessageSquare className="h-4 w-4" /> New Chat
       </Button>
