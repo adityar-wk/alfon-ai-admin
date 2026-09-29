@@ -5,7 +5,6 @@ import {
 } from "lucide-react";
 import { Topbar } from "../../components/Topbar";
 import { Page, Card, Button, Badge } from "../../components/ui";
-import { deptIcon } from "../../data/deptIcons";
 import { HOTELS } from "../../data/hotels";
 import { usePersona } from "../../persona";
 import { useImpersonation } from "../../impersonation";
@@ -17,8 +16,6 @@ const SCORE_PILLARS = [
   { title: "Team Energy", weight: 15, icon: Users2 },
   { title: "Recovery Rate", weight: 10, icon: Zap },
 ];
-
-const DEMO_DEPTS = ["Housekeeping", "Room Service", "Food and Beverage", "Front Desk", "Concierge", "Engineering"];
 
 export default function HotelDetail() {
   const { id } = useParams();
@@ -78,22 +75,6 @@ export default function HotelDetail() {
                     <div className="text-[12px] font-medium leading-snug text-ink">{p.title}</div>
                   </div>
                 ))}
-              </div>
-            </Card>
-
-            <Card className="p-6">
-              <h3 className="text-[15px] font-semibold text-ink">Departments</h3>
-              <p className="mt-1 text-[13px] text-ink-secondary">{hotel.departments} departments · {hotel.staff} staff</p>
-              <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
-                {DEMO_DEPTS.slice(0, hotel.departments).map((name) => {
-                  const Icon = deptIcon(name);
-                  return (
-                    <div key={name} className="flex items-center gap-2.5 rounded-xl border border-line p-3">
-                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-subtle text-ink-secondary"><Icon className="h-4 w-4" /></span>
-                      <span className="min-w-0 truncate text-[13px] font-medium text-ink">{name}</span>
-                    </div>
-                  );
-                })}
               </div>
             </Card>
           </div>

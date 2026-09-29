@@ -1,6 +1,6 @@
 import { pastel, shade, PASTEL, TAGS } from "../data/pastel";
 import { useEffect, useMemo, useState } from "react";
-import { ListChecks, CheckCircle2, AlertTriangle, Timer, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, Download, Filter, CalendarDays, X } from "lucide-react";
+import { ListChecks, CheckCircle2, AlertTriangle, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, Download, Filter, CalendarDays, X } from "lucide-react";
 import { Field, Input, Select } from "../components/ui";
 import { Topbar } from "../components/Topbar";
 import { Page, Card } from "../components/ui";
@@ -140,12 +140,9 @@ export default function Analytics() {
 
   const depts = useMemo(() => DEPTS.map((d) => ({ ...d, n: scale(d.tasks) })), [factor]);
   const mine = DEPTS.filter((d) => scopeDepts.includes(canonDept(d.name)));
-  const secs = (t: string) => { const m = t.match(/(\d+)m (\d+)s/); return m ? Number(m[1]) * 60 + Number(m[2]) : 0; };
-  const fmtSecs = (n: number) => `${Math.floor(n / 60)}m ${String(Math.round(n % 60)).padStart(2, "0")}s`;
   const total = manager ? mine.reduce((a, d) => a + scale(d.tasks), 0) : scale(2847);
   const completed = manager ? mine.reduce((a, d) => a + Math.round(scale(d.tasks) * METRICS[d.name].done / 100), 0) : scale(2651);
   const overdue = manager ? mine.reduce((a, d) => a + scale(METRICS[d.name].overdue), 0) : scale(196);
-  const avgResp = manager ? fmtSecs(mine.reduce((a, d) => a + secs(METRICS[d.name].resp), 0) / Math.max(mine.length, 1)) : "2m 45s";
   const sorted = [...depts].sort((a, b) => b.n - a.n);
   const maxDept = sorted[0].n;
   const maxDeptN = Math.max(...depts.map((d) => d.n));
@@ -154,10 +151,9 @@ export default function Analytics() {
   const deptColors = sorted.map((d) => TAGS[deptIdx(d.name)].mid);
 
   const kpis = [
-    { label: "Total Tasks", value: total.toLocaleString(), delta: "16% vs last period", up: true, icon: ListChecks, tint: shade(0.08), fg: "#6b5225" },
-    { label: "Completed", value: completed.toLocaleString(), delta: "18% vs last period", up: true, icon: CheckCircle2, tint: shade(0.32), fg: "#6b5225" },
-    { label: "Overdue", value: overdue.toLocaleString(), delta: "8% vs last period", up: false, icon: AlertTriangle, tint: shade(0.58), fg: "#ffffff" },
-    { label: "Avg Response", value: avgResp, delta: "12% vs last period", up: false, icon: Timer, tint: shade(0.85), fg: "#ffffff" },
+    { label: "Total Tasks", value: total.toLocaleString(), delta: "16% vs last period", up: true, icon: ListChecks, color: shade(0.35) },
+    { label: "Completed", value: completed.toLocaleString(), delta: "18% vs last period", up: true, icon: CheckCircle2, color: shade(0.5) },
+    { label: "Overdue", value: overdue.toLocaleString(), delta: "8% vs last period", up: false, icon: AlertTriangle, color: shade(0.68) },
   ];
 
   const flash = (m: string) => {
@@ -247,12 +243,10 @@ export default function Analytics() {
         </div>
 
         {/* KPIs */}
-        <div className="mt-5 grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-3">
           {kpis.map((k) => (
             <Card key={k.label} className="p-5">
-              <span className="flex h-9 w-9 items-center justify-center rounded-lg" style={{ background: k.tint, color: k.fg }}>
-                <k.icon className="h-[18px] w-[18px]" />
-              </span>
+              <k.icon className="h-6 w-6" style={{ color: k.color }} />
               <div className="mt-3 text-[13px] text-ink-secondary">{k.label}</div>
               <div className="text-[28px] font-bold leading-tight text-ink">{k.value}</div>
               <div className="mt-1 flex items-center gap-1 text-[12px] font-medium text-ink-secondary">

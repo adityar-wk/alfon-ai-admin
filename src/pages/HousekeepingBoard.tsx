@@ -266,7 +266,6 @@ export default function HousekeepingBoard() {
           {paged.map((r) => {
             const occupied = !!r.guest;
             const dulled = r.status === "ooo";
-            const initials = r.assignedTo?.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
             const progressPct = r.mins != null ? Math.max(10, Math.min(95, 100 - r.mins)) : 0;
             return (
               <div
@@ -298,13 +297,11 @@ export default function HousekeepingBoard() {
                     <div className="h-1.5 overflow-hidden rounded-full bg-subtle">
                       <div className="h-full rounded-full bg-emerald-500" style={{ width: `${progressPct}%` }} />
                     </div>
-                    <div className="mt-1.5 flex items-center justify-between">
-                      <span className="flex items-center gap-1 text-[12px] font-medium text-emerald-600">
+                    <div className="mt-1.5 flex items-center justify-between gap-2">
+                      <span className="flex shrink-0 items-center gap-1 text-[12px] font-medium text-emerald-600">
                         <Timer className="h-3 w-3" /> {r.mins} mins left
                       </span>
-                      {initials && (
-                        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-brand text-[9px] font-bold text-white">{initials}</span>
-                      )}
+                      {r.assignedTo && <span className="truncate text-[11px] font-medium text-ink-secondary">{r.assignedTo}</span>}
                     </div>
                   </div>
                 )}
