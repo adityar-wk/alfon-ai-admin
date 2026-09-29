@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Trash2, CheckCircle2, ArrowDown, Lightbulb } from "lucide-react";
+import { Trash2, CheckCircle2, ArrowDown, Lightbulb } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { SetupTabs } from "../components/SetupTabs";
 import { Page, Card, Button, Input, Select } from "../components/ui";
@@ -26,7 +26,7 @@ const DEFAULTS: Record<Priority, Target> = {
 
 type Level = { id: number; trigger: string; to: string };
 const SEED_LEVELS: Level[] = [
-  { id: 1, trigger: "SLA breached", to: "Supervisor" },
+  { id: 1, trigger: "Escalation", to: "Supervisor" },
   { id: 2, trigger: "+15 min after Level 1", to: "Department Head" },
   { id: 3, trigger: "+30 min after Level 2", to: "General Manager" },
 ];
@@ -81,9 +81,6 @@ export default function SlaSetup() {
 
   const setPriority = (service: string, priority: Priority) =>
     update(service, { priority, ...defaults[priority] });
-
-  const addLevel = () =>
-    setLevels((l) => [...l, { id: Date.now(), trigger: "+30 min after previous level", to: "General Manager" }]);
 
   const save = () => {
     goNext();
@@ -242,9 +239,6 @@ export default function SlaSetup() {
               <div className="min-w-0 p-8">
                 <div className="mb-6 flex items-center justify-between">
                   <div className="text-[16px] font-semibold text-ink">{dept.name}</div>
-                  <button onClick={addLevel} className="flex items-center gap-1 text-[13px] font-medium text-brand">
-                    <Plus className="h-4 w-4" /> Add Level
-                  </button>
                 </div>
                 <div className="max-w-md">
                   {levels.map((l, i) => (

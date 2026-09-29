@@ -41,7 +41,8 @@ export default function HotelsList() {
   useEffect(() => {
     const created = params.get("created");
     if (!created) return;
-    setToast(`"${created}" was created — connect its systems whenever you're ready.`);
+    const email = params.get("email");
+    setToast(email ? `"${created}" was created — setup link sent to ${email}.` : `"${created}" was created — connect its systems whenever you're ready.`);
     setParams({}, { replace: true });
     const t = setTimeout(() => setToast(null), 4000);
     return () => clearTimeout(t);

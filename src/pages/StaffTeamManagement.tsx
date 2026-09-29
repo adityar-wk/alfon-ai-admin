@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from "react";
-import { Upload, UserPlus, Download, MoreVertical, Info, Search, Send, Mail } from "lucide-react";
+import { Upload, UserPlus, Download, MoreVertical, Info, Search, Send } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { SetupTabs } from "../components/SetupTabs";
 import { Drawer } from "../components/Drawer";
@@ -69,7 +69,7 @@ export default function StaffTeamManagement() {
       return [...ms.map((x) => ({ ...x, fresh: false })), ...IMPORTED.map((m) => ({ ...m, id: ++id, fresh: true }))];
     });
     setInvited(false);
-    flash(`${IMPORTED.length} team members imported from ${f.name}`);
+    flash(`${IMPORTED.length} users imported from ${f.name}`);
   };
 
   const editing = drawer?.mode === "edit" ? drawer.member : null;
@@ -77,23 +77,22 @@ export default function StaffTeamManagement() {
   return (
     <div className="flex min-h-0 flex-1">
       <div className="flex min-w-0 flex-1 flex-col">
-        <Topbar title="Team Members" backTo="/onboarding" />
+        <Topbar title="Users" backTo="/onboarding" />
         <Page>
           <SetupTabs />
-          <div className="grid max-w-6xl grid-cols-1 items-start gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">
-          <div className="min-w-0 space-y-5">
+          <div className="max-w-6xl space-y-5">
           <Card className="p-6">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
                 <h3 className="text-[16px] font-semibold text-ink">Add your team</h3>
-                <p className="mt-1 text-[13px] text-ink-secondary">Upload a CSV or add people one by one. First name, last name and email is all we need.</p>
+                <p className="mt-1 text-[13px] text-ink-secondary">Upload a CSV or add people one by one. First name, last name, email and phone is all we need.</p>
               </div>
               <div className="flex items-center gap-3">
                 <button className="flex items-center gap-1.5 text-[13px] font-medium text-ink-secondary hover:text-ink">
                   <Download className="h-4 w-4" /> Download template
                 </button>
                 <Button variant="outline" onClick={() => setDrawer({ mode: "add" })}>
-                  <UserPlus className="h-4 w-4" /> Add Team Member
+                  <UserPlus className="h-4 w-4" /> Add User
                 </Button>
               </div>
             </div>
@@ -126,12 +125,12 @@ export default function StaffTeamManagement() {
               {fileName ? (
                 <>
                   <p className="mt-3 text-[14px] font-medium text-ink">{fileName}</p>
-                  <p className="mt-0.5 text-[12px] text-ink-tertiary">Imported {IMPORTED.length} team members</p>
+                  <p className="mt-0.5 text-[12px] text-ink-tertiary">Imported {IMPORTED.length} users</p>
                 </>
               ) : (
                 <>
                   <p className="mt-3 text-[14px] font-medium text-ink">Drop your CSV here</p>
-                  <p className="mt-0.5 text-[12px] text-ink-tertiary">Columns: First name, Last name, Email · up to 10MB</p>
+                  <p className="mt-0.5 text-[12px] text-ink-tertiary">Columns: First name, Last name, Email, Phone · up to 10MB</p>
                 </>
               )}
               <Button className="mt-4" onClick={() => fileRef.current?.click()}>{fileName ? "Choose another file" : "Choose file"}</Button>
@@ -142,18 +141,29 @@ export default function StaffTeamManagement() {
           <Card className="p-6">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <h3 className="text-[16px] font-semibold text-ink">
-                Team members <span className="font-normal text-ink-tertiary">({members.length})</span>
+                Users <span className="font-normal text-ink-tertiary">({members.length})</span>
               </h3>
-              <div className="relative w-full sm:w-60">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-tertiary" />
-                <input
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Search name or email"
-                  className="h-10 w-full rounded-control border border-line bg-white pl-9 pr-3 text-[13px] outline-none placeholder:text-ink-tertiary focus:border-brand"
-                />
+              <div className="flex items-center gap-2">
+                <div className="relative w-full sm:w-60">
+                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-tertiary" />
+                  <input
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="Search name or email"
+                    className="h-10 w-full rounded-control border border-line bg-white pl-9 pr-3 text-[13px] outline-none placeholder:text-ink-tertiary focus:border-brand"
+                  />
+                </div>
+                <Button
+                  onClick={() => {
+                    setInvited(true);
+                    flash(`Invite email sent to ${members.length} users`);
+                  }}
+                >
+                  <Send className="h-4 w-4" /> Invite All
+                </Button>
               </div>
             </div>
+            {invited && <p className="mt-3 text-[13px] text-emerald-600">Email sent to {members.length} users</p>}
             <div className="mt-3 divide-y divide-line/70">
               {rows.map((m) => (
                 <div key={m.id} className="relative flex items-center gap-4 py-4">
@@ -179,49 +189,14 @@ export default function StaffTeamManagement() {
                       <button className="fixed inset-0 z-10 cursor-default" aria-label="Close menu" onClick={() => setMenuFor(null)} />
                       <div className="absolute right-0 top-12 z-20 w-36 rounded-lg border border-line bg-white p-1 shadow-lg">
                         <button onClick={() => { setDrawer({ mode: "edit", member: m }); setMenuFor(null); }} className="block w-full rounded-md px-3 py-2 text-left text-[13px] text-ink hover:bg-subtle">Edit</button>
-                        <button onClick={() => { setMembers((ms) => ms.filter((x) => x.id !== m.id)); setMenuFor(null); flash("Team member removed"); }} className="block w-full rounded-md px-3 py-2 text-left text-[13px] text-red-600 hover:bg-red-50">Remove</button>
+                        <button onClick={() => { setMembers((ms) => ms.filter((x) => x.id !== m.id)); setMenuFor(null); flash("User removed"); }} className="block w-full rounded-md px-3 py-2 text-left text-[13px] text-red-600 hover:bg-red-50">Remove</button>
                       </div>
                     </>
                   )}
                 </div>
               ))}
-              {!rows.length && <p className="py-8 text-center text-[13px] text-ink-tertiary">No team members match.</p>}
+              {!rows.length && <p className="py-8 text-center text-[13px] text-ink-tertiary">No users match.</p>}
             </div>
-          </Card>
-
-          </div>
-
-          {/* invite to the app, by email */}
-          <Card className="p-6 xl:sticky xl:top-6">
-            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-tint text-brand">
-              <Mail className="h-5 w-5" />
-            </span>
-            <h3 className="mt-4 text-[16px] font-semibold text-ink">Invite your team to the Alfon app</h3>
-            <p className="mt-1.5 text-[13px] leading-relaxed text-ink-secondary">
-              We will email every team member a link to download the app and sign in.
-            </p>
-
-            <div className="mt-5 rounded-xl bg-subtle/70 px-4 py-3.5 text-[13px]">
-              <div className="flex items-center justify-between">
-                <span className="text-ink-secondary">Recipients</span>
-                <span className="font-medium text-ink">{members.length} staff</span>
-              </div>
-              <div className="mt-2.5 flex items-center justify-between gap-3">
-                <span className="text-ink-secondary">Subject</span>
-                <span className="truncate text-right font-medium text-ink">Get the Alfon app</span>
-              </div>
-            </div>
-
-            <Button
-              className="mt-5 w-full"
-              onClick={() => {
-                setInvited(true);
-                flash(`Invite email sent to ${members.length} team members`);
-              }}
-            >
-              <Send className="h-4 w-4" /> {invited ? "Send again" : `Email all ${members.length} staff`}
-            </Button>
-            {invited && <p className="mt-3 text-center text-[13px] text-emerald-600">Email sent to {members.length} team members</p>}
           </Card>
           </div>
 
@@ -239,10 +214,10 @@ export default function StaffTeamManagement() {
           onSave={(m) => {
             if (editing) {
               setMembers((ms) => ms.map((x) => (x.id === editing.id ? { ...m, id: editing.id } : x)));
-              flash("Team member updated");
+              flash("User updated");
             } else {
               setMembers((ms) => [...ms, { ...m, id: Math.max(0, ...ms.map((x) => x.id)) + 1 }]);
-              flash("Team member added");
+              flash("Invite sent to new user");
             }
             setDrawer(null);
           }}
@@ -262,10 +237,11 @@ function MemberDrawer({ member, onClose, onSave }: { member: Member | null; onCl
   const [first, setFirst] = useState(member?.first ?? "");
   const [last, setLast] = useState(member?.last ?? "");
   const [email, setEmail] = useState(member?.email ?? "");
-  const ok = first.trim() && last.trim() && /^\S+@\S+\.\S+$/.test(email.trim());
+  const [phone, setPhone] = useState(member?.phone ?? "");
+  const ok = first.trim() && last.trim() && /^\S+@\S+\.\S+$/.test(email.trim()) && phone.trim();
 
   return (
-    <Drawer title={member ? "Edit Team Member" : "Add Team Member"} onClose={onClose}>
+    <Drawer title={member ? "Edit User" : "Add User"} onClose={onClose}>
       <div className="grid grid-cols-2 gap-3">
         <Field label="First Name" required>
           <Input value={first} onChange={(e) => setFirst(e.target.value)} placeholder="Sophia" />
@@ -277,14 +253,17 @@ function MemberDrawer({ member, onClose, onSave }: { member: Member | null; onCl
       <Field className="mt-3" label="Email ID" required>
         <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="sophia.carter@alfonhotel.com" />
       </Field>
+      <Field className="mt-3" label="Phone Number" required>
+        <Input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+91 98765 43210" />
+      </Field>
 
       <div className="mt-4 flex items-start gap-2 rounded-lg bg-blue-50 px-3 py-2.5 text-[12px] text-blue-700">
         <Info className="mt-0.5 h-4 w-4 shrink-0" />
         Roles and access are assigned later from the Team page.
       </div>
 
-      <Button className="mt-5 w-full" disabled={!ok} onClick={() => onSave({ first: first.trim(), last: last.trim(), email: email.trim(), phone: member?.phone ?? "", dept: member?.dept ?? "Unassigned" })}>
-        {member ? "Save Changes" : "Add Member"}
+      <Button className="mt-5 w-full" disabled={!ok} onClick={() => onSave({ first: first.trim(), last: last.trim(), email: email.trim(), phone: phone.trim(), dept: member?.dept ?? "Unassigned" })}>
+        {member ? "Save Changes" : "Invite"}
       </Button>
       <Button variant="outline" className="mt-2 w-full" onClick={onClose}>
         Cancel

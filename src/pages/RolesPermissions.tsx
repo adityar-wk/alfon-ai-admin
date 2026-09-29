@@ -34,12 +34,6 @@ import {
   MODULES,
   DEPARTMENTS,
   PERSONA_TYPES,
-  GUEST_DATA,
-  TASK_VIS,
-  CONVO,
-  REPORT_ACC,
-  SPECIAL_RULES,
-  TEMPLATES,
   newRole,
   ROLE_DEPT_TO_STAFF,
   type Role,
@@ -71,7 +65,7 @@ const MODULE_ICON: Record<ModuleKey, Icon> = {
 };
 
 type Tab = "roles" | "users";
-type EditTab = "basic" | "advanced" | "members";
+type EditTab = "basic" | "members";
 
 // week-over-week change in tasks handled, shown per user
 const TREND = [12, 8, 0, -5, 15, 3, 9, 6, 10, 2];
@@ -89,9 +83,11 @@ export default function RolesPermissions({ embedded = false }: { embedded?: bool
   const [query, setQuery] = useState("");
   const [deptFilter, setDeptFilter] = useState<string>("All");
   const [draft, setDraft] = useState<Role>(() => structuredClone(roles[0]));
-  const [createOpen, setCreateOpen] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [newDraft, setNewDraft] = useState<Role>(() => newRole({ name: "" }));
   const [inviteRole, setInviteRole] = useState<string | null>(null);
   const [actionsOpen, setActionsOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
   const [userRoleFilter, setUserRoleFilter] = useState("all");
   const [toast, setToast] = useState<string | null>(null);
   const editorRef = useRef<HTMLDivElement>(null);
@@ -116,6 +112,7 @@ export default function RolesPermissions({ embedded = false }: { embedded?: bool
     setSelectedId(id);
     setDraft(structuredClone(r));
     setActionsOpen(false);
+    setCreating(false);
   };
 
   const visible = useMemo(() => {
@@ -128,21 +125,23 @@ export default function RolesPermissions({ embedded = false }: { embedded?: bool
     flash(`“${draft.name}” saved`);
   };
 
-  const addRole = (r: Role) => {
-    setRoles((rs) => [...rs, r]);
-    setSelectedId(r.id);
-    setDraft(structuredClone(r));
-    setEditTab("basic");
+  const startCreate = () => {
+    setCreating(true);
+    setNewDraft(newRole({ name: "" }));
     setTab("roles");
-    setDeptFilter("All");
-    setQuery("");
     window.setTimeout(() => editorRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
   };
 
-  const duplicate = () => {
-    const copy = newRole({ ...structuredClone(saved), name: `${saved.name} (copy)` });
-    addRole(copy);
-    flash("Role duplicated");
+  const commitCreate = () => {
+    const r: Role = { ...newDraft, name: newDraft.name.trim() };
+    setRoles((rs) => [...rs, r]);
+    setSelectedId(r.id);
+    setDraft(structuredClone(r));
+    setEditTab("members");
+    setCreating(false);
+    setDeptFilter("All");
+    setQuery("");
+    flash(`Role “${r.name}” created`);
   };
 
   const remove = () => {
@@ -173,7 +172,9 @@ export default function RolesPermissions({ embedded = false }: { embedded?: bool
   };
 
   const set = <K extends keyof Role>(k: K, v: Role[K]) => setDraft((d) => ({ ...d, [k]: v }));
+  const setNewField = <K extends keyof Role>(k: K, v: Role[K]) => setNewDraft((d) => ({ ...d, [k]: v }));
   const cfg = DEPT_ICON[draft.dept];
+  const newCfg = DEPT_ICON[newDraft.dept];
 
   return (
     <>
@@ -201,7 +202,7 @@ export default function RolesPermissions({ embedded = false }: { embedded?: bool
                     <h2 className="text-[17px] font-semibold text-ink">{embedded ? "Create role" : "Roles"}</h2>
                     {!embedded && <p className="text-[12px] text-ink-secondary">Select a role to view or edit its permissions.</p>}
                   </div>
-                  <Button onClick={() => setCreateOpen(true)} className="shrink-0 whitespace-nowrap"><Plus className="h-4 w-4" /> Create Role</Button>
+                  <Button onClick={startCreate} className="shrink-0 whitespace-nowrap"><Plus className="h-4 w-4" /> Create Role</Button>
                 </div>
                 <div className="relative mt-4">
                   <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-tertiary" />
@@ -241,164 +242,82 @@ export default function RolesPermissions({ embedded = false }: { embedded?: bool
               <Card className="p-5" >
                 <div ref={editorRef} />
                 {embedded && <div className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-ink-tertiary">Configure role</div>}
-                <div className="flex items-start gap-3">
-                  <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg ${cfg.tone}`}><cfg.icon className="h-5 w-5" /></span>
-                  <div className="min-w-0 flex-1">
-                    <h2 className="truncate text-[18px] font-semibold text-ink">{draft.name || "Untitled role"}</h2>
-                    <p className="truncate text-[13px] text-ink-secondary">{draft.desc || "No description"}</p>
-                  </div>
-                  <div className="relative">
-                    <button onClick={() => setActionsOpen((o) => !o)} className="flex items-center gap-2 rounded-control border border-line bg-white px-3 py-2 text-[13px] font-medium text-ink hover:bg-subtle">
-                      Actions <ChevronDown className="h-4 w-4" />
-                    </button>
-                    {actionsOpen && (
-                      <div className="absolute right-0 top-11 z-20 w-48 rounded-xl border border-line bg-white p-1.5 shadow-lg">
-                        <button onClick={() => { duplicate(); setActionsOpen(false); }} className="block w-full rounded-control px-3 py-2 text-left text-[13px] text-ink hover:bg-subtle">Duplicate role</button>
-                        <button onClick={() => { viewUsers(); setActionsOpen(false); }} className="block w-full rounded-control px-3 py-2 text-left text-[13px] text-ink hover:bg-subtle">View users</button>
-                        <button onClick={() => { setDraft(structuredClone(saved)); setActionsOpen(false); flash("Changes discarded"); }} className="block w-full rounded-control px-3 py-2 text-left text-[13px] text-ink hover:bg-subtle">Discard changes</button>
-                        <button onClick={() => { remove(); setActionsOpen(false); }} className="block w-full rounded-control px-3 py-2 text-left text-[13px] text-red-600 hover:bg-red-50">Delete role</button>
+
+                {creating ? (
+                  <>
+                    <div className="flex items-start gap-3">
+                      <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg ${newCfg.tone}`}><newCfg.icon className="h-5 w-5" /></span>
+                      <div className="min-w-0 flex-1">
+                        <h2 className="truncate text-[18px] font-semibold text-ink">{newDraft.name || "New role"}</h2>
+                        <p className="truncate text-[13px] text-ink-secondary">{newDraft.desc || "No description"}</p>
                       </div>
-                    )}
-                  </div>
-                </div>
+                      <span className="shrink-0 rounded-full bg-amber-50 px-2.5 py-1 text-[12px] font-medium text-amber-600">Draft</span>
+                    </div>
 
-                <div className="mt-4 flex gap-6 border-b border-line">
-                  {([["basic", "Basic Configuration"], ["advanced", "Advanced Settings"], ["members", `Members (${countOf(saved.id)})`]] as const).map(([k, l]) => (
-                    <button
-                      key={k}
-                      onClick={() => setEditTab(k)}
-                      className={`-mb-px border-b-2 pb-2.5 text-[14px] font-medium ${editTab === k ? "border-brand text-brand" : "border-transparent text-ink-secondary hover:text-ink"}`}
-                    >
-                      {l}
-                    </button>
-                  ))}
-                </div>
+                    <div className="pt-5">
+                      <RoleBasicFields draft={newDraft} set={setNewField} />
+                    </div>
 
-                {editTab === "basic" ? (
-                  <div className="pt-5">
-                    <h3 className="text-[15px] font-semibold text-ink">Role Details</h3>
-                    <div className="mt-3 grid grid-cols-1 gap-x-6 gap-y-5 md:grid-cols-2">
-                      <Field label="Role Name"><Input value={draft.name} onChange={(e) => set("name", e.target.value)} /></Field>
-                      <Field label="Persona">
-                        <Select value={draft.persona} onChange={(e) => set("persona", e.target.value as Role["persona"])}>
-                          {PERSONA_TYPES.map((p) => <option key={p}>{p}</option>)}
-                        </Select>
-                      </Field>
-                      <Field label="Description"><Textarea rows={3} value={draft.desc} onChange={(e) => set("desc", e.target.value)} /></Field>
-                      <div>
-                        <Field label="Department">
-                          <Select value={draft.dept} onChange={(e) => set("dept", e.target.value as Role["dept"])}>
-                            {DEPARTMENTS.map((d) => <option key={d}>{d}</option>)}
-                          </Select>
-                        </Field>
-                        <button onClick={viewUsers} className="mt-2 flex w-full items-center justify-end gap-1 text-[12px] font-medium text-brand hover:underline">
-                          View {countOf(saved.id)} members <ArrowRight className="h-3 w-3" />
+                    <div className="mt-8 flex items-center justify-end gap-3">
+                      <Button variant="outline" onClick={() => setCreating(false)}>Cancel</Button>
+                      <Button onClick={commitCreate} disabled={!newDraft.name.trim()} className="disabled:opacity-40">Create Role</Button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex items-start gap-3">
+                      <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg ${cfg.tone}`}><cfg.icon className="h-5 w-5" /></span>
+                      <div className="min-w-0 flex-1">
+                        <h2 className="truncate text-[18px] font-semibold text-ink">{draft.name || "Untitled role"}</h2>
+                        <p className="truncate text-[13px] text-ink-secondary">{draft.desc || "No description"}</p>
+                      </div>
+                      <div className="relative">
+                        <button onClick={() => setActionsOpen((o) => !o)} className="flex items-center gap-2 rounded-control border border-line bg-white px-3 py-2 text-[13px] font-medium text-ink hover:bg-subtle">
+                          Actions <ChevronDown className="h-4 w-4" />
                         </button>
+                        {actionsOpen && (
+                          <div className="absolute right-0 top-11 z-20 w-48 rounded-xl border border-line bg-white p-1.5 shadow-lg">
+                            <button onClick={() => { setActionsOpen(false); setDeleteOpen(true); }} className="block w-full rounded-control px-3 py-2 text-left text-[13px] text-red-600 hover:bg-red-50">Delete role</button>
+                          </div>
+                        )}
                       </div>
                     </div>
 
-                    <h3 className="mt-8 text-[15px] font-semibold text-ink">Module Access</h3>
-                    <p className="text-[12px] text-ink-secondary">Choose the main modules this role can access.</p>
-                    <div className="mt-2 grid grid-cols-1 gap-x-10 md:grid-cols-2">
-                      {MODULES.map((m) => {
-                        const I = MODULE_ICON[m.key];
-                        const on = draft.modules[m.key];
-                        return (
-                          <label key={m.key} className="flex cursor-pointer items-center gap-3 border-b border-line/70 py-3">
-                            <I className={`h-[18px] w-[18px] shrink-0 ${on ? "text-brand" : "text-ink-tertiary"}`} />
-                            <span className="min-w-0 flex-1 leading-tight">
-                              <span className="block text-[13px] font-medium text-ink">{m.label}</span>
-                              <span className="block truncate text-[11px] text-ink-tertiary">{on ? m.desc : "No access"}</span>
-                            </span>
-                            <input
-                              type="checkbox"
-                              checked={on}
-                              onChange={(e) => set("modules", { ...draft.modules, [m.key]: e.target.checked })}
-                              className="h-4 w-4 shrink-0 accent-brand"
-                              aria-label={`${m.label} access`}
-                            />
-                          </label>
-                        );
-                      })}
-                    </div>
-
-                    <h3 className="mt-8 text-[15px] font-semibold text-ink">Data Visibility</h3>
-                    <p className="text-[12px] text-ink-secondary">Define what data this role can see.</p>
-                    <div className="mt-3 grid grid-cols-1 gap-x-6 gap-y-5 md:grid-cols-2">
-                      <Field label="Guest Data Access" hint={draft.guestData === "Full Profile" ? "Preferences, history, notes" : draft.guestData === "Basic Information" ? "Name, room number, stay dates" : "Guest data hidden"}>
-                        <Select value={draft.guestData} onChange={(e) => set("guestData", e.target.value)}>{GUEST_DATA.map((o) => <option key={o}>{o}</option>)}</Select>
-                      </Field>
-                      <Field label="Task Visibility" hint={draft.taskVis === "Assigned to Me" ? "Only tasks assigned to this user" : draft.taskVis === "My Department" ? "All tasks in their department" : "Tasks across the hotel"}>
-                        <Select value={draft.taskVis} onChange={(e) => set("taskVis", e.target.value)}>{TASK_VIS.map((o) => <option key={o}>{o}</option>)}</Select>
-                      </Field>
-                      <Field label="Conversation Access" hint={draft.convo === "View and Respond" ? "Can respond to guest messages" : draft.convo === "View Only" ? "Can read guest messages" : "No chat access"}>
-                        <Select value={draft.convo} onChange={(e) => set("convo", e.target.value)}>{CONVO.map((o) => <option key={o}>{o}</option>)}</Select>
-                      </Field>
-                      <Field label="Reports Access" hint={draft.reports === "Department Only" ? `Reports for ${draft.dept}` : draft.reports === "All Reports" ? "Hotel-wide reports" : "No reports"}>
-                        <Select value={draft.reports} onChange={(e) => set("reports", e.target.value)}>{REPORT_ACC.map((o) => <option key={o}>{o}</option>)}</Select>
-                      </Field>
-                    </div>
-                  </div>
-                ) : editTab === "advanced" ? (
-                  <div className="pt-5">
-                    <h3 className="text-[15px] font-semibold text-ink">Cross-department access</h3>
-                    <p className="text-[12px] text-ink-secondary">Departments this role can see in addition to {draft.dept}. Effective access is the union of all assignments.</p>
-                    <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-3">
-                      {DEPARTMENTS.filter((d) => d !== draft.dept && d !== "System").map((d) => (
-                        <label key={d} className="flex items-center gap-2 text-[13px] text-ink">
-                          <input
-                            type="checkbox"
-                            className="h-4 w-4 accent-brand"
-                            checked={draft.crossDepts.includes(d)}
-                            onChange={(e) => set("crossDepts", e.target.checked ? [...draft.crossDepts, d] : draft.crossDepts.filter((x) => x !== d))}
-                          />
-                          {d}
-                        </label>
+                    <div className="mt-4 flex gap-6 border-b border-line">
+                      {([["basic", "Basic Configuration"], ["members", `Members (${countOf(saved.id)})`]] as const).map(([k, l]) => (
+                        <button
+                          key={k}
+                          onClick={() => setEditTab(k)}
+                          className={`-mb-px border-b-2 pb-2.5 text-[14px] font-medium ${editTab === k ? "border-brand text-brand" : "border-transparent text-ink-secondary hover:text-ink"}`}
+                        >
+                          {l}
+                        </button>
                       ))}
                     </div>
 
-                    <h3 className="mt-6 text-[15px] font-semibold text-ink">Special rules</h3>
-                    <p className="text-[12px] text-ink-secondary">Actions this role is authorised to perform.</p>
-                    <div className="mt-3 divide-y divide-line/70 rounded-xl border border-line">
-                      {SPECIAL_RULES.map((r) => {
-                        const on = draft.rules[r.key];
-                        return (
-                          <div key={r.key} className="flex items-center gap-3 px-4 py-3">
-                            <div className="min-w-0 flex-1 leading-tight">
-                              <div className="text-[13px] font-medium text-ink">{r.label}</div>
-                              <div className="text-[11px] text-ink-tertiary">{r.desc}</div>
-                            </div>
-                            <button
-                              role="switch"
-                              aria-checked={on}
-                              aria-label={r.label}
-                              onClick={() => set("rules", { ...draft.rules, [r.key]: !on })}
-                              className={`inline-flex h-5 w-9 shrink-0 items-center rounded-full p-0.5 transition-colors ${on ? "bg-brand" : "bg-gray-300"}`}
-                            >
-                              <span className={`h-4 w-4 rounded-full bg-white shadow transition-transform ${on ? "translate-x-4" : ""}`} />
-                            </button>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ) : (
-                  <RoleMembers
-                    role={saved}
-                    roles={roles}
-                    members={users.filter((u) => u.roleId === saved.id)}
-                    allUsers={users}
-                    onRemove={removeUser}
-                    onAdd={(id) => addToRole(id, saved.id)}
-                    onInviteNew={() => setInviteRole(saved.id)}
-                  />
-                )}
+                    {editTab === "basic" ? (
+                      <div className="pt-5">
+                        <RoleBasicFields draft={draft} set={set} onViewMembers={viewUsers} membersCount={countOf(saved.id)} />
+                      </div>
+                    ) : (
+                      <RoleMembers
+                        role={saved}
+                        roles={roles}
+                        members={users.filter((u) => u.roleId === saved.id)}
+                        allUsers={users}
+                        onRemove={removeUser}
+                        onAdd={(id) => addToRole(id, saved.id)}
+                        onInviteNew={() => setInviteRole(saved.id)}
+                      />
+                    )}
 
-                <div className={`mt-8 flex items-center justify-end gap-3 ${editTab === "members" ? "hidden" : ""}`}>
-                  {dirty && <span className="mr-auto text-[12px] text-ink-tertiary">Unsaved changes</span>}
-                  <Button variant="outline" onClick={() => { setDraft(structuredClone(saved)); }} disabled={!dirty}>Cancel</Button>
-                  <Button onClick={save} disabled={!dirty || !draft.name.trim()} className="disabled:opacity-40">Save Changes</Button>
-                </div>
+                    <div className={`mt-8 flex items-center justify-end gap-3 ${editTab === "members" ? "hidden" : ""}`}>
+                      {dirty && <span className="mr-auto text-[12px] text-ink-tertiary">Unsaved changes</span>}
+                      <Button variant="outline" onClick={() => { setDraft(structuredClone(saved)); }} disabled={!dirty}>Cancel</Button>
+                      <Button onClick={save} disabled={!dirty || !draft.name.trim()} className="disabled:opacity-40">Save Changes</Button>
+                    </div>
+                  </>
+                )}
               </Card>
             </div>
           </>
@@ -407,7 +326,24 @@ export default function RolesPermissions({ embedded = false }: { embedded?: bool
         )}
       </Shell>
 
-      {createOpen && <CreateRole onClose={() => setCreateOpen(false)} onCreate={(r) => { addRole(r); setCreateOpen(false); flash(`Role “${r.name}” created`); }} />}
+      {deleteOpen && (
+        <Dialog
+          title="Delete role"
+          onClose={() => setDeleteOpen(false)}
+          footer={
+            <>
+              <Button variant="outline" onClick={() => setDeleteOpen(false)}>Cancel</Button>
+              <Button tone="bg-red-600" onClick={() => { remove(); setDeleteOpen(false); }}>Delete role</Button>
+            </>
+          }
+        >
+          <p className="text-[13px] text-ink-secondary">
+            {countOf(saved.id) > 0
+              ? `“${saved.name}” has ${countOf(saved.id)} member${countOf(saved.id) === 1 ? "" : "s"}. Reassign them to another role before deleting it.`
+              : `Are you sure you want to delete “${saved.name}”? This can't be undone.`}
+          </p>
+        </Dialog>
+      )}
 
       {inviteRole && (
         <InviteUser
@@ -427,6 +363,101 @@ export default function RolesPermissions({ embedded = false }: { embedded?: bool
           <span className="rounded-full bg-ink px-4 py-2 text-[13px] font-medium text-white shadow-lg">{toast}</span>
         </div>
       )}
+    </>
+  );
+}
+
+/* ---------- basic configuration fields, shared by the create and edit flows ---------- */
+
+function RoleBasicFields({
+  draft, set, onViewMembers, membersCount,
+}: {
+  draft: Role;
+  set: <K extends keyof Role>(k: K, v: Role[K]) => void;
+  onViewMembers?: () => void;
+  membersCount?: number;
+}) {
+  const otherDepts = DEPARTMENTS.filter((d) => d !== draft.dept && d !== "System");
+  const allOtherSelected = otherDepts.length > 0 && otherDepts.every((d) => draft.crossDepts.includes(d));
+
+  return (
+    <>
+      <h3 className="text-[15px] font-semibold text-ink">Role Details</h3>
+      <div className="mt-3 grid grid-cols-1 gap-x-6 gap-y-5 md:grid-cols-2">
+        <Field label="Role Name"><Input value={draft.name} onChange={(e) => set("name", e.target.value)} /></Field>
+        <Field label="Persona">
+          <Select value={draft.persona} onChange={(e) => set("persona", e.target.value as Role["persona"])}>
+            {PERSONA_TYPES.map((p) => <option key={p}>{p}</option>)}
+          </Select>
+        </Field>
+        <Field label="Description"><Textarea rows={3} value={draft.desc} onChange={(e) => set("desc", e.target.value)} /></Field>
+        <div>
+          <Field label="Department">
+            <Select value={draft.dept} onChange={(e) => set("dept", e.target.value as Role["dept"])}>
+              {DEPARTMENTS.map((d) => <option key={d}>{d}</option>)}
+            </Select>
+          </Field>
+          {onViewMembers && (
+            <button onClick={onViewMembers} className="mt-2 flex w-full items-center justify-end gap-1 text-[12px] font-medium text-brand hover:underline">
+              View {membersCount ?? 0} members <ArrowRight className="h-3 w-3" />
+            </button>
+          )}
+        </div>
+      </div>
+
+      <div className="mt-8 flex items-center justify-between gap-3">
+        <div>
+          <h3 className="text-[15px] font-semibold text-ink">Departments</h3>
+          <p className="text-[12px] text-ink-secondary">Give this role access to more than one department, or all of them.</p>
+        </div>
+        <label className="flex shrink-0 items-center gap-2 text-[13px] font-medium text-ink">
+          <input
+            type="checkbox"
+            className="h-4 w-4 accent-brand"
+            checked={allOtherSelected}
+            onChange={(e) => set("crossDepts", e.target.checked ? otherDepts : [])}
+          />
+          All departments
+        </label>
+      </div>
+      <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-3">
+        {otherDepts.map((d) => (
+          <label key={d} className="flex items-center gap-2 text-[13px] text-ink">
+            <input
+              type="checkbox"
+              className="h-4 w-4 accent-brand"
+              checked={draft.crossDepts.includes(d)}
+              onChange={(e) => set("crossDepts", e.target.checked ? [...draft.crossDepts, d] : draft.crossDepts.filter((x) => x !== d))}
+            />
+            {d}
+          </label>
+        ))}
+      </div>
+
+      <h3 className="mt-8 text-[15px] font-semibold text-ink">Module Access</h3>
+      <p className="text-[12px] text-ink-secondary">Choose the main modules this role can access.</p>
+      <div className="mt-2 grid grid-cols-1 gap-x-10 md:grid-cols-2">
+        {MODULES.map((m) => {
+          const I = MODULE_ICON[m.key];
+          const on = draft.modules[m.key];
+          return (
+            <label key={m.key} className="flex cursor-pointer items-center gap-3 border-b border-line/70 py-3">
+              <I className={`h-[18px] w-[18px] shrink-0 ${on ? "text-brand" : "text-ink-tertiary"}`} />
+              <span className="min-w-0 flex-1 leading-tight">
+                <span className="block text-[13px] font-medium text-ink">{m.label}</span>
+                <span className="block truncate text-[11px] text-ink-tertiary">{on ? m.desc : "No access"}</span>
+              </span>
+              <input
+                type="checkbox"
+                checked={on}
+                onChange={(e) => set("modules", { ...draft.modules, [m.key]: e.target.checked })}
+                className="h-4 w-4 shrink-0 accent-brand"
+                aria-label={`${m.label} access`}
+              />
+            </label>
+          );
+        })}
+      </div>
     </>
   );
 }
@@ -462,7 +493,7 @@ function RoleMembers({
             className="h-10 w-full rounded-control border border-line bg-white pl-9 pr-3 text-[13px] outline-none placeholder:text-ink-tertiary focus:border-brand"
           />
         </div>
-        <Button variant="outline" onClick={onInviteNew}><Plus className="h-4 w-4" /> Invite New</Button>
+        <Button variant="outline" onClick={onInviteNew}><Plus className="h-4 w-4" /> Add</Button>
       </div>
 
       {searching ? (
@@ -761,47 +792,6 @@ function Dialog({ title, onClose, children, footer }: { title: string; onClose: 
         {footer && <div className="flex justify-end gap-2 border-t border-line px-6 py-3.5">{footer}</div>}
       </div>
     </div>
-  );
-}
-
-function CreateRole({ onClose, onCreate }: { onClose: () => void; onCreate: (r: Role) => void }) {
-  const [name, setName] = useState("");
-  const [dept, setDept] = useState<Role["dept"]>("Front Office");
-  const [persona, setPersona] = useState<Role["persona"]>("Line Staff");
-  const [tpl, setTpl] = useState("");
-  const [desc, setDesc] = useState("");
-
-  const submit = () => {
-    const t = TEMPLATES.find((x) => x.id === tpl);
-    onCreate(newRole({ ...(t ? structuredClone(t) : {}), name: name.trim(), dept, persona, desc: desc.trim() || t?.desc || "" }));
-  };
-
-  return (
-    <Dialog
-      title="Create role"
-      onClose={onClose}
-      footer={
-        <>
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button onClick={submit} disabled={!name.trim()} className="disabled:opacity-40">Create role</Button>
-        </>
-      }
-    >
-      <div className="space-y-4">
-        <Field label="Role name" required><Input autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Laundry Supervisor" /></Field>
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Department"><Select value={dept} onChange={(e) => setDept(e.target.value as Role["dept"])}>{DEPARTMENTS.map((d) => <option key={d}>{d}</option>)}</Select></Field>
-          <Field label="Persona"><Select value={persona} onChange={(e) => setPersona(e.target.value as Role["persona"])}>{PERSONA_TYPES.map((p) => <option key={p}>{p}</option>)}</Select></Field>
-        </div>
-        <Field label="Start from template" hint="Optional — copies its module access and data visibility.">
-          <Select value={tpl} onChange={(e) => setTpl(e.target.value)}>
-            <option value="">Blank role</option>
-            {TEMPLATES.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
-          </Select>
-        </Field>
-        <Field label="Description"><Textarea rows={2} value={desc} onChange={(e) => setDesc(e.target.value)} /></Field>
-      </div>
-    </Dialog>
   );
 }
 

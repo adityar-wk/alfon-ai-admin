@@ -1,25 +1,13 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  Building2, ChevronRight, MessageSquare, Server, Check, Lightbulb, Users2, ArrowLeft, ArrowRight, Plus, KeyRound,
+  Building2, MessageSquare, Server, Check, Lightbulb, ArrowLeft, ArrowRight, KeyRound, Send,
 } from "lucide-react";
 import { Topbar } from "../../components/Topbar";
 import { Page, Card, Button, Field, Input, Select, Textarea, PhoneInput } from "../../components/ui";
-import { deptIcon } from "../../data/deptIcons";
 
-const STEPS = ["Hotel Details", "Departments", "System Connections", "Review & Add"] as const;
-type Step = 0 | 1 | 2 | 3;
-
-const DEPT_OPTIONS = [
-  { name: "Housekeeping", desc: "Room cleaning and maintenance" },
-  { name: "Room Service", desc: "In-room dining and guest requests" },
-  { name: "Food and Beverage", desc: "Restaurants, bars and dining outlets" },
-  { name: "Front Desk", desc: "Guest check-in, check-out and general support" },
-  { name: "Concierge", desc: "Guest services and local assistance" },
-  { name: "Engineering", desc: "Facility maintenance and technical support" },
-  { name: "Security", desc: "Property security and safety" },
-  { name: "Human Resources", desc: "Staff management and training" },
-];
+const STEPS = ["Hotel Details", "System Connections", "Review & Add"] as const;
+type Step = 0 | 1 | 2;
 
 const PMS_PROVIDERS = ["Opera (Oracle)", "Mews"];
 
@@ -27,7 +15,7 @@ const COUNTRIES = ["United Arab Emirates", "Saudi Arabia", "Qatar", "Oman", "Bah
 
 type Details = {
   name: string; country: string; city: string; currency: string; timeZone: string; description: string;
-  region: string; propertyType: string; rooms: string; address: string;
+  region: string; propertyType: string; rooms: string; address: string; adminEmail: string;
 };
 
 export default function AddHotel() {
@@ -35,12 +23,8 @@ export default function AddHotel() {
   const [step, setStep] = useState<Step>(0);
   const [details, setDetails] = useState<Details>({
     name: "", country: "United Arab Emirates", city: "", currency: "AED (UAE Dirham)", timeZone: "Asia/Dubai (GMT+4)", description: "",
-    region: "Middle East", propertyType: "Resort", rooms: "", address: "",
+    region: "Middle East", propertyType: "Resort", rooms: "", address: "", adminEmail: "",
   });
-  const [depts, setDepts] = useState<Record<string, boolean>>({ Housekeeping: true, "Room Service": true });
-  const [customDept, setCustomDept] = useState<string | null>(null);
-  const [addingCustom, setAddingCustom] = useState(false);
-  const [customName, setCustomName] = useState("");
 
   const [wa, setWa] = useState({ code: "+971", number: "", displayName: "", apiKey: "", businessId: "" });
   const [otpSent, setOtpSent] = useState(false);
@@ -53,29 +37,19 @@ export default function AddHotel() {
   const set = <K extends keyof Details>(k: K) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
     setDetails((d) => ({ ...d, [k]: e.target.value }));
 
-  const allDepts = [...DEPT_OPTIONS, ...(customDept ? [{ name: customDept, desc: "Custom department added for this hotel" }] : [])];
-
   const detailsValid = details.name.trim() && details.country.trim() && details.city.trim();
-  const deptCount = Object.values(depts).filter(Boolean).length;
   const pmsValid = !!pms.provider && (pms.provider !== "Mews" || pms.mewsToken.trim());
-  const canNext = step === 0 ? !!detailsValid : step === 1 ? deptCount > 0 : true;
+  const canNext = step === 0 ? !!detailsValid : true;
 
   const stepStatus = (i: Step) => (i < step ? "done" : i === step ? "current" : "pending");
 
-  const goNext = () => setStep((s) => (Math.min(3, s + 1) as Step));
+  const goNext = () => setStep((s) => (Math.min(2, s + 1) as Step));
   const goBack = () => setStep((s) => (Math.max(0, s - 1) as Step));
 
-  const addCustomDept = () => {
-    const name = customName.trim();
-    if (!name) return;
-    setCustomDept(name);
-    setDepts((x) => ({ ...x, [name]: true }));
-    setAddingCustom(false);
-    setCustomName("");
-  };
-
-  const create = () => {
-    navigate(`/admin/hotels?created=${encodeURIComponent(details.name)}`);
+  const create = (sendLink: boolean) => {
+    const q = new URLSearchParams({ created: details.name });
+    if (sendLink && details.adminEmail.trim()) q.set("email", details.adminEmail.trim());
+    navigate(`/admin/hotels?${q.toString()}`);
   };
 
   return (
@@ -88,9 +62,8 @@ export default function AddHotel() {
         <h2 className="mt-2 font-display text-[26px] font-bold leading-tight text-ink">Add New Hotel</h2>
         <p className="mt-1 text-[13px] text-ink-secondary">
           {step === 0 && "Create a new hotel and connect its systems to get started."}
-          {step === 1 && "Select the departments available at this hotel."}
-          {step === 2 && "Connect WhatsApp and PMS to enable guest communication and booking information."}
-          {step === 3 && "Review the details and create the hotel."}
+          {step === 1 && "Connect WhatsApp and PMS to enable guest communication and booking information."}
+          {step === 2 && "Review the details and create the hotel."}
         </p>
 
         {/* stepper */}
@@ -140,6 +113,9 @@ export default function AddHotel() {
                     <Textarea rows={3} maxLength={250} value={details.description} onChange={set("description")} placeholder="A short description of the property…" />
                     <div className="mt-1 text-right text-[11px] text-ink-tertiary">{details.description.length}/250</div>
                   </Field>
+                  <Field className="mt-4" label="Admin Email ID" hint="Once you've reviewed everything, the hotel's setup link is sent to this address.">
+                    <Input type="email" value={details.adminEmail} onChange={set("adminEmail")} placeholder="admin@thepalmretreat.com" />
+                  </Field>
                 </Card>
 
                 <Card className="p-6">
@@ -164,46 +140,6 @@ export default function AddHotel() {
             )}
 
             {step === 1 && (
-              <Card className="p-6">
-                <h3 className="text-[16px] font-semibold text-ink">Configure Departments</h3>
-                <p className="mt-1 text-[13px] text-ink-secondary">Select the departments available at this hotel. You can add or modify these later.</p>
-                <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  {allDepts.map((d) => {
-                    const Icon = deptIcon(d.name);
-                    const on = !!depts[d.name];
-                    return (
-                      <label key={d.name} className={`flex items-start gap-3 rounded-xl border p-3.5 ${on ? "border-brand bg-brand-tint/30" : "border-line"}`}>
-                        <input type="checkbox" className="mt-1 h-4 w-4 accent-brand" checked={on} onChange={(e) => setDepts((x) => ({ ...x, [d.name]: e.target.checked }))} />
-                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-subtle text-ink-secondary"><Icon className="h-4 w-4" /></span>
-                        <span className="min-w-0 flex-1">
-                          <span className="block text-[14px] font-semibold text-ink">{d.name}</span>
-                          <span className="block text-[12px] text-ink-tertiary">{d.desc}</span>
-                        </span>
-                      </label>
-                    );
-                  })}
-
-                  {!customDept && (
-                    addingCustom ? (
-                      <div className="flex items-center gap-2 rounded-xl border border-dashed border-line p-3.5 sm:col-span-2">
-                        <Input autoFocus value={customName} onChange={(e) => setCustomName(e.target.value)} placeholder="Department name" className="h-9" onKeyDown={(e) => e.key === "Enter" && addCustomDept()} />
-                        <Button className="h-9 shrink-0 px-3 text-[12px]" disabled={!customName.trim()} onClick={addCustomDept}>Add</Button>
-                        <Button variant="outline" className="h-9 shrink-0 px-3 text-[12px]" onClick={() => { setAddingCustom(false); setCustomName(""); }}>Cancel</Button>
-                      </div>
-                    ) : (
-                      <button
-                        onClick={() => setAddingCustom(true)}
-                        className="flex items-center justify-center gap-2 rounded-xl border border-dashed border-line p-3.5 text-[13px] font-medium text-brand hover:bg-brand-tint/20 sm:col-span-2"
-                      >
-                        <Plus className="h-4 w-4" /> Add a custom department
-                      </button>
-                    )
-                  )}
-                </div>
-              </Card>
-            )}
-
-            {step === 2 && (
               <>
                 <Card className="p-6">
                   <div className="flex items-start justify-between gap-3">
@@ -295,7 +231,7 @@ export default function AddHotel() {
               </>
             )}
 
-            {step === 3 && (
+            {step === 2 && (
               <Card className="p-6">
                 <div className="flex items-center justify-between">
                   <h3 className="text-[16px] font-semibold text-ink">Review Hotel Setup</h3>
@@ -306,28 +242,17 @@ export default function AddHotel() {
                 <div className="mt-4 rounded-xl border border-line p-4">
                   <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-ink-tertiary"><Building2 className="h-3.5 w-3.5" /> Hotel Overview</div>
                   <dl className="mt-3 grid grid-cols-1 gap-x-6 gap-y-2 text-[13px] sm:grid-cols-2">
-                    {[["Hotel Name", details.name || "—"], ["Country", details.country], ["City", details.city || "—"], ["Currency", details.currency], ["Time Zone", details.timeZone], ["Property Type", details.propertyType], ["No. of Rooms", details.rooms || "—"]].map(([k, v]) => (
+                    {[["Hotel Name", details.name || "—"], ["Country", details.country], ["City", details.city || "—"], ["Currency", details.currency], ["Time Zone", details.timeZone], ["Property Type", details.propertyType], ["No. of Rooms", details.rooms || "—"], ["Admin Email ID", details.adminEmail || "—"]].map(([k, v]) => (
                       <div key={k} className="flex items-center justify-between border-b border-line/60 py-1.5"><dt className="text-ink-secondary">{k}</dt><dd className="font-medium text-ink">{v}</dd></div>
                     ))}
                   </dl>
                   {details.description && <p className="mt-3 text-[13px] leading-relaxed text-ink-secondary">{details.description}</p>}
                 </div>
 
-                <div className="mt-4 flex items-center justify-between rounded-xl border border-line p-4">
-                  <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-ink-tertiary"><Users2 className="h-3.5 w-3.5" /> Departments ({deptCount})</div>
-                  <button onClick={() => setStep(1)} className="text-[12px] font-semibold text-brand">Edit</button>
-                </div>
-                <div className="flex flex-wrap gap-2 rounded-b-xl border border-t-0 border-line p-4 pt-0">
-                  {Object.entries(depts).filter(([, v]) => v).map(([name]) => (
-                    <span key={name} className="rounded-full bg-subtle px-3 py-1 text-[12px] font-medium text-ink-secondary">{name}</span>
-                  ))}
-                  {!deptCount && <span className="text-[13px] text-ink-tertiary">No departments selected.</span>}
-                </div>
-
                 <div className="mt-4 rounded-xl border border-line p-4">
                   <div className="mb-3 flex items-center justify-between">
                     <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-ink-tertiary"><Server className="h-3.5 w-3.5" /> System Connections</div>
-                    <button onClick={() => setStep(2)} className="text-[12px] font-semibold text-brand">Edit</button>
+                    <button onClick={() => setStep(1)} className="text-[12px] font-semibold text-brand">Edit</button>
                   </div>
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div>
@@ -345,10 +270,15 @@ export default function AddHotel() {
 
             <div className="flex items-center justify-between">
               {step > 0 ? <Button variant="outline" onClick={goBack}><ArrowLeft className="h-4 w-4" /> Back</Button> : <Button variant="outline" onClick={() => navigate("/admin/hotels")}>Cancel</Button>}
-              {step < 3 ? (
+              {step < 2 ? (
                 <Button disabled={!canNext} className="disabled:opacity-40" onClick={goNext}>Next: {STEPS[step + 1]} <ArrowRight className="h-4 w-4" /></Button>
               ) : (
-                <Button onClick={create}>Create Hotel <ChevronRight className="h-4 w-4" /></Button>
+                <div className="flex items-center gap-3">
+                  <Button variant="outline" onClick={() => create(false)}>Create Hotel</Button>
+                  <Button disabled={!details.adminEmail.trim()} className="disabled:opacity-40" onClick={() => create(true)}>
+                    <Send className="h-4 w-4" /> Create &amp; Send Setup Link
+                  </Button>
+                </div>
               )}
             </div>
           </div>

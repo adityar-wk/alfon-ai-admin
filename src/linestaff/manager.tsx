@@ -1085,7 +1085,7 @@ export function ManagerPrototype() {
             </button>
             <button onClick={() => setSheet({ k: "duty", taskId: t0.id })} className="flex w-full items-center gap-3 rounded-2xl border border-line p-3.5 text-left active:bg-brand-tint/40">
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-red-50 text-red-600"><ArrowUpRight className="h-[18px] w-[18px]" /></span>
-              <span className="text-[14px] font-semibold text-ink">Escalate to Duty Manager</span>
+              <span className="text-[14px] font-semibold text-ink">Escalation</span>
             </button>
           </div>
         </Sheet>
@@ -1119,7 +1119,7 @@ export function ManagerPrototype() {
         </Sheet>
       )}
       {sheet.k === "duty" && t0 && (
-        <ReasonSheet title="Escalate to Duty Manager" noteLabel="Reason (optional)" placeholder="Add context for the Duty Manager…" cta="Escalate" tone="bg-red-600" onClose={() => setSheet(null)}
+        <ReasonSheet title="Escalation" noteLabel="Reason (optional)" placeholder="Add context for the Duty Manager…" cta="Escalate" tone="bg-red-600" onClose={() => setSheet(null)}
           onSubmit={(_reason, note) => { patch(t0.id, { escType: (t0.escType ?? "Supervisor escalation") as EscType, notes: [{ by: ME, t: "Just now", text: note ? `Escalated to Duty Manager — ${note}` : "Escalated to Duty Manager" }, ...t0.notes] }, `${ME} escalated to Duty Manager`); setSheet(null); flash("Escalated to the Duty Manager"); }} />
       )}
     </>

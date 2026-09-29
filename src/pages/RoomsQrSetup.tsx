@@ -13,7 +13,7 @@ import {
 import { Topbar } from "../components/Topbar";
 import { SetupTabs } from "../components/SetupTabs";
 import { Drawer } from "../components/Drawer";
-import { Page, Card, Badge, Button, Field, Input, Select } from "../components/ui";
+import { Page, Card, Badge, Button, Field, Input, Select, Modal } from "../components/ui";
 import { FakeQR } from "../components/FakeQR";
 import { useGoNextStep } from "../data/onboarding";
 
@@ -40,6 +40,7 @@ type Room = (typeof ROOMS)[number];
 /** every guest scans the same code, regardless of room — it opens WhatsApp and the guest gives their room number there */
 function HotelQrCard({ flash }: { flash: (m: string) => void }) {
   const [version, setVersion] = useState(1);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   return (
     <Card className="p-6">
       <h3 className="text-[15px] font-semibold text-ink">Hotel QR Code</h3>
@@ -52,11 +53,37 @@ function HotelQrCard({ flash }: { flash: (m: string) => void }) {
           <Button onClick={() => flash("QR code downloaded")}>
             <Download className="h-4 w-4" /> Download
           </Button>
-          <Button variant="outline" onClick={() => { setVersion((v) => v + 1); flash("QR code regenerated"); }}>
+          <Button variant="outline" onClick={() => setConfirmOpen(true)}>
             <RefreshCw className="h-4 w-4" /> Regenerate
           </Button>
         </div>
       </div>
+
+      {confirmOpen && (
+        <Modal
+          title="Regenerate QR code?"
+          onClose={() => setConfirmOpen(false)}
+          footer={
+            <>
+              <Button variant="outline" onClick={() => setConfirmOpen(false)}>Cancel</Button>
+              <Button
+                tone="bg-red-600"
+                onClick={() => {
+                  setVersion((v) => v + 1);
+                  setConfirmOpen(false);
+                  flash("QR code regenerated");
+                }}
+              >
+                Regenerate
+              </Button>
+            </>
+          }
+        >
+          <p className="text-[13px] text-ink-secondary">
+            Any printed copies of the current QR code — in rooms, at the desk, on table tents — will stop working immediately. You'll need to print and place the new code everywhere the old one was used.
+          </p>
+        </Modal>
+      )}
     </Card>
   );
 }
