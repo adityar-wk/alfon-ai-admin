@@ -297,7 +297,7 @@ export function LineStaffPrototype() {
               <Bell className="h-[22px] w-[22px] text-ink" />
               <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-red-500" />
             </button>
-            <button onClick={openCreate} aria-label="Create task" className="flex h-11 w-11 items-center justify-center rounded-full text-ink active:bg-ink/5">
+            <button onClick={openCreate} aria-label="Create task" className="flex h-11 w-11 items-center justify-center rounded-full bg-brand text-white active:bg-brand-hover">
               <Plus className="h-6 w-6" strokeWidth={2.25} />
             </button>
           </div>
