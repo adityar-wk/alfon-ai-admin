@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Send, Sparkles, Hand, FileText, Paperclip, Smile, CalendarDays, CheckCheck, Check } from "lucide-react";
+import { Send, Sparkles, Hand, FileText, Paperclip, Smile, CalendarDays, CheckCheck } from "lucide-react";
 import { usePersona } from "../persona";
 
 export type MessageTemplate = { label: string; text: string };
@@ -99,17 +99,14 @@ export function GuestChat({
 
       {!!summary?.length && (
         <div className="border-t border-line bg-[#F0F7FF] px-5 py-3">
-          <div className="mb-1 flex items-center gap-1.5 text-[12px] font-semibold text-[#2E86AB]">
-            <Sparkles className="h-3.5 w-3.5" /> Guest Summary
+          <div className="mb-1 flex items-center gap-2 text-[12px] font-semibold text-[#2E86AB]">
+            <Sparkles className="h-[13px] w-[13px]" /> Guest Summary
           </div>
-          <ul className="space-y-1.5">
+          <div className="space-y-0.5 text-[12px] text-ink-secondary">
             {summary.map((t, i) => (
-              <li key={i} className="flex items-start gap-2 text-[13px] leading-snug text-ink">
-                <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-600" />
-                {t}
-              </li>
+              <div key={i}>{t} ✓</div>
             ))}
-          </ul>
+          </div>
         </div>
       )}
 

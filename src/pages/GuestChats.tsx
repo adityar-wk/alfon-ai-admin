@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import {
   Search, Phone, Mail, Calendar, Hourglass, BedDouble, Users, UtensilsCrossed, Wine, SlidersHorizontal, PanelLeftClose, PanelLeftOpen, Check,
-  FileText, ChevronRight, CalendarDays, X, DoorOpen, AlertCircle, Pencil, UserPlus, MoreVertical,
+  FileText, ChevronRight, CalendarDays, X, AlertCircle, Pencil, UserPlus, MoreVertical,
 } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { GuestChat, type ChatMsg, type ChatMode } from "../components/GuestChat";
@@ -207,13 +207,12 @@ export default function GuestChats() {
         <div className="flex min-h-0 min-w-0 flex-1 gap-5">
         {/* ---------------- chat ---------------- */}
         <div className={`flex min-w-0 flex-1 flex-col overflow-hidden ${CARD}`}>
-          <div className="flex items-center gap-3.5 border-b border-line/60 px-7 py-4">
+          <div className="flex items-center gap-3 border-b border-line/60 p-4">
             <span className={`flex h-10 w-10 items-center justify-center rounded-full font-display text-[13px] font-semibold ${guest.tint}`}>{guest.initials}</span>
             <div className="min-w-0 flex-1">
-              <div className="text-[17px] font-bold leading-tight text-ink">{guest.name}</div>
-              <div className="mt-0.5 flex items-center gap-1 text-[13px] text-ink-tertiary">
-                <DoorOpen className="h-3.5 w-3.5" />{guest.room}
-                {guest.nights > 0 && <><span>·</span> {guest.nights} Nights Stay</>}
+              <div className="text-[16px] font-semibold leading-tight text-ink">{guest.name}</div>
+              <div className="mt-0.5 text-[12px] text-ink-secondary">
+                Room {guest.room}{guest.nights > 0 && ` · ${guest.nights} Nights Stay`}
               </div>
             </div>
             <button aria-label="Edit conversation" className="rounded-lg p-2 text-ink-tertiary hover:bg-subtle"><Pencil className="h-4 w-4" /></button>
