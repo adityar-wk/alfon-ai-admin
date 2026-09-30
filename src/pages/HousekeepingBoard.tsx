@@ -15,7 +15,7 @@ import {
   ClipboardCheck,
 } from "lucide-react";
 import { Topbar } from "../components/Topbar";
-import { Page, Card, Badge, Button, Field, Select, Input, Modal } from "../components/ui";
+import { Button, Field, Select, Input, Modal } from "../components/ui";
 import { getDepartment } from "../data/departments";
 import { CLEANING_CHECKLIST, INSPECTION_CHECKLIST, TAG_TONE } from "../data/housekeepingChecklists";
 
@@ -193,7 +193,8 @@ export default function HousekeepingBoard() {
   return (
     <>
       <Topbar title="Housekeeping" />
-      <Page>
+      <main className="flex-1 overflow-y-auto bg-page">
+        <div className="p-6">
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
           {HEAD.map((h) => (
             <button
@@ -349,7 +350,8 @@ export default function HousekeepingBoard() {
             </div>
           </div>
         )}
-      </Page>
+        </div>
+      </main>
 
       {assignFor && (
         <EditRoomModal
