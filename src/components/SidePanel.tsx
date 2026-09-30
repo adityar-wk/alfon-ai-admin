@@ -16,7 +16,7 @@ export function SideSearch({ value, onChange, placeholder, children }: { value: 
             value={value}
             onChange={(e) => onChange(e.target.value)}
             placeholder={placeholder}
-            className="h-9 w-full rounded-control border border-line bg-subtle pl-9 pr-3 text-[13px] outline-none placeholder:text-ink-tertiary focus:border-brand focus:bg-white"
+            className="h-9 w-full rounded-control border-none bg-subtle pl-9 pr-3 text-[14px] outline-none placeholder:text-ink-tertiary focus:bg-white focus:ring-1 focus:ring-brand"
           />
         </div>
         {children}

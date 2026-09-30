@@ -7,7 +7,7 @@ import {
 import { Topbar } from "../components/Topbar";
 import { GuestChat, type ChatMsg, type ChatMode } from "../components/GuestChat";
 import { Flag } from "../components/Flag";
-import { SIDE_PANEL, SIDE_ROW, sideRowTone, SideSearch, SideFilterButton } from "../components/SidePanel";
+import { SIDE_PANEL, SIDE_ROW, sideRowTone, SideSearch } from "../components/SidePanel";
 import { Modal, Field, Input, PhoneInput, Button } from "../components/ui";
 import { GUESTS as BASE_GUESTS, type Guest } from "../data/guests";
 import { buildProfile, seedChat } from "./GuestProfile";
@@ -139,14 +139,16 @@ export default function GuestChats() {
             </>
           ) : (
             <>
-              <div className="shrink-0 px-4 pb-1 pt-4">
-                <h2 className="font-display text-[16px] font-bold text-ink">All Conversations</h2>
+              <div className="relative shrink-0 px-4 pb-1 pt-4">
+                <div className="flex items-center justify-between gap-2">
+                  <h2 className="font-display text-[16px] font-bold text-ink">All Conversations</h2>
+                  <button onClick={() => setFilterOpen((o) => !o)} aria-label="Filter conversations" aria-expanded={filterOpen} className={`shrink-0 ${filter !== "All" ? "text-brand" : "text-ink-tertiary hover:text-ink"}`}>
+                    <SlidersHorizontal className="h-[15px] w-[15px]" />
+                  </button>
+                </div>
                 <p className="mt-0.5 text-[12px] text-ink-tertiary">{list.length} {list.length === 1 ? "conversation" : "conversations"}</p>
-              </div>
-              <SideSearch value={query} onChange={setQuery} placeholder="Search conversations…">
-                <SideFilterButton label="Filter conversations" active={filter !== "All"} open={filterOpen} count={1} onClick={() => setFilterOpen((o) => !o)} />
                 {filterOpen && (
-                  <div className="absolute right-0 top-11 z-20 w-48 rounded-xl border border-line bg-white p-1.5 shadow-lg">
+                  <div className="absolute right-4 top-11 z-20 w-48 rounded-xl border border-line bg-white p-1.5 shadow-lg">
                     <div className="px-2.5 pb-1 pt-1.5 text-[11px] font-semibold uppercase tracking-wide text-ink-tertiary">Show</div>
                     {CHAT_FILTERS.map((x) => (
                       <button key={x} onClick={() => { setFilter(x); setFilterOpen(false); }} className="flex w-full items-center justify-between rounded-control px-2.5 py-2 text-left text-[13px] text-ink hover:bg-subtle">
@@ -156,6 +158,8 @@ export default function GuestChats() {
                     ))}
                   </div>
                 )}
+              </div>
+              <SideSearch value={query} onChange={setQuery} placeholder="Search conversations…">
                 <button onClick={() => setCollapsed(true)} aria-label="Collapse conversations" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-line bg-white text-ink-secondary hover:bg-subtle">
                   <PanelLeftClose className="h-4 w-4" />
                 </button>
@@ -172,10 +176,10 @@ export default function GuestChats() {
                       className={`${SIDE_ROW} w-full items-start gap-3 text-left ${sideRowTone(g.id === guest.id)}`}
                     >
                       <span className="relative block shrink-0">
-                        <span className={`flex h-10 w-10 items-center justify-center rounded-full font-display text-[12px] font-semibold ${g.tint}`}>{g.initials}</span>
+                        <span className={`flex h-9 w-9 items-center justify-center rounded-full font-display text-[12px] font-semibold ${g.tint}`}>{g.initials}</span>
                         {hasComplaint(g.name) && (
-                          <span className="absolute -bottom-1 -right-1 flex h-[20px] w-[20px] items-center justify-center rounded-full bg-white">
-                            <AlertCircle aria-label="Complaint" className="h-[18px] w-[18px] text-red-500" />
+                          <span className="absolute -bottom-1 -right-1 flex h-[18px] w-[18px] items-center justify-center rounded-full bg-white">
+                            <AlertCircle aria-label="Complaint" className="h-4 w-4 text-red-500" />
                           </span>
                         )}
                       </span>
@@ -184,11 +188,11 @@ export default function GuestChats() {
                         <span className="mt-0.5 block text-[12px] text-brand">Room {g.room}</span>
                         <span className="mt-1 flex items-center gap-2">
                           <span className="min-w-0 flex-1 truncate text-[12px] text-ink-secondary">{lm ? lm.text : "No messages yet"}</span>
-                          {c && <span className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold ${c.cls}`}>{c.text}</span>}
+                          {c && <span className={`shrink-0 rounded-full px-2.5 py-1 text-[12px] font-medium ${c.cls}`}>{c.text}</span>}
                         </span>
                       </span>
                       <span className="flex shrink-0 flex-col items-end justify-between gap-1.5 self-stretch py-0.5">
-                        <span className={`text-[12px] ${unread ? "font-bold text-brand" : "text-ink-tertiary"}`}>{lm?.time ?? ""}</span>
+                        <span className={`text-[11px] ${unread ? "font-bold text-brand" : "text-ink-tertiary"}`}>{lm?.time ?? ""}</span>
                         <span className="flex h-2.5 items-center">{unread && <span aria-label="Unread" className="h-2.5 w-2.5 rounded-full bg-brand" />}</span>
                       </span>
                     </button>
@@ -204,7 +208,7 @@ export default function GuestChats() {
         {/* ---------------- chat ---------------- */}
         <div className={`flex min-w-0 flex-1 flex-col overflow-hidden ${CARD}`}>
           <div className="flex items-center gap-3.5 border-b border-line/60 px-7 py-4">
-            <span className={`flex h-11 w-11 items-center justify-center rounded-full font-display text-[13px] font-semibold ${guest.tint}`}>{guest.initials}</span>
+            <span className={`flex h-10 w-10 items-center justify-center rounded-full font-display text-[13px] font-semibold ${guest.tint}`}>{guest.initials}</span>
             <div className="min-w-0 flex-1">
               <div className="text-[17px] font-bold leading-tight text-ink">{guest.name}</div>
               <div className="mt-0.5 flex items-center gap-1 text-[13px] text-ink-tertiary">
@@ -240,12 +244,12 @@ export default function GuestChats() {
         {/* ---------------- guest information ---------------- */}
         <div className={`w-[320px] shrink-0 overflow-y-auto p-7 ${CARD}`}>
           <div className="flex items-center justify-between">
-            <span className="text-[16px] font-bold text-ink">Guest Information</span>
+            <span className="text-[14px] font-semibold text-ink">Guest Information</span>
             <Link to={`/guests/${guest.id}`} className="text-[13px] font-medium text-brand">View Profile</Link>
           </div>
           <div className="mt-5 flex flex-col items-center text-center">
-            <span className={`flex h-16 w-16 items-center justify-center rounded-full font-display text-[20px] font-semibold ${guest.tint}`}>{guest.initials}</span>
-            <div className="mt-3 text-[18px] font-bold text-ink">{guest.name}</div>
+            <span className={`flex h-12 w-12 items-center justify-center rounded-full font-display text-[16px] font-semibold ${guest.tint}`}>{guest.initials}</span>
+            <div className="mt-3 text-[16px] font-bold text-ink">{guest.name}</div>
           </div>
           <div className="mt-6 space-y-3.5 text-[14px] text-ink">
             <div className="flex items-center gap-3"><Phone className="h-4 w-4 text-ink-tertiary" /> {guest.contact.startsWith("+") ? guest.contact : "+1 (555) 123-4567"}</div>
