@@ -23,7 +23,7 @@ import {
 } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { GuestChat, type ChatMsg, type ChatMode } from "../components/GuestChat";
-import { Page, Card, Button, Field, Input, Select, Textarea, RoomNo } from "../components/ui";
+import { Card, Button, Field, Input, Select, Textarea, RoomNo } from "../components/ui";
 import { TASKS, HELP_REQUESTS, AI_DRAFTS, logAudit, pendingHelpFor, resolveHelp, shortName, type Task, type Priority } from "../data/tasks";
 import { GUESTS } from "../data/guests";
 import { taskStatus, STATUS_PILL, COMPLAINT_PILL, slaSecs, useClock } from "../data/attention";
@@ -253,7 +253,8 @@ export default function Tasks() {
           </div>
         }
       />
-      <Page>
+      <main className="flex-1 overflow-y-auto bg-page">
+        <div className="p-6">
 
         <div className={`grid grid-cols-2 gap-4 lg:grid-cols-3 ${manager ? "xl:grid-cols-6" : "xl:grid-cols-5"}`}>
           {stats.map((s) => (
@@ -446,7 +447,8 @@ export default function Tasks() {
           </div>
         </Card>
         )}
-      </Page>
+        </div>
+      </main>
 
       {selected && (
         <ManagerTaskWindow

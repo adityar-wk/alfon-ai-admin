@@ -30,7 +30,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { Topbar } from "../components/Topbar";
-import { Page, Card, Select, RoomNo } from "../components/ui";
+import { Card, Select, RoomNo } from "../components/ui";
 import { TASKS } from "../data/tasks";
 import Orb from "../components/Orb";
 import { scoreBand } from "../data/scoreBand";
@@ -181,7 +181,8 @@ export default function Home() {
     return (
       <>
         <Topbar title={HOTEL} />
-        <Page>
+        <main className="flex-1 overflow-y-auto bg-page">
+        <div className="p-6">
           <OnboardingProgressCard />
           <div className="mt-6">
             <div className="mb-3 flex items-baseline justify-between">
@@ -190,7 +191,8 @@ export default function Home() {
             </div>
             <OnboardingStepsGrid />
           </div>
-        </Page>
+        </div>
+        </main>
       </>
     );
   }
@@ -198,7 +200,8 @@ export default function Home() {
   return (
     <>
       <Topbar title={HOTEL} />
-      <Page>
+      <main className="flex-1 overflow-y-auto bg-page">
+        <div className="p-6">
         {/* pillars | orb | department performance + occupancy */}
         <div className="grid grid-cols-1 items-stretch gap-5 xl:grid-cols-[260px_minmax(0,1fr)_320px]">
           <div className="grid grid-cols-2 gap-4 xl:grid-cols-1">
@@ -388,7 +391,8 @@ export default function Home() {
 
         </div>
 
-      </Page>
+        </div>
+        </main>
     </>
   );
 }

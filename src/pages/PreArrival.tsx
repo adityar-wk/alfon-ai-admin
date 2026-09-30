@@ -34,7 +34,7 @@ const PRE_ARRIVAL_TEMPLATES: MessageTemplate[] = [
   { label: "Messaging consent", text: "Hi {name}, may we message you here with updates about your stay? Reply YES to opt in." },
 ];
 import { Drawer } from "../components/Drawer";
-import { Page, Card, Button, Modal, Select } from "../components/ui";
+import { Button, Modal, Select } from "../components/ui";
 import { PRE_GUESTS, mk, type PreGuest, type Ready, type ReqStatus } from "../data/preArrival";
 
 /* ---------- small pieces ---------- */
@@ -316,7 +316,8 @@ export default function PreArrival() {
           </div>
         }
       />
-      <Page>
+      <main className="flex-1 overflow-y-auto bg-page">
+        <div className="p-6">
         {/* KPIs */}
         <div className="grid grid-cols-2 gap-5 lg:grid-cols-4">
           <Kpi icon={Plane} tone="text-slate-500" label="Arriving Today" value={today.length} onClick={() => goToday("all")} />
@@ -490,7 +491,8 @@ export default function PreArrival() {
             Showing {rows.length} of {dayGuests.length} guests
           </div>
         </div>
-      </Page>
+        </div>
+      </main>
 
       {confirmSend && (
         <Modal
