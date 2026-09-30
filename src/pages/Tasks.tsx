@@ -402,14 +402,14 @@ export default function Tasks() {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[1120px] table-fixed text-left">
               <colgroup>
-                <col className="w-[12.5%]" />
-                <col className="w-[12.5%]" />
-                <col className="w-[12.5%]" />
-                <col className="w-[12.5%]" />
-                <col className="w-[12.5%]" />
-                <col className="w-[12.5%]" />
-                <col className="w-[12.5%]" />
-                <col className="w-[12.5%]" />
+                <col className="w-[10%]" />
+                <col className="w-[9%]" />
+                <col className="w-[19%]" />
+                <col className="w-[9%]" />
+                <col className="w-[13%]" />
+                <col className="w-[12%]" />
+                <col className="w-[14%]" />
+                <col className="w-[14%]" />
               </colgroup>
               <thead>
                 <tr className="bg-[#F4F4F5] text-[12px] uppercase tracking-wide text-[#6B7280]">
