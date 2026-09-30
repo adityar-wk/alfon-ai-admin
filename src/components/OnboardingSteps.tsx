@@ -11,7 +11,7 @@ function StepCard({ s, status }: { s: OnboardingStep; status: StepStatus }) {
   return (
     <Link
       to={s.to}
-      className={`group flex flex-col rounded-card border bg-white p-5 transition-colors hover:border-brand/50 ${
+      className={`group flex flex-col rounded-card border bg-white p-5 shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:border-brand/50 hover:shadow-lift ${
         current ? "border-brand" : "border-line"
       }`}
     >
