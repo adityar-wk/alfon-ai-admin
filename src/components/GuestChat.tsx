@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ArrowUp, Sparkles, Hand, FileText, Paperclip, Smile, CheckCheck, Check } from "lucide-react";
+import { Send, Sparkles, Hand, FileText, Paperclip, Smile, CalendarDays, CheckCheck, Check } from "lucide-react";
 import { usePersona } from "../persona";
 
 export type MessageTemplate = { label: string; text: string };
@@ -188,6 +188,9 @@ export function GuestChat({
           <button aria-label="Emoji" disabled={mode !== "manual"} className="shrink-0 text-ink-tertiary hover:text-ink disabled:opacity-40">
             <Smile className="h-5 w-5" />
           </button>
+          <button aria-label="Schedule" disabled={mode !== "manual"} className="shrink-0 text-ink-tertiary hover:text-ink disabled:opacity-40">
+            <CalendarDays className="h-5 w-5" />
+          </button>
           {templates && (
             <button
               onClick={() => setTplOpen((o) => !o)}
@@ -214,7 +217,7 @@ export function GuestChat({
               mode === "manual" && draft.trim() ? "bg-brand shadow-[0_4px_12px_rgba(232,98,58,0.35)] hover:bg-brand-hover" : "bg-brand/25 shadow-none"
             }`}
           >
-            <ArrowUp className="h-5 w-5" strokeWidth={2.5} />
+            <Send className="h-[18px] w-[18px]" strokeWidth={2.5} />
           </button>
         </div>
       </div>

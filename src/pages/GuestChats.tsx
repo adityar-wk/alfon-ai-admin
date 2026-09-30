@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import {
   Search, Phone, Mail, Calendar, Hourglass, BedDouble, Users, UtensilsCrossed, Wine, SlidersHorizontal, PanelLeftClose, PanelLeftOpen, Check,
-  FileText, ChevronRight, CalendarDays, X, DoorOpen, AlertCircle,
+  FileText, ChevronRight, CalendarDays, X, DoorOpen, AlertCircle, Pencil, UserPlus, MoreVertical,
 } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { GuestChat, type ChatMsg, type ChatMode } from "../components/GuestChat";
@@ -14,7 +14,7 @@ import { buildProfile, seedChat } from "./GuestProfile";
 import { AI_DRAFTS, TASKS } from "../data/tasks";
 import { sampleUnread } from "../linestaff/mobile";
 
-const CARD = "rounded-[20px] border border-line/60 bg-white shadow-[0_1px_3px_rgba(16,24,40,0.05)]";
+const CARD = "rounded-card border border-line/60 bg-white shadow-card";
 
 const chip = (status: string) =>
   status === "Checked Out"
@@ -181,7 +181,7 @@ export default function GuestChats() {
                       </span>
                       <span className="min-w-0 flex-1">
                         <span className="block truncate text-[14px] font-semibold text-ink">{g.name}</span>
-                        <span className="mt-0.5 flex items-center gap-1 text-[12px] text-ink-tertiary"><DoorOpen className="h-3.5 w-3.5" />{g.room}</span>
+                        <span className="mt-0.5 block text-[12px] text-brand">Room {g.room}</span>
                         <span className="mt-1 flex items-center gap-2">
                           <span className="min-w-0 flex-1 truncate text-[12px] text-ink-secondary">{lm ? lm.text : "No messages yet"}</span>
                           {c && <span className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold ${c.cls}`}>{c.text}</span>}
@@ -212,6 +212,9 @@ export default function GuestChats() {
                 {guest.nights > 0 && <><span>·</span> {guest.nights} Nights Stay</>}
               </div>
             </div>
+            <button aria-label="Edit conversation" className="rounded-lg p-2 text-ink-tertiary hover:bg-subtle"><Pencil className="h-4 w-4" /></button>
+            <button aria-label="Assign staff" className="rounded-lg p-2 text-ink-tertiary hover:bg-subtle"><UserPlus className="h-4 w-4" /></button>
+            <button aria-label="More options" className="rounded-lg p-2 text-ink-tertiary hover:bg-subtle"><MoreVertical className="h-4 w-4" /></button>
           </div>
           <GuestChat
             className="min-h-0 flex-1"
