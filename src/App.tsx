@@ -11,6 +11,7 @@ import DepartmentsSetup from "./pages/DepartmentsSetup";
 import DepartmentDetail from "./pages/DepartmentDetail";
 import RoomsQrSetup from "./pages/RoomsQrSetup";
 import ComponentDesign from "./pages/ComponentDesign";
+import AltPrototype from "./pages/AltPrototype";
 import NotificationSettings from "./pages/NotificationSettings";
 import GuestChats from "./pages/GuestChats";
 import PreArrival from "./pages/PreArrival";
@@ -64,6 +65,7 @@ export const router = createBrowserRouter([
       { path: "/department", element: <DepartmentDashboard /> },
       { path: "/line-staff", element: <LineStaff /> },
       { path: "/components", element: <ComponentDesign /> },
+      { path: "/alt-prototype", element: <AltPrototype /> },
       { path: "/admin/hotels", element: <HotelsList /> },
       { path: "/admin/hotels/new", element: <AddHotel /> },
       { path: "/admin/hotels/:id", element: <HotelDetail /> },

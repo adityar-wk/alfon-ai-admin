@@ -19,6 +19,7 @@ import {
   MessageSquare,
   Building2 as HotelIcon,
   LayoutTemplate,
+  FlaskConical,
 } from "lucide-react";
 import { Logo } from "./Logo";
 import { PERSONAS, usePersona, type PersonaKey } from "../persona";
@@ -47,6 +48,7 @@ const GM_NAV: Item[] = [
   { label: "Settings", to: "/onboarding", icon: Settings, match: ["/settings", "/departments"] },
   { label: "Mobile App", to: "/line-staff", icon: Smartphone },
   { label: "Component Design", to: "/components", icon: Shapes },
+  { label: "Alt Prototype", to: "/alt-prototype", icon: FlaskConical },
 ];
 
 const MID_NAV: Item[] = [

@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Alfon AI — Hospitality Operations Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: { sans: ['Inter', 'sans-serif'], display: ['Sora', 'sans-serif'] },
+        colors: {
+          bg: '#FFFFFF',
+          card: '#FFFFFF',
+          orange: '#E8623A',
+          orangeLight: '#FFF4F0',
+          orangeHover: '#D4522D',
+          success: '#22C55E',
+          warning: '#F59E0B',
+          error: '#EF4444',
+          teal: '#2E86AB',
+          tealLight: '#F0F9FF',
+          purple: '#7C3AED',
+          purpleLight: '#F3F0FF',
+          slate: '#6B7280',
+          slateLight: '#9CA3AF',
+          lightgray: '#F5F5F5',
+          darktext: '#1A1A1A',
+          border: '#F0F0F0',
+        },
+        boxShadow: {
+          card: '0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04)',
+          cardHover: '0 8px 24px rgba(0,0,0,0.08)',
+        }
+      }
+    }
+  }
+</script>
+<script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+<script src="https://unpkg.com/prop-types@15.8.1/prop-types.js" crossorigin></script>
+<script src="https://unpkg.com/recharts@2/umd/Recharts.js" crossorigin></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js" crossorigin></script>
+<style>
+  :root {
+    --color-bg: #FFFFFF;
+    --color-card: #FFFFFF;
+    --color-border: #F0F0F0;
+    --color-text-primary: #1A1A1A;
+    --color-text-secondary: #6B7280;
+    --color-text-tertiary: #9CA3AF;
+    --color-orange: #E8623A;
+    --color-orange-light: #FFF4F0;
+    --color-orange-hover: #D4522D;
+    --color-success: #22C55E;
+    --color-warning: #F59E0B;
+    --color-error: #EF4444;
+    /* Reserved exclusively for the Hotel Health Score orb — not a general brand gradient. */
+    --orb-gradient: linear-gradient(135deg, #FFC371, #E8623A, #D4522D);
+  }
+
+  body { font-family: 'Inter', sans-serif; background: var(--color-bg); color: var(--color-text-primary); }
+  h1, h2, h3, .font-display { font-family: 'Sora', sans-serif; }
+
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+
+  /* Global card system */
+  .alfon-card {
+    background: #FFFFFF;
+    border: 1px solid #F0F0F0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
+    border-radius: 16px;
+    transition: transform 200ms ease, box-shadow 200ms ease;
+  }
+  .alfon-card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+  }
+
+  .alfon-btn { transition: all 200ms ease; }
+  .alfon-btn:hover { transform: translateY(-1px); }
+
+  /* ---- Hotel Health Score orb (premium glass sphere) ---- */
+  .health-orb-wrap {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+  }
+
+  .health-orb {
+    position: relative;
+    width: 290px;
+    height: 290px;
+    animation: orbBreathe 6s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+    filter: drop-shadow(0 18px 36px rgba(0,0,0,0.10)) drop-shadow(0 4px 10px rgba(0,0,0,0.05));
+  }
+
+  .health-orb__halo {
+    position: absolute;
+    inset: -18%;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--glow) 0%, rgba(255,255,255,0) 62%);
+    opacity: 0.32;
+    filter: blur(18px);
+    animation: orbGlowPulse 6s ease-in-out infinite;
+  }
+
+  .health-orb__halo--soft {
+    inset: -6%;
+    opacity: 0.22;
+    filter: blur(6px);
+    animation-duration: 6s;
+  }
+
+  .health-orb__image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transition: filter 0.3s ease;
+    transform-origin: 50% 50%;
+    animation: orbWobble 8s ease-in-out infinite;
+  }
+
+  @keyframes orbBreathe {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.018); }
+  }
+
+  @keyframes orbWobble {
+    0%, 100% { transform: scale(1, 1) rotate(0deg); }
+    22% { transform: scale(1.012, 0.99) rotate(0.5deg); }
+    48% { transform: scale(0.992, 1.014) rotate(-0.6deg); }
+    74% { transform: scale(1.008, 0.995) rotate(0.4deg); }
+  }
+
+  @keyframes orbGlowPulse {
+    0%, 100% { opacity: 0.26; }
+    50% { opacity: 0.42; }
+  }
+
+  .health-orb__score-wrap {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .health-orb__score {
+    font-family: 'Outfit', 'Sora', sans-serif;
+    font-weight: 600;
+    font-size: 46px;
+    letter-spacing: -1.5px;
+    line-height: 1;
+    color: #1C1C1E;
+    text-shadow:
+      0 -1px 1px rgba(0,0,0,0.18),
+      0 1.5px 0 rgba(255,255,255,0.75),
+      0 2px 5px rgba(0,0,0,0.05);
+  }
+
+  .health-orb__ground-shadow {
+    width: 130px;
+    height: 18px;
+    margin-top: -6px;
+    border-radius: 50%;
+    background: radial-gradient(ellipse at center, rgba(0,0,0,0.10) 0%, rgba(0,0,0,0) 75%);
+    filter: blur(3px);
+  }
+
+  .health-orb-label-below { text-align: center; margin-top: 14px; font-family: 'Inter', sans-serif; font-weight: 500; font-size: 11px; color: #9CA3AF; letter-spacing: 0.18em; text-transform: uppercase; }
+
+  @keyframes fadeSlideUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .msg-in { animation: fadeSlideUp 250ms ease-out; }
+
+  @keyframes typingDot {
+    0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+    40% { transform: scale(1); opacity: 1; }
+  }
+  .typing-dot { animation: typingDot 1.2s infinite ease-in-out; }
+
+  @keyframes breathe {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.4); }
+  }
+  .breathe-dot { animation: breathe 2s ease-in-out infinite; }
+
+  @keyframes aiPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+  }
+  .ai-pulse { animation: aiPulse 3s ease-in-out infinite; }
+
+  @keyframes slaPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.55; }
+  }
+  .sla-critical-pulse { animation: slaPulse 1s ease-in-out infinite; }
+
+  .strike-fade { transition: opacity 300ms ease, text-decoration-color 300ms ease; }
+
+  * { transition: background-color 200ms ease, border-color 200ms ease, color 200ms ease; }
+</style>
+</head>
+<body class="bg-bg text-darktext">
+<div id="root"></div>
+
+<script>
+  // Babel Standalone's automatic script-tag scanning defaults the React preset to the
+  // "automatic" JSX runtime, which injects `import ... from "react/jsx-runtime"` into
+  // every file — that import can't resolve in a plain <script>, so we load and transform
+  // each module ourselves with the "classic" runtime (React.createElement) instead.
+  const ALFON_MODULES = [
+    "./src/icons.js",
+    "./src/router.js",
+    "./src/config.js",
+    "./src/data.js",
+    "./src/api.js",
+    "./src/components/Sidebar.js",
+    "./src/components/Header.js",
+    "./src/components/Shared.js",
+    "./src/components/RingGauge.js",
+    "./src/screens/Home.js",
+    "./src/screens/Chats.js",
+    "./src/screens/Tasks.js",
+    "./src/screens/PreArrival.js",
+    "./src/screens/Housekeeping.js",
+    "./src/screens/Guests.js",
+    "./src/screens/Team.js",
+    "./src/screens/Analytics.js",
+    "./src/screens/Reports.js",
+    "./src/screens/Settings.js",
+    "./src/App.js",
+  ];
+
+  async function loadAlfonApp() {
+    for (const path of ALFON_MODULES) {
+      const res = await fetch(path, { cache: "no-store" });
+      const source = await res.text();
+      const { code } = Babel.transform(source, {
+        presets: [["react", { runtime: "classic" }]],
+        filename: path,
+      });
+      (0, eval)(code);
+    }
+  }
+
+  loadAlfonApp().catch((err) => {
+    console.error("Failed to load Alfon AI app:", err);
+    document.getElementById("root").innerHTML =
+      '<div style="padding:40px;font-family:sans-serif;color:#E8623A">Failed to load app — see console for details.</div>';
+  });
+</script>
+</body>
+</html>
