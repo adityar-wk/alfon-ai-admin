@@ -397,19 +397,23 @@ export default function Tasks() {
         ) : (
         <Card table className="overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full table-fixed text-left">
+            <table className="w-full min-w-[1120px] table-fixed text-left">
               <colgroup>
-                <col className="w-[16.666%]" />
-                <col className="w-[16.666%]" />
-                <col className="w-[16.666%]" />
-                <col className="w-[16.666%]" />
-                <col className="w-[16.666%]" />
-                <col className="w-[16.666%]" />
+                <col className="w-[90px]" />
+                <col className="w-[80px]" />
+                <col />
+                <col className="w-[90px]" />
+                <col className="w-[140px]" />
+                <col className="w-[130px]" />
+                <col className="w-[150px]" />
+                <col className="w-[140px]" />
               </colgroup>
               <thead>
                 <tr className="bg-[#F4F4F5] text-[12px] uppercase tracking-wide text-[#6B7280]">
                   <th className="truncate py-3.5 pl-6 font-medium">SLA</th>
+                  <th className="truncate py-3.5 pl-6 font-medium">Task #</th>
                   <th className="truncate py-3.5 pl-6 font-medium">Task</th>
+                  <th className="truncate py-3.5 pl-6 font-medium">Room</th>
                   <th className="truncate py-3.5 pl-6 font-medium">Guest</th>
                   <th className="truncate py-3.5 pl-6 font-medium">Status</th>
                   <th className="truncate py-3.5 pl-6 font-medium">Department</th>
@@ -422,13 +426,14 @@ export default function Tasks() {
                   return (
                     <tr key={t.id} onClick={() => setSelectedId(t.id)} className={`cursor-pointer border-b border-line/50 last:border-0 hover:bg-subtle/60 ${t.status === "Completed" ? "opacity-50" : ""}`}>
                       <td className="truncate py-3.5 pl-6 pr-3">{t.status !== "Completed" && <SlaText sla={t.sla} />}</td>
+                      <td className="truncate py-3.5 pl-6 pr-3 font-mono text-[12px] text-ink-tertiary">#{String(t.id).padStart(3, "0")}</td>
                       <td className="min-w-0 py-3.5 pl-6 pr-3">
                         <div className="flex min-w-0 items-center gap-2 text-[13px] font-semibold text-ink">
                           <span className="truncate">{t.title}</span>
                           {cap(t) && <span className="shrink-0"><ComplaintPill /></span>}
                         </div>
-                        <div className="mt-0.5 truncate text-[12px] text-ink-tertiary"><RoomNo room={t.room} /></div>
                       </td>
+                      <td className="truncate py-3.5 pl-6 pr-3 text-[13px] text-ink-secondary"><RoomNo room={t.room} /></td>
                       <td className="truncate py-3.5 pl-6 pr-3 text-[14px] text-ink-secondary">{t.guest}</td>
                       <td className="truncate py-3.5 pl-6 pr-3"><StatusLabel t={t} /></td>
                       <td className="truncate py-3.5 pl-6 pr-3 text-[14px] text-ink-secondary"><span className="flex min-w-0 items-center gap-2"><D className="h-4 w-4 shrink-0 text-ink-tertiary" /><span className="truncate">{t.dept}</span></span></td>
@@ -440,7 +445,7 @@ export default function Tasks() {
                 })}
                 {!rows.length && (
                   <tr>
-                    <td colSpan={6} className="py-3.5 pl-6 pr-3 text-center text-[14px] text-ink-tertiary">No tasks in this view.</td>
+                    <td colSpan={8} className="py-3.5 pl-6 pr-3 text-center text-[14px] text-ink-tertiary">No tasks in this view.</td>
                   </tr>
                 )}
               </tbody>
@@ -967,7 +972,7 @@ function ManagerTaskWindow({
                 navigate(guestId ? `/guest-chats?guest=${guestId}` : `/guest-chats?name=${encodeURIComponent(task.guest)}&room=${task.room}`);
               }}
               disabled={closed}
-              className="w-full rounded-lg bg-emerald-500 py-3 text-[14px] font-semibold text-white hover:bg-emerald-600 disabled:opacity-40"
+              className="w-full rounded-lg bg-[#22C55E] py-3 text-[14px] font-semibold text-white hover:bg-[#1DA750] disabled:opacity-40"
             >
               {closed ? "Closed" : "Mark as Complete"}
             </button>
