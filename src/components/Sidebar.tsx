@@ -48,7 +48,6 @@ const GM_NAV: Item[] = [
   { label: "Settings", to: "/onboarding", icon: Settings, match: ["/settings", "/departments"] },
   { label: "Mobile App", to: "/line-staff", icon: Smartphone },
   { label: "Component Design", to: "/components", icon: Shapes },
-  { label: "Alt Prototype", to: "/alt-prototype", icon: FlaskConical },
 ];
 
 const MID_NAV: Item[] = [
@@ -70,6 +69,11 @@ const SUPERADMIN_NAV: Item[] = [
   { label: "Settings", to: "/admin/settings", icon: Settings },
 ];
 
+/** Alt Prototype's own app: just the one reference page */
+const ALT_PROTOTYPE_NAV: Item[] = [
+  { label: "Alt Prototype", to: "/alt-prototype", icon: FlaskConical },
+];
+
 export function Sidebar() {
   const { persona, setPersona, me, manager, inScope } = usePersona();
   const { hotel: steppedInto } = useImpersonation();
@@ -80,9 +84,11 @@ export function Sidebar() {
   const nav =
     persona === "superadmin"
       ? SUPERADMIN_NAV
-      : manager
-        ? MID_NAV.filter((i) => i.label !== "Housekeeping" || me.depts.includes("Housekeeping"))
-        : GM_NAV;
+      : persona === "altprototype"
+        ? ALT_PROTOTYPE_NAV
+        : manager
+          ? MID_NAV.filter((i) => i.label !== "Housekeeping" || me.depts.includes("Housekeeping"))
+          : GM_NAV;
   const escalated = TASKS.filter((t) => t.status === "Escalated" && inScope(t.dept)).length;
 
   useEffect(() => {

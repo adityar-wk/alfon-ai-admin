@@ -36,6 +36,13 @@ function Shell() {
   if (persona !== "superadmin" && inAdminApp) {
     return <Navigate to={me.home} replace />;
   }
+  // Alt Prototype is just the one reference page — nothing else in the app applies to it
+  if (persona === "altprototype" && pathname !== PERSONAS.altprototype.home) {
+    return <Navigate to={PERSONAS.altprototype.home} replace />;
+  }
+  if (persona !== "altprototype" && pathname === PERSONAS.altprototype.home) {
+    return <Navigate to={me.home} replace />;
+  }
   // keep each persona inside the screens it actually has
   if (manager && MID_BLOCKED.some((p) => pathname === p || pathname.startsWith(p + "/"))) {
     return <Navigate to={PERSONAS.mid.home} replace />;
