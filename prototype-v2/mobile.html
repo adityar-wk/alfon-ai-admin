@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Alfon Staff</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js" crossorigin></script>
+  <style>
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
+    body {
+      background: #EDE8E3;
+      font-family: "Inter", sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+    }
+    html, body { height: 100%; }
+    #root {
+      width: 100%;
+      max-width: 430px;
+      height: 100vh;
+      background: #fff;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    @media (min-width: 500px) {
+      body { padding: 40px 0; align-items: center; height: auto; }
+      #root {
+        height: 860px;
+        border-radius: 44px;
+        overflow: hidden;
+        box-shadow: 0 40px 80px rgba(0,0,0,0.28), 0 0 0 1px rgba(0,0,0,0.08);
+      }
+    }
+    ::-webkit-scrollbar { width: 0; height: 0; }
+    button { transition: opacity 120ms ease, transform 120ms ease; }
+    button:active { opacity: 0.75; transform: scale(0.97); }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+  async function loadMobileApp() {
+    // Load mobile app (self-contained, no shared desktop data needed)
+    const appRes = await fetch("./src/mobile-app.js", { cache: "no-store" });
+    const appCode = await appRes.text();
+    const { code: compiledApp } = Babel.transform(appCode, {
+      presets: [["react", { runtime: "classic" }]],
+      filename: "mobile-app.js",
+    });
+    (0, eval)(compiledApp);
+  }
+
+  loadMobileApp().catch(err => {
+    console.error("Failed to load Alfon Staff app:", err);
+    document.getElementById("root").innerHTML =
+      '<div style="padding:40px;font-family:sans-serif;color:#E8623A">Failed to load — see console for details.</div>';
+  });
+</script>
+</body>
+</html>
