@@ -281,15 +281,6 @@ export default function Team() {
               {filtersOpen && (
                 <div className="absolute left-0 top-12 z-30 w-[360px] rounded-card border border-line bg-white p-4 shadow-lg">
                   <div className="grid grid-cols-2 gap-3">
-                    <label className="block">
-                      <span className="mb-1 block text-[11px] text-ink-secondary">Department</span>
-                      <Select className="h-9 text-[13px]" value={dept} onChange={(e) => setDept(e.target.value)}>
-                        <option>All Departments</option>
-                        {DEPT_OPTIONS.filter(inScope).map((d) => (
-                          <option key={d}>{d}</option>
-                        ))}
-                      </Select>
-                    </label>
                     {manager && <label className="block">
                       <span className="mb-1 block text-[11px] text-ink-secondary">Availability</span>
                       <Select className="h-9 text-[13px]" value={status} onChange={(e) => setStatus(e.target.value)}>
@@ -322,6 +313,20 @@ export default function Team() {
                 Clear filters
               </button>
             )}
+          </div>
+
+          <div className="mt-3 flex flex-wrap gap-2">
+            {["All Departments", ...DEPT_OPTIONS.filter(inScope)].map((d) => (
+              <button
+                key={d}
+                onClick={() => setDept(d)}
+                className={`whitespace-nowrap rounded-full px-3.5 py-1.5 text-[13px] font-medium transition-all duration-200 hover:-translate-y-px ${
+                  dept === d ? "bg-brand text-white" : "border border-line bg-white text-ink-secondary hover:bg-subtle"
+                }`}
+              >
+                {d}
+              </button>
+            ))}
           </div>
 
           <Card table className="mt-4">

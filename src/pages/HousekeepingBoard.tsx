@@ -234,12 +234,6 @@ export default function HousekeepingBoard() {
                     ))}
                   </div>
                 </div>
-                <Field label="Floor">
-                  <Select value={String(floor)} onChange={(e) => setFloor(e.target.value === "all" ? "all" : Number(e.target.value))}>
-                    <option value="all">All floors</option>
-                    {FLOORS.map((f) => <option key={f} value={f}>Floor {f}</option>)}
-                  </Select>
-                </Field>
                 <Field label="Occupancy">
                   <Select value={occ} onChange={(e) => setOcc(e.target.value as "all" | "occupied" | "vacant")}>
                     <option value="all">All rooms</option>
@@ -255,6 +249,20 @@ export default function HousekeepingBoard() {
             )}
           </div>
           {activeFilters > 0 && <button onClick={clearFilters} className="text-[13px] font-medium text-brand">Clear filters</button>}
+        </div>
+
+        <div className="mt-3 flex flex-wrap gap-2">
+          {(["all", ...FLOORS] as const).map((f) => (
+            <button
+              key={f}
+              onClick={() => setFloor(f)}
+              className={`whitespace-nowrap rounded-full px-3.5 py-1.5 text-[13px] font-medium transition-all duration-200 hover:-translate-y-px ${
+                floor === f ? "bg-brand text-white" : "border border-line bg-white text-ink-secondary hover:bg-subtle"
+              }`}
+            >
+              {f === "all" ? "All floors" : `Floor ${f}`}
+            </button>
+          ))}
         </div>
 
         <div className="mt-3 text-[12px] text-ink-tertiary">
