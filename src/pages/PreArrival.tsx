@@ -307,11 +307,11 @@ export default function PreArrival() {
                 e.target.value = "";
               }}
             />
-            <Button variant="outline" onClick={() => fileRef.current?.click()}>
-              <Upload className="h-4 w-4" /> Upload report
+            <Button variant="brand-outline" onClick={() => fileRef.current?.click()}>
+              <Upload className="h-4 w-4" /> Upload Arrival Report
             </Button>
             <Button disabled={!unsent.length} onClick={() => setConfirmSend(true)} className="disabled:opacity-40">
-              <Send className="h-4 w-4" /> Send to all unsent{unsent.length ? ` (${unsent.length})` : ""}
+              <Send className="h-4 w-4" /> Send All Pre-Arrival Messages
             </Button>
           </div>
         }

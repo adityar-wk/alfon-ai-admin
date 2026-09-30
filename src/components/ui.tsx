@@ -95,7 +95,7 @@ export function Button({
   }[variant];
   return (
     <button
-      className={`inline-flex items-center justify-center gap-2 rounded-control px-[18px] py-2.5 text-[14px] font-semibold transition-colors duration-200 ${styles} ${className}`}
+      className={`inline-flex items-center justify-center gap-2 rounded-control px-[18px] py-2.5 font-display text-[14px] font-semibold transition-colors duration-200 ${styles} ${className}`}
       {...rest}
     >
       {children}
