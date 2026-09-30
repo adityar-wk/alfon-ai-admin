@@ -2,15 +2,15 @@ import { useState } from "react";
 import { Lock, Instagram, Facebook, Search, X } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { SetupTabs } from "../components/SetupTabs";
-import { Page, Card, Button, Field, Input, Select } from "../components/ui";
+import { Page, Button, Field, Input, Select } from "../components/ui";
 import { useGoNextStep } from "../data/onboarding";
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <Card className="p-6">
+    <section>
       <h3 className="mb-4 text-[15px] font-semibold text-ink">{title}</h3>
       {children}
-    </Card>
+    </section>
   );
 }
 
@@ -43,7 +43,7 @@ export default function HotelPropertySetup() {
       <Page>
         <SetupTabs />
         <div className="max-w-3xl">
-          <div className="space-y-5">
+          <div className="space-y-8">
             <Section title="Basic Information">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <Field label="Hotel Name" required hint="Set by Alfon when this hotel was added.">

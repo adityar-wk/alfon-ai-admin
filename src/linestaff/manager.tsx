@@ -1,9 +1,8 @@
 import { Button } from "../components/ui";
-import { Logo } from "../components/Logo";
 import { useMemo, useState } from "react";
 import {
   Bell, Home as HomeIcon, Plus, Users, UserCog, UserPlus, ArrowUpRight, MessageCircle, Send, Filter, ChevronRight, ChevronLeft, Search,
-  Menu as MenuIcon, ListChecks, BarChart3, AlertTriangle, User, BedDouble, DoorOpen, Building2, FileText, Download, Lock, UtensilsCrossed, Languages, Thermometer, AlarmClock, Wine, Phone, Mail, Sparkles, SlidersHorizontal, LogOut,
+  ListChecks, ContactRound, BarChart3, AlertTriangle, User, BedDouble, DoorOpen, Building2, FileText, Download, Lock, UtensilsCrossed, Languages, Thermometer, AlarmClock, Wine, Phone, Mail, Sparkles, SlidersHorizontal, LogOut,
   CheckCircle2, Loader, AlertCircle, CircleSlash, Wrench, ClipboardCheck,
 } from "lucide-react";
 import { CLEANING_CHECKLIST, INSPECTION_CHECKLIST, TAG_TONE } from "../data/housekeepingChecklists";
@@ -33,6 +32,17 @@ type Screen = {
 type SheetState = { k: "needHelp" | "assign" | "support" | "duty"; taskId: string } | null;
 
 const ME = "Daniel Reyes";
+const ME_INITIALS = ME.split(" ").map((p) => p[0]).join("").slice(0, 2);
+/** FloatingNav icon: filled initials avatar that follows active/inactive text color. */
+function MoreNavIcon({ className }: { className?: string }) {
+  return (
+    <span className={`inline-flex items-center justify-center ${className ?? ""}`}>
+      <span className="flex h-full w-full items-center justify-center rounded-full bg-current">
+        <span className="text-[9px] font-bold leading-none text-white">{ME_INITIALS}</span>
+      </span>
+    </span>
+  );
+}
 const ESC_FILTERS = ["All", "SLA breach", "SLA at risk", "Guest complaint", "Unable to complete", "Staffing issue", "Supervisor escalation", "High priority"] as const;
 const DEFAULT_SLA = 40;
 type EscFilter = (typeof ESC_FILTERS)[number];
@@ -47,11 +57,11 @@ type RoomStatusFilter = (typeof ROOM_STATUS_FILTERS)[number];
 const ROOM_STATUSES = ["Inspected", "In Progress", "Needs Inspection", "Out of Service", "Out of Order"] as const;
 /** matches the colour coding used on the web Housekeeping tab */
 const ROOM_STATUS_TONE: Record<RoomStatus, string> = {
-  Inspected: "text-emerald-600",
-  "In Progress": "text-blue-600",
+  Inspected: "text-success",
+  "In Progress": "text-brand",
   "Needs Inspection": "text-amber-600",
-  "Out of Service": "text-red-600",
-  "Out of Order": "text-gray-500",
+  "Out of Service": "text-danger",
+  "Out of Order": "text-ink-tertiary",
 };
 const ROOM_STATUS_ICON: Record<RoomStatus, React.ComponentType<{ className?: string }>> = {
   Inspected: CheckCircle2,
@@ -61,11 +71,11 @@ const ROOM_STATUS_ICON: Record<RoomStatus, React.ComponentType<{ className?: str
   "Out of Order": Wrench,
 };
 const ROOM_STATUS_ICON_TONE: Record<RoomStatus, string> = {
-  Inspected: "bg-emerald-50 text-emerald-600",
-  "In Progress": "bg-blue-50 text-blue-600",
+  Inspected: "bg-emerald-50 text-success",
+  "In Progress": "bg-brand-tint text-brand",
   "Needs Inspection": "bg-amber-50 text-amber-600",
-  "Out of Service": "bg-red-50 text-red-600",
-  "Out of Order": "bg-gray-100 text-gray-500",
+  "Out of Service": "bg-red-50 text-danger",
+  "Out of Order": "bg-subtle text-ink-tertiary",
 };
 const TASK_FILTERS = ["All", "Unassigned", "At Risk", "Overdue", "Completed"] as const;
 type TaskFilter = (typeof TASK_FILTERS)[number];
@@ -90,7 +100,6 @@ const MENU_ITEMS = [
   { key: "team" as const, label: "Team Management", icon: Users },
   { key: "housekeeping" as const, label: "Housekeeping", icon: DoorOpen },
   { key: "analytics" as const, label: "Analytics", icon: BarChart3 },
-  { key: "guestsRoster" as const, label: "Guests", icon: BedDouble },
   { key: "reports" as const, label: "Reports", icon: FileText },
 ];
 
@@ -126,6 +135,15 @@ const HK_COMPLAINTS = Object.entries(COMPLAINT_DETAIL)
   .filter((x) => x.v > 0)
   .sort((a, b) => b.v - a.v);
 const HK_TOP_REQUESTS = [...HK_DEPT.items].filter(([l]) => l !== "Other").sort((a, b) => b[1] - a[1]).slice(0, 5);
+/** Compact mobile analytics extras — aligned with desktop SATISFACTION / peak-hour heat */
+const HK_SATISFACTION = { score: 4.7, delta: "+0.2", promoters: 72, neutral: 19, detractors: 9 };
+const HK_PEAK_HOURS: { dept: string; peak: string; load: number }[] = [
+  { dept: "Housekeeping", peak: "9 AM", load: 94 },
+  { dept: "Front Desk", peak: "3 PM", load: 88 },
+  { dept: "Room Service", peak: "7 PM", load: 82 },
+  { dept: "Engineering", peak: "10 AM", load: 76 },
+  { dept: "Laundry", peak: "11 AM", load: 68 },
+];
 const rampColors = (n: number) =>
   Array.from({ length: n }, (_, i) => {
     const t = n === 1 ? 0 : i / (n - 1);
@@ -135,13 +153,13 @@ const rampColors = (n: number) =>
 const HK_DONUT_COLORS = pastel(HK_DEPT.items.length);
 
 const NOTIFS = [
-  { label: "Escalation", tone: "text-red-600", task: "Deep clean", sub: "Room 1204 · Staffing risk", time: "10:20 AM", to: "t5" },
-  { label: "SLA breach", tone: "text-orange-600", task: "Stained bedding", sub: "Room 1103 · 14 min over", time: "10:10 AM", to: "t6" },
+  { label: "Escalation", tone: "text-danger", task: "Deep clean", sub: "Room 1204 · Staffing risk", time: "10:20 AM", to: "t5" },
+  { label: "SLA breach", tone: "text-brand", task: "Stained bedding", sub: "Room 1103 · 14 min over", time: "10:10 AM", to: "t6" },
   { label: "Complaint", tone: "text-cyan-600", task: "Guest complaint", sub: "Michael Johnson · Negative sentiment", time: "10:15 AM", to: "t6" },
-  { label: "SLA breach", tone: "text-orange-600", task: "Extra pillows", sub: "Room 908 · Breached twice today", time: "10:25 AM", to: "t10" },
-  { label: "Help request", tone: "text-emerald-600", task: "Aanya Khan is overloaded", sub: "2 tasks, 1 overdue", time: "10:28 AM", to: "team" },
+  { label: "SLA breach", tone: "text-brand", task: "Extra pillows", sub: "Room 908 · Breached twice today", time: "10:25 AM", to: "t10" },
+  { label: "Help request", tone: "text-success", task: "Aanya Khan is overloaded", sub: "2 tasks, 1 overdue", time: "10:28 AM", to: "team" },
   { label: "Unassigned", tone: "text-sky-600", task: "Extra towels", sub: "Room 2104 · High priority", time: "10:31 AM", to: "t12" },
-  { label: "Escalation", tone: "text-red-600", task: "Guest conversation", sub: "Room 1103 · Escalated by AI", time: "10:14 AM", to: "t6" },
+  { label: "Escalation", tone: "text-danger", task: "Guest conversation", sub: "Room 1103 · Escalated by AI", time: "10:14 AM", to: "t6" },
 ];
 
 const escSort = (a: MTask, b: MTask) => a.slaLeft - b.slaLeft;
@@ -377,25 +395,22 @@ export function ManagerPrototype() {
     setService(""); setRoom(""); setDetails("");
     nav.push({ name: "create" });
   };
-  const shell = (key: "home" | "tasks" | "guests", body: React.ReactNode) => (
+  const shell = (key: "home" | "tasks" | "guests" | "guestsRoster" | "menu", body: React.ReactNode) => (
     <div className="relative h-full">
       <div className="h-full overflow-y-auto pb-24 no-scrollbar">{body}</div>
       <FloatingNav
+        showLabels={false}
         active={key}
         onChange={(k) => nav.go({ name: k })}
         items={[
           { key: "home", label: "Home", icon: HomeIcon },
           { key: "tasks", label: "Tasks", icon: ListChecks },
-          { key: "guests", label: "Guests", icon: MessageCircle },
+          { key: "guests", label: "Chats", icon: MessageCircle },
+          { key: "guestsRoster", label: "Guests", icon: ContactRound },
+          { key: "menu", label: "More", icon: MoreNavIcon },
         ]}
       />
     </div>
-  );
-
-  const menuBtn = (
-    <button onClick={() => nav.push({ name: "menu" })} aria-label="Menu" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-ink active:bg-ink/5">
-      <MenuIcon className="h-[22px] w-[22px]" />
-    </button>
   );
 
   const bellBtn = (
@@ -406,27 +421,28 @@ export function ManagerPrototype() {
 
   const Home = shell("home", (
     <>
-      <div className="grid grid-cols-[44px_1fr_44px] items-center px-6 py-2">
-        {menuBtn}
-        <div className="flex justify-center"><Logo /></div>
+      <div className="flex items-start justify-between gap-3 px-6 py-2">
+        <div className="min-w-0">
+          <div className="truncate text-[22px] font-semibold leading-tight text-ink">Good morning, {ME.split(" ")[0]} 👋</div>
+          <p className="mt-1 text-[13px] font-normal text-ink-secondary">Here's what's happening today</p>
+        </div>
         {bellBtn}
       </div>
 
-      <div className="mt-5"><SectionTitle tone="bg-brand">Department operations</SectionTitle></div>
-      <div className="mt-3 grid grid-cols-3 gap-3 px-6">
-        <StatCard label="Open tasks" value={counts.open} onClick={() => setFilter("All")} />
-        <StatCard label="SLA at risk" value={counts.risk} onClick={() => setFilter("SLA at risk")} />
-        <StatCard label="Overdue" value={counts.over} onClick={() => setFilter("SLA breach")} />
-        <StatCard label="Escalations" value={counts.esc} onClick={() => setFilter("All")} />
-        <StatCard label="Complaints" value={counts.complaints} onClick={() => setFilter("Guest complaint")} />
-        <StatCard label="Unassigned critical" value={counts.critical} onClick={() => { const t = tasks.find((x) => x.status === "unassigned" && (x.priority === "High" || x.priority === "Critical")); if (t) open(t.id); }} />
+      <div className="mt-5 grid grid-cols-3 gap-3 px-6">
+        <StatCard calm label="Open tasks" value={counts.open} onClick={() => setFilter("All")} />
+        <StatCard calm label="SLA at risk" value={counts.risk} onClick={() => setFilter("SLA at risk")} />
+        <StatCard calm label="Overdue" value={counts.over} onClick={() => setFilter("SLA breach")} />
+        <StatCard calm label="Escalations" value={counts.esc} onClick={() => setFilter("All")} />
+        <StatCard calm label="Complaints" value={counts.complaints} onClick={() => setFilter("Guest complaint")} />
+        <StatCard calm label="Unassigned critical" value={counts.critical} onClick={() => { const t = tasks.find((x) => x.status === "unassigned" && (x.priority === "High" || x.priority === "Critical")); if (t) open(t.id); }} />
       </div>
 
-      <div className="mt-7"><SectionTitle tone="bg-red-500">Escalations</SectionTitle></div>
-      <div className="mt-3"><Chips flat items={ESC_FILTERS} active={filter} onChange={setFilter} counts={chipCounts} /></div>
+      <div className="mt-7"><SectionTitle tone="bg-red-500">Tasks</SectionTitle></div>
+      <div className="mt-3"><Chips calm flat items={ESC_FILTERS} active={filter} onChange={setFilter} counts={chipCounts} /></div>
       <div className="mt-3 space-y-3 px-6">
         {filtered.map(card)}
-        {!filtered.length && <p className="rounded-2xl bg-white p-6 text-center text-[13px] text-ink-tertiary">Nothing escalated in this view.</p>}
+        {!filtered.length && <p className="rounded-2xl bg-white p-6 text-center text-[13px] text-ink-tertiary">No tasks in this view.</p>}
       </div>
     </>
   ));
@@ -435,12 +451,7 @@ export function ManagerPrototype() {
   const Tasks = shell("tasks", (
     <>
       <div className="flex items-center justify-between px-6 py-2">
-        <div className="flex items-center gap-3">
-          {menuBtn}
-          <div className="leading-tight">
-            <div className="text-[20px] font-semibold text-ink">Tasks</div>
-          </div>
-        </div>
+        <div className="text-[20px] font-semibold text-ink">Tasks</div>
         <div className="flex items-center gap-2">
           {bellBtn}
           <button onClick={openCreate} aria-label="Create task" className="flex h-11 w-11 items-center justify-center rounded-full bg-brand text-white active:bg-brand-hover">
@@ -655,11 +666,9 @@ export function ManagerPrototype() {
   const Guests = shell("guests", (
     <>
       <div className="sticky top-0 z-10 flex items-center justify-between bg-white px-6 py-2">
-        <div className="flex items-center gap-3">
-          {menuBtn}
-          <div className="leading-tight">
-            <div className="text-[20px] font-semibold text-ink">Chats</div>
-          </div>
+        <div className="leading-tight">
+          <div className="text-[20px] font-display font-bold text-ink">Chats</div>
+          <div className="text-[12px] font-normal text-ink-secondary">Conversations assigned to you</div>
         </div>
         {bellBtn}
       </div>
@@ -673,7 +682,7 @@ export function ManagerPrototype() {
           <Plus className="h-6 w-6" strokeWidth={2.25} />
         </button>
       </div>
-      <div className="mt-3"><Chips flat items={GUEST_FILTERS} active={guestFilter} onChange={setGuestFilter} /></div>
+      <div className="mt-3"><Chips flat dense items={GUEST_FILTERS} active={guestFilter} onChange={setGuestFilter} /></div>
       <div className="mt-1 px-6">
         {guestsFiltered.map((g) => (
           <ChatRow
@@ -733,14 +742,14 @@ export function ManagerPrototype() {
         <button onClick={nav.back} aria-label="Back" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-ink shadow-sm">
           <ChevronLeft className="h-5 w-5" />
         </button>
-        <span className="text-[13px] font-semibold text-ink-secondary">Task detail</span>
+        <span className="text-[11px] font-bold uppercase tracking-[0.08em] text-ink-tertiary">Task detail</span>
         {task.status !== "completed" && <div className="ml-auto"><SlaCountdown left={task.slaLeft} total={task.slaTotal} /></div>}
       </div>
       <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 pb-6 pt-4 no-scrollbar">
         <div className="flex items-start gap-3">
           <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-tint text-brand"><BedDouble className="h-6 w-6" /></span>
           <div className="min-w-0">
-            <h2 className="text-[18px] font-bold leading-snug text-ink">{task.title}</h2>
+            <h2 className="font-display text-[18px] font-bold leading-[1.25] text-ink">{task.title}</h2>
             <div className="mt-1 flex flex-wrap items-center gap-1.5">
               <StatusTag s={task.status} />
             </div>
@@ -749,7 +758,7 @@ export function ManagerPrototype() {
 
         <div className="divide-y divide-line rounded-2xl border border-line bg-white px-4">
           <DetailRow icon={User} label="Guest">
-            <button onClick={() => nav.push({ name: "guestProfile", id: task.guest })} className="flex items-center gap-1 text-left font-semibold text-brand">
+            <button onClick={() => nav.push({ name: "guestProfile", id: task.guest })} className="flex items-center gap-1 text-left font-medium text-brand">
               {task.guest} <ChevronRight className="h-4 w-4" />
             </button>
           </DetailRow>
@@ -760,13 +769,13 @@ export function ManagerPrototype() {
         </div>
 
         <div className="rounded-2xl bg-[#F6F6F8] p-4">
-          <div className="text-[12px] font-semibold text-ink-tertiary">Notes</div>
+          <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-ink-tertiary">Notes</div>
           {(() => {
             const staffNotes = SEED_REQUESTS.filter((r) => r.taskId === task.id);
-            if (!staffNotes.length) return <p className="mt-1.5 text-[14px] leading-relaxed text-ink">{task.note}</p>;
+            if (!staffNotes.length) return <p className="mt-2 text-[14px] font-normal leading-[1.6] text-ink">{task.note}</p>;
             return staffNotes.map((r) => (
               <div key={r.id} className="mt-1.5">
-                <p className="text-[14px] leading-relaxed text-ink">{r.note}</p>
+                <p className="text-[14px] font-normal leading-[1.6] text-ink">{r.note}</p>
                 <p className="mt-1 text-[12px] text-ink-tertiary"><span className="font-semibold text-ink-secondary">{r.staff}</span> · {STAFF.find((s) => s.name === r.staff)?.role ?? "Line Staff"}</p>
               </div>
             ));
@@ -889,10 +898,9 @@ export function ManagerPrototype() {
     </div>
   );
 
-  const Menu = (
-    <div className="flex h-full flex-col">
-      <ScreenHeader title="More" onBack={nav.back} />
-      <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-6 pt-2 no-scrollbar">
+  const Menu = shell("menu", (
+    <>
+      <div className="px-6 pb-6 pt-2">
         <div className="flex flex-col items-center pb-8 pt-6 text-center">
           <Avatar name={ME} size={88} tone="bg-brand text-white" />
           <div className="mt-5 truncate font-display text-[20px] font-bold text-ink">{ME}</div>
@@ -923,8 +931,8 @@ export function ManagerPrototype() {
           </button>
         </div>
       </div>
-    </div>
-  );
+    </>
+  ));
 
   const Analytics = (
     <div className="flex h-full flex-col">
@@ -959,27 +967,61 @@ export function ManagerPrototype() {
           </div>
         </div>
 
-        <div className={`rounded-2xl bg-white p-4 ${CARD_SHADOW}`}>
-          <div className="text-[13px] font-semibold text-ink">Recurring complaints</div>
-          <div className="mt-2 divide-y divide-line">
-            {HK_COMPLAINTS.map((c) => (
-              <div key={c.name} className="flex items-center justify-between py-2 text-[12px]">
-                <span className="text-ink">{c.name}</span>
-                <span className="font-semibold text-ink">{c.v}</span>
+        <div className="grid grid-cols-3 gap-2">
+          <div className={`min-w-0 rounded-2xl bg-white p-3 ${CARD_SHADOW}`}>
+            <div className="text-[11px] font-semibold leading-tight text-ink">Top requests</div>
+            <div className="mt-2 space-y-1.5">
+              {HK_TOP_REQUESTS.slice(0, 3).map(([l, v]) => (
+                <div key={l} className="min-w-0">
+                  <div className="truncate text-[10px] text-ink-secondary">{l}</div>
+                  <div className="text-[12px] font-semibold text-ink">{v.toLocaleString()}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className={`min-w-0 rounded-2xl bg-white p-3 ${CARD_SHADOW}`}>
+            <div className="text-[11px] font-semibold leading-tight text-ink">Recurring complaints</div>
+            <div className="mt-2 space-y-1.5">
+              {HK_COMPLAINTS.slice(0, 3).map((c) => (
+                <div key={c.name} className="min-w-0">
+                  <div className="truncate text-[10px] text-ink-secondary">{c.name}</div>
+                  <div className="text-[12px] font-semibold text-ink">{c.v}</div>
+                </div>
+              ))}
+              {!HK_COMPLAINTS.length && <p className="text-[10px] text-ink-tertiary">None this week.</p>}
+            </div>
+          </div>
+
+          <div className={`min-w-0 rounded-2xl bg-white p-3 ${CARD_SHADOW}`}>
+            <div className="text-[11px] font-semibold leading-tight text-ink">Guest satisfaction</div>
+            <div className="mt-2">
+              <div className="flex items-baseline gap-1">
+                <span className="text-[22px] font-bold leading-none text-ink">{HK_SATISFACTION.score}</span>
+                <span className="text-[10px] text-ink-tertiary">/ 5</span>
               </div>
-            ))}
-            {!HK_COMPLAINTS.length && <p className="py-3 text-center text-[12px] text-ink-tertiary">No recurring complaints.</p>}
+              <div className="mt-0.5 text-[10px] font-medium text-brand">{HK_SATISFACTION.delta} vs last week</div>
+              <div className="mt-2 space-y-0.5 text-[10px] text-ink-secondary">
+                <div className="flex justify-between gap-1"><span>Promoters</span><span className="font-semibold text-ink">{HK_SATISFACTION.promoters}%</span></div>
+                <div className="flex justify-between gap-1"><span>Neutral</span><span className="font-semibold text-ink">{HK_SATISFACTION.neutral}%</span></div>
+                <div className="flex justify-between gap-1"><span>Detractors</span><span className="font-semibold text-ink">{HK_SATISFACTION.detractors}%</span></div>
+              </div>
+            </div>
           </div>
         </div>
 
         <div className={`rounded-2xl bg-white p-4 ${CARD_SHADOW}`}>
-          <div className="text-[13px] font-semibold text-ink">Top requests</div>
-          <div className="mt-2 divide-y divide-line">
-            {HK_TOP_REQUESTS.map(([l, v], i) => (
-              <div key={l} className="flex items-center gap-2 py-2 text-[12px]">
-                <span className="text-ink-tertiary">{i + 1}</span>
-                <span className="flex-1 truncate text-ink">{l}</span>
-                <span className="font-semibold text-ink">{v.toLocaleString()}</span>
+          <div className="text-[13px] font-semibold text-ink">Peak hour by department</div>
+          <div className="mt-3 space-y-2.5">
+            {HK_PEAK_HOURS.map((row) => (
+              <div key={row.dept} className="min-w-0">
+                <div className="flex items-center justify-between gap-2 text-[12px]">
+                  <span className="truncate text-ink-secondary">{row.dept}</span>
+                  <span className="shrink-0 font-semibold text-ink">{row.peak}</span>
+                </div>
+                <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-[#F0EEE8]">
+                  <div className="h-full rounded-full bg-brand" style={{ width: `${row.load}%` }} />
+                </div>
               </div>
             ))}
           </div>
@@ -1025,9 +1067,9 @@ export function ManagerPrototype() {
     </div>
   );
 
-  const GuestsRoster = (
-    <div className="flex h-full flex-col">
-      <ScreenHeader title="Guests" onBack={nav.back} />
+  const GuestsRoster = shell("guestsRoster", (
+    <>
+      <div className="px-6 py-2 text-[20px] font-semibold text-ink">Guests</div>
       {searchRow(rosterQuery, setRosterQuery, "Search guest or room", null)}
       <div className="mt-3"><Chips flat items={ROSTER_STAGE_FILTERS} active={stageFilter} onChange={setStageFilter} /></div>
       <div className="mt-1 min-h-0 flex-1 overflow-y-auto px-6 pb-6 no-scrollbar">
@@ -1040,7 +1082,7 @@ export function ManagerPrototype() {
                 ? `${row.g.checkIn} – ${row.g.checkOut}`
                 : undefined;
           const right =
-            row.stage === "Current" ? <span className="text-emerald-600">In-house</span> : row.stage === "Upcoming" ? <span className="text-sky-600">Pre-arrival</span> : <span className="text-slate-500">Checked out</span>;
+            row.stage === "Current" ? <span className="text-success">In-house</span> : row.stage === "Upcoming" ? <span className="text-sky-600">Pre-arrival</span> : <span className="text-ink-tertiary">Checked out</span>;
           return (
             <PersonRow
               key={row.g.name}
@@ -1055,8 +1097,8 @@ export function ManagerPrototype() {
         })}
         {!rosterFiltered.length && <p className="py-10 text-center text-[13px] text-ink-tertiary">No guests match.</p>}
       </div>
-    </div>
-  );
+    </>
+  ));
 
   const VIEWS: Record<Screen["name"], React.ReactNode> = {
     home: Home, tasks: Tasks, team: Team, staffDetail: StaffDetail, housekeeping: Housekeeping, guests: Guests, guestDetail: GuestDetail, guestProfile: GuestProfile,

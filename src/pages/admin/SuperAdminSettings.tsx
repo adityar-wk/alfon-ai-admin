@@ -27,7 +27,7 @@ export default function SuperAdminSettings() {
         <h2 className="font-display text-[26px] font-bold leading-tight text-ink">Settings</h2>
         <p className="mt-1 text-[13px] text-ink-secondary">Your own account and personal alerts. This never changes a setting inside any hotel.</p>
 
-        <div className="mt-5 max-w-2xl space-y-5">
+        <div className="mt-5 space-y-5">
           <Card className="p-6">
             <div className="flex items-center gap-4">
               <span className="flex h-14 w-14 items-center justify-center rounded-full bg-brand-tint font-display text-[18px] font-semibold text-brand">{me.initials}</span>

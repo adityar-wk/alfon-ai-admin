@@ -132,11 +132,11 @@ export default function ComponentDesign() {
 
         <div className="mt-12 space-y-12">
           {/* ------------------------------------------------ foundations */}
-          <Section id="colors" title="Colour" note="Warm off-white surfaces with one accent doing the work: Warm Orange carries every call to action, active state and key number. Teal and purple are reserved accents. Click a swatch to copy its hex.">
+            <Section id="colors" title="Colour" note="White surfaces with one accent doing the work: Warm Orange carries every call to action, active state and key number. Teal and purple are reserved accents. Click a swatch to copy its hex.">
             <div className="space-y-7">
               <div><Label>Neutrals</Label><div className="flex flex-wrap gap-3.5">
                 <Swatch name="Surface / Card" hex="#FFFFFF" cls="bg-white" />
-                <Swatch name="Page" hex="#FCFCFB" cls="bg-page" />
+                <Swatch name="Page" hex="#FFFFFF" cls="bg-page" />
                 <Swatch name="Text — primary" hex="#1A1A1A" cls="bg-ink" />
                 <Swatch name="Text — secondary" hex="#6B7280" cls="bg-ink-secondary" />
                 <Swatch name="Text — tertiary" hex="#9CA3AF" cls="bg-ink-tertiary" />
@@ -330,10 +330,7 @@ export default function ComponentDesign() {
           <Section id="charts" title="Donut & health orb" note="Pastel donut for breakdowns; the orb's hue follows the health score band.">
             <div className="flex flex-wrap items-center gap-12">
               <Donut size={140} thickness={22} segments={[{ label: "Done", value: 52, color: "#6FDDB7" }, { label: "Open", value: 30, color: "#8DC3F0" }, { label: "Late", value: 18, color: "#F595A5" }]} />
-              <div className="relative h-[220px] w-[220px]">
-                <Orb color="#5FD3A9" />
-                <div className="pointer-events-none absolute inset-0 flex items-center justify-center text-[36px] font-bold text-emerald-600">88%</div>
-              </div>
+              <Orb score={88} />
             </div>
           </Section>
 

@@ -7,8 +7,8 @@ import { GUEST_PROFILES, PRE_ARRIVAL_GUESTS, CHECKED_OUT_GUESTS } from "./data";
 export const DetailRow = ({ icon: Icon, label, children }: { icon: React.ComponentType<{ className?: string }>; label: string; children: React.ReactNode }) => (
   <div className="flex items-center gap-3 py-3.5">
     <Icon className="h-4 w-4 shrink-0 text-ink-tertiary" />
-    <span className="w-24 shrink-0 text-[13px] text-ink-tertiary">{label}</span>
-    <span className="min-w-0 flex-1 text-[14px] font-semibold text-ink">{children}</span>
+    <span className="w-24 shrink-0 text-[12px] font-normal text-ink-secondary">{label}</span>
+    <span className="min-w-0 flex-1 text-[14px] font-medium text-ink">{children}</span>
   </div>
 );
 
@@ -302,8 +302,8 @@ export function GuestChatScreen({
         <button onClick={onProfile} aria-label="View profile" className="flex min-w-0 flex-1 items-center gap-2.5 text-left">
           <Avatar name={name} size={36} tone={complaint ? "bg-red-50 text-red-600" : undefined} />
           <div className="min-w-0 leading-tight">
-            <div className="truncate font-display text-[17px] font-semibold text-ink">{name}</div>
-            <div className="mt-0.5 text-[12px] text-ink-secondary">{room}</div>
+            <div className="truncate text-[14px] font-semibold text-ink">{name}</div>
+            <div className="mt-0.5 text-[12px] font-normal text-ink-tertiary">{room}</div>
           </div>
         </button>
       </div>
@@ -313,9 +313,9 @@ export function GuestChatScreen({
           const mine = m.from !== "guest";
           return (
             <div key={i} className={`flex flex-col ${mine ? "items-end" : "items-start"}`}>
-              <span className={`mb-1 px-1 text-[11px] font-medium ${m.from === "ai" ? "text-brand" : "text-ink-tertiary"}`}>{sender(m.from)}</span>
+              <span className={`mb-1 px-1 text-[10px] font-bold ${m.from === "ai" ? "text-brand" : "text-ink-tertiary"}`}>{sender(m.from)}</span>
               <div
-                className={`max-w-[82%] px-4 py-2.5 text-[14px] leading-[1.45] ${
+                className={`max-w-[78%] px-3.5 py-3 text-[14px] font-normal leading-[1.5] ${
                   m.from === "guest"
                     ? "rounded-[18px] rounded-tl-md border border-[#F3E4DB] bg-white text-ink"
                     : m.from === "ai"

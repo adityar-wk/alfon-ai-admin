@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { ChevronRight, ListChecks, Building2, AlertTriangle } from "lucide-react";
+import { ChevronRight, ListChecks, Building2, AlertTriangle, Timer, MessageCircle, UserRound } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { Page, Card, RoomNo } from "../components/ui";
 import { ScopePicker } from "../components/ScopePicker";
@@ -42,23 +42,26 @@ export default function DepartmentDashboard() {
   const busiest = Math.max(...team.map((s) => s.n));
 
   const ops = [
-    { label: "Open tasks", value: open.length, tone: "text-ink", to: "/tasks?view=all" },
-    { label: "SLA at risk", value: atRisk.length, tone: "text-ink", to: "/tasks?view=risk" },
-    { label: "Overdue", value: overdue.length, tone: "text-ink", to: "/tasks?view=overdue" },
-    { label: "Escalations", value: escalated.length, tone: "text-ink", to: "/tasks?view=escalated" },
-    { label: "Complaints", value: complaints.length, tone: "text-ink", to: "/tasks?view=complaints" },
-    { label: "Unassigned critical", value: unassignedCritical.length, tone: "text-ink", to: "/tasks?view=unassigned" },
+    { label: "Open tasks", value: open.length, to: "/tasks?view=all", icon: ListChecks },
+    { label: "SLA at risk", value: atRisk.length, to: "/tasks?view=risk", icon: Timer },
+    { label: "Overdue", value: overdue.length, to: "/tasks?view=overdue", icon: AlertTriangle },
+    { label: "Escalations", value: escalated.length, to: "/tasks?view=escalated", icon: AlertTriangle },
+    { label: "Complaints", value: complaints.length, to: "/tasks?view=complaints", icon: MessageCircle },
+    { label: "Unassigned critical", value: unassignedCritical.length, to: "/tasks?view=unassigned", icon: UserRound },
   ];
   return (
     <>
       <Topbar title="Department Dashboard" actions={<ScopePicker />} />
       <Page>
         <h3 className="mb-3 flex items-center gap-2.5 text-[16px] font-semibold text-ink"><span className="h-2 w-2 rounded-full bg-brand" /> Department operations</h3>
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
+        <div className="grid grid-cols-2 gap-5 md:grid-cols-3 xl:grid-cols-6">
           {ops.map((k) => (
-            <button key={k.label} onClick={() => navigate(k.to)} className="rounded-card border border-line bg-white p-4 text-left hover:border-brand/40">
-              <div className={`text-[28px] font-bold leading-tight ${k.tone}`}>{k.value}</div>
-              <div className="mt-0.5 text-[13px] text-ink-secondary">{k.label}</div>
+            <button key={k.label} onClick={() => navigate(k.to)} className="rounded-card border border-line bg-white p-4 text-left shadow-card transition duration-200 hover:-translate-y-0.5 hover:shadow-lift">
+              <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-brand/25 bg-white text-brand">
+                <k.icon className="h-[18px] w-[18px]" />
+              </span>
+              <div className="mt-3 text-[13px] font-medium text-ink-secondary">{k.label}</div>
+              <div className="mt-1 text-[28px] font-bold leading-none text-ink">{k.value}</div>
             </button>
           ))}
         </div>

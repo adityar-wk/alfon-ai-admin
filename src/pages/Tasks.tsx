@@ -20,6 +20,9 @@ import {
   ChevronDown,
   List,
   Columns3,
+  ListChecks,
+  Timer,
+  UserRound,
 } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { GuestChat, type ChatMsg, type ChatMode } from "../components/GuestChat";
@@ -126,15 +129,6 @@ function StatusLabel({ t }: { t: Pick<Task, "status" | "owner" | "sla"> }) {
 
 const SlaText = ({ sla }: { sla: Task["sla"] }) => <SlaClock sla={sla} />;
 
-function DeptIcon({ dept }: { dept: string }) {
-  const Icon = DEPT_ICON[dept] ?? Building2;
-  return (
-    <span title={dept} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-subtle text-ink-secondary">
-      <Icon className="h-4 w-4" />
-    </span>
-  );
-}
-
 const BOARD_COLS: { key: string; label: string; dot: string; test: (t: Task) => boolean }[] = [
   { key: "unassigned", label: "Unassigned", dot: "bg-gray-300", test: (t) => t.status === "Yet to Assign" && !t.owner },
   { key: "progress", label: "In Progress", dot: "bg-brand", test: (t) => t.status === "In Progress" || (t.status === "Yet to Assign" && !!t.owner) },
@@ -213,19 +207,19 @@ export default function Tasks() {
 
   const stats = manager
     ? [
-        { label: "Open tasks", value: counts.action, foot: "Needs action", go: "action" as View },
-        { label: "Escalated", value: counts.escalated, foot: "Waiting on you", go: "escalated" as View },
-        { label: "Complaints", value: counts.complaints, foot: "Guest complaints open", go: "complaints" as View },
-        { label: "SLA at risk", value: counts.risk, foot: "Due within the hour", go: "risk" as View },
-        { label: "Overdue / breached", value: counts.overdue, foot: "Past SLA window", go: "overdue" as View },
-        { label: "Unassigned", value: counts.unassigned, foot: "Awaiting an owner", go: "unassigned" as View },
+        { label: "Open tasks", value: counts.action, foot: "Needs action", go: "action" as View, icon: ListChecks },
+        { label: "Escalated", value: counts.escalated, foot: "Waiting on you", go: "escalated" as View, icon: AlertTriangle },
+        { label: "Complaints", value: counts.complaints, foot: "Guest complaints open", go: "complaints" as View, icon: MessageCircle },
+        { label: "SLA at risk", value: counts.risk, foot: "Due within the hour", go: "risk" as View, icon: Timer },
+        { label: "Overdue / breached", value: counts.overdue, foot: "Past SLA window", go: "overdue" as View, icon: AlertTriangle },
+        { label: "Unassigned", value: counts.unassigned, foot: "Awaiting an owner", go: "unassigned" as View, icon: UserRound },
       ]
     : [
-        { label: "Open tasks", value: counts.action, foot: "Needs action", go: "action" as View },
-        { label: "Escalated", value: counts.escalated, foot: "Needs a decision", go: "escalated" as View },
-        { label: "Complaints", value: counts.complaints, foot: "Guest complaints open", go: "complaints" as View },
-        { label: "SLA at risk", value: counts.risk, foot: "Due within the hour", go: "risk" as View },
-        { label: "Unassigned", value: counts.unassigned, foot: "Awaiting an owner", go: "unassigned" as View },
+        { label: "Open tasks", value: counts.action, foot: "Needs action", go: "action" as View, icon: ListChecks },
+        { label: "Escalated", value: counts.escalated, foot: "Needs a decision", go: "escalated" as View, icon: AlertTriangle },
+        { label: "Complaints", value: counts.complaints, foot: "Guest complaints open", go: "complaints" as View, icon: MessageCircle },
+        { label: "SLA at risk", value: counts.risk, foot: "Due within the hour", go: "risk" as View, icon: Timer },
+        { label: "Unassigned", value: counts.unassigned, foot: "Awaiting an owner", go: "unassigned" as View, icon: UserRound },
       ];
 
   const applyUpdate = (t: Task, patch: Partial<Task>, action: string, detail: string, msg: string) => {
@@ -256,16 +250,19 @@ export default function Tasks() {
       <main className="flex-1 overflow-y-auto bg-page">
         <div className="p-6">
 
-        <div className={`grid grid-cols-2 gap-4 lg:grid-cols-3 ${manager ? "xl:grid-cols-6" : "xl:grid-cols-5"}`}>
+        <div className={`grid grid-cols-2 gap-5 lg:grid-cols-3 ${manager ? "xl:grid-cols-6" : "xl:grid-cols-5"}`}>
           {stats.map((s) => (
             <button
               key={s.label}
               onClick={() => setView(s.go)}
               className="rounded-card border border-line bg-white p-4 text-left shadow-card transition duration-200 hover:-translate-y-0.5 hover:shadow-lift"
             >
-              <div className="text-[13px] text-ink-secondary">{s.label}</div>
-              <div className="mt-1 text-[26px] font-bold leading-tight text-ink">{s.value}</div>
-              <div className="text-[12px] text-ink-tertiary">{s.foot}</div>
+              <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-brand/25 bg-white text-brand">
+                <s.icon className="h-[18px] w-[18px]" />
+              </span>
+              <div className="mt-3 text-[13px] font-medium text-ink-secondary">{s.label}</div>
+              <div className="mt-1 text-[28px] font-bold leading-none text-ink">{s.value}</div>
+              <div className="mt-1 text-[12px] font-medium text-ink-tertiary">{s.foot}</div>
             </button>
           ))}
         </div>
@@ -357,23 +354,22 @@ export default function Tasks() {
                     <span className="ml-auto rounded-full bg-white px-2 py-0.5 text-[11px] font-medium text-ink-secondary">{items.length}</span>
                   </div>
                   <div className="space-y-3">
-                    {items.map((t) => (
+                    {items.map((t) => {
+                      const D = DEPT_ICON[t.dept] ?? Building2;
+                      return (
                       <button
                         key={t.id}
                         onClick={() => setSelectedId(t.id)}
                         className={`block w-full rounded-xl border border-line/70 bg-white p-4 text-left shadow-[0_1px_2px_rgba(16,24,40,0.04)] hover:border-brand/40 ${t.status === "Completed" ? "opacity-50" : ""}`}
                       >
-                        <div className="flex items-start gap-2.5">
-                          <DeptIcon dept={t.dept} />
-                          <div className="min-w-0">
-                            <div className="text-[13px] font-semibold leading-snug text-ink">{t.title}</div>
-                            <div className="mt-0.5 text-[12px] text-ink-tertiary">{t.guest} · <RoomNo room={t.room} /></div>
-                            <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
-                              {cap(t) && <ComplaintPill />}
-                              {(taskStatus(t) === "SLA at risk" || taskStatus(t) === "SLA breached") && (
-                                <span className={`text-[12px] font-medium ${STATUS_PILL[taskStatus(t)]}`}>{taskStatus(t)}</span>
-                              )}
-                            </div>
+                        <div className="min-w-0">
+                          <div className="text-[13px] font-semibold leading-snug text-ink">{t.title}</div>
+                          <div className="mt-0.5 text-[12px] text-ink-tertiary">{t.guest} · <RoomNo room={t.room} /></div>
+                          <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
+                            {cap(t) && <ComplaintPill />}
+                            {(taskStatus(t) === "SLA at risk" || taskStatus(t) === "SLA breached") && (
+                              <span className={`text-[12px] font-medium ${STATUS_PILL[taskStatus(t)]}`}>{taskStatus(t)}</span>
+                            )}
                           </div>
                         </div>
                         {t.status !== "Completed" && (
@@ -381,12 +377,16 @@ export default function Tasks() {
                             <SlaText sla={t.sla} />
                           </div>
                         )}
-                        <div className="mt-3 flex items-center justify-between border-t border-line/70 pt-3 text-[12px]">
-                          <span className="text-ink-tertiary">{t.dept}</span>
-                          {t.owner && <span className="text-ink-secondary">{t.owner}</span>}
+                        <div className="mt-3 flex items-center justify-between gap-2 border-t border-line/70 pt-3 text-[12px]">
+                          <span className="flex min-w-0 items-center gap-1.5 text-ink-secondary">
+                            <D className="h-3.5 w-3.5 shrink-0 text-ink-tertiary" />
+                            <span className="truncate">{t.dept}</span>
+                          </span>
+                          {t.owner && <span className="shrink-0 text-ink-secondary">{t.owner}</span>}
                         </div>
                       </button>
-                    ))}
+                      );
+                    })}
                     {!items.length && <p className="px-2 py-6 text-center text-[12px] text-ink-tertiary">No tasks</p>}
                   </div>
                 </div>
@@ -396,23 +396,23 @@ export default function Tasks() {
         ) : (
         <Card table className="overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[1180px] table-fixed text-left">
+            <table className="w-full table-fixed text-left">
               <colgroup>
-                <col className="w-[140px]" />
-                <col />
-                <col className="w-[160px]" />
-                <col className="w-[170px]" />
-                <col className="w-[180px]" />
-                <col className="w-[160px]" />
+                <col className="w-[16.666%]" />
+                <col className="w-[16.666%]" />
+                <col className="w-[16.666%]" />
+                <col className="w-[16.666%]" />
+                <col className="w-[16.666%]" />
+                <col className="w-[16.666%]" />
               </colgroup>
               <thead>
                 <tr className="bg-[#F4F4F5] text-[12px] uppercase tracking-wide text-[#6B7280]">
-                  <th className="py-3.5 pl-6 font-medium">SLA</th>
-                  <th className="py-3.5 pl-6 font-medium">Task</th>
-                  <th className="py-3.5 pl-10 font-medium">Guest</th>
-                  <th className="py-3.5 pl-10 font-medium">Status</th>
-                  <th className="py-3.5 pl-10 font-medium">Department</th>
-                  <th className="py-3.5 pl-10 font-medium">Assigned To</th>
+                  <th className="truncate py-3.5 pl-6 font-medium">SLA</th>
+                  <th className="truncate py-3.5 pl-6 font-medium">Task</th>
+                  <th className="truncate py-3.5 pl-6 font-medium">Guest</th>
+                  <th className="truncate py-3.5 pl-6 font-medium">Status</th>
+                  <th className="truncate py-3.5 pl-6 font-medium">Department</th>
+                  <th className="truncate py-3.5 pl-6 font-medium">Assigned To</th>
                 </tr>
               </thead>
               <tbody>
@@ -420,19 +420,19 @@ export default function Tasks() {
                   const D = DEPT_ICON[t.dept] ?? Building2;
                   return (
                     <tr key={t.id} onClick={() => setSelectedId(t.id)} className={`cursor-pointer border-b border-line/50 last:border-0 hover:bg-subtle/60 ${t.status === "Completed" ? "opacity-50" : ""}`}>
-                      <td className="whitespace-nowrap py-3.5 pl-6 pr-3">{t.status !== "Completed" && <SlaText sla={t.sla} />}</td>
-                      <td className="py-3.5 pl-6 pr-3">
-                        <div className="flex items-center gap-2 text-[13px] font-semibold text-ink">
-                          {t.title}
-                          {cap(t) && <ComplaintPill />}
+                      <td className="truncate py-3.5 pl-6 pr-3">{t.status !== "Completed" && <SlaText sla={t.sla} />}</td>
+                      <td className="min-w-0 py-3.5 pl-6 pr-3">
+                        <div className="flex min-w-0 items-center gap-2 text-[13px] font-semibold text-ink">
+                          <span className="truncate">{t.title}</span>
+                          {cap(t) && <span className="shrink-0"><ComplaintPill /></span>}
                         </div>
-                        <div className="mt-0.5 text-[12px] text-ink-tertiary"><RoomNo room={t.room} /></div>
+                        <div className="mt-0.5 truncate text-[12px] text-ink-tertiary"><RoomNo room={t.room} /></div>
                       </td>
-                      <td className="whitespace-nowrap py-3.5 pl-10 pr-3 text-[14px] text-ink-secondary">{t.guest}</td>
-                      <td className="whitespace-nowrap py-3.5 pl-10 pr-3"><StatusLabel t={t} /></td>
-                      <td className="whitespace-nowrap py-3.5 pl-10 pr-3 text-[14px] text-ink-secondary"><span className="flex items-center gap-2"><D className="h-4 w-4 text-ink-tertiary" />{t.dept}</span></td>
-                      <td className="whitespace-nowrap py-3.5 pl-10 pr-3 text-[14px]">
-                        {t.owner ? <span className="text-ink">{t.owner}</span> : <span className="font-medium text-brand">Unassigned</span>}
+                      <td className="truncate py-3.5 pl-6 pr-3 text-[14px] text-ink-secondary">{t.guest}</td>
+                      <td className="truncate py-3.5 pl-6 pr-3"><StatusLabel t={t} /></td>
+                      <td className="truncate py-3.5 pl-6 pr-3 text-[14px] text-ink-secondary"><span className="flex min-w-0 items-center gap-2"><D className="h-4 w-4 shrink-0 text-ink-tertiary" /><span className="truncate">{t.dept}</span></span></td>
+                      <td className="truncate py-3.5 pl-6 pr-3 text-[14px]">
+                        {t.owner ? <span className="truncate text-ink">{t.owner}</span> : <span className="font-medium text-brand">Unassigned</span>}
                       </td>
                     </tr>
                   );

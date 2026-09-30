@@ -9,15 +9,15 @@ const Toggle = ({ on, onChange, label }: { on: boolean; onChange: () => void; la
   </button>
 );
 
-/** The hamburger menu ("More"): who you are, notification settings, sign out. */
+/** The "More" screen: who you are, notification settings, sign out. */
 export function ProfileScreen({
   name, role, email, onNotifSettings, onSignOut, onBack,
 }: {
-  name: string; role: string; email: string; dept?: string; onNotifSettings: () => void; onSignOut: () => void; onBack: () => void;
+  name: string; role: string; email: string; dept?: string; onNotifSettings: () => void; onSignOut: () => void; onBack?: () => void;
 }) {
   return (
     <div className="flex h-full flex-col">
-      <ScreenHeader title="More" onBack={onBack} />
+      {onBack ? <ScreenHeader title="More" onBack={onBack} /> : <div className="px-6 pb-1 pt-4 text-[20px] font-semibold text-ink">More</div>}
       <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-6 pt-2 no-scrollbar">
         <div className="flex flex-col items-center pb-8 pt-6 text-center">
           <Avatar name={name} size={88} tone="bg-brand text-white" />

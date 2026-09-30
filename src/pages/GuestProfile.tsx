@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
-import { Search, User, Lightbulb, Bell, BedDouble, UtensilsCrossed, Target, MessageCircle, AlarmClock, Thermometer, Wine, Newspaper, Calendar, Hourglass, History, Check, Pencil } from "lucide-react";
+import { Search, User, Lightbulb, Bell, BedDouble, UtensilsCrossed, Target, MessageCircle, AlarmClock, Thermometer, Wine, Newspaper, Calendar, Hourglass, History, Check, Pencil, Plus } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { Card, Badge, Modal, Button, Field, Input, Select, RoomNo } from "../components/ui";
 import { Flag } from "../components/Flag";
@@ -308,7 +308,7 @@ function GuestList({ activeId }: { activeId: number }) {
     return (f === "All" || g.status === f) && (!t || [g.name, g.room, g.contact, g.country].some((v) => v.toLowerCase().includes(t)));
   });
   return (
-    <aside className={`${SIDE_PANEL} w-[320px]`}>
+    <aside className={`${SIDE_PANEL} w-72`}>
       <SideSearch value={q} onChange={setQ} placeholder="Search guests…">
         <SideFilterButton label="Filter guests" active={f !== "All"} open={filterOpen} count={1} onClick={() => setFilterOpen((o) => !o)} />
         {filterOpen && (
@@ -387,16 +387,15 @@ const PREF_CARDS: { key: keyof Prefs; label: string; icon: React.ComponentType<{
 
 /** left-border accent card used for the AI-generated Guest Profile / Anticipated Needs insights */
 function InsightCard({
-  icon: Icon, label, color, borderColor, children,
+  icon: Icon, label, color, children,
 }: {
   icon: React.ComponentType<{ className?: string }>;
   label: string;
   color: string;
-  borderColor: string;
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-card border border-line bg-white p-6 shadow-card" style={{ borderLeftWidth: 3, borderLeftColor: borderColor }}>
+    <div className="rounded-card border border-line bg-white p-6 shadow-card">
       <div className="mb-2 flex items-center gap-1.5 text-[12px] font-semibold" style={{ color }}>
         <Icon className="h-3.5 w-3.5" /> {label}
       </div>
@@ -416,7 +415,7 @@ function PreferenceCard({
 }) {
   const tags = text.split(",").map((t) => t.trim()).filter(Boolean);
   return (
-    <div className="rounded-xl bg-subtle p-4">
+    <div className="rounded-xl bg-[#FBFBFA] p-4">
       <div className="mb-2 flex items-center gap-2">
         <Icon className="h-[13px] w-[13px] text-ink-tertiary" />
         <span className="text-[11px] font-semibold uppercase tracking-wide text-ink-tertiary">{label}</span>
@@ -448,6 +447,7 @@ export default function GuestProfile() {
   const [extraNotes, setExtraNotes] = useState<Record<number, Note[]>>({});
   const [done, setDone] = useState<Record<string, boolean>>({});
   const [draft, setDraft] = useState("");
+  const noteRef = useRef<HTMLTextAreaElement>(null);
   const [editOpen, setEditOpen] = useState(false);
   const [editingPrefs, setEditingPrefs] = useState(false);
   const [prefTextOverride, setPrefTextOverride] = useState<Record<number, Partial<Record<keyof Prefs, string>>>>({});
@@ -476,11 +476,11 @@ export default function GuestProfile() {
   return (
     <>
       <Topbar title="Guests" />
-      <div className="flex min-h-0 flex-1">
+      <div className="flex min-h-0 flex-1 gap-5 bg-page p-6">
         <GuestList activeId={guest.id} />
 
-        <div className="min-w-0 flex-1 overflow-y-auto bg-subtle/40 p-5">
-          <div className="mx-auto max-w-[1400px] space-y-4">
+        <div className="min-h-0 min-w-0 flex-1 overflow-y-auto">
+          <div className="space-y-4">
             <Card className="p-6">
               <div className="flex flex-wrap items-start gap-5">
                 <span className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-brand-tint font-display text-[28px] font-bold text-brand">{guest.initials}</span>
@@ -511,10 +511,10 @@ export default function GuestProfile() {
             </Card>
 
             {/* left: guest profile, anticipated needs, preferences and stay history stacked; right: actions and notes stacked */}
-            <div className="grid grid-cols-1 items-start gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
-              <div className="flex min-w-0 flex-col gap-4">
-                <InsightCard icon={User} label="GUEST PROFILE" color="#2E86AB" borderColor="#93C5FD">{p.summary}</InsightCard>
-                <InsightCard icon={Lightbulb} label="ANTICIPATED NEEDS" color="#B45309" borderColor="#F59E0B">{p.anticipated}</InsightCard>
+            <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-5">
+              <div className="flex min-w-0 flex-col gap-4 xl:col-span-3">
+                <InsightCard icon={User} label="GUEST PROFILE" color="#2E86AB">{p.summary}</InsightCard>
+                <InsightCard icon={Lightbulb} label="ANTICIPATED NEEDS" color="#B45309">{p.anticipated}</InsightCard>
 
                 <Card className="p-6">
                   <div className="mb-4 flex items-center justify-between">
@@ -549,8 +549,8 @@ export default function GuestProfile() {
                 </Card>
               </div>
 
-              <div className="flex min-w-0 flex-col gap-4">
-                <div className="rounded-card border border-line bg-white p-5 shadow-card" style={{ borderLeftWidth: 3, borderLeftColor: "#E8623A" }}>
+              <div className="flex min-w-0 flex-col gap-6 xl:col-span-2">
+                <div className="rounded-card border border-line bg-white px-5 py-4 shadow-card">
                   <div className="mb-3 flex items-center gap-1.5">
                     <Bell className="h-3 w-3 text-brand" />
                     <span className="text-[10px] font-bold uppercase tracking-widest text-brand">Actions</span>
@@ -559,55 +559,65 @@ export default function GuestProfile() {
                     {actions.map((a, i) => {
                       const isDone = a.status === "Completed" || done[a.key];
                       return (
-                        <div key={a.key} className={`flex items-start gap-3 py-2.5 ${i > 0 ? "border-t border-line/60" : ""}`}>
+                        <div key={a.key} className={`flex items-start gap-3 py-2.5 ${i > 0 ? "border-t border-[#F3F4F6]" : ""}`}>
                           <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-tint text-[10px] font-bold text-brand">{i + 1}</span>
-                          <div className="min-w-0 flex-1">
-                            <p className="text-[13px] leading-relaxed text-ink-secondary">{a.text}</p>
-                            <div className="mt-2 flex flex-wrap items-center gap-2">
-                              <span className="whitespace-nowrap rounded-full bg-subtle px-2 py-0.5 text-[10px] font-medium text-ink-secondary">{a.dept}</span>
-                              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-brand-tint text-[9px] font-bold text-brand">{a.who}</span>
-                              <button
-                                onClick={() => !isDone && setDone((d) => ({ ...d, [a.key]: true }))}
-                                className={`whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-semibold ${isDone ? "bg-emerald-50 text-emerald-600" : "bg-amber-50 text-amber-700 hover:bg-amber-100"}`}
-                              >
-                                {isDone ? "Completed" : "Pending"}
-                              </button>
-                            </div>
+                          <p className="min-w-0 flex-1 text-sm leading-relaxed text-[#374151]">{a.text}</p>
+                          <div className="flex shrink-0 items-center gap-2 pt-0.5">
+                            <span className="whitespace-nowrap rounded-full bg-[#F3F4F6] px-2 py-0.5 text-[10px] font-medium text-[#6B7280]">{a.dept}</span>
+                            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-brand-tint text-[9px] font-bold text-brand">{a.who}</span>
+                            <button
+                              onClick={() => !isDone && setDone((d) => ({ ...d, [a.key]: true }))}
+                              className="whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-semibold"
+                              style={isDone ? { background: "#DCFCE7", color: "#16A34A" } : { background: "#FEF3C7", color: "#D97706" }}
+                            >
+                              {isDone ? "Completed" : "Pending"}
+                            </button>
                           </div>
                         </div>
                       );
                     })}
-                    {!actions.length && <p className="py-3 text-[13px] text-ink-tertiary">No open actions for this guest.</p>}
+                    {!actions.length && <p className="py-3 text-sm text-[#6B7280]">No open actions for this guest.</p>}
                   </div>
                 </div>
 
                 <Card className="p-6">
                   <div className="mb-3 flex items-center justify-between">
-                    <span className="text-[11px] font-semibold uppercase tracking-wide text-ink-tertiary">Notes</span>
+                    <span className="text-xs font-semibold uppercase tracking-wide text-[#9CA3AF]">Notes</span>
+                    <button type="button" onClick={() => noteRef.current?.focus()} className="flex items-center gap-1 text-sm font-medium text-brand">
+                      <Plus className="h-[13px] w-[13px]" /> Add Note
+                    </button>
                   </div>
                   {notes.length ? (
                     <div className="mb-3 space-y-2">
                       {notes.map((n, i) => (
-                        <div key={i} className="rounded-lg bg-subtle p-3">
+                        <div key={i} className="rounded-lg bg-[#FAFAFA] px-3 py-2 text-sm">
                           <div className="mb-1 flex items-center gap-2">
                             <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-tint font-display text-[10px] font-semibold text-brand">{n.author[0]}</span>
-                            <span className="text-[12px] text-ink-tertiary">{n.author} · {n.time}</span>
+                            <span className="text-xs text-[#9CA3AF]">{n.author} · {n.time}</span>
                           </div>
-                          <p className="text-[13px] leading-snug text-ink">{n.text}</p>
+                          <div className="text-[#1A1A1A]">{n.text}</div>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <p className="mb-3 text-[13px] text-ink-secondary">No internal notes yet.</p>
+                    <p className="mb-3 text-sm text-[#6B7280]">No internal notes yet.</p>
                   )}
                   <textarea
+                    ref={noteRef}
                     rows={2}
                     value={draft}
                     onChange={(e) => setDraft(e.target.value)}
-                    placeholder="Add an internal note…"
-                    className="mb-2 w-full rounded-control border-none bg-subtle p-2.5 text-[13px] text-ink outline-none placeholder:text-ink-tertiary focus:ring-1 focus:ring-brand"
+                    placeholder="Add an internal note..."
+                    className="mb-2 w-full rounded-[10px] border-none bg-[#F5F5F5] px-3 py-2 text-sm text-[#1A1A1A] outline-none placeholder:text-[#9CA3AF]"
                   />
-                  <Button disabled={!draft.trim()} onClick={addNote} className="disabled:opacity-40">Add Note</Button>
+                  <button
+                    type="button"
+                    disabled={!draft.trim()}
+                    onClick={addNote}
+                    className="rounded-lg bg-brand px-4 py-2 font-display text-sm font-semibold text-white disabled:opacity-40"
+                  >
+                    Add Note
+                  </button>
                 </Card>
               </div>
             </div>

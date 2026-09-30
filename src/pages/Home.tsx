@@ -32,6 +32,8 @@ import {
 import { Topbar } from "../components/Topbar";
 import { Card, Select, RoomNo } from "../components/ui";
 import { TASKS } from "../data/tasks";
+import { GUESTS } from "../data/guests";
+import { seedChat } from "./GuestProfile";
 import Orb from "../components/Orb";
 import { scoreBand } from "../data/scoreBand";
 import { taskStatus, STATUS_PILL, COMPLAINT_PILL, useClock, type TaskStatusLabel } from "../data/attention";
@@ -43,6 +45,13 @@ import { OnboardingStepsGrid } from "../components/OnboardingSteps";
 type Icon = React.ComponentType<{ className?: string }>;
 
 const HOTEL = "Layana Resort & Spa";
+
+function greeting(name: string) {
+  const first = name.split(" ")[0];
+  const hour = new Date().getHours();
+  const hello = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+  return `${hello}, ${first} 👋`;
+}
 
 const PILLARS = [
   { label: "Guest Satisfaction", value: "88%", tag: "Excellent", trend: "up", icon: Smile, spark: [60, 62, 61, 64, 66, 68] },
@@ -144,6 +153,40 @@ function OnboardingProgressCard() {
   );
 }
 
+const CHAT_PREVIEW = GUESTS.filter((g) => g.status !== "Arriving").slice(0, 3).map((g) => {
+  const last = seedChat(g).at(-1);
+  return { id: g.id, name: g.name, initials: g.initials, preview: last?.text ?? "No messages yet", time: last?.time ?? "" };
+});
+
+const TREND = [74, 75, 76, 75, 74, 76, 77, 78, 77, 78, 79, 80, 81, 80];
+
+function AnalyticsChart() {
+  const w = 320;
+  const h = 148;
+  const pad = { l: 28, r: 8, t: 8, b: 22 };
+  const min = 0;
+  const max = 100;
+  const x = (i: number) => pad.l + (i / (TREND.length - 1)) * (w - pad.l - pad.r);
+  const y = (v: number) => pad.t + (1 - (v - min) / (max - min)) * (h - pad.t - pad.b);
+  const d = TREND.map((v, i) => `${i === 0 ? "M" : "L"}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
+  const yTicks = [0, 25, 50, 75, 100];
+  const xTicks = [1, 5, 9, 13, 17, 21, 25, 29];
+  return (
+    <svg viewBox={`0 0 ${w} ${h}`} className="h-40 w-full">
+      {yTicks.map((t) => (
+        <g key={t}>
+          <line x1={pad.l} x2={w - pad.r} y1={y(t)} y2={y(t)} stroke="#F3F3F3" />
+          <text x={0} y={y(t) + 3} fill="#9CA3AF" fontSize="10">{t}</text>
+        </g>
+      ))}
+      {xTicks.map((t) => (
+        <text key={t} x={pad.l + ((t - 1) / 28) * (w - pad.l - pad.r)} y={h - 4} fill="#9CA3AF" fontSize="10" textAnchor="middle">{t}</text>
+      ))}
+      <path d={d} fill="none" stroke="#E8623A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 function Trend({ t }: { t: "up" | "down" | "flat" }) {
   if (t === "up") return <ArrowUp className="h-3.5 w-3.5 text-emerald-500" />;
   if (t === "down") return <ArrowDown className="h-3.5 w-3.5 text-brand" />;
@@ -156,7 +199,8 @@ const ATTENTION: TaskStatusLabel[] = ["Escalated", "SLA breached", "SLA at risk"
 export default function Home() {
   useClock();
   const navigate = useNavigate();
-  const { persona } = usePersona();
+  const { persona, me } = usePersona();
+  const hello = greeting(me.name);
   const [dept, setDept] = useState("all");
   const [scoreOpen, setScoreOpen] = useState(false);
 
@@ -180,15 +224,12 @@ export default function Home() {
   if (persona === "hoteladmin") {
     return (
       <>
-        <Topbar title={HOTEL} />
+        <Topbar title={hello} subtitle={`Here's what's happening at ${HOTEL}`} />
         <main className="flex-1 overflow-y-auto bg-page">
         <div className="p-6">
           <OnboardingProgressCard />
           <div className="mt-6">
-            <div className="mb-3 flex items-baseline justify-between">
-              <h3 className="text-[15px] font-semibold text-ink">Setup steps</h3>
-              <span className="text-[12px] text-ink-tertiary">About 1 hour in total</span>
-            </div>
+            <h3 className="mb-3 text-[15px] font-semibold text-ink">Setup steps</h3>
             <OnboardingStepsGrid />
           </div>
         </div>
@@ -199,72 +240,158 @@ export default function Home() {
 
   return (
     <>
-      <Topbar title={HOTEL} />
+      <Topbar title={hello} subtitle={`Here's what's happening at ${HOTEL}`} />
       <main className="flex-1 overflow-y-auto bg-page">
-        <div className="p-6">
-        {/* pillars | orb | department performance + occupancy */}
-        <div className="grid grid-cols-1 items-stretch gap-5 xl:grid-cols-[260px_minmax(0,1fr)_320px]">
-          <div className="grid grid-cols-2 gap-4 xl:grid-cols-1">
-            {PILLARS.map((p) => (
-              <Card key={p.label} className="flex flex-col justify-between p-5">
-                <div className="flex items-center justify-between">
-                  <span className="flex items-center gap-2 text-[12px] text-ink-secondary">
-                    <span className="flex h-7 w-7 items-center justify-center rounded-lg border border-line text-brand"><p.icon className="h-3.5 w-3.5" /></span>
-                    {p.label}
-                  </span>
-                  <Trend t={p.trend} />
+        <div className="flex flex-col gap-8 p-6">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {PILLARS.map((p) => (
+            <Card key={p.label} className="flex flex-col justify-between p-5">
+              <div className="flex items-center justify-between">
+                <span className="flex items-center gap-2 text-[12px] text-ink-secondary">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-lg border border-line text-brand"><p.icon className="h-3.5 w-3.5" /></span>
+                  {p.label}
+                </span>
+                <Trend t={p.trend} />
+              </div>
+              <div className="mt-2 flex items-end justify-between gap-3">
+                <div>
+                  <div className="text-[22px] font-bold leading-tight text-ink">{p.value}</div>
+                  <div className={`text-[12px] font-medium ${p.tag === "Excellent" ? "text-emerald-600" : "text-amber-600"}`}>{p.tag}</div>
                 </div>
-                <div className="mt-2 flex items-end justify-between gap-3">
-                  <div>
-                    <div className="text-[22px] font-bold leading-tight text-ink">{p.value}</div>
-                    <div className={`text-[12px] font-medium ${p.tag === "Excellent" ? "text-emerald-600" : "text-amber-600"}`}>{p.tag}</div>
-                  </div>
-                  <div className="w-24 shrink-0"><Spark data={p.spark} /></div>
-                </div>
-              </Card>
-            ))}
-          </div>
+                <div className="w-24 shrink-0"><Spark data={p.spark} /></div>
+              </div>
+            </Card>
+          ))}
+        </div>
 
-          <Card className="flex flex-col items-center justify-center overflow-hidden px-6 pb-8 pt-4">
-            <div className="relative h-[340px] w-[340px] max-w-full">
-              <Orb color={band.color} />
-              <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                <span className={`text-[60px] font-bold leading-none tracking-tight transition-colors duration-700 ${band.text}`}>{score}%</span>
+        <section className="flex min-h-[520px] flex-col items-center justify-center px-6 py-10">
+          <Orb score={score} />
+          <div className="mt-5 text-[11px] font-semibold uppercase tracking-[0.2em] text-ink-tertiary">Hotel Health Score</div>
+          <p className="mt-2.5 text-center text-[14px] text-ink-secondary">
+            {band.key === "excellent"
+              ? "Your hotel is performing strong."
+              : band.key === "good"
+                ? "Your hotel is doing well, with room to improve."
+                : band.key === "attention"
+                  ? "Several things need attention."
+                  : "Urgent: resolve overdue and escalated tasks."}
+          </p>
+          <button
+            onClick={() => setScoreOpen((o) => !o)}
+            aria-expanded={scoreOpen}
+            className="mt-5 inline-flex items-center gap-1 text-[13px] font-semibold text-brand hover:underline"
+          >
+            {scoreOpen ? "View less" : "View more"} <ChevronDown className={`h-4 w-4 transition-transform ${scoreOpen ? "rotate-180" : ""}`} />
+          </button>
+
+          <div className="mt-8 w-full max-w-[280px]">
+            <div className="relative h-2 w-full rounded-full" style={{ background: "linear-gradient(90deg, #F0776C 0%, #F5B15D 50%, #5FD3A9 100%)" }}>
+              <div
+                className="absolute top-1/2 h-4 w-4 -translate-y-1/2 rounded-full border-[3px] border-white shadow-[0_1px_4px_rgba(0,0,0,0.35)] transition-[left] duration-700"
+                style={{ left: `calc(${score}% - 8px)`, background: band.color }}
+              />
+            </div>
+            <div className="mt-2 flex items-center justify-between text-[11px] font-medium text-ink-tertiary">
+              <span>Needs Attention</span>
+              <span>Thriving</span>
+            </div>
+          </div>
+        </section>
+
+        {scoreOpen && (
+          <Card className="p-6">
+            <h3 className="text-[16px] font-semibold text-ink">How your score is calculated</h3>
+            <p className="mt-1 max-w-3xl text-[13px] leading-relaxed text-ink-secondary">
+              Alfon monitors your hotel&apos;s live operations around the clock and distils everything into one score. Five pillars are weighted by their impact on the guest experience and recalculated every night at midnight.
+            </p>
+            <div className="mt-5 grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2 xl:grid-cols-5 xl:divide-x xl:divide-line">
+              {SCORE_PILLARS.map((p, i) => (
+                <div key={p.title} className={i > 0 ? "xl:pl-6" : ""}>
+                  <div className="flex items-center justify-between">
+                    <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-line text-brand"><p.icon className="h-[18px] w-[18px]" /></span>
+                    <span className="text-[16px] font-bold text-brand">{p.weight}%</span>
+                  </div>
+                  <div className="mt-3 text-[14px] font-semibold text-ink">{p.title}</div>
+                  <p className="mt-1.5 text-[12.5px] leading-relaxed text-ink-secondary">{p.text}</p>
+                </div>
+              ))}
+            </div>
+            <div className="mt-6 flex flex-wrap gap-x-8 gap-y-2 border-t border-line pt-4 text-[13px] text-ink-secondary">
+              {["Recalculates automatically every midnight", "Benchmarks against your previous day's performance", "Surfaces the exact pillar pulling your score down"].map((t) => (
+                <span key={t} className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-500" />{t}</span>
+              ))}
+            </div>
+          </Card>
+        )}
+
+        <div className="grid grid-cols-1 items-stretch gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(420px,46%)]">
+          {/* height:0 + min-h-full so the tasks card matches the right column without growing the row */}
+          <Card table className="flex min-h-0 flex-col overflow-hidden xl:h-0 xl:min-h-full">
+            <div className="flex shrink-0 flex-wrap items-center gap-3 px-5 py-4">
+              <ListChecks className="h-[18px] w-[18px] text-brand" />
+              <h3 className="text-[16px] font-semibold text-ink">Tasks</h3>
+              <div className="ml-auto flex items-center gap-2">
+                <div className="w-40"><Select className="h-9 text-[12px]" value={dept} onChange={(e) => setDept(e.target.value)} aria-label="Department">
+                  <option value="all">All Departments</option>{depts.map((d) => <option key={d}>{d}</option>)}
+                </Select></div>
+                <Link to="/tasks" className="ml-2 text-[13px] font-semibold text-brand">View all</Link>
               </div>
             </div>
-            <div className="mt-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-ink-tertiary">Hotel Health Score</div>
-            <p className="mt-2 text-center text-[14px] text-ink-secondary">
-              {band.key === "excellent"
-                ? "Your hotel is performing strong."
-                : band.key === "good"
-                  ? "Your hotel is doing well, with room to improve."
-                  : band.key === "attention"
-                    ? "Several things need attention."
-                    : "Urgent: resolve overdue and escalated tasks."}
-            </p>
-            <button
-              onClick={() => setScoreOpen((o) => !o)}
-              aria-expanded={scoreOpen}
-              className="mt-4 inline-flex items-center gap-1 text-[13px] font-semibold text-brand hover:underline"
-            >
-              {scoreOpen ? "View less" : "View more"} <ChevronDown className={`h-4 w-4 transition-transform ${scoreOpen ? "rotate-180" : ""}`} />
-            </button>
-
-            <div className="mt-6 w-full max-w-[280px]">
-              <div className="relative h-2 w-full rounded-full" style={{ background: "linear-gradient(90deg, #F0776C 0%, #F5B15D 50%, #5FD3A9 100%)" }}>
-                <div
-                  className="absolute top-1/2 h-4 w-4 -translate-y-1/2 rounded-full border-[3px] border-white shadow-[0_1px_4px_rgba(0,0,0,0.35)] transition-[left] duration-700"
-                  style={{ left: `calc(${score}% - 8px)`, background: band.color }}
-                />
-              </div>
-              <div className="mt-2 flex items-center justify-between text-[11px] font-medium text-ink-tertiary">
-                <span>Needs Attention</span>
-                <span>Thriving</span>
-              </div>
+            <div className="min-h-0 flex-1 overflow-auto border-t border-line">
+              <table className="w-full table-fixed text-left">
+                <colgroup>
+                  <col className="w-[20%]" />
+                  <col className="w-[20%]" />
+                  <col className="w-[20%]" />
+                  <col className="w-[20%]" />
+                  <col className="w-[20%]" />
+                </colgroup>
+                <thead className="sticky top-0 z-10">
+                  <tr className="bg-[#F4F4F5] text-[12px] uppercase tracking-wide text-[#6B7280]">
+                    <th className="truncate py-3.5 pl-4 font-medium">SLA</th>
+                    <th className="truncate py-3.5 pl-3 font-medium">Task</th>
+                    <th className="truncate py-3.5 pl-3 font-medium">Status</th>
+                    <th className="truncate py-3.5 pl-3 font-medium">Department</th>
+                    <th className="truncate py-3.5 pl-3 font-medium">Assigned To</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {pending.map((t) => {
+                    const D = DEPT_ICON[t.dept] ?? Building2;
+                    const status = taskStatus(t);
+                    return (
+                      <tr key={t.id} onClick={() => navigate(`/tasks?open=${t.id}`)} className="cursor-pointer border-b border-line/50 last:border-0 hover:bg-subtle/60">
+                        <td className="truncate py-3.5 pl-4 pr-2">
+                          <SlaClock sla={t.sla} />
+                        </td>
+                        <td className="min-w-0 py-3.5 pl-3 pr-2">
+                          <div className="flex min-w-0 items-center gap-2 text-[13px] font-semibold text-ink">
+                            <span className="truncate">{t.title}</span>
+                            {t.tag === "Complaint" && (
+                              <span className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ${COMPLAINT_PILL}`}>
+                                <AlertTriangle className="h-3 w-3" /> Complaint
+                              </span>
+                            )}
+                          </div>
+                          <div className="truncate text-[12px] text-ink-tertiary"><RoomNo room={t.room} /></div>
+                        </td>
+                        <td className="truncate py-3.5 pl-3 pr-2">
+                          <span className={`text-[13px] font-medium ${STATUS_PILL[status]}`}>{status}</span>
+                        </td>
+                        <td className="truncate text-[13px] text-ink-secondary py-3.5 pl-3 pr-2"><span className="flex min-w-0 items-center gap-1.5"><D className="h-3.5 w-3.5 shrink-0 text-ink-tertiary" /><span className="truncate">{t.dept}</span></span></td>
+                        <td className="truncate text-[13px] py-3.5 pl-3 pr-3">
+                          {t.owner ? <span className="truncate text-ink">{t.owner}</span> : <span className="font-medium text-brand">Unassigned</span>}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  {!pending.length && <tr><td colSpan={5} className="text-center text-[14px] text-ink-tertiary py-3.5 pl-4 pr-3">No pending tasks match.</td></tr>}
+                </tbody>
+              </table>
             </div>
           </Card>
 
-          <div className="flex flex-col gap-5">
+          <div className="flex h-full flex-col gap-5">
             <Card className="p-6">
               <div className="flex items-center justify-between">
                 <h3 className="text-[16px] font-semibold text-ink">Department Performance</h3>
@@ -296,99 +423,44 @@ export default function Home() {
           </div>
         </div>
 
-        {scoreOpen && (
-          <Card className="mt-5 p-6">
-            <h3 className="text-[16px] font-semibold text-ink">How your score is calculated</h3>
-            <p className="mt-1 max-w-3xl text-[13px] leading-relaxed text-ink-secondary">
-              Alfon monitors your hotel&apos;s live operations around the clock and distils everything into one score. Five pillars are weighted by their impact on the guest experience and recalculated every night at midnight.
-            </p>
-            <div className="mt-5 grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2 xl:grid-cols-5 xl:divide-x xl:divide-line">
-              {SCORE_PILLARS.map((p, i) => (
-                <div key={p.title} className={i > 0 ? "xl:pl-6" : ""}>
-                  <div className="flex items-center justify-between">
-                    <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-line text-brand"><p.icon className="h-[18px] w-[18px]" /></span>
-                    <span className="text-[16px] font-bold text-brand">{p.weight}%</span>
-                  </div>
-                  <div className="mt-3 text-[14px] font-semibold text-ink">{p.title}</div>
-                  <p className="mt-1.5 text-[12.5px] leading-relaxed text-ink-secondary">{p.text}</p>
+        <div className="grid grid-cols-1 items-stretch gap-5 lg:grid-cols-2">
+          <Card className="p-5">
+            <div className="mb-3 flex items-center justify-between">
+              <h3 className="text-[16px] font-semibold text-ink">Guest Chats</h3>
+              <Link to="/guest-chats" className="text-[13px] font-semibold text-brand">View all</Link>
+            </div>
+            <div className="space-y-1">
+              {CHAT_PREVIEW.map((c) => (
+                <Link key={c.id} to={`/guest-chats?guest=${c.id}`} className="flex items-center gap-3 rounded-lg p-2 hover:bg-subtle/70">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-tint font-display text-[11px] font-semibold text-brand">{c.initials}</span>
+                  <span className="min-w-0 flex-1">
+                    <span className="flex items-center justify-between gap-3">
+                      <span className="truncate text-[14px] font-semibold text-ink">{c.name}</span>
+                      <span className="shrink-0 text-[11px] text-ink-tertiary">{c.time}</span>
+                    </span>
+                    <span className="mt-0.5 block truncate text-[12px] text-ink-secondary">{c.preview}</span>
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </Card>
+
+          <Card className="p-5">
+            <h3 className="mb-3 text-[16px] font-semibold text-ink">Analytics Overview</h3>
+            <AnalyticsChart />
+            <div className="mt-3 grid grid-cols-3 text-center">
+              {[
+                { n: TASKS.length, label: "Total Tasks", tone: "text-ink" },
+                { n: TASKS.filter((t) => t.status === "Completed").length, label: "Completed", tone: "text-emerald-500" },
+                { n: TASKS.filter((t) => t.status !== "Completed" && t.status !== "Void" && t.status !== "Unable to Complete" && t.sla.kind === "overdue").length, label: "Overdue", tone: "text-red-500" },
+              ].map((s) => (
+                <div key={s.label}>
+                  <div className={`font-display text-[22px] font-bold leading-none ${s.tone}`}>{s.n}</div>
+                  <div className="mt-1 text-[11px] text-ink-tertiary">{s.label}</div>
                 </div>
               ))}
             </div>
-            <div className="mt-6 flex flex-wrap gap-x-8 gap-y-2 border-t border-line pt-4 text-[13px] text-ink-secondary">
-              {["Recalculates automatically every midnight", "Benchmarks against your previous day's performance", "Surfaces the exact pillar pulling your score down"].map((t) => (
-                <span key={t} className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-500" />{t}</span>
-              ))}
-            </div>
           </Card>
-        )}
-
-        {/* needs attention */}
-        <div className="mt-5">
-          <Card table className="overflow-hidden">
-            <div className="flex flex-wrap items-center gap-3 px-5 py-4">
-              <ListChecks className="h-[18px] w-[18px] text-brand" />
-              <h3 className="text-[16px] font-semibold text-ink">Tasks</h3>
-              <div className="ml-auto flex items-center gap-2">
-                <div className="w-40"><Select className="h-9 text-[12px]" value={dept} onChange={(e) => setDept(e.target.value)} aria-label="Department">
-                  <option value="all">All Departments</option>{depts.map((d) => <option key={d}>{d}</option>)}
-                </Select></div>
-                <Link to="/tasks" className="ml-2 text-[13px] font-semibold text-brand">View all</Link>
-              </div>
-            </div>
-            <div className="overflow-x-auto border-t border-line">
-              <table className="w-full min-w-[820px] table-fixed text-left">
-                <colgroup>
-                  <col className="w-[120px]" />
-                  <col />
-                  <col className="w-[140px]" />
-                  <col className="w-[170px]" />
-                  <col className="w-[130px]" />
-                </colgroup>
-                <thead>
-                  <tr className="bg-[#F4F4F5] text-[12px] uppercase tracking-wide text-[#6B7280]">
-                    <th className="py-3.5 pl-6 font-medium">SLA</th>
-                    <th className="py-3.5 pl-6 font-medium">Task</th>
-                    <th className="py-3.5 pl-6 font-medium">Status</th>
-                    <th className="py-3.5 pl-6 font-medium">Department</th>
-                    <th className="py-3.5 pl-6 font-medium">Assigned To</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {pending.map((t) => {
-                    const D = DEPT_ICON[t.dept] ?? Building2;
-                    const status = taskStatus(t);
-                    return (
-                      <tr key={t.id} onClick={() => navigate(`/tasks?open=${t.id}`)} className="cursor-pointer border-b border-line/50 last:border-0 hover:bg-subtle/60">
-                        <td className="whitespace-nowrap py-3.5 pl-6 pr-3">
-                          <SlaClock sla={t.sla} />
-                        </td>
-                        <td className="py-3.5 pl-6 pr-3">
-                          <div className="flex items-center gap-2 text-[13px] font-semibold text-ink">
-                            {t.title}
-                            {t.tag === "Complaint" && (
-                              <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ${COMPLAINT_PILL}`}>
-                                <AlertTriangle className="h-3 w-3" /> Complaint
-                              </span>
-                            )}
-                          </div>
-                          <div className="text-[12px] text-ink-tertiary"><RoomNo room={t.room} /></div>
-                        </td>
-                        <td className="whitespace-nowrap py-3.5 pl-6 pr-3">
-                          <span className={`text-[13px] font-medium ${STATUS_PILL[status]}`}>{status}</span>
-                        </td>
-                        <td className="whitespace-nowrap text-[14px] text-ink-secondary py-3.5 pl-6 pr-3"><span className="flex items-center gap-2"><D className="h-4 w-4 text-ink-tertiary" />{t.dept}</span></td>
-                        <td className="whitespace-nowrap text-[14px] py-3.5 pl-6 pr-3">
-                          {t.owner ? <span className="text-ink">{t.owner}</span> : <span className="font-medium text-brand">Unassigned</span>}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                  {!pending.length && <tr><td colSpan={5} className="text-center text-[14px] text-ink-tertiary py-3.5 pl-6 pr-3">No pending tasks match.</td></tr>}
-                </tbody>
-              </table>
-            </div>
-          </Card>
-
         </div>
 
         </div>

@@ -3,14 +3,12 @@ import { Check, X } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { LineStaffPrototype } from "../linestaff/screens";
 import { ManagerPrototype } from "../linestaff/manager";
-import { GuestLandingPrototype } from "../linestaff/guestLanding";
 
-type Tab = "line" | "manager" | "guest";
+type Tab = "line" | "manager";
 
 const TABS: { key: Tab; label: string }[] = [
   { key: "line", label: "Line Staff" },
   { key: "manager", label: "Mid Manager" },
-  { key: "guest", label: "Guest QR Landing" },
 ];
 
 const INFO: Record<Tab, { title: string; blurb: string; flows: string[]; included: string[]; excluded: string[] }> = {
@@ -18,7 +16,7 @@ const INFO: Record<Tab, { title: string; blurb: string; flows: string[]; include
     title: "Line Staff",
     blurb: "On-the-floor app for housekeeping and other line staff — do the next task, ask for help, create a manual task.",
     flows: [
-      "Bottom nav: Tasks and Chats",
+      "Bottom nav: Tasks, Chats, and More",
       "Assigned by a supervisor or mid manager: a drop-down banner shows the task and its SLA (no Accept needed — it is already yours)",
       "Tasks: Active, Pending and Completed tasks in one list",
       "Each card shows the task name first, the room second and the SLA timer",
@@ -28,7 +26,7 @@ const INFO: Record<Tab, { title: string; blurb: string; flows: string[]; include
       "Bell → Notifications",
       "+ button (top right, after the bell) → Create Manual Task (department, service, room, optional details)",
       "Chats: all guest chats — tap a chat to reply (take over from ALFON AI), tap the avatar for the guest profile",
-      "Guest profile: edit preferences and add notes. Menu (hamburger, top left): name, role, notification settings, sign out",
+      "Guest profile: edit preferences and add notes. More (bottom nav): name, role, notification settings, sign out",
     ],
     included: ["SLA timer on every task", "Room, guest and preference details", "Escalate to supervisor when blocked", "Manual task creation"],
     excluded: ["Team and analytics views", "Reassigning work to others"],
@@ -48,21 +46,6 @@ const INFO: Record<Tab, { title: string; blurb: string; flows: string[]; include
     ],
     included: ["Department-only scope", "Reasons required for unable / override / GM escalation"],
     excluded: ["Department analytics and SLA trend charts", "Staff performance and Hotel Health Score drill-down", "Reports, SLA / department / role / knowledge-base configuration"],
-  },
-  guest: {
-    title: "Guest QR Landing",
-    blurb: "What a guest sees the moment they scan the hotel's QR code — a branded landing page that hands them off to WhatsApp to talk to Alfon.",
-    flows: [
-      "QR code (in the room, at the desk, on a table tent) opens this page in the guest's own mobile browser — no app or login required",
-      "Full-bleed hero with the hotel's name and branding, so it feels like the hotel's own page rather than a generic form",
-      "Captures Full Name, Telephone Number (with country code) and Room Number — enough to personalise the AI conversation and route requests to the right room",
-      "A single consent checkbox for AI concierge and guest service processing via WhatsApp, linked to the hotel's Privacy Policy",
-      "A Secure / Verified / Instant Access trust strip under the button reassures the guest before they hand over any details",
-      "Connect on WhatsApp is disabled until the required fields and consent are filled in",
-      "On submit, the guest is handed off to WhatsApp already carrying their name and room — Alfon picks up the conversation from there",
-    ],
-    included: ["Per-hotel branding on the hero", "Minimal required fields", "Consent captured before any AI messaging begins"],
-    excluded: ["Guest login or account creation", "Anything beyond the handoff into WhatsApp"],
   },
 };
 
@@ -91,7 +74,6 @@ export default function LineStaff() {
             {/* remount on tab change so each phone starts fresh */}
             {tab === "line" && <LineStaffPrototype />}
             {tab === "manager" && <ManagerPrototype />}
-            {tab === "guest" && <GuestLandingPrototype />}
 
             <div className="space-y-5">
               <div className="rounded-card border border-line bg-white p-5">

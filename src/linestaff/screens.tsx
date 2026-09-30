@@ -1,6 +1,6 @@
 import { Button } from "../components/ui";
 import { useEffect, useMemo, useState } from "react";
-import { Bell, Menu as MenuIcon, Send, Plus, BedDouble, User, Building2, ChevronLeft, ChevronRight, ArrowUpRight, ListChecks, MessageCircle, Search } from "lucide-react";
+import { Bell, Send, Plus, BedDouble, User, Building2, ChevronLeft, ChevronRight, ArrowUpRight, ListChecks, MessageCircle, Search } from "lucide-react";
 import { DEPARTMENTS } from "../data/departments";
 import {
   PhoneFrame,
@@ -32,6 +32,19 @@ import { GuestProfileScreen, GuestChatScreen, type ChatMsg } from "./guestviews"
 import { ProfileScreen, NotificationSettingsScreen, SignedOutScreen } from "./profile";
 
 type Screen = { name: "home" | "notifications" | "taskDetail" | "create" | "guests" | "guestChat" | "guestProfile" | "profile" | "notifSettings"; id?: string };
+
+const LS_ME = "Aanya Khan";
+const LS_ME_INITIALS = LS_ME.split(" ").map((p) => p[0]).join("").slice(0, 2);
+/** FloatingNav icon: filled initials avatar that follows active/inactive text color. */
+function MoreNavIcon({ className }: { className?: string }) {
+  return (
+    <span className={`inline-flex items-center justify-center ${className ?? ""}`}>
+      <span className="flex h-full w-full items-center justify-center rounded-full bg-current">
+        <span className="text-[9px] font-bold leading-none text-white">{LS_ME_INITIALS}</span>
+      </span>
+    </span>
+  );
+}
 
 const CHAT_FILTERS = ["All", "Unread", "Open tasks"] as const;
 
@@ -118,8 +131,8 @@ const INITIAL: Task[] = [
 ];
 
 const NOTIFS = [
-  { label: "Completed", tone: "text-emerald-600", task: "Full towel change & linens", sub: "Room 501", time: "10:31 AM", id: "t1" },
-  { label: "SLA breach", tone: "text-orange-600", task: "Extra pillows", sub: "Room 908 · Overdue by 8 mins", time: "10:28 AM", id: "t10" },
+  { label: "Completed", tone: "text-success", task: "Full towel change & linens", sub: "Room 501", time: "10:31 AM", id: "t1" },
+  { label: "SLA breach", tone: "text-brand", task: "Extra pillows", sub: "Room 908 · Overdue by 8 mins", time: "10:28 AM", id: "t10" },
   { label: "New task", tone: "text-sky-600", task: "Baby cot setup", sub: "Room 704", time: "10:26 AM", id: "t7" },
   { label: "New task", tone: "text-sky-600", task: "Rollaway bed & pillows", sub: "Room 812", time: "10:22 AM", id: "t3" },
 ];
@@ -139,7 +152,7 @@ function LsCard({ t, onOpen, onAccept }: { t: Task; onOpen?: () => void; onAccep
       total={t.total}
       done={done}
       flags={!done && t.escalatedTo ? [{ label: "Escalation", tone: "text-red-600" }] : []}
-      meta={done && t.time ? <span className="font-medium text-emerald-600">✓ {t.time}</span> : undefined}
+      meta={done && t.time ? <span className="font-medium text-success">✓ {t.time}</span> : undefined}
       onClick={onOpen}
       footer={onAccept ? <Button className="w-full" onClick={onAccept}>Accept</Button> : undefined}
     />
@@ -150,8 +163,8 @@ function Row({ icon: Icon, label, children }: { icon: React.ComponentType<{ clas
   return (
     <div className="flex items-center gap-3 py-3.5">
       <Icon className="h-4 w-4 shrink-0 text-ink-tertiary" />
-      <span className="w-24 shrink-0 text-[13px] text-ink-tertiary">{label}</span>
-      <span className="min-w-0 flex-1 text-[14px] font-semibold text-ink">{children}</span>
+      <span className="w-24 shrink-0 text-[12px] font-normal text-ink-secondary">{label}</span>
+      <span className="min-w-0 flex-1 text-[14px] font-medium text-ink">{children}</span>
     </div>
   );
 }
@@ -230,12 +243,14 @@ export function LineStaffPrototype() {
   );
   const lsNav = (
     <FloatingNav
+      showLabels={false}
       items={[
         { key: "tasks", label: "Tasks", icon: ListChecks },
         { key: "guests", label: "Chats", icon: MessageCircle },
+        { key: "profile", label: "More", icon: MoreNavIcon },
       ]}
-      active={cur.name === "guests" ? "guests" : "tasks"}
-      onChange={(k) => nav.go({ name: k === "guests" ? "guests" : "home" })}
+      active={cur.name === "guests" ? "guests" : cur.name === "profile" ? "profile" : "tasks"}
+      onChange={(k) => nav.go({ name: k === "guests" ? "guests" : k === "profile" ? "profile" : "home" })}
     />
   );
 
@@ -288,11 +303,12 @@ export function LineStaffPrototype() {
   const Home = (
     <div className="relative h-full">
       <div className="h-full overflow-y-auto pb-28 no-scrollbar">
-        <div className="flex items-center justify-between px-6 py-2">
-          <button onClick={() => nav.push({ name: "profile" })} aria-label="Menu" className="flex h-11 w-11 items-center justify-center rounded-full text-ink active:bg-ink/5">
-            <MenuIcon className="h-[22px] w-[22px]" />
-          </button>
-          <div className="flex items-center gap-2">
+        <div className="flex items-start justify-between gap-3 px-6 py-2">
+          <div className="min-w-0">
+            <div className="truncate text-[22px] font-semibold leading-tight text-ink">Good morning, {LS_ME.split(" ")[0]} 👋</div>
+            <p className="mt-1 text-[13px] font-normal text-ink-secondary">Here's what's happening today</p>
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
             <button onClick={() => nav.push({ name: "notifications" })} aria-label="Notifications" className="relative flex h-11 w-11 items-center justify-center rounded-full text-ink active:bg-ink/5">
               <Bell className="h-[22px] w-[22px] text-ink" />
               <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-red-500" />
@@ -327,7 +343,8 @@ export function LineStaffPrototype() {
   const Guests = (
     <div className="relative h-full">
       <div className="h-full overflow-y-auto pb-28 no-scrollbar">
-        <h1 className="px-6 pb-2 pt-4 text-[20px] font-semibold text-ink">Chats</h1>
+        <h1 className="px-6 pb-0.5 pt-4 font-display text-[20px] font-bold text-ink">Chats</h1>
+        <p className="px-6 pb-2 text-[12px] font-normal text-ink-secondary">Conversations assigned to you</p>
         <div className="flex items-center gap-2 px-6">
           <SearchField value={guestQuery} onChange={setGuestQuery} placeholder="Search guest or room" />
           <button
@@ -338,7 +355,7 @@ export function LineStaffPrototype() {
             <Plus className="h-6 w-6" strokeWidth={2.25} />
           </button>
         </div>
-        <div className="mt-3"><Chips flat items={CHAT_FILTERS} active={guestFilter} onChange={setGuestFilter} /></div>
+        <div className="mt-3"><Chips flat dense items={CHAT_FILTERS} active={guestFilter} onChange={setGuestFilter} /></div>
         <div className="mt-1 px-6">
           {guestsFiltered.map((g) => {
             const th = threadOf(g.name);
@@ -408,16 +425,16 @@ export function LineStaffPrototype() {
         <button onClick={nav.back} aria-label="Back" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-ink shadow-sm">
           <ChevronLeft className="h-5 w-5" />
         </button>
-        <span className="text-[13px] font-semibold text-ink-secondary">Task detail</span>
+        <span className="text-[11px] font-bold uppercase tracking-[0.08em] text-ink-tertiary">Task detail</span>
         {active.status !== "completed" && <div className="ml-auto"><SlaCountdown left={active.left} total={active.total} /></div>}
       </div>
       <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 pb-4 pt-4 no-scrollbar">
         <div className="flex items-start gap-3">
           <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-tint text-brand"><BedDouble className="h-6 w-6" /></span>
           <div className="min-w-0">
-            <h2 className="text-[18px] font-bold leading-snug text-ink">{active.title}</h2>
+            <h2 className="font-display text-[18px] font-bold leading-[1.25] text-ink">{active.title}</h2>
             {active.status !== "progress" && (
-              <span className={`mt-1 inline-block text-[12px] font-medium ${active.status === "completed" ? "text-emerald-600" : "text-slate-500"}`}>
+              <span className={`mt-1 inline-block text-[11px] font-bold ${active.status === "completed" ? "text-success" : "text-ink-tertiary"}`}>
                 {active.status === "completed" ? "Completed" : "Pending"}
               </span>
             )}
@@ -428,7 +445,7 @@ export function LineStaffPrototype() {
         <div className="divide-y divide-line rounded-2xl border border-line bg-white px-4">
           {active.guest !== "—" && (
             <Row icon={User} label="Guest">
-              <button onClick={() => nav.push({ name: "guestProfile", id: active.guest })} className="flex items-center gap-1 text-left font-semibold text-brand">
+              <button onClick={() => nav.push({ name: "guestProfile", id: active.guest })} className="flex items-center gap-1 text-left font-medium text-brand">
                 {active.guest} <ChevronRight className="h-4 w-4" />
               </button>
             </Row>
@@ -438,9 +455,9 @@ export function LineStaffPrototype() {
         </div>
 
         <div className="rounded-2xl bg-[#F6F6F8] p-4">
-          <div className="text-[12px] font-semibold text-ink-tertiary">Notes</div>
-          <p className="mt-1.5 text-[14px] leading-relaxed text-ink">{active.note}</p>
-          {active.staffNote && <p className="mt-2 text-[14px] leading-relaxed text-ink">{active.staffNote}</p>}
+          <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-ink-tertiary">Notes</div>
+          <p className="mt-2 text-[14px] font-normal leading-[1.6] text-ink">{active.note}</p>
+          {active.staffNote && <p className="mt-2 text-[14px] font-normal leading-[1.6] text-ink">{active.staffNote}</p>}
         </div>
 
         {active.complaint && (
@@ -470,12 +487,12 @@ export function LineStaffPrototype() {
 
       <div className="flex shrink-0 gap-3 px-6 pb-6 pt-3">
         {active.status === "pending" ? (
-          <Button className="w-full" onClick={() => accept(active.id)}>Accept</Button>
+          <Button className="w-full !font-bold" onClick={() => accept(active.id)}>Accept</Button>
         ) : (
           <>
-            <Button variant="outline" className="flex-1" disabled={active.status === "completed"} onClick={() => { setHelpKind("escalate"); setHelpNote(""); setHelpOpen(true); }}>Need help</Button>
+            <Button variant="outline" className="flex-1 !font-bold" disabled={active.status === "completed"} onClick={() => { setHelpKind("escalate"); setHelpNote(""); setHelpOpen(true); }}>Need help</Button>
             <Button
-              className="flex-[1.3]"
+              className="flex-[1.3] !font-bold"
               disabled={active.status === "completed"}
               onClick={() => completeTask(active)}
             >
@@ -545,12 +562,16 @@ export function LineStaffPrototype() {
   );
 
   const Profile = (
-    <ProfileScreen
-      name="Aanya Khan" role="Line Staff" email="aanya.khan@alfonhotel.com" dept="Housekeeping"
-      onNotifSettings={() => nav.push({ name: "notifSettings" })}
-      onSignOut={() => setSignedOut(true)}
-      onBack={nav.back}
-    />
+    <div className="relative h-full">
+      <div className="h-full overflow-y-auto pb-24 no-scrollbar">
+        <ProfileScreen
+          name="Aanya Khan" role="Line Staff" email="aanya.khan@alfonhotel.com" dept="Housekeeping"
+          onNotifSettings={() => nav.push({ name: "notifSettings" })}
+          onSignOut={() => setSignedOut(true)}
+        />
+      </div>
+      {lsNav}
+    </div>
   );
   const NotifSettings = <NotificationSettingsScreen persona="line" onBack={nav.back} />;
 

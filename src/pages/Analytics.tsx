@@ -244,13 +244,15 @@ export default function Analytics() {
         </div>
 
         {/* KPIs */}
-        <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3">
           {kpis.map((k) => (
-            <Card key={k.label} className="p-5">
-              <k.icon className="h-6 w-6" style={{ color: k.color }} />
-              <div className="mt-3 text-[13px] text-ink-secondary">{k.label}</div>
-              <div className="text-[28px] font-bold leading-tight text-ink">{k.value}</div>
-              <div className="mt-1 flex items-center gap-1 text-[12px] font-medium text-ink-secondary">
+            <Card key={k.label} className="p-4">
+              <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-brand/25 bg-white text-brand">
+                <k.icon className="h-[18px] w-[18px]" />
+              </span>
+              <div className="mt-3 text-[13px] font-medium text-ink-secondary">{k.label}</div>
+              <div className="mt-1 text-[28px] font-bold leading-none text-ink">{k.value}</div>
+              <div className="mt-1 flex items-center gap-1 text-[12px] font-medium text-ink-tertiary">
                 {k.up ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />} {k.delta}
               </div>
             </Card>

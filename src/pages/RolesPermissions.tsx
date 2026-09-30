@@ -6,6 +6,7 @@ import {
   Plus,
   ChevronRight,
   ChevronDown,
+  MoreVertical,
   User as UserIcon,
   Headset,
   BedDouble,
@@ -72,6 +73,11 @@ const TREND = [12, 8, 0, -5, 15, 3, 9, 6, 10, 2];
 
 function Shell({ embedded, children }: { embedded: boolean; children: React.ReactNode }) {
   return embedded ? <div className="mt-2">{children}</div> : <Page>{children}</Page>;
+}
+
+function EditorFrame({ card, children }: { card: boolean; children: React.ReactNode }) {
+  if (!card) return <div className="min-w-0">{children}</div>;
+  return <Card className="p-5">{children}</Card>;
 }
 
 export default function RolesPermissions({ embedded = false }: { embedded?: boolean }) {
@@ -194,17 +200,18 @@ export default function RolesPermissions({ embedded = false }: { embedded?: bool
 
         {tab === "roles" || embedded ? (
           <>
-            <div className={`${embedded ? "mt-0" : "mt-6"} grid grid-cols-1 gap-6 xl:grid-cols-[minmax(340px,0.9fr)_1.4fr]`}>
-              {/* roles list */}
-              <Card className="p-5">
-                <div className={`flex justify-between gap-3 ${embedded ? "items-center" : "items-start"}`}>
+            <div className={`${embedded ? "mt-0 xl:grid-cols-[300px_minmax(0,1fr)]" : "mt-6 xl:grid-cols-[minmax(340px,0.9fr)_1.4fr]"} grid grid-cols-1 items-stretch gap-6`}>
+              {/* roles list — when embedded, its height follows the configure panel and the list scrolls */}
+              <div className={embedded ? "relative xl:min-h-0" : undefined}>
+              <Card className={embedded ? "flex max-h-[32rem] flex-col overflow-hidden p-4 xl:absolute xl:inset-0 xl:max-h-none" : "p-5"}>
+                <div className={`flex shrink-0 justify-between gap-3 ${embedded ? "items-center" : "items-start"}`}>
                   <div>
                     <h2 className="text-[17px] font-semibold text-ink">{embedded ? "Create role" : "Roles"}</h2>
                     {!embedded && <p className="text-[12px] text-ink-secondary">Select a role to view or edit its permissions.</p>}
                   </div>
                   <Button onClick={startCreate} className="shrink-0 whitespace-nowrap"><Plus className="h-4 w-4" /> Create Role</Button>
                 </div>
-                <div className="relative mt-4">
+                <div className="relative mt-4 shrink-0">
                   <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-tertiary" />
                   <input
                     value={query}
@@ -213,20 +220,20 @@ export default function RolesPermissions({ embedded = false }: { embedded?: bool
                     className="h-10 w-full rounded-control border border-line bg-subtle pl-9 pr-3 text-[13px] outline-none placeholder:text-ink-tertiary focus:border-brand focus:bg-white"
                   />
                 </div>
-                <div className="mt-3">
+                <div className="mt-3 shrink-0">
                   <Select value={deptFilter} onChange={(e) => setDeptFilter(e.target.value)} aria-label="Department">
                     <option value="All">All departments</option>
                     {DEPARTMENTS.map((d) => <option key={d}>{d}</option>)}
                   </Select>
                 </div>
-                <div className="mt-4 space-y-1.5">
+                <div className={`mt-4 space-y-1.5 ${embedded ? "min-h-0 flex-1 overflow-y-auto pr-1" : ""}`}>
                   {visible.map((r) => {
                     const on = r.id === selectedId;
                     return (
                       <button
                         key={r.id}
                         onClick={() => select(r.id)}
-                        className={`flex w-full items-center gap-3 rounded-xl px-4 py-5 text-left ${on ? "bg-brand-tint/60" : "hover:bg-subtle"}`}
+                        className={`flex w-full items-center gap-3 rounded-xl text-left ${embedded ? "px-3 py-2.5" : "px-4 py-5"} ${on ? "bg-brand-tint/60" : "hover:bg-subtle"}`}
                       >
                         <span className="min-w-0 flex-1 truncate text-[14px] font-semibold text-ink">{r.name}</span>
                         <span className="shrink-0 text-[12px] text-ink-secondary">{countOf(r.id)} users</span>
@@ -237,9 +244,10 @@ export default function RolesPermissions({ embedded = false }: { embedded?: bool
                   {!visible.length && <p className="py-8 text-center text-[13px] text-ink-tertiary">No roles match.</p>}
                 </div>
               </Card>
+              </div>
 
               {/* editor */}
-              <Card className="p-5" >
+              <EditorFrame card={!embedded}>
                 <div ref={editorRef} />
                 {embedded && <div className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-ink-tertiary">Configure role</div>}
 
@@ -272,11 +280,15 @@ export default function RolesPermissions({ embedded = false }: { embedded?: bool
                         <p className="truncate text-[13px] text-ink-secondary">{draft.desc || "No description"}</p>
                       </div>
                       <div className="relative">
-                        <button onClick={() => setActionsOpen((o) => !o)} className="flex items-center gap-2 rounded-control border border-line bg-white px-3 py-2 text-[13px] font-medium text-ink hover:bg-subtle">
-                          Actions <ChevronDown className="h-4 w-4" />
+                        <button
+                          aria-label="Role actions"
+                          onClick={() => setActionsOpen((o) => !o)}
+                          className="flex h-8 w-8 items-center justify-center rounded-lg text-ink-secondary hover:bg-subtle hover:text-ink"
+                        >
+                          <MoreVertical className="h-4 w-4" />
                         </button>
                         {actionsOpen && (
-                          <div className="absolute right-0 top-11 z-20 w-48 rounded-xl border border-line bg-white p-1.5 shadow-lg">
+                          <div className="absolute right-0 top-9 z-20 w-40 rounded-xl border border-line bg-white p-1.5 shadow-lg">
                             <button onClick={() => { setActionsOpen(false); setDeleteOpen(true); }} className="block w-full rounded-control px-3 py-2 text-left text-[13px] text-red-600 hover:bg-red-50">Delete role</button>
                           </div>
                         )}
@@ -311,14 +323,14 @@ export default function RolesPermissions({ embedded = false }: { embedded?: bool
                       />
                     )}
 
-                    <div className={`mt-8 flex items-center justify-end gap-3 ${editTab === "members" ? "hidden" : ""}`}>
+                    <div className={`mt-8 flex items-center justify-end gap-3 ${embedded || editTab === "members" ? "hidden" : ""}`}>
                       {dirty && <span className="mr-auto text-[12px] text-ink-tertiary">Unsaved changes</span>}
                       <Button variant="outline" onClick={() => { setDraft(structuredClone(saved)); }} disabled={!dirty}>Cancel</Button>
                       <Button onClick={save} disabled={!dirty || !draft.name.trim()} className="disabled:opacity-40">Save Changes</Button>
                     </div>
                   </>
                 )}
-              </Card>
+              </EditorFrame>
             </div>
           </>
         ) : (
@@ -448,7 +460,7 @@ function RoleBasicFields({
         <Field label="Role Name"><Input value={draft.name} onChange={(e) => set("name", e.target.value)} /></Field>
         <Field label="Persona">
           <Select value={draft.persona} onChange={(e) => set("persona", e.target.value as Role["persona"])}>
-            {PERSONA_TYPES.map((p) => <option key={p}>{p}</option>)}
+            {PERSONA_TYPES.filter((p) => p !== "Supervisor").map((p) => <option key={p}>{p}</option>)}
           </Select>
         </Field>
         <Field label="Description"><Textarea rows={3} value={draft.desc} onChange={(e) => set("desc", e.target.value)} /></Field>

@@ -1,8 +1,8 @@
 import type { ReactNode } from "react";
 import { Search, SlidersHorizontal } from "lucide-react";
 
-/** the list panel that sits flush against the sidebar (Guests, Guest Chats): one look for both */
-export const SIDE_PANEL = "flex shrink-0 flex-col border-r border-line bg-white";
+/** floating guest list, matching the Alt Prototype: inset card, not a rail flush to the sidebar */
+export const SIDE_PANEL = "flex h-full min-h-0 shrink-0 flex-col overflow-hidden rounded-2xl border border-line bg-white shadow-card";
 export const SIDE_ROW = "flex border-b border-line/60 px-4 py-3";
 export const sideRowTone = (on: boolean) => (on ? "bg-brand-tint/50" : "hover:bg-subtle");
 

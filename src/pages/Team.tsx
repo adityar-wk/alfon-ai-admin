@@ -193,15 +193,15 @@ export default function Team() {
 
   const STATS = manager
     ? [
-        { label: "Total Staff", value: total, foot: scopeDepts.join(" + ") },
-        { label: "On Duty", value: onDuty, foot: `${pct(onDuty)} of total` },
-        { label: "On Break", value: onBreak, foot: `${pct(onBreak)} of total` },
-        { label: "Off Duty", value: off, foot: `${pct(off)} of total` },
+        { label: "Total Staff", value: total, foot: scopeDepts.join(" + "), icon: Users },
+        { label: "On Duty", value: onDuty, foot: `${pct(onDuty)} of total`, icon: ShieldCheck },
+        { label: "On Break", value: onBreak, foot: `${pct(onBreak)} of total`, icon: Minus },
+        { label: "Off Duty", value: off, foot: `${pct(off)} of total`, icon: Circle },
       ]
     : [
-        { label: "Total Staff", value: total, foot: `Across ${new Set(staff.map((x) => x.dept)).size} departments` },
-        { label: "Avg Response Time", value: "2m 45s", foot: "18% faster than last week" },
-        { label: "SLA On-time Rate", value: `${Math.round((1 - TASKS.filter((t) => t.sla.kind === "overdue").length / Math.max(TASKS.length, 1)) * 100)}%`, foot: "Tasks within their SLA" },
+        { label: "Total Staff", value: total, foot: `Across ${new Set(staff.map((x) => x.dept)).size} departments`, icon: Users },
+        { label: "Avg Response Time", value: "2m 45s", foot: "18% faster than last week", icon: MessageCircle },
+        { label: "SLA On-time Rate", value: `${Math.round((1 - TASKS.filter((t) => t.sla.kind === "overdue").length / Math.max(TASKS.length, 1)) * 100)}%`, foot: "Tasks within their SLA", icon: ShieldCheck },
       ];
 
   const toggle = (id: string) =>
@@ -237,12 +237,15 @@ export default function Team() {
         />
         <main className="flex-1 overflow-y-auto bg-page">
         <div className="p-6">
-          <div className={`grid grid-cols-2 gap-4 ${manager ? "xl:grid-cols-4" : "sm:grid-cols-3"}`}>
+          <div className={`grid grid-cols-2 gap-5 ${manager ? "xl:grid-cols-4" : "sm:grid-cols-3"}`}>
             {STATS.map((s) => (
               <Card key={s.label} className="p-4">
-                <div className="text-[13px] text-ink-secondary">{s.label}</div>
-                <div className="mt-1 text-[26px] font-bold leading-tight text-ink">{s.value}</div>
-                <div className="text-[12px] text-ink-tertiary">{s.foot}</div>
+                <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-brand/25 bg-white text-brand">
+                  <s.icon className="h-[18px] w-[18px]" />
+                </span>
+                <div className="mt-3 text-[13px] font-medium text-ink-secondary">{s.label}</div>
+                <div className="mt-1 text-[28px] font-bold leading-none text-ink">{s.value}</div>
+                <div className="mt-1 text-[12px] font-medium text-ink-tertiary">{s.foot}</div>
               </Card>
             ))}
           </div>

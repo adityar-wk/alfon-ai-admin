@@ -62,7 +62,7 @@ export default function WhatsAppPmsSetup() {
       <Page>
         <SetupTabs />
 
-        <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
+        <div className="grid max-w-5xl grid-cols-1 items-start gap-5 lg:grid-cols-2">
           <ConnectionCard
             icon={<MessageCircle className="h-5 w-5" style={{ color: WA }} />}
             iconBg="bg-emerald-50"

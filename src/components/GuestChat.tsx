@@ -66,15 +66,17 @@ export function GuestChat({
 
   return (
     <div className={`flex min-h-0 flex-col ${className}`}>
-      <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-8 py-6">
+      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto bg-white p-5">
         {msgs.length === 0 && <p className="pt-12 text-center text-[14px] text-ink-tertiary">{emptyText}</p>}
         {msgs.map((m, i) => {
           const mine = m.from !== "guest";
           return (
             <div key={i} className={`flex flex-col ${mine ? "items-end" : "items-start"}`}>
               <div
-                className={`max-w-[82%] rounded-[20px] px-5 py-3.5 text-[14px] leading-[1.5] text-ink ${
-                  mine ? "bg-[#FDEEE6]" : "border border-line/70 bg-white shadow-[0_1px_4px_rgba(16,24,40,0.06)]"
+                className={`max-w-[75%] px-4 py-3 text-[14px] leading-[1.5] text-ink ${
+                  mine
+                    ? "rounded-[20px_20px_4px_20px] border border-brand/10 bg-gradient-to-br from-[#FFF8F4] to-[#FFF0E8]"
+                    : "rounded-[20px_20px_20px_4px] border border-line bg-white shadow-[0_2px_8px_rgba(0,0,0,0.05)]"
                 }`}
               >
                 {m.text}
@@ -96,9 +98,9 @@ export function GuestChat({
       </div>
 
       {!!summary?.length && (
-        <div className="mx-6 mb-3 rounded-2xl bg-[#EEF3FF] p-4">
-          <div className="mb-2 flex items-center gap-1.5 text-[12px] font-bold text-blue-700">
-            <Sparkles className="h-3.5 w-3.5 text-blue-600" /> Guest Summary
+        <div className="border-t border-line bg-[#F0F7FF] px-5 py-3">
+          <div className="mb-1 flex items-center gap-1.5 text-[12px] font-semibold text-[#2E86AB]">
+            <Sparkles className="h-3.5 w-3.5" /> Guest Summary
           </div>
           <ul className="space-y-1.5">
             {summary.map((t, i) => (

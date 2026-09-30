@@ -25,7 +25,7 @@ export const CARD_SHADOW = "border border-[#E6E4DF]";
 export function PhoneFrame({ children, white = false }: { children: ReactNode; white?: boolean }) {
   return (
     <div className="relative h-[820px] w-[400px] shrink-0 rounded-[52px] border-[10px] border-[#1A1A1A] bg-[#1A1A1A] shadow-2xl">
-      <div className={`relative flex h-full w-full flex-col overflow-hidden rounded-[42px] ${white ? "bg-white" : "bg-[#FDFDFC]"}`}>
+      <div className={`relative flex h-full w-full flex-col overflow-hidden rounded-[42px] ${white ? "bg-white" : "bg-page"}`}>
         <StatusBar />
         <div className="relative min-h-0 flex-1">{children}</div>
       </div>
@@ -126,10 +126,10 @@ export const fmtMins = (m: number) => {
 };
 
 export function slaTone(left: number, total: number) {
-  // breached (negative) or in the last two minutes: red; at risk: orange; otherwise on time: green
-  if (left <= 2) return { color: "#DC2626", label: left < 0 ? "over" : "left", text: "text-red-600" };
-  if (left / total < 0.35) return { color: "#EA580C", label: "left", text: "text-orange-600" };
-  return { color: "#16A34A", label: "left", text: "text-emerald-600" };
+  // breached / last two minutes: danger red; at risk: brand orange; otherwise on time: success green
+  if (left <= 2) return { color: "#DC2626", label: left < 0 ? "over" : "left", text: "text-danger" };
+  if (left / total < 0.35) return { color: "#E8623A", label: "left", text: "text-brand" };
+  return { color: "#16A34A", label: "left", text: "text-success" };
 }
 
 /** live SLA clock for task cards: counts down, turns red and counts up once breached */
@@ -212,9 +212,9 @@ export function TaskCard({
 }) {
   const initials = (n: string) => n.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
   return (
-    <div className={`relative rounded-2xl border border-[#E6E4DF] bg-white px-5 py-4`}>
+    <div className="relative rounded-2xl border border-[#E6E4DF] bg-white px-5 py-4 shadow-card">
       <div onClick={onClick} role={onClick ? "button" : undefined} className={onClick ? "cursor-pointer active:scale-[0.99]" : ""}>
-        <div className={`font-display text-[16px] font-medium leading-snug ${done ? "text-ink-secondary" : "text-ink"}`}>{note}</div>
+        <div className={`font-display text-[16px] font-semibold leading-snug ${done ? "text-ink-secondary" : "text-ink"}`}>{note}</div>
         <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px]">
           <span className="flex items-center gap-1 text-ink-secondary">
             {/^Room\s/i.test(room) ? <><DoorOpen className="h-[15px] w-[15px]" />{room.replace(/^Room\s+/i, "")}</> : room}
@@ -257,12 +257,12 @@ export function TaskCard({
   );
 }
 
-export function StatCard({ label, value, tone = "text-ink", onClick, hint }: { label: string; value: number | string; tone?: string; onClick?: () => void; hint?: string }) {
+export function StatCard({ label, value, tone = "text-ink", onClick, hint, hintTone = "text-ink-tertiary", calm = false }: { label: string; value: number | string; tone?: string; onClick?: () => void; hint?: string; hintTone?: string; /** lighter weights for manager home */ calm?: boolean }) {
   return (
-    <button onClick={onClick} className={`rounded-2xl border border-[#E6E4DF] bg-white p-3.5 text-left ${onClick ? "active:scale-[0.98]" : "cursor-default"}`}>
-      <div className={`text-[26px] font-bold leading-none ${tone}`}>{value}</div>
-      <div className="mt-1.5 text-[12px] font-medium text-ink-secondary">{label}</div>
-      {hint && <div className="text-[11px] text-ink-tertiary">{hint}</div>}
+    <button onClick={onClick} className={`rounded-2xl border border-line bg-white p-3.5 text-left shadow-card ${onClick ? "active:scale-[0.98]" : "cursor-default"}`}>
+      <div className={`font-display text-[26px] leading-none ${calm ? "font-semibold" : "font-bold"} ${tone}`}>{value}</div>
+      <div className={`mt-1.5 text-ink-secondary ${calm ? "text-[11px] font-normal" : "text-[12px] font-medium"}`}>{label}</div>
+      {hint && <div className={`mt-0.5 text-[11px] font-medium ${hintTone}`}>{hint}</div>}
     </button>
   );
 }
@@ -290,15 +290,15 @@ export function ChatRow({
   const body = (
     <>
       <span className="min-w-0 flex-1 leading-tight">
-        <span className="block truncate text-[15px] font-semibold text-ink">{name}</span>
-        <span className="mt-1 flex items-center gap-1 text-[12px] text-ink-tertiary">
+        <span className={`block truncate text-[14px] text-ink ${unread > 0 ? "font-bold" : "font-semibold"}`}>{name}</span>
+        <span className="mt-0.5 flex items-center gap-1 text-[11px] font-normal text-ink-tertiary">
           {/^Room\s/i.test(room) ? <><DoorOpen className="h-3.5 w-3.5" />{room.replace(/^Room\s+/i, "")}</> : room}
         </span>
-        <span className="mt-1.5 block truncate text-[13px] text-ink-secondary">{preview}</span>
+        <span className={`mt-0.5 block truncate text-[13px] ${unread > 0 ? "font-medium text-ink" : "font-normal text-ink-secondary"}`}>{preview}</span>
       </span>
       {!plain && (
         <span className="flex shrink-0 flex-col items-end justify-between gap-1.5 self-stretch py-0.5">
-          <span className={`text-[12px] ${unread > 0 ? "font-bold text-brand" : "text-ink-tertiary"}`}>{chatTime(name)}</span>
+          <span className="text-[11px] font-normal text-ink-tertiary">{chatTime(name)}</span>
           <span className="flex h-2.5 items-center">
             {unread > 0 && <span aria-label="Unread" className="h-2.5 w-2.5 rounded-full bg-brand" />}
           </span>
@@ -382,14 +382,14 @@ export function NotifRow({ label, tone, time, task, sub, unread, onOpen }: { lab
 
 /* ---------- controls ---------- */
 
-export function Chips<T extends string>({ items, active, onChange, counts, flat = false }: { items: readonly T[]; active: T; onChange: (v: T) => void; counts?: Partial<Record<T, number>>; flat?: boolean }) {
+export function Chips<T extends string>({ items, active, onChange, counts, flat: _flat = false, dense = false, calm = false }: { items: readonly T[]; active: T; onChange: (v: T) => void; counts?: Partial<Record<T, number>>; flat?: boolean; dense?: boolean; /** selected medium / unselected regular — manager home */ calm?: boolean }) {
   return (
     <div className="no-scrollbar -mx-0 flex gap-2 overflow-x-auto px-6 pb-1">
       {items.map((c) => (
         <button
           key={c}
           onClick={() => onChange(c)}
-          className={`shrink-0 rounded-full px-3.5 py-2 text-[13px] font-semibold ${flat ? (active === c ? "border border-brand bg-brand text-white" : "border border-transparent bg-[#F8F8F6] text-ink-secondary") : active === c ? "bg-brand text-white shadow-sm" : "bg-white text-ink-secondary shadow-sm"}`}
+          className={`shrink-0 rounded-full ${calm ? (active === c ? "font-medium" : "font-normal") : "font-semibold"} ${dense ? "px-3.5 py-1.5 text-[12px]" : "px-3.5 py-2 text-[13px]"} ${active === c ? "bg-brand text-white" : "bg-subtle text-ink-secondary"}`}
         >
           {c}
           {counts?.[c] !== undefined && <span className={`ml-1.5 ${active === c ? "text-white/80" : "text-ink-tertiary"}`}>{counts[c]}</span>}
@@ -474,15 +474,18 @@ export function FloatingNav<K extends string>({
   active,
   onChange,
   fab,
+  showLabels = true,
 }: {
   items: NavItem<K>[];
   active: K;
   onChange: (k: K) => void;
   fab?: { icon: React.ComponentType<{ className?: string }>; onClick: () => void; label: string };
+  /** When false, the active item is only a highlighted icon. */
+  showLabels?: boolean;
 }) {
   return (
     <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20">
-      <div className="pointer-events-auto flex items-center justify-around border-t border-line bg-white px-4 pb-3.5 pt-2">
+      <div className="pointer-events-auto flex items-end justify-around border-t border-line bg-white px-2 pb-3.5 pt-2">
         {items.map((it) => {
           const on = it.key === active;
           return (
@@ -491,10 +494,13 @@ export function FloatingNav<K extends string>({
               aria-label={it.label}
               aria-current={on ? "page" : undefined}
               onClick={() => onChange(it.key)}
-              className={`relative flex h-11 items-center justify-center gap-2 rounded-full transition-all duration-200 ${on ? "bg-brand-tint px-5 text-brand" : "w-11 text-ink"}`}
+              className={`relative flex flex-col items-center justify-center transition-colors duration-200 ${
+                showLabels ? "min-h-11 flex-1 gap-0.5 px-1 py-1" : "h-11 w-11"
+              } ${on ? "text-brand" : "text-ink-tertiary"}`}
             >
               <it.icon className="h-[22px] w-[22px]" />
-              {on && <span className="text-[14px] font-semibold">{it.label}</span>}
+              {showLabels && on && <span className="text-[12px] font-semibold leading-none">{it.label}</span>}
+              {on && <span aria-hidden className="mt-0.5 h-1 w-1 rounded-full bg-brand" />}
               {!!it.badge && !on && (
                 <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white">{it.badge}</span>
               )}

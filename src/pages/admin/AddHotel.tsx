@@ -83,7 +83,7 @@ export default function AddHotel() {
           ))}
         </div>
 
-        <div className="mt-6 max-w-3xl">
+        <div className="mt-6">
           <div className="min-w-0 space-y-5">
             {step === 0 && (
               <>

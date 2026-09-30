@@ -195,18 +195,18 @@ export default function HousekeepingBoard() {
       <Topbar title="Housekeeping" />
       <main className="flex-1 overflow-y-auto bg-page">
         <div className="p-6">
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+        <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-5">
           {HEAD.map((h) => (
             <button
               key={h.status}
               onClick={() => setStatuses((cur) => (cur.length === 1 && cur[0] === h.status ? [] : [h.status]))}
-              className={`rounded-card border bg-white p-4 text-left transition-colors hover:border-brand/40 ${statuses.length === 1 && statuses[0] === h.status ? "border-brand" : "border-line"}`}
+              className={`rounded-card border bg-white p-4 text-left shadow-card transition duration-200 hover:-translate-y-0.5 hover:shadow-lift ${statuses.length === 1 && statuses[0] === h.status ? "border-brand" : "border-line"}`}
             >
-              <span className={`flex h-8 w-8 items-center justify-center rounded-lg ${STATUS_ICON_TONE[h.status]}`}>
-                <h.icon className="h-4 w-4" />
+              <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-brand/25 bg-white text-brand">
+                <h.icon className="h-[18px] w-[18px]" />
               </span>
-              <div className="mt-3 text-[12px] font-medium text-ink-secondary">{STATUS_LABEL[h.status]}</div>
-              <div className="mt-1 text-[26px] font-bold text-ink">{count(h.status)}</div>
+              <div className="mt-3 text-[13px] font-medium text-ink-secondary">{STATUS_LABEL[h.status]}</div>
+              <div className="mt-1 text-[28px] font-bold leading-none text-ink">{count(h.status)}</div>
             </button>
           ))}
         </div>

@@ -83,9 +83,9 @@ export function Topbar({
       )}
       {title && (
         <div className="min-w-0 leading-tight">
-          <h1 className="truncate font-display text-[19px] font-semibold text-ink">{title}</h1>
+          <h1 className={`truncate font-display font-medium text-ink ${subtitle ? "text-[16px]" : "text-[15px]"}`}>{title}</h1>
           {subtitle && (
-            <p className="truncate text-[13px] text-ink-secondary">{subtitle}</p>
+            <p className="mt-0.5 truncate text-xs text-ink-tertiary">{subtitle}</p>
           )}
         </div>
       )}

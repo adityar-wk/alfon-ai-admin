@@ -40,6 +40,54 @@ const escalationTargets = (d: Department) => {
 type ServiceSla = { priority: Priority; hours247: boolean; hoursStart: string; hoursEnd: string } & Target;
 type SlaMap = Record<string, ServiceSla>;
 
+function ServiceHours({
+  allDay,
+  start,
+  end,
+  onChange,
+}: {
+  allDay: boolean;
+  start: string;
+  end: string;
+  onChange: (patch: Partial<Pick<ServiceSla, "hours247" | "hoursStart" | "hoursEnd">>) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="relative mt-1">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="text-[12px] font-medium text-ink-secondary underline decoration-[#E5E5E5] underline-offset-2 hover:text-ink"
+      >
+        {allDay ? "Open all day" : `${start} – ${end}`}
+      </button>
+      {open && (
+        <>
+          <button aria-label="Close hours" className="fixed inset-0 z-10 cursor-default" onClick={() => setOpen(false)} />
+          <div className="absolute left-0 top-6 z-20 w-56 overflow-hidden rounded-xl border border-line bg-white p-3 shadow-lg">
+            <div className="flex rounded-full bg-[#F7F7F7] p-0.5 text-[12px] font-medium">
+              <button type="button" onClick={() => onChange({ hours247: true })} className={`flex-1 rounded-full py-1 ${allDay ? "bg-white text-ink shadow-sm" : "text-ink-secondary"}`}>All day</button>
+              <button type="button" onClick={() => onChange({ hours247: false })} className={`flex-1 rounded-full py-1 ${!allDay ? "bg-white text-ink shadow-sm" : "text-ink-secondary"}`}>Set hours</button>
+            </div>
+            {!allDay && (
+              <div className="mt-3 space-y-2">
+                <label className="block">
+                  <span className="mb-1 block text-[11px] text-ink-tertiary">Starts</span>
+                  <Input type="time" className="h-9 w-full min-w-0 px-2 text-[12px]" value={start} onChange={(e) => onChange({ hoursStart: e.target.value })} />
+                </label>
+                <label className="block">
+                  <span className="mb-1 block text-[11px] text-ink-tertiary">Ends</span>
+                  <Input type="time" className="h-9 w-full min-w-0 px-2 text-[12px]" value={end} onChange={(e) => onChange({ hoursEnd: e.target.value })} />
+                </label>
+              </div>
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 function seedSla(): SlaMap {
   const map: SlaMap = {};
   for (const dept of DEPARTMENTS) {
@@ -51,7 +99,7 @@ function seedSla(): SlaMap {
 }
 
 export default function SlaSetup() {
-  const goNext = useGoNextStep(7);
+  const goNext = useGoNextStep(6);
   const [defaults, setDefaults] = useState(DEFAULTS);
   const [deptSlug, setDeptSlug] = useState(DEPARTMENTS[0].slug);
   const [sla, setSla] = useState<SlaMap>(seedSla);
@@ -59,7 +107,6 @@ export default function SlaSetup() {
     Object.fromEntries(DEPARTMENTS.map((d) => [d.slug, SEED_LEVELS.map((l) => ({ ...l }))])),
   );
   const [toast, setToast] = useState<string | null>(null);
-  const [tab, setTab] = useState<"sla" | "escalation">("sla");
 
   const dept = DEPARTMENTS.find((d) => d.slug === deptSlug)!;
   const levels = levelsByDept[deptSlug];
@@ -92,37 +139,13 @@ export default function SlaSetup() {
       <Page>
         <SetupTabs />
 
-        {/* SLA / Escalation sub-tabs — each gets the full width to breathe */}
-        <div className="mb-5 flex items-center gap-6 border-b border-line">
-          {([["sla", "SLA"], ["escalation", "Escalation"]] as const).map(([k, label]) => (
-            <button
-              key={k}
-              onClick={() => setTab(k)}
-              className={`-mb-px border-b-2 pb-3 text-[14px] font-medium transition-colors ${
-                tab === k ? "border-brand font-semibold text-ink" : "border-transparent text-ink-secondary hover:text-ink"
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-
         <Card className="overflow-hidden">
-          {tab === "sla" ? (
-            <div className="border-b border-line px-8 py-6">
-              <h3 className="text-[16px] font-semibold text-ink">Service-Level SLA</h3>
-              <p className="text-[12px] text-ink-secondary">
-                Override the defaults for a specific service under a department.
-              </p>
-            </div>
-          ) : (
-            <div className="border-b border-line px-8 py-6">
-              <h3 className="text-[16px] font-semibold text-ink">Escalation Path</h3>
-              <p className="text-[12px] text-ink-secondary">
-                When a task breaches its SLA, escalate in this order. Every department sets its own path.
-              </p>
-            </div>
-          )}
+          <div className="border-b border-line px-8 py-6">
+            <h3 className="text-[16px] font-semibold text-ink">SLA &amp; Escalation</h3>
+            <p className="text-[12px] text-ink-secondary">
+              Set how fast each service should be answered, and who it escalates to when that time is missed.
+            </p>
+          </div>
 
           <div className="grid md:grid-cols-[210px_minmax(0,1fr)]">
             <div className="border-b border-line p-4 md:border-b-0 md:border-r">
@@ -142,14 +165,12 @@ export default function SlaSetup() {
                     >
                       <span className="whitespace-nowrap">{d.name}</span>
                       <span className="flex items-center gap-1.5 text-[11px]">
-                        {tab === "sla" && n > 0 && (
+                        {n > 0 && (
                           <span className="rounded-full bg-brand px-1.5 py-0.5 font-semibold text-white">
                             {n}
                           </span>
                         )}
-                        <span className={active ? "text-brand/70" : "text-ink-tertiary"}>
-                          {tab === "sla" ? d.services.length : levelsByDept[d.slug].length}
-                        </span>
+                        <span className={active ? "text-brand/70" : "text-ink-tertiary"}>{d.services.length}</span>
                       </span>
                     </button>
                   );
@@ -157,22 +178,33 @@ export default function SlaSetup() {
               </div>
             </div>
 
-            {tab === "sla" ? (
-              <div className="min-w-0 p-8">
-                <div className="mb-6 flex items-center justify-between">
-                  <div className="text-[16px] font-semibold text-ink">{dept.name}</div>
-                  <div className="text-[12px] text-ink-tertiary">
-                    {dept.services.length} services · {customCount(deptSlug)} customised
-                  </div>
+            <div className="min-w-0 p-6 lg:p-8">
+              <div className="mb-5 flex items-center justify-between">
+                <div className="text-[16px] font-semibold text-ink">{dept.name}</div>
+                <div className="text-[12px] text-ink-tertiary">
+                  {dept.services.length} services · {customCount(deptSlug)} customised
                 </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full min-w-[720px] text-left">
+              </div>
+
+              <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
+                <div className="min-w-0 max-w-2xl overflow-x-auto">
+                  <table className="w-full table-fixed text-left">
+                    <colgroup>
+                      <col />
+                      <col className="w-[4.5rem]" />
+                      <col className="w-[4.5rem]" />
+                    </colgroup>
                     <thead>
                       <tr className="border-b border-line text-[11px] uppercase tracking-wide text-ink-secondary">
-                        <th className="pb-4 font-medium">Service</th>
-                        <th className="pb-4 pr-4 font-medium">Service Hours</th>
-                        <th className="pb-4 font-medium">Response (min)</th>
-                        <th className="pb-4 font-medium">Resolve (min)</th>
+                        <th className="pb-3 font-medium">Service</th>
+                        <th className="pb-3 text-center font-medium">
+                          Response
+                          <span className="mt-0.5 block text-[10px] font-normal normal-case tracking-normal text-ink-tertiary">min</span>
+                        </th>
+                        <th className="pb-3 text-center font-medium">
+                          Resolve
+                          <span className="mt-0.5 block text-[10px] font-normal normal-case tracking-normal text-ink-tertiary">min</span>
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
@@ -180,47 +212,25 @@ export default function SlaSetup() {
                         const row = sla[key(s.name)];
                         return (
                           <tr key={s.name} className="border-b border-line/60 last:border-0">
-                            <td className="py-6 pr-4 text-[14px] font-medium text-ink">{s.name}</td>
-                            <td className="py-6 pr-4">
-                              <div className="flex items-center gap-3">
-                                <label className="flex shrink-0 items-center gap-1.5 text-[12px] font-medium text-ink-secondary">
-                                  <input
-                                    type="checkbox"
-                                    className="h-4 w-4 accent-brand"
-                                    checked={row.hours247}
-                                    onChange={(e) => update(s.name, { hours247: e.target.checked })}
-                                  />
-                                  24/7
-                                </label>
-                                {!row.hours247 && (
-                                  <div className="flex items-center gap-1.5">
-                                    <Input
-                                      type="time"
-                                      className="h-9 w-[104px] text-[12px]"
-                                      value={row.hoursStart}
-                                      onChange={(e) => update(s.name, { hoursStart: e.target.value })}
-                                    />
-                                    <span className="text-ink-tertiary">–</span>
-                                    <Input
-                                      type="time"
-                                      className="h-9 w-[104px] text-[12px]"
-                                      value={row.hoursEnd}
-                                      onChange={(e) => update(s.name, { hoursEnd: e.target.value })}
-                                    />
-                                  </div>
-                                )}
-                              </div>
+                            <td className="py-3 pr-4">
+                              <div className="text-[14px] font-medium text-ink">{s.name}</div>
+                              <ServiceHours
+                                allDay={row.hours247}
+                                start={row.hoursStart}
+                                end={row.hoursEnd}
+                                onChange={(patch) => update(s.name, patch)}
+                              />
                             </td>
-                            <td className="py-6 pr-4">
+                            <td className="py-3 align-top">
                               <Input
-                                className="h-10 w-24 text-center"
+                                className="h-9 px-1 text-center"
                                 value={row.response}
                                 onChange={(e) => update(s.name, { response: e.target.value })}
                               />
                             </td>
-                            <td className="py-6">
+                            <td className="py-3 pl-2 align-top">
                               <Input
-                                className="h-10 w-24 text-center"
+                                className="h-9 px-1 text-center"
                                 value={row.resolve}
                                 onChange={(e) => update(s.name, { resolve: e.target.value })}
                               />
@@ -231,59 +241,55 @@ export default function SlaSetup() {
                     </tbody>
                   </table>
                 </div>
-                <p className="mt-6 text-[12px] text-ink-tertiary">
-                  Service Hours sets when guests can request this service. Response is the time to first reply; resolve is the time to close the task.
-                </p>
-              </div>
-            ) : (
-              <div className="min-w-0 p-8">
-                <div className="mb-6 flex items-center justify-between">
-                  <div className="text-[16px] font-semibold text-ink">{dept.name}</div>
-                </div>
-                <div className="max-w-md">
-                  {levels.map((l, i) => (
-                    <div key={l.id}>
-                      <div className="rounded-xl border border-line p-5">
-                        <div className="flex items-center gap-3">
-                          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-brand-tint text-[11px] font-semibold text-brand">
-                            {i + 1}
-                          </span>
-                          <span className="flex-1 text-[12px] text-ink-secondary">{l.trigger}</span>
-                          <button
-                            onClick={() => setLevels((ls) => ls.filter((x) => x.id !== l.id))}
-                            className="text-ink-tertiary hover:text-danger"
+
+                <div className="xl:border-l xl:border-line xl:pl-8">
+                  <h4 className="text-[16px] font-semibold text-ink">Escalation path</h4>
+                  <p className="mt-1 text-[12px] text-ink-secondary">When a task misses its time, it moves up this list.</p>
+                  <div className="mt-4">
+                    {levels.map((l, i) => (
+                      <div key={l.id}>
+                        <div className="rounded-xl border border-line p-3.5">
+                          <div className="flex items-center gap-2">
+                            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-tint text-[11px] font-semibold text-brand">
+                              {i + 1}
+                            </span>
+                            <span className="min-w-0 flex-1 text-[12px] text-ink-secondary">{l.trigger}</span>
+                            <button
+                              onClick={() => setLevels((ls) => ls.filter((x) => x.id !== l.id))}
+                              className="text-ink-tertiary hover:text-danger"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                          <Select
+                            className="mt-3 h-9"
+                            value={l.to}
+                            onChange={(e) =>
+                              setLevels((ls) =>
+                                ls.map((x) => (x.id === l.id ? { ...x, to: e.target.value } : x)),
+                              )
+                            }
                           >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
+                            {targets.map((t) => <option key={t}>{t}</option>)}
+                          </Select>
                         </div>
-                        <Select
-                          className="mt-4 h-10"
-                          value={l.to}
-                          onChange={(e) =>
-                            setLevels((ls) =>
-                              ls.map((x) => (x.id === l.id ? { ...x, to: e.target.value } : x)),
-                            )
-                          }
-                        >
-                          {targets.map((t) => <option key={t}>{t}</option>)}
-                        </Select>
+                        {i < levels.length - 1 && (
+                          <div className="flex justify-center py-2 text-ink-tertiary">
+                            <ArrowDown className="h-4 w-4" />
+                          </div>
+                        )}
                       </div>
-                      {i < levels.length - 1 && (
-                        <div className="flex justify-center py-3 text-ink-tertiary">
-                          <ArrowDown className="h-4 w-4" />
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-6 flex max-w-md gap-3 rounded-card border border-amber-100 bg-amber-50/60 p-5">
-                  <Lightbulb className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
-                  <p className="text-[12px] text-ink-secondary">
-                    Tasks inherit the SLA of the service they belong to.
-                  </p>
+                    ))}
+                  </div>
+                  <div className="mt-4 flex gap-2.5 rounded-card border border-amber-100 bg-amber-50/60 p-3.5">
+                    <Lightbulb className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
+                    <p className="text-[12px] text-ink-secondary">
+                      Tasks inherit the SLA of the service they belong to.
+                    </p>
+                  </div>
                 </div>
               </div>
-            )}
+            </div>
           </div>
         </Card>
 

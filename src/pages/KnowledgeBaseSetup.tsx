@@ -1,18 +1,19 @@
 import { useRef, useState } from "react";
-import { UploadCloud, FileText, Trash2 } from "lucide-react";
+import { UploadCloud, CheckCircle2, Clock, Trash2 } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { SetupTabs } from "../components/SetupTabs";
-import { Page, Card, Button } from "../components/ui";
+import { Page, Button } from "../components/ui";
 import { useGoNextStep } from "../data/onboarding";
 
-type Item = { id: number; name: string; detail: string };
+type Item = { id: number; name: string; date: string; status: "Completed" | "Pending" };
 
 let nextId = 100;
 
 const SEED: Item[] = [
-  { id: 1, name: "Hotel Policies & Procedures.pdf", detail: "Added May 23, 2025 · 2.4 MB" },
-  { id: 2, name: "Housekeeping SOP.docx", detail: "Added May 22, 2025 · 850 KB" },
-  { id: 4, name: "Hotel Facilities Guide.docx", detail: "Added May 20, 2025 · 1.1 MB" },
+  { id: 1, name: "Hotel Facilities Guide.pdf", date: "May 20", status: "Completed" },
+  { id: 2, name: "Restaurant Menus 2025.pdf", date: "May 18", status: "Completed" },
+  { id: 3, name: "Spa Services Brochure.pdf", date: "May 15", status: "Completed" },
+  { id: 4, name: "Local Attractions Guide.pdf", date: "May 24", status: "Pending" },
 ];
 
 export default function KnowledgeBaseSetup() {
@@ -22,11 +23,13 @@ export default function KnowledgeBaseSetup() {
 
   const onFiles = (files: FileList | null) => {
     if (!files?.length) return;
+    const date = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" });
     setItems((it) => [
       ...Array.from(files).map((f) => ({
         id: nextId++,
         name: f.name,
-        detail: `Added just now · ${(f.size / 1024).toFixed(0)} KB`,
+        date,
+        status: "Pending" as const,
       })),
       ...it,
     ]);
@@ -40,68 +43,60 @@ export default function KnowledgeBaseSetup() {
       <Page>
         <SetupTabs />
 
-        <div className="max-w-3xl space-y-5">
-          {/* Drag & drop */}
-          <Card className="p-6">
-            <h3 className="mb-3 text-[15px] font-semibold text-ink">Upload documents</h3>
-            <input
-              ref={fileRef}
-              type="file"
-              multiple
-              className="hidden"
-              onChange={(e) => onFiles(e.target.files)}
-            />
-            <button
-              type="button"
-              onClick={() => fileRef.current?.click()}
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={(e) => {
-                e.preventDefault();
-                onFiles(e.dataTransfer.files);
-              }}
-              className="flex w-full flex-col items-center justify-center rounded-xl border-2 border-dashed border-line bg-subtle px-6 py-10 text-center hover:border-brand/50"
-            >
-              <UploadCloud className="h-8 w-8 text-brand" />
-              <p className="mt-3 text-[13px] font-medium text-ink">
-                Drag and drop files here, or click to browse
-              </p>
-              <p className="mt-1 text-[12px] text-ink-tertiary">
-                PDF, DOCX, TXT — you can select multiple files
-              </p>
-            </button>
-          </Card>
+        <div className="max-w-2xl space-y-5">
+          <input
+            ref={fileRef}
+            type="file"
+            multiple
+            className="hidden"
+            onChange={(e) => onFiles(e.target.files)}
+          />
+          <button
+            type="button"
+            onClick={() => fileRef.current?.click()}
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={(e) => {
+              e.preventDefault();
+              onFiles(e.dataTransfer.files);
+            }}
+            className="flex w-full flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[#E5E5E5] px-6 py-10 text-center hover:border-brand/40"
+          >
+            <UploadCloud className="h-8 w-8 text-ink-tertiary" />
+            <div className="mt-2 font-display text-[16px] font-semibold text-ink">Upload hotel documents</div>
+            <div className="mt-1 text-[14px] text-ink-secondary">PDF, Word, or paste a website URL</div>
+          </button>
 
-          {/* Uploaded list */}
-          <Card className="p-6">
-            <h3 className="mb-3 text-[15px] font-semibold text-ink">
-              Added to knowledge base{" "}
-              <span className="font-normal text-ink-tertiary">({items.length})</span>
-            </h3>
-            <div className="divide-y divide-line">
+          <div>
+            <div className="mb-2 text-[12px] font-semibold uppercase tracking-wide text-ink-secondary">Uploaded Documents</div>
+            <div className="space-y-2">
               {items.map((it) => (
-                <div key={it.id} className="flex items-center gap-3 py-3">
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-control bg-subtle text-ink-secondary">
-                    <FileText className="h-4 w-4" />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate text-[13px] font-medium text-ink">{it.name}</div>
-                    <div className="truncate text-[12px] text-ink-tertiary">{it.detail}</div>
+                <div key={it.id} className="flex items-center justify-between gap-3 rounded-lg bg-[#FAFAFA] px-4 py-3">
+                  <div className="flex min-w-0 items-center gap-2 text-[14px] text-ink">
+                    {it.status === "Completed" ? (
+                      <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
+                    ) : (
+                      <Clock className="h-4 w-4 shrink-0 text-amber-500" />
+                    )}
+                    <span className="truncate">{it.name}</span>
+                    <span className="shrink-0 text-[12px] text-ink-secondary">— {it.date}</span>
                   </div>
-                  <button
-                    onClick={() => remove(it.id)}
-                    className="rounded-md p-1.5 text-ink-tertiary hover:bg-subtle hover:text-danger"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
+                  <div className="flex shrink-0 items-center gap-2">
+                    <span className={`text-[13px] font-medium ${it.status === "Completed" ? "text-emerald-500" : "text-ink-tertiary"}`}>{it.status}</span>
+                    <button
+                      onClick={() => remove(it.id)}
+                      aria-label={`Remove ${it.name}`}
+                      className="rounded-md p-1 text-ink-tertiary hover:text-danger"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
                 </div>
               ))}
-              {!items.length && (
-                <p className="py-6 text-center text-[13px] text-ink-tertiary">
-                  Nothing added yet.
-                </p>
-              )}
+              {!items.length && <p className="py-6 text-center text-[13px] text-ink-tertiary">Nothing added yet.</p>}
             </div>
-          </Card>
+          </div>
+
+          <p className="text-[12px] text-ink-secondary">Admin reviews content before it goes live to the AI.</p>
 
           <div className="flex items-center gap-3">
             <Button onClick={goNext}>Continue →</Button>

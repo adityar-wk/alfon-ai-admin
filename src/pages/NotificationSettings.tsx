@@ -17,7 +17,7 @@ export default function NotificationSettings() {
       <Topbar title="Notification Settings" backTo="/onboarding" />
       <Page>
         <SetupTabs />
-        <div className="max-w-2xl">
+        <div>
           <Card className="p-6">
             <div className="flex items-center justify-between">
               <h3 className="text-[16px] font-semibold text-ink">Show me notifications for</h3>

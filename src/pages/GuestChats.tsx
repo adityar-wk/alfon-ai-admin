@@ -119,9 +119,9 @@ export default function GuestChats() {
   return (
     <>
       <Topbar title="Guest Chats" />
-      <div className="flex min-h-0 flex-1 bg-[#FBFBFD]">
+      <div className="flex min-h-0 flex-1 gap-5 bg-page p-6">
         {/* ---------------- conversations ---------------- */}
-        <div className={`${SIDE_PANEL} overflow-hidden transition-[width] duration-200 ${collapsed ? "w-[80px]" : "w-[320px]"}`}>
+        <div className={`${SIDE_PANEL} transition-[width] duration-200 ${collapsed ? "w-[80px]" : "w-72"}`}>
           {collapsed ? (
             <>
               <div className="flex justify-center border-b border-line/60 p-4">
@@ -139,7 +139,11 @@ export default function GuestChats() {
             </>
           ) : (
             <>
-              <SideSearch value={query} onChange={setQuery} placeholder="Search chats…">
+              <div className="shrink-0 px-4 pb-1 pt-4">
+                <h2 className="font-display text-[16px] font-bold text-ink">All Conversations</h2>
+                <p className="mt-0.5 text-[12px] text-ink-tertiary">{list.length} {list.length === 1 ? "conversation" : "conversations"}</p>
+              </div>
+              <SideSearch value={query} onChange={setQuery} placeholder="Search conversations…">
                 <SideFilterButton label="Filter conversations" active={filter !== "All"} open={filterOpen} count={1} onClick={() => setFilterOpen((o) => !o)} />
                 {filterOpen && (
                   <div className="absolute right-0 top-11 z-20 w-48 rounded-xl border border-line bg-white p-1.5 shadow-lg">
@@ -196,7 +200,7 @@ export default function GuestChats() {
           )}
         </div>
 
-        <div className="flex min-h-0 min-w-0 flex-1 gap-5 p-6">
+        <div className="flex min-h-0 min-w-0 flex-1 gap-5">
         {/* ---------------- chat ---------------- */}
         <div className={`flex min-w-0 flex-1 flex-col overflow-hidden ${CARD}`}>
           <div className="flex items-center gap-3.5 border-b border-line/60 px-7 py-4">

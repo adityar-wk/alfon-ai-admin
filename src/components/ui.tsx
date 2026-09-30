@@ -14,7 +14,7 @@ export function RoomNo({ room }: { room: string | number }) {
 export function Page({ children }: { children: ReactNode }) {
   return (
     <main className="flex-1 overflow-y-auto bg-page">
-      <div className="mx-auto max-w-[1240px] p-6">{children}</div>
+      <div className="p-6">{children}</div>
     </main>
   );
 }

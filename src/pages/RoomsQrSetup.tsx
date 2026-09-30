@@ -37,7 +37,7 @@ type Room = (typeof ROOMS)[number];
 /** every guest scans the same code, regardless of room — it opens WhatsApp and the guest gives their room number there */
 function HotelQrCard({ flash }: { flash: (m: string) => void }) {
   return (
-    <Card className="p-6">
+    <div className="max-w-lg">
       <h3 className="text-[15px] font-semibold text-ink">Hotel QR Code</h3>
       <p className="mt-1 max-w-md text-[13px] text-ink-secondary">
         One QR code for the whole property — guests scan it anywhere to start a WhatsApp conversation. It is not tied to a specific room.
@@ -48,12 +48,12 @@ function HotelQrCard({ flash }: { flash: (m: string) => void }) {
           <Download className="h-4 w-4" /> Download
         </Button>
       </div>
-    </Card>
+    </div>
   );
 }
 
 export default function RoomsQrSetup({ onboarding = false }: { onboarding?: boolean }) {
-  const goNext = useGoNextStep(8);
+  const goNext = useGoNextStep(7);
   const [drawer, setDrawer] = useState<Room | "new" | null>(null);
   const [query, setQuery] = useState("");
   const [floor, setFloor] = useState("all");
@@ -88,15 +88,6 @@ export default function RoomsQrSetup({ onboarding = false }: { onboarding?: bool
           {onboarding && <SetupTabs />}
 
           <HotelQrCard flash={flash} />
-
-          <div className="mt-5 flex flex-wrap gap-3">
-            <Button onClick={() => setDrawer("new")}>
-              <Plus className="h-4 w-4" /> Add Room
-            </Button>
-            <Button variant="outline">
-              <Upload className="h-4 w-4" /> Upload Room List
-            </Button>
-          </div>
 
           <div className="relative mt-5 flex flex-wrap items-center gap-3">
             <div className="relative w-full max-w-xs">
@@ -146,7 +137,15 @@ export default function RoomsQrSetup({ onboarding = false }: { onboarding?: bool
               )}
             </div>
             {activeFilters > 0 && <button onClick={clear} className="text-[13px] font-medium text-brand">Clear filters</button>}
-            <span className="ml-auto text-[12px] text-ink-tertiary">{rows.length} of 152 rooms</span>
+            <span className="text-[12px] text-ink-tertiary">{rows.length} of 152 rooms</span>
+            <div className="ml-auto flex flex-wrap items-center gap-3">
+              <Button variant="outline">
+                <Upload className="h-4 w-4" /> Upload Room List
+              </Button>
+              <Button onClick={() => setDrawer("new")}>
+                <Plus className="h-4 w-4" /> Add Room
+              </Button>
+            </div>
           </div>
 
           <Card table className="mt-4 overflow-hidden">
