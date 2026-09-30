@@ -300,7 +300,7 @@ export default function Analytics() {
               })}
             </div>
 
-            <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
+            <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
               <Card className="p-6">
                 <h3 className="text-[15px] font-semibold text-ink">Recurring complaints</h3>
                 <p className="text-[12px] text-ink-tertiary">Complaint categories involving your department</p>
@@ -336,12 +336,12 @@ export default function Analytics() {
                   })()}
                 </div>
               </Card>
-            </div>
 
-            <Card className="mt-4 p-6">
-              <h3 className="text-[15px] font-semibold text-ink">Guest satisfaction — {scopeDepts.join(" + ")} requests</h3>
-              <SatisfactionChart values={SATISFACTION} />
-            </Card>
+              <Card className="p-6">
+                <h3 className="text-[15px] font-semibold text-ink">Guest satisfaction — {scopeDepts.join(" + ")} requests</h3>
+                <SatisfactionChart values={SATISFACTION} />
+              </Card>
+            </div>
           </>
         ) : (
           <>
@@ -352,7 +352,7 @@ export default function Analytics() {
         </div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {depts.map((d) => {
-            const color = TAGS[deptIdx(d.name)].mid;
+            const color = TAGS[deptIdx("Room Service")].mid;
             return (
               <button
                 key={d.name}

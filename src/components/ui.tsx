@@ -28,13 +28,13 @@ export function Card({
   children: ReactNode;
   className?: string;
   id?: string;
-  /** kept for callers; every card now shares one surface */
+  /** table-wrapper cards skip the hover-lift — it fights with hovering rows inside */
   table?: boolean;
 }) {
   return (
     <div
       id={id}
-      className={`rounded-card border border-line bg-white shadow-card ${className}`}
+      className={`rounded-card border border-line bg-white shadow-card ${table ? "" : "transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lift"} ${className}`}
     >
       {children}
     </div>

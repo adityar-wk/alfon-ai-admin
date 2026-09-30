@@ -1,4 +1,5 @@
 import { Button } from "../components/ui";
+import { Logo } from "../components/Logo";
 import { useEffect, useMemo, useState } from "react";
 import { Bell, Send, Plus, BedDouble, User, Building2, ChevronLeft, ChevronRight, ArrowUpRight, ListChecks, MessageCircle, Search } from "lucide-react";
 import { DEPARTMENTS } from "../data/departments";
@@ -303,19 +304,22 @@ export function LineStaffPrototype() {
   const Home = (
     <div className="relative h-full">
       <div className="h-full overflow-y-auto pb-28 no-scrollbar">
-        <div className="flex items-start justify-between gap-3 px-6 py-2">
-          <div className="min-w-0">
-            <div className="truncate text-[22px] font-semibold leading-tight text-ink">Good morning, {LS_ME.split(" ")[0]} 👋</div>
-            <p className="mt-1 text-[13px] font-normal text-ink-secondary">Here's what's happening today</p>
+        <div className="px-6 py-2">
+          <div className="flex items-center justify-between gap-3">
+            <Logo />
+            <div className="flex shrink-0 items-center gap-2">
+              <button onClick={() => nav.push({ name: "notifications" })} aria-label="Notifications" className="relative flex h-11 w-11 items-center justify-center rounded-full text-ink active:bg-ink/5">
+                <Bell className="h-[22px] w-[22px] text-ink" />
+                <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-red-500" />
+              </button>
+              <button onClick={openCreate} aria-label="Create task" className="flex h-11 w-11 items-center justify-center rounded-full bg-brand text-white active:bg-brand-hover">
+                <Plus className="h-6 w-6" strokeWidth={2.25} />
+              </button>
+            </div>
           </div>
-          <div className="flex shrink-0 items-center gap-2">
-            <button onClick={() => nav.push({ name: "notifications" })} aria-label="Notifications" className="relative flex h-11 w-11 items-center justify-center rounded-full text-ink active:bg-ink/5">
-              <Bell className="h-[22px] w-[22px] text-ink" />
-              <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-red-500" />
-            </button>
-            <button onClick={openCreate} aria-label="Create task" className="flex h-11 w-11 items-center justify-center rounded-full bg-brand text-white active:bg-brand-hover">
-              <Plus className="h-6 w-6" strokeWidth={2.25} />
-            </button>
+          <div className="mt-3 min-w-0">
+            <div className="truncate text-[18px] font-semibold leading-tight text-ink">Good morning, {LS_ME.split(" ")[0]} 👋</div>
+            <p className="mt-0.5 text-[12px] font-normal text-ink-secondary">Here's what's happening today</p>
           </div>
         </div>
 

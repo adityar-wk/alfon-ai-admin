@@ -3,8 +3,7 @@ import { Link, Navigate, useParams } from "react-router-dom";
 import { Search, User, Lightbulb, Bell, BedDouble, UtensilsCrossed, Target, MessageCircle, AlarmClock, Thermometer, Wine, Newspaper, Calendar, Hourglass, History, Check, Pencil, Plus } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { Card, Badge, Modal, Button, Field, Input, Select, RoomNo } from "../components/ui";
-import { Flag } from "../components/Flag";
-import { SIDE_PANEL, SideSearch, SideFilterButton } from "../components/SidePanel";
+import { SIDE_PANEL, SIDE_ROW, sideRowTone, SideSearch, SideFilterButton } from "../components/SidePanel";
 import { GUESTS, type Guest } from "../data/guests";
 import { type ChatMsg } from "../components/GuestChat";
 
@@ -299,6 +298,24 @@ export function buildProfile(g: Guest): Profile {
 const STATUS_LABEL: Record<Guest["status"], string> = { "In House": "In-House", Arriving: "Pre-Arrival", "Checked Out": "Checked Out" };
 const LIST_FILTERS = ["All", "In House", "Arriving", "Checked Out"] as const;
 
+const COUNTRY_CODE: Record<string, string> = {
+  India: "IN",
+  "United Kingdom": "GB",
+  "United States": "US",
+  Singapore: "SG",
+  Australia: "AU",
+  Canada: "CA",
+};
+const countryCode = (country: string) => COUNTRY_CODE[country] ?? country.slice(0, 2).toUpperCase();
+
+function CountryCode({ country }: { country: string }) {
+  return (
+    <span className="inline-flex h-[18px] shrink-0 items-center justify-center rounded bg-subtle px-1.5 text-[10px] font-semibold tracking-wide text-ink-secondary">
+      {countryCode(country)}
+    </span>
+  );
+}
+
 function GuestList({ activeId }: { activeId: number }) {
   const [q, setQ] = useState("");
   const [f, setF] = useState<(typeof LIST_FILTERS)[number]>("All");
@@ -330,15 +347,14 @@ function GuestList({ activeId }: { activeId: number }) {
             <Link
               key={g.id}
               to={`/guests/${g.id}`}
-              className={`flex items-center gap-3 border-b border-line px-4 py-3 ${on ? "bg-brand-tint" : "hover:bg-[#FAFAFA]"}`}
-              style={{ borderLeft: on ? "3px solid #E8623A" : "3px solid transparent" }}
+              className={`${SIDE_ROW} items-center gap-3 ${sideRowTone(on)}`}
             >
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-tint font-display text-[12px] font-semibold text-brand">{g.initials}</span>
               <span className="min-w-0 flex-1 leading-tight">
                 <span className="block truncate font-display text-[14px] font-semibold text-ink">{g.name}</span>
                 <span className="block truncate text-[12px] text-ink-secondary"><RoomNo room={g.room} /> · {STATUS_LABEL[g.status]}</span>
               </span>
-              <Flag country={g.country} />
+              <CountryCode country={g.country} />
             </Link>
           );
         })}
@@ -498,7 +514,7 @@ export default function GuestProfile() {
                     <Badge tone={guest.status === "In House" ? "success" : guest.status === "Arriving" ? "warning" : "neutral"}>{STATUS_LABEL[guest.status]}</Badge>
                   </div>
                   <div className="mb-4 flex flex-wrap items-center gap-x-2 text-[13px] text-ink-secondary">
-                    <Flag country={guest.country} /> {guest.country} <span>·</span> <RoomNo room={guest.room} /> <span>·</span> {guest.roomType}
+                    <CountryCode country={guest.country} /> {guest.country} <span>·</span> <RoomNo room={guest.room} /> <span>·</span> {guest.roomType}
                   </div>
                   <div className="flex flex-wrap items-center gap-x-8 gap-y-2 text-[13px]">
                     <span className="flex items-center gap-2"><Calendar className="h-3.5 w-3.5 text-ink-tertiary" /> <span className="text-ink-tertiary">Check-in</span> <span className="font-medium text-ink">{guest.from}, 2025</span></span>

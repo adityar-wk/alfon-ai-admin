@@ -264,7 +264,7 @@ export default function Home() {
           ))}
         </div>
 
-        <section className="flex min-h-[520px] flex-col items-center justify-center px-6 py-10">
+        <Card className="flex min-h-[520px] flex-col items-center justify-center px-6 py-10">
           <Orb score={score} />
           <div className="mt-5 text-[11px] font-semibold uppercase tracking-[0.2em] text-ink-tertiary">Hotel Health Score</div>
           <p className="mt-2.5 text-center text-[14px] text-ink-secondary">
@@ -296,7 +296,7 @@ export default function Home() {
               <span>Thriving</span>
             </div>
           </div>
-        </section>
+        </Card>
 
         {scoreOpen && (
           <Card className="p-6">

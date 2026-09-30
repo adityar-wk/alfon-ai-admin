@@ -353,31 +353,31 @@ export default function Tasks() {
                     <span className="text-[13px] font-semibold text-ink">{col.label}</span>
                     <span className="ml-auto rounded-full bg-white px-2 py-0.5 text-[11px] font-medium text-ink-secondary">{items.length}</span>
                   </div>
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                     {items.map((t) => {
                       const D = DEPT_ICON[t.dept] ?? Building2;
                       return (
                       <button
                         key={t.id}
                         onClick={() => setSelectedId(t.id)}
-                        className={`block w-full rounded-xl border border-line/70 bg-white p-4 text-left shadow-[0_1px_2px_rgba(16,24,40,0.04)] hover:border-brand/40 ${t.status === "Completed" ? "opacity-50" : ""}`}
+                        className={`block w-full rounded-xl border border-line/70 bg-white p-3 text-left shadow-[0_1px_2px_rgba(16,24,40,0.04)] hover:border-brand/40 ${t.status === "Completed" ? "opacity-50" : ""}`}
                       >
                         <div className="min-w-0">
-                          <div className="text-[13px] font-semibold leading-snug text-ink">{t.title}</div>
-                          <div className="mt-0.5 text-[12px] text-ink-tertiary">{t.guest} · <RoomNo room={t.room} /></div>
+                          <div className="text-[12px] font-semibold leading-snug text-ink">{t.title}</div>
+                          <div className="mt-0.5 text-[11px] text-ink-tertiary">{t.guest} · <RoomNo room={t.room} /></div>
                           <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
                             {cap(t) && <ComplaintPill />}
                             {(taskStatus(t) === "SLA at risk" || taskStatus(t) === "SLA breached") && (
-                              <span className={`text-[12px] font-medium ${STATUS_PILL[taskStatus(t)]}`}>{taskStatus(t)}</span>
+                              <span className={`text-[11px] font-medium ${STATUS_PILL[taskStatus(t)]}`}>{taskStatus(t)}</span>
                             )}
                           </div>
                         </div>
                         {t.status !== "Completed" && (
-                          <div className="mt-3">
+                          <div className="mt-2">
                             <SlaText sla={t.sla} />
                           </div>
                         )}
-                        <div className="mt-3 flex items-center justify-between gap-2 border-t border-line/70 pt-3 text-[12px]">
+                        <div className="mt-2 flex items-center justify-between gap-2 border-t border-line/70 pt-2 text-[11px]">
                           <span className="flex min-w-0 items-center gap-1.5 text-ink-secondary">
                             <D className="h-3.5 w-3.5 shrink-0 text-ink-tertiary" />
                             <span className="truncate">{t.dept}</span>

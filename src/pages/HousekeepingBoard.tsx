@@ -112,8 +112,6 @@ const STATUS_BORDER: Record<RoomStatus, string> = {
   ooo: "border-line",
 };
 
-const OCC_TONE = { occupied: "bg-violet-100 text-violet-600", vacant: "bg-gray-100 text-gray-400" };
-
 const PAGE_SIZE = 50;
 
 const OPEN_TASK = "__open__";
@@ -285,13 +283,13 @@ export default function HousekeepingBoard() {
                   <span
                     title={occupied ? "Occupied" : "Vacant"}
                     aria-label={occupied ? "Occupied" : "Vacant"}
-                    className={`flex h-8 w-8 items-center justify-center rounded-lg ${occupied ? OCC_TONE.occupied : OCC_TONE.vacant}`}
+                    className="flex h-8 w-8 items-center justify-center text-ink"
                   >
                     {occupied ? <User className="h-4 w-4" /> : <DoorClosed className="h-4 w-4" />}
                   </span>
                 </div>
                 <div className={`mt-3 text-[15px] font-bold ${dulled ? "text-ink-tertiary" : "text-ink"}`}>Room {r.no}</div>
-                <div className="truncate text-[12px] text-ink-tertiary">{r.type} · Floor {r.floor}</div>
+                <div className="truncate text-[12px] text-ink-secondary">{r.type} · Floor {r.floor}</div>
                 <div className={`mt-2 text-[13px] font-semibold ${STATUS_TEXT_TONE[r.status]}`}>{STATUS_LABEL[r.status]}</div>
                 {r.mins != null && (
                   <div className="mt-2.5">
@@ -548,7 +546,16 @@ function CleaningChecklistModal({
           Housekeeper: <span className="font-medium text-ink">{room.assignedTo ?? "Unassigned"}</span>
           {room.mins != null && <> · Timer: <span className="font-medium text-ink">{room.mins} min left</span></>}
         </span>
-        <span className="text-ink-tertiary">{doneCount} / {CLEANING_CHECKLIST.length} done</span>
+        <span className="flex items-center gap-3">
+          <span className="text-ink-tertiary">{doneCount} / {CLEANING_CHECKLIST.length} done</span>
+          <button
+            type="button"
+            onClick={() => setChecked(CLEANING_CHECKLIST.map(() => !allDone))}
+            className="text-[12px] font-semibold text-brand hover:underline"
+          >
+            {allDone ? "Clear all" : "Select all"}
+          </button>
+        </span>
       </div>
 
       <div className="mt-5 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
@@ -610,9 +617,16 @@ function InspectionChecklistModal({
           <span className="mr-1 text-[10px] font-semibold uppercase tracking-wide text-ink-tertiary">LQA Standard</span>
           <div>Housekeeper: <span className="font-medium text-ink">{room.assignedTo ?? "Unassigned"}</span></div>
         </div>
-        <div className="w-48 shrink-0">
-          <div className="flex items-center justify-between text-[12px] text-ink-tertiary">
+        <div className="w-56 shrink-0">
+          <div className="flex items-center justify-between gap-2 text-[12px] text-ink-tertiary">
             <span>{doneCount} / {INSPECTION_CHECKLIST.length} verified</span>
+            <button
+              type="button"
+              onClick={() => setChecked(INSPECTION_CHECKLIST.map(() => !allDone))}
+              className="font-semibold text-brand hover:underline"
+            >
+              {allDone ? "Clear all" : "Select all"}
+            </button>
             <span className="font-semibold text-ink">{pct}%</span>
           </div>
           <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-line/60">

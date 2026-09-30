@@ -1,4 +1,5 @@
 import { Button } from "../components/ui";
+import { Logo } from "../components/Logo";
 import { useMemo, useState } from "react";
 import {
   Bell, Home as HomeIcon, Plus, Users, UserCog, UserPlus, ArrowUpRight, MessageCircle, Send, Filter, ChevronRight, ChevronLeft, Search,
@@ -421,12 +422,15 @@ export function ManagerPrototype() {
 
   const Home = shell("home", (
     <>
-      <div className="flex items-start justify-between gap-3 px-6 py-2">
-        <div className="min-w-0">
-          <div className="truncate text-[22px] font-semibold leading-tight text-ink">Good morning, {ME.split(" ")[0]} 👋</div>
-          <p className="mt-1 text-[13px] font-normal text-ink-secondary">Here's what's happening today</p>
+      <div className="px-6 py-2">
+        <div className="flex items-center justify-between gap-3">
+          <Logo />
+          {bellBtn}
         </div>
-        {bellBtn}
+        <div className="mt-3 min-w-0">
+          <div className="truncate text-[18px] font-semibold leading-tight text-ink">Good morning, {ME.split(" ")[0]} 👋</div>
+          <p className="mt-0.5 text-[12px] font-normal text-ink-secondary">Here's what's happening today</p>
+        </div>
       </div>
 
       <div className="mt-5 grid grid-cols-3 gap-3 px-6">
