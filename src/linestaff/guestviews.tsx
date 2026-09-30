@@ -295,7 +295,7 @@ export function GuestChatScreen({
   const sender = (f: ChatMsg["from"]) => (f === "ai" ? "ALFON AI" : f === "me" ? "You" : name.split(" ")[0]);
   return (
     <div className="flex h-full flex-col bg-white">
-      <div className="flex shrink-0 items-center gap-3 border-b border-[#ECEAE5] bg-white px-6 pb-3 pt-4">
+      <div className="flex shrink-0 items-center gap-3 border-b border-line bg-white px-6 pb-3 pt-4">
         <button onClick={onBack} aria-label="Back" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#E6E4DF] bg-white text-ink">
           <ChevronLeft className="h-5 w-5" />
         </button>
@@ -307,7 +307,7 @@ export function GuestChatScreen({
           </div>
         </button>
       </div>
-      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto bg-[#FFF9F5] px-5 py-5">
+      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto bg-white px-5 py-5">
         {!thread.length && <p className="py-6 text-center text-[12px] text-ink-tertiary">No messages yet.</p>}
         {thread.map((m, i) => {
           const mine = m.from !== "guest";
@@ -317,7 +317,7 @@ export function GuestChatScreen({
               <div
                 className={`max-w-[78%] px-3.5 py-3 text-[14px] font-normal leading-[1.5] ${
                   m.from === "guest"
-                    ? "rounded-[18px] rounded-tl-md border border-[#F3E4DB] bg-white text-ink"
+                    ? "rounded-[18px] rounded-tl-md bg-[#F0F0F0] text-ink"
                     : m.from === "ai"
                       ? "rounded-[18px] rounded-tr-md bg-[#FFE9DF] text-ink"
                       : "rounded-[18px] rounded-tr-md bg-brand text-white"

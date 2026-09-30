@@ -212,10 +212,10 @@ export function TaskCard({
 }) {
   const initials = (n: string) => n.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
   return (
-    <div className="relative rounded-2xl border border-[#E6E4DF] bg-white px-5 py-4 shadow-card">
+    <div className="relative rounded-2xl border border-[#E6E4DF] bg-white px-4 py-3 shadow-card">
       <div onClick={onClick} role={onClick ? "button" : undefined} className={onClick ? "cursor-pointer active:scale-[0.99]" : ""}>
         <div className={`font-display text-[14px] font-semibold leading-snug ${done ? "text-ink-secondary" : "text-ink"}`}>{note}</div>
-        <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px]">
+        <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px]">
           <span className="flex items-center gap-1 text-ink-secondary">
             {/^Room\s/i.test(room) ? <><DoorOpen className="h-[15px] w-[15px]" />{room.replace(/^Room\s+/i, "")}</> : room}
           </span>
@@ -227,23 +227,23 @@ export function TaskCard({
             <Building2 className="h-3 w-3" /> {dept}
           </div>
         )}
-        {meta && <div className="mt-2 text-[12px] text-ink-tertiary">{meta}</div>}
-        <div className="mt-3.5 flex min-h-[26px] items-center justify-between gap-3">
+        {meta && <div className="mt-1.5 text-[12px] text-ink-tertiary">{meta}</div>}
+        <div className="mt-2.5 flex min-h-[24px] items-center justify-between gap-3">
           {staff !== undefined ? (
             staff ? (
               <span className="flex min-w-0 items-center gap-2 text-[13px] text-ink">
-                <span className="flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full bg-brand-tint font-display text-[9px] font-semibold text-brand">{initials(staff)}</span>
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-tint font-display text-[9px] font-semibold text-brand">{initials(staff)}</span>
                 <span className="truncate">{staff.split(" ")[0]}</span>
               </span>
             ) : (
               <span className="flex items-center gap-2 text-[13px] text-ink-tertiary">
-                <span className="flex h-[26px] w-[26px] items-center justify-center rounded-full border border-dashed border-gray-300"><UserRoundPlus className="h-3.5 w-3.5" /></span>
+                <span className="flex h-6 w-6 items-center justify-center rounded-full border border-dashed border-gray-300"><UserRoundPlus className="h-3.5 w-3.5" /></span>
                 Unassigned
               </span>
             )
           ) : by ? (
             <span className="flex min-w-0 items-center gap-2 text-[13px] text-ink">
-              <span className="flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full bg-brand-tint font-display text-[9px] font-semibold text-brand">{initials(by)}</span>
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-tint font-display text-[9px] font-semibold text-brand">{initials(by)}</span>
               <span className="truncate">{by}</span>
             </span>
           ) : (
@@ -252,7 +252,7 @@ export function TaskCard({
           {!done && left !== undefined && total !== undefined && <SlaClockChip left={left} total={total} />}
         </div>
       </div>
-      {footer && <div className="mt-4 border-t border-line pt-4">{footer}</div>}
+      {footer && <div className="mt-3 border-t border-line pt-3">{footer}</div>}
     </div>
   );
 }
