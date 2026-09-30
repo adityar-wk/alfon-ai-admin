@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import {
   Search, Phone, Mail, Calendar, Hourglass, BedDouble, Users, UtensilsCrossed, Wine, SlidersHorizontal, PanelLeftClose, PanelLeftOpen, Check,
-  FileText, ChevronRight, CalendarDays, X, AlertCircle, Pencil, UserPlus, MoreVertical,
+  FileText, ChevronRight, CalendarDays, X, AlertCircle,
 } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { GuestChat, type ChatMsg, type ChatMode } from "../components/GuestChat";
@@ -215,9 +215,6 @@ export default function GuestChats() {
                 Room {guest.room}{guest.nights > 0 && ` · ${guest.nights} Nights Stay`}
               </div>
             </div>
-            <button aria-label="Edit conversation" className="rounded-lg p-2 text-ink-tertiary hover:bg-subtle"><Pencil className="h-4 w-4" /></button>
-            <button aria-label="Assign staff" className="rounded-lg p-2 text-ink-tertiary hover:bg-subtle"><UserPlus className="h-4 w-4" /></button>
-            <button aria-label="More options" className="rounded-lg p-2 text-ink-tertiary hover:bg-subtle"><MoreVertical className="h-4 w-4" /></button>
           </div>
           <GuestChat
             className="min-h-0 flex-1"
