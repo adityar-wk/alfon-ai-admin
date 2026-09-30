@@ -4,7 +4,6 @@ import {
   Plane,
   Send,
   Clock,
-  AlertTriangle,
   CheckCircle2,
   Sparkles,
   Search,
@@ -136,18 +135,10 @@ const TABS: { key: Tab; label: string; test: (g: PreGuest) => boolean }[] = [
 ];
 
 type Filters = {
-  loyalty: boolean;
-  returning: boolean;
   wa: string;
-  consent: string;
   room: string;
-  lang: string;
-  request: string;
-  ready: string;
 };
-const NO_FILTERS: Filters = { loyalty: false, returning: false, wa: "all", consent: "all", room: "all", lang: "all", request: "all", ready: "all" };
-
-const REQUEST_KEYS = ["Airport", "Early Check-In", "Dietary", "Vegetarian", "Accessibility"];
+const NO_FILTERS: Filters = { wa: "all", room: "all" };
 
 /* ---------- page ---------- */
 
@@ -188,6 +179,7 @@ export default function PreArrival() {
   const createTask = (g: PreGuest) =>
     navigate(`/tasks?new=1&guest=${encodeURIComponent(g.name)}&room=${encodeURIComponent(g.room ?? "")}`);
   const goToday = (t: Tab) => { setDateOn(true); setSelDay(24); setWeekStart(24); setTab(t); };
+  const goTomorrow = (t: Tab) => { setDateOn(true); setSelDay(25); setWeekStart(25); setTab(t); };
 
   // guests nobody has messaged yet
   const unsent = guests.filter((g) => g.eng === "Not Contacted");
@@ -223,33 +215,25 @@ export default function PreArrival() {
   };
 
   const kpiNC = today.filter((g) => g.eng === "Not Contacted").length;
-  const kpiAW = today.filter((g) => g.eng === "Awaiting Response").length;
-  const kpiAR = today.filter((g) => g.ready === "Action Required").length;
-  const kpiReady = today.length - kpiAR;
+  const kpiTomorrow = guests.filter((g) => g.day === "tomorrow").length;
+  const kpiSent = guests.filter((g) => g.eng !== "Not Contacted").length;
+  const kpiOpened = guests.filter((g) => g.eng === "Engaged" || g.eng === "Responded").length;
+  const kpiPrefsCollected = guests.filter((g) => g.ready === "Ready").length;
+  const openRate = kpiSent ? Math.round((kpiOpened / kpiSent) * 100) : 0;
+  const responseRate = kpiSent ? Math.round((kpiPrefsCollected / kpiSent) * 100) : 0;
 
   const roomTypes = useMemo(() => [...new Set(guests.map((g) => g.type))].sort(), [guests]);
-  const langs = useMemo(() => [...new Set(guests.map((g) => g.lang))].sort(), [guests]);
-  const activeFilterCount =
-    Number(tab !== "all") + Number(filters.loyalty) + Number(filters.returning) + [filters.wa, filters.consent, filters.room, filters.lang, filters.request, filters.ready].filter((v) => v !== "all").length;
+  const activeFilterCount = Number(tab !== "all") + [filters.wa, filters.room].filter((v) => v !== "all").length;
 
   const filterBadge = activeFilterCount + Number(dateOn);
-
-  const hasRequest = (g: PreGuest, key: string) =>
-    [...g.reqs.map((r) => r.name), ...g.prefs].some((v) => v.toLowerCase().includes(key.toLowerCase()));
 
   const afterFilters = useMemo(() => {
     const q = query.trim().toLowerCase();
     return dayGuests.filter(
       (g) =>
         (!q || [g.name, g.room ?? "", g.type, `res-${100000 + g.id * 731}`].some((v) => v.toLowerCase().includes(q))) &&
-        (!filters.loyalty || g.tags.includes("Loyalty")) &&
-        (!filters.returning || g.tags.includes("Returning Guest")) &&
         (filters.wa === "all" || (filters.wa === "available") === g.wa) &&
-        (filters.consent === "all" || (filters.consent === "confirmed") === g.consent) &&
-        (filters.room === "all" || g.type === filters.room) &&
-        (filters.lang === "all" || g.lang === filters.lang) &&
-        (filters.request === "all" || hasRequest(g, filters.request)) &&
-        (filters.ready === "all" || g.ready === filters.ready),
+        (filters.room === "all" || g.type === filters.room),
     );
   }, [dayGuests, query, filters]);
 
@@ -320,10 +304,31 @@ export default function PreArrival() {
         <div className="p-6">
         {/* KPIs */}
         <div className="grid grid-cols-2 gap-5 lg:grid-cols-4">
-          <Kpi icon={Plane} tone="text-slate-500" label="Arriving Today" value={today.length} onClick={() => goToday("all")} />
-          <Kpi icon={Send} tone="text-sky-500" label="Not Contacted" value={kpiNC} onClick={() => goToday("nc")} />
-          <Kpi icon={Clock} tone="text-amber-500" label="Awaiting Response" value={kpiAW} onClick={() => goToday("aw")} />
-          <Kpi icon={AlertTriangle} tone="text-red-500" label="Action Required" value={kpiAR} onClick={() => goToday("ar")} />
+          <Kpi
+            icon={Plane}
+            label="Arriving Today"
+            value={today.length}
+            sub={kpiNC ? `${kpiNC} messages pending` : undefined}
+            subTone="text-red-600"
+            onClick={() => goToday("all")}
+          />
+          <Kpi icon={Clock} label="Arriving Tomorrow" value={kpiTomorrow} onClick={() => goTomorrow("all")} />
+          <Kpi
+            icon={Send}
+            label="Pre-Arrival Sent"
+            value={kpiSent}
+            sub={`${openRate}% open rate`}
+            subTone="text-emerald-600"
+            onClick={() => { setDateOn(false); setTab("all"); }}
+          />
+          <Kpi
+            icon={FileText}
+            label="Preferences Collected"
+            value={kpiPrefsCollected}
+            sub={`${responseRate}% response rate`}
+            subTone="text-emerald-600"
+            onClick={() => { setDateOn(false); setTab("ready"); }}
+          />
         </div>
 
         {/* search + filter | date strip | bulk actions */}
@@ -381,22 +386,10 @@ export default function PreArrival() {
                   onChange={(v) => setTab(v as Tab)}
                   options={TABS.map((t) => [t.key, `${t.label} (${tabCount(t.key)})`] as [string, string])}
                 />
-                <FilterSelect label="Readiness" value={filters.ready} onChange={(v) => setFilters((f) => ({ ...f, ready: v }))} options={[["all", "Any"], ["Ready", "Ready"], ["Awaiting Guest", "Awaiting Guest"], ["Action Required", "Action Required"], ["Not Contacted", "Not Contacted"]]} />
                 <FilterSelect label="WhatsApp" value={filters.wa} onChange={(v) => setFilters((f) => ({ ...f, wa: v }))} options={[["all", "Any"], ["available", "Available"], ["unavailable", "Unavailable"]]} />
-                <FilterSelect label="Messaging consent" value={filters.consent} onChange={(v) => setFilters((f) => ({ ...f, consent: v }))} options={[["all", "Any"], ["confirmed", "Confirmed"], ["missing", "Missing"]]} />
                 <FilterSelect label="Room type" value={filters.room} onChange={(v) => setFilters((f) => ({ ...f, room: v }))} options={[["all", "Any"], ...roomTypes.map((r) => [r, r] as [string, string])]} />
-                <FilterSelect label="Preferred language" value={filters.lang} onChange={(v) => setFilters((f) => ({ ...f, lang: v }))} options={[["all", "Any"], ...langs.map((r) => [r, r] as [string, string])]} />
-                <FilterSelect label="Request type" value={filters.request} onChange={(v) => setFilters((f) => ({ ...f, request: v }))} options={[["all", "Any"], ...REQUEST_KEYS.map((r) => [r, r] as [string, string])]} />
               </div>
               <div className="mt-3 flex flex-wrap items-center gap-4 text-[13px] text-ink">
-                <label className="flex items-center gap-2">
-                  <input type="checkbox" className="accent-brand" checked={filters.loyalty} onChange={(e) => setFilters((f) => ({ ...f, loyalty: e.target.checked }))} />
-                  Loyalty members
-                </label>
-                <label className="flex items-center gap-2">
-                  <input type="checkbox" className="accent-brand" checked={filters.returning} onChange={(e) => setFilters((f) => ({ ...f, returning: e.target.checked }))} />
-                  Returning guest
-                </label>
                 <button onClick={() => { setFilters(NO_FILTERS); setTab("all"); setDateOn(false); }} className="ml-auto text-[13px] font-medium text-brand">
                   Clear all
                 </button>
@@ -536,12 +529,13 @@ export default function PreArrival() {
 }
 
 function Kpi({
-  icon: Icon, tone, label, value, onClick,
+  icon: Icon, label, value, sub, subTone = "text-ink-tertiary", onClick,
 }: {
   icon: React.ComponentType<{ className?: string }>;
-  tone: string;
   label: string;
   value: number;
+  sub?: string;
+  subTone?: string;
   onClick: () => void;
 }) {
   return (
@@ -549,11 +543,12 @@ function Kpi({
       onClick={onClick}
       className="rounded-card border border-line bg-white p-4 text-left shadow-card transition duration-200 hover:-translate-y-0.5 hover:shadow-lift"
     >
-      <div className="flex items-center gap-2">
-        <Icon className={`h-[18px] w-[18px] ${tone}`} />
-        <span className="text-[13px] font-medium text-ink-secondary">{label}</span>
-      </div>
-      <div className="mt-2 text-[28px] font-bold leading-none text-ink">{value}</div>
+      <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-brand/25 bg-white text-brand">
+        <Icon className="h-[18px] w-[18px]" />
+      </span>
+      <div className="mt-3 text-[13px] font-medium text-ink-secondary">{label}</div>
+      <div className="mt-1 text-[28px] font-bold leading-none text-ink">{value}</div>
+      {sub && <div className={`mt-1 text-[12px] font-medium ${subTone}`}>{sub}</div>}
     </button>
   );
 }
@@ -754,7 +749,6 @@ function GuestDrawer({
   const ci = checkinDay(g);
   const contacted = g.eng !== "Not Contacted";
   const opened = g.eng === "Engaged" || g.eng === "Responded";
-  const responded = opened;
   const prefsDone = g.ready === "Ready";
   const [editPrefs, setEditPrefs] = useState(false);
   const [newPref, setNewPref] = useState("");
@@ -767,7 +761,6 @@ function GuestDrawer({
     { title: "Guest imported from arrival report", sub: `${shortDay(24)}, 08:45 AM`, done: true },
     { title: "Pre-arrival message sent", sub: contacted ? `${shortDay(24)}, 09:00 AM` : "Not sent yet", done: contacted },
     { title: "Guest opened message", sub: opened ? `${shortDay(24)}, 11:23 AM` : "Pending", done: opened },
-    { title: "Guest responded", sub: responded ? `${shortDay(24)}, 11:45 AM` : "Pending", done: responded },
     { title: "Preferences collected", sub: prefsDone ? "Collected" : "Pending", done: prefsDone },
     { title: "Guest arrives", sub: `${arrivalLabel(g)}, ${g.time}`, done: false },
     { title: "Transfer to In-House", sub: "Pending front desk action", done: false },
