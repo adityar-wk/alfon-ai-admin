@@ -455,7 +455,7 @@ export default function Analytics() {
                           key={h}
                           title={`${name} · ${h}:00 — ${Math.round(v * 100)}% of peak`}
                           className="h-7 rounded"
-                          style={{ background: `rgba(176,141,79,${0.08 + v * 0.62})` }}
+                          style={{ background: `rgba(201,169,110,${0.08 + v * 0.62})` }}
                         />
                       );
                     })}
@@ -465,7 +465,7 @@ export default function Analytics() {
               <div className="mt-3 flex items-center justify-end gap-1.5 text-[11px] text-ink-tertiary">
                 Low
                 {[0.1, 0.3, 0.5, 0.7, 0.9].map((v) => (
-                  <span key={v} className="h-3.5 w-3.5 rounded" style={{ background: `rgba(176,141,79,${0.08 + v * 0.62})` }} />
+                  <span key={v} className="h-3.5 w-3.5 rounded" style={{ background: `rgba(201,169,110,${0.08 + v * 0.62})` }} />
                 ))}
                 High
               </div>
@@ -608,8 +608,8 @@ function SatisfactionChart({ values }: { values: number[] }) {
     <svg viewBox={`0 0 ${W} ${H}`} className="mt-3 w-full">
       <defs>
         <linearGradient id="satFill" gradientUnits="userSpaceOnUse" x1="0" x2="0" y1={T} y2={H - B}>
-          <stop offset="0" stopColor="#B08D4F" stopOpacity="0.26" />
-          <stop offset="1" stopColor="#B08D4F" stopOpacity="0" />
+          <stop offset="0" stopColor="#C9A96E" stopOpacity="0.26" />
+          <stop offset="1" stopColor="#C9A96E" stopOpacity="0" />
         </linearGradient>
         <clipPath id="satClip"><rect x={L} y={T} width={W - L - R} height={H - T - B} /></clipPath>
       </defs>
@@ -620,12 +620,12 @@ function SatisfactionChart({ values }: { values: number[] }) {
         </g>
       ))}
       <path d={area} fill="url(#satFill)" clipPath="url(#satClip)" />
-      <path d={d} fill="none" stroke="#B08D4F" strokeWidth="2.5" strokeLinecap="round" />
+      <path d={d} fill="none" stroke="#C9A96E" strokeWidth="2.5" strokeLinecap="round" />
       {pts.map(([px, py], i) => (
         <g key={i} onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)}>
           <text x={px} y={H - 8} textAnchor="middle" fontSize="10" fill="#9CA3AF">W{i + 1}</text>
           <circle cx={px} cy={py} r="14" fill="transparent" />
-          <circle cx={px} cy={py} r={hover === i ? 5 : 3} fill="#fff" stroke="#B08D4F" strokeWidth="2" />
+          <circle cx={px} cy={py} r={hover === i ? 5 : 3} fill="#fff" stroke="#C9A96E" strokeWidth="2" />
           {hover === i && (
             <g>
               <rect x={px - 22} y={py - 30} width="44" height="20" rx="5" fill="#1A1A1A" />
