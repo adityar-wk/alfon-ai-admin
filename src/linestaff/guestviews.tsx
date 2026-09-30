@@ -198,7 +198,7 @@ export function GuestProfileScreen({ name, onBack, onMessage, author = "Staff" }
               </div>
             </div>
 
-            <ProfileSection icon={User} label="Guest profile" tone="blue">
+            <ProfileSection icon={User} label="Guest profile" tone="amber">
               <p className="text-[13px] leading-relaxed text-ink">{profileInfo.profile}</p>
             </ProfileSection>
 

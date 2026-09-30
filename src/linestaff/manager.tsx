@@ -428,7 +428,7 @@ export function ManagerPrototype() {
           {bellBtn}
         </div>
         <div className="mt-3 min-w-0">
-          <div className="truncate text-[20px] font-semibold leading-tight text-ink">Good morning, {ME.split(" ")[0]} 👋</div>
+          <div className="truncate text-[18px] font-semibold leading-tight text-ink">Good morning, {ME.split(" ")[0]} 👋</div>
           <p className="mt-0.5 text-[12px] font-normal text-ink-secondary">Here's what's happening today</p>
         </div>
       </div>

@@ -23,6 +23,7 @@ import {
   ListChecks,
   Timer,
   UserRound,
+  CheckCircle2,
 } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { GuestChat, type ChatMsg, type ChatMode } from "../components/GuestChat";
@@ -669,15 +670,20 @@ function SlaTimer({ task }: { task: Task }) {
   const abs = Math.abs(secs);
   const clock = `${over ? "-" : ""}${String(Math.floor(abs / 60)).padStart(2, "0")}:${String(abs % 60).padStart(2, "0")}`;
   return (
-    <div className="rounded-xl border border-line px-4 py-3.5">
-      <div className="flex items-center justify-between">
-        <div>
-          <div className="text-[12px] font-medium text-ink-secondary">{met ? "SLA met" : over ? "SLA breached" : "Time remaining"}</div>
-          <div className="text-[11px] text-ink-tertiary">Target {target} min</div>
-        </div>
-        <div className={`text-[34px] font-semibold leading-none tracking-tight tabular-nums ${tone}`} style={{ fontFamily: '"Poppins", "Sora", "Inter", sans-serif' }}>{met ? "Met" : clock}</div>
+    <div>
+      <div className="text-[11px] font-medium uppercase tracking-wide text-ink-secondary">
+        {met ? "SLA met" : `SLA Target: ${target} minutes`}
       </div>
-      <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-subtle"><div className={`h-full rounded-full ${bar}`} style={{ width: `${frac * 100}%` }} /></div>
+      {met ? (
+        <div className="mt-1.5 flex items-center gap-1.5 font-display text-[18px] font-bold text-emerald-600">
+          <CheckCircle2 className="h-[18px] w-[18px]" /> SLA met
+        </div>
+      ) : (
+        <div className={`mt-1 font-display font-bold leading-none tracking-tight tabular-nums ${tone} ${over ? "text-[18px]" : "text-[30px]"}`}>
+          {over ? `OVERDUE — ${clock} over SLA` : clock}
+        </div>
+      )}
+      <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-subtle"><div className={`h-full rounded-full ${bar}`} style={{ width: `${frac * 100}%` }} /></div>
     </div>
   );
 }
@@ -793,31 +799,33 @@ function ManagerTaskWindow({
   return (
     <div className="fixed inset-0 z-50 bg-ink/20" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
       <aside role="dialog" aria-label="Task details" className="absolute inset-y-0 right-0 flex w-[460px] max-w-full flex-col bg-white shadow-2xl">
-        <div className="border-b border-line px-6 pb-4 pt-5">
+        <div className="px-6 pb-3 pt-5">
           <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <div className="font-mono text-[11px] text-ink-tertiary">#{String(task.id).padStart(3, "0")} · {task.dept}</div>
-              <h2 className="mt-0.5 text-[21px] font-bold leading-tight text-ink">{task.title}</h2>
-            </div>
+            <h2 className="min-w-0 pr-4 font-display text-[18px] font-bold leading-tight text-ink">{task.title}</h2>
             <button onClick={onClose} aria-label="Close" className="shrink-0 rounded-md p-1 text-ink-tertiary hover:bg-subtle hover:text-ink">
-              <X className="h-5 w-5" />
+              <X className="h-[18px] w-[18px]" />
             </button>
           </div>
-          <div className="mt-3 flex flex-wrap items-center gap-2">
+          <div className="mt-2.5 flex flex-wrap items-center gap-2">
             <span className={`text-[13px] font-medium ${STATUS_PILL[taskStatus(task)]}`}>{taskStatus(task)}</span>
             {task.tag === "Complaint" && (
               <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px] font-semibold ${COMPLAINT_PILL}`}>
                 <AlertTriangle className="h-3.5 w-3.5" /> Complaint
               </span>
             )}
+            <span className="ml-auto rounded px-1.5 py-0.5 font-mono text-[10px] font-semibold text-ink-tertiary" style={{ background: "#F5F5F5" }}>
+              #{String(task.id).padStart(3, "0")}
+            </span>
           </div>
         </div>
 
-        <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-6 py-5">
-          <SlaTimer key={task.id + task.sla.text} task={task} />
+        <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-6 pb-5">
+          <div className="rounded-card border border-line p-4" style={{ background: "linear-gradient(180deg, #FFFBF8, #FFFFFF)" }}>
+            <SlaTimer key={task.id + task.sla.text} task={task} />
+          </div>
 
           <div className="border-t border-line pt-5">
-            <div className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-ink-tertiary">Task timeline</div>
+            <div className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-ink-tertiary">Task Timeline</div>
             <ol>
               {steps.map((st, i) => (
                 <li key={i} className="flex gap-3">
@@ -836,11 +844,11 @@ function ManagerTaskWindow({
             </ol>
           </div>
 
-          <div className="divide-y divide-line/60 border-t border-line pt-1 text-[14px]">
-            <div className="flex items-center justify-between py-2.5"><span className="text-ink-secondary">Guest</span><Link to={guestId ? `/guest-chats?guest=${guestId}` : `/guest-chats?name=${encodeURIComponent(task.guest)}&room=${task.room}`} className="font-medium text-brand hover:underline">{task.guest}</Link></div>
-            <div className="flex items-center justify-between py-2.5"><span className="text-ink-secondary">Room</span><span className="font-medium text-ink">{task.room}</span></div>
-            <div className="flex items-center justify-between py-2.5"><span className="text-ink-secondary">Department</span><span className="font-medium text-ink">{task.dept}</span></div>
-            <div className="py-2.5">
+          <div className="space-y-2 border-t border-line pt-4 text-[14px]">
+            <div className="flex items-center justify-between"><span className="text-ink-secondary">Guest</span><Link to={guestId ? `/guest-chats?guest=${guestId}` : `/guest-chats?name=${encodeURIComponent(task.guest)}&room=${task.room}`} className="font-medium text-brand hover:underline">{task.guest}</Link></div>
+            <div className="flex items-center justify-between"><span className="text-ink-secondary">Room</span><span className="font-medium text-ink">{task.room}</span></div>
+            <div className="flex items-center justify-between"><span className="text-ink-secondary">Department</span><span className="font-medium text-ink">{task.dept}</span></div>
+            <div>
               <button
                 type="button"
                 disabled={closed}
@@ -864,7 +872,7 @@ function ManagerTaskWindow({
               </button>
             </div>
             {!!task.support?.length && (
-              <div className="flex items-center justify-between py-2.5"><span className="text-ink-secondary">Support</span><span className="font-medium text-ink">{task.support.join(", ")}</span></div>
+              <div className="flex items-center justify-between"><span className="text-ink-secondary">Support</span><span className="font-medium text-ink">{task.support.join(", ")}</span></div>
             )}
           </div>
 
@@ -897,14 +905,14 @@ function ManagerTaskWindow({
             {notes.length ? (
               <div className="space-y-2">
                 {notes.map((n, i) => (
-                  <div key={i} className="rounded-lg border border-line px-3 py-2.5">
+                  <div key={i} className="rounded-lg bg-subtle px-3 py-2.5">
                     <p className="text-[14px] leading-relaxed text-ink">{n.text}</p>
                     <div className="mt-1.5 text-[12px] text-ink-tertiary"><span className="font-semibold text-ink-secondary">{n.author}</span> · {n.role}</div>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="rounded-lg border border-line px-3 py-2.5 text-[14px] leading-relaxed text-ink">{description}</div>
+              <div className="rounded-lg bg-subtle px-3 py-2.5 text-[14px] leading-relaxed text-ink">{description}</div>
             )}
           </div>
         </div>
@@ -954,7 +962,7 @@ function ManagerTaskWindow({
           <button
             onClick={() => { setVoidReason(""); setModal("void"); }}
             disabled={closed}
-            className="w-full rounded-lg border border-red-200 bg-red-50/50 px-3 py-2.5 text-[13px] font-semibold text-red-600 hover:bg-red-50 disabled:opacity-40"
+            className="w-full rounded-lg border border-line bg-white px-3 py-2.5 text-[13px] font-semibold text-ink-tertiary hover:bg-subtle disabled:opacity-40"
           >
             Void
           </button>
