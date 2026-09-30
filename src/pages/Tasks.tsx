@@ -30,7 +30,7 @@ import { GuestChat, type ChatMsg, type ChatMode } from "../components/GuestChat"
 import { Card, Button, Field, Input, Select, Textarea, RoomNo } from "../components/ui";
 import { TASKS, HELP_REQUESTS, AI_DRAFTS, logAudit, pendingHelpFor, resolveHelp, shortName, type Task, type Priority } from "../data/tasks";
 import { GUESTS } from "../data/guests";
-import { taskStatus, STATUS_PILL, COMPLAINT_PILL, slaSecs, useClock, type TaskStatusLabel } from "../data/attention";
+import { taskStatus, STATUS_PILL, COMPLAINT_PILL, slaSecs, formatClock, useClock, type TaskStatusLabel } from "../data/attention";
 import { SlaClock } from "../components/SlaClock";
 import { usePersona } from "../persona";
 import { ScopePicker } from "../components/ScopePicker";
@@ -131,7 +131,63 @@ function StatusLabel({ t }: { t: Pick<Task, "status" | "owner" | "sla"> }) {
   return <span className={`whitespace-nowrap text-[13px] font-medium ${STATUS_PILL[label]}`}>{label}</span>;
 }
 
+/** pill background + text, matching the Alt Prototype's StatusBadge */
+const STATUS_BADGE: Record<string, { background: string; color: string }> = {
+  Escalated: { background: "#FEF2F2", color: "#DC2626" },
+  "SLA breached": { background: "#FEF2F2", color: "#DC2626" },
+  "SLA at risk": { background: "#FFFBEB", color: "#D97706" },
+  "In Progress": { background: "#FFF9EC", color: "#D97706" },
+  Pending: { background: "#F5F5F5", color: "#6B7280" },
+  Completed: { background: "#F0FDF4", color: "#22C55E" },
+  "Unable to Complete": { background: "#F5F5F5", color: "#6B7280" },
+  Void: { background: "#F5F5F5", color: "#9CA3AF" },
+};
+
+function StatusPill({ t }: { t: Pick<Task, "status" | "owner" | "sla"> }) {
+  const label = displayStatus(taskStatus(t));
+  return (
+    <span className="inline-flex rounded-full px-2.5 py-1 text-[12px] font-medium" style={STATUS_BADGE[label] ?? { background: "#F5F5F5", color: "#6B7280" }}>
+      {label}
+    </span>
+  );
+}
+
 const SlaText = ({ sla }: { sla: Task["sla"] }) => <SlaClock sla={sla} />;
+
+/** compact SLA readout for the tasks table, matching the Alt Prototype's SlaCountdownCompact */
+function SlaCompact({ t }: { t: Task }) {
+  if (t.status === "Completed" || t.sla.kind === "met") {
+    return <span className="inline-flex items-center gap-1 text-[12px] font-medium text-emerald-600"><CheckCircle2 className="h-3.5 w-3.5" /> SLA met</span>;
+  }
+  const secs = slaSecs(t.sla);
+  if (secs === null) return <span className="text-[12px] text-ink-tertiary">{t.sla.text}</span>;
+  const overdue = secs < 0 || t.sla.kind === "overdue";
+  const color = overdue ? "text-red-600" : t.sla.kind === "due" ? "text-amber-600" : "text-emerald-600";
+  return (
+    <span className={`inline-flex items-center gap-1 font-display text-[12px] font-semibold ${color}`}>
+      <Timer className="h-3 w-3" />
+      {overdue ? `+${formatClock(Math.abs(secs))}` : formatClock(secs)}
+    </span>
+  );
+}
+
+/** red complaint badge for the tasks table, matching the Alt Prototype's ComplaintBadge (elsewhere in the app it stays amber) */
+function TableComplaintPill() {
+  return (
+    <span className="inline-flex shrink-0 items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-bold" style={{ background: "#FEF2F2", color: "#DC2626" }}>
+      <AlertTriangle className="h-2.5 w-2.5" /> Complaint
+    </span>
+  );
+}
+
+/** green "$" badge shown on tasks with logged compensation, matching the Alt Prototype */
+function CompensationBadge() {
+  return (
+    <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[10px] font-bold" style={{ background: "#F0FDF4", color: "#22C55E" }} title="Compensation logged">
+      $
+    </span>
+  );
+}
 
 const BOARD_COLS: { key: string; label: string; dot: string; test: (t: Task) => boolean }[] = [
   { key: "unassigned", label: "Unassigned", dot: "bg-gray-300", test: (t) => t.status === "Yet to Assign" && !t.owner },
@@ -402,53 +458,56 @@ export default function Tasks() {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[1120px] table-fixed text-left">
               <colgroup>
-                <col className="w-[10%]" />
-                <col className="w-[9%]" />
-                <col className="w-[19%]" />
-                <col className="w-[9%]" />
+                <col className="w-[8%]" />
+                <col className="w-[22%]" />
                 <col className="w-[13%]" />
+                <col className="w-[8%]" />
+                <col className="w-[13%]" />
+                <col className="w-[13%]" />
+                <col className="w-[11%]" />
                 <col className="w-[12%]" />
-                <col className="w-[14%]" />
-                <col className="w-[14%]" />
               </colgroup>
               <thead>
-                <tr className="bg-[#F4F4F5] text-[12px] uppercase tracking-wide text-[#6B7280]">
-                  <th className="truncate py-3.5 pl-6 font-medium">SLA</th>
-                  <th className="truncate py-3.5 pl-6 font-medium">Task #</th>
-                  <th className="truncate py-3.5 pl-6 font-medium">Task</th>
-                  <th className="truncate py-3.5 pl-6 font-medium">Room</th>
-                  <th className="truncate py-3.5 pl-6 font-medium">Guest</th>
-                  <th className="truncate py-3.5 pl-6 font-medium">Status</th>
-                  <th className="truncate py-3.5 pl-6 font-medium">Department</th>
-                  <th className="truncate py-3.5 pl-6 font-medium">Assigned To</th>
+                <tr className="bg-subtle text-[12px] uppercase tracking-wide text-ink-secondary">
+                  <th className="truncate px-4 py-3 font-medium">#</th>
+                  <th className="truncate px-4 py-3 font-medium">Task</th>
+                  <th className="truncate px-4 py-3 font-medium">Guest</th>
+                  <th className="truncate px-4 py-3 font-medium">Room</th>
+                  <th className="truncate px-4 py-3 font-medium">Department</th>
+                  <th className="truncate px-4 py-3 font-medium">Assigned To</th>
+                  <th className="truncate px-4 py-3 font-medium">SLA</th>
+                  <th className="truncate px-4 py-3 font-medium">Status</th>
                 </tr>
               </thead>
               <tbody>
                 {rows.map((t) => {
-                  const D = DEPT_ICON[t.dept] ?? Building2;
+                  const completed = t.status === "Completed";
                   return (
-                    <tr key={t.id} onClick={() => setSelectedId(t.id)} className={`cursor-pointer border-b border-line/50 last:border-0 hover:bg-subtle/60 ${t.status === "Completed" ? "opacity-50" : ""}`}>
-                      <td className="truncate py-3.5 pl-6 pr-3">{t.status !== "Completed" && <SlaText sla={t.sla} />}</td>
-                      <td className="truncate py-3.5 pl-6 pr-3 font-mono text-[12px] text-ink-tertiary">#{String(t.id).padStart(3, "0")}</td>
-                      <td className="min-w-0 py-3.5 pl-6 pr-3">
-                        <div className="flex min-w-0 items-center gap-2 text-[13px] font-semibold text-ink">
+                    <tr key={t.id} onClick={() => setSelectedId(t.id)} className={`cursor-pointer border-b border-line/60 last:border-0 transition-colors duration-200 hover:bg-subtle/60 ${completed ? "opacity-60" : ""}`}>
+                      <td className="px-4 py-3">
+                        <span className="font-mono text-[10px] font-semibold text-ink-tertiary">#{String(t.id).padStart(3, "0")}</span>
+                      </td>
+                      <td className="min-w-0 px-4 py-3">
+                        <div className={`flex min-w-0 items-center gap-1.5 text-[13px] font-medium text-ink ${completed ? "line-through" : ""}`}>
                           <span className="truncate">{t.title}</span>
-                          {cap(t) && <span className="shrink-0"><ComplaintPill /></span>}
+                          {!!t.compensation?.length && <CompensationBadge />}
+                          {cap(t) && <TableComplaintPill />}
                         </div>
                       </td>
-                      <td className="truncate py-3.5 pl-6 pr-3 text-[13px] text-ink-secondary"><RoomNo room={t.room} /></td>
-                      <td className="truncate py-3.5 pl-6 pr-3 text-[14px] text-ink-secondary">{t.guest}</td>
-                      <td className="truncate py-3.5 pl-6 pr-3"><StatusLabel t={t} /></td>
-                      <td className="truncate py-3.5 pl-6 pr-3 text-[14px] text-ink-secondary"><span className="flex min-w-0 items-center gap-2"><D className="h-4 w-4 shrink-0 text-ink-tertiary" /><span className="truncate">{t.dept}</span></span></td>
-                      <td className="truncate py-3.5 pl-6 pr-3 text-[14px]">
+                      <td className="truncate px-4 py-3 text-[13px] text-ink-secondary">{t.guest}</td>
+                      <td className="truncate px-4 py-3 text-[13px] text-ink-secondary"><RoomNo room={t.room} /></td>
+                      <td className="truncate px-4 py-3 text-[13px] text-ink-secondary">{t.dept}</td>
+                      <td className="truncate px-4 py-3 text-[13px]">
                         {t.owner ? <span className="truncate text-ink">{t.owner}</span> : <span className="font-medium text-brand">Unassigned</span>}
                       </td>
+                      <td className="truncate px-4 py-3"><SlaCompact t={t} /></td>
+                      <td className="truncate px-4 py-3"><StatusPill t={t} /></td>
                     </tr>
                   );
                 })}
                 {!rows.length && (
                   <tr>
-                    <td colSpan={8} className="py-3.5 pl-6 pr-3 text-center text-[14px] text-ink-tertiary">No tasks in this view.</td>
+                    <td colSpan={8} className="px-4 py-3.5 text-center text-[14px] text-ink-tertiary">No tasks in this view.</td>
                   </tr>
                 )}
               </tbody>
@@ -655,19 +714,6 @@ type Panel = null | "reassign" | "support" | "note" | "escalate" | "unable" | "o
 
 const COMP_TYPES = ["Chocolate Cake — $10", "Fruit Platter — $10", "Date Box — $10", "Non-Alcoholic Sparkling Beverage — $10", "Prosecco — $20", "Champagne — $50", "Resort Credit — $500", "Resort Credit — $1,000", "Other"];
 const APPROVERS = ["Sophia Carter (General Manager)", "Duty Manager", "Daniel Reyes (Housekeeping Manager)"];
-
-
-/** pill background + text for the task detail drawer's status badge, matching the Alt Prototype's StatusBadge */
-const STATUS_BADGE: Record<string, { background: string; color: string }> = {
-  Escalated: { background: "#FEF2F2", color: "#DC2626" },
-  "SLA breached": { background: "#FEF2F2", color: "#DC2626" },
-  "SLA at risk": { background: "#FFFBEB", color: "#D97706" },
-  "In Progress": { background: "#FFF9EC", color: "#D97706" },
-  Pending: { background: "#F5F5F5", color: "#6B7280" },
-  Completed: { background: "#F0FDF4", color: "#22C55E" },
-  "Unable to Complete": { background: "#F5F5F5", color: "#6B7280" },
-  Void: { background: "#F5F5F5", color: "#9CA3AF" },
-};
 
 const SLA_TARGET: Record<Priority, number> = { Critical: 10, High: 20, Medium: 40, Low: 60 };
 const slaMinutes = (text: string) => {
