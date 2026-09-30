@@ -20,7 +20,7 @@ import { Topbar } from "../components/Topbar";
 import { Breadcrumb } from "../components/Breadcrumb";
 import { Drawer } from "../components/Drawer";
 import { BarChart } from "../components/BarChart";
-import { Page, Card, Button, Field, Input, Select, Modal, RoomNo } from "../components/ui";
+import { Card, Button, Field, Input, Select, Modal, RoomNo } from "../components/ui";
 import { TASKS, assignTask, shortName } from "../data/tasks";
 import { usePersona, canonDept } from "../persona";
 import { ScopePicker } from "../components/ScopePicker";
@@ -240,7 +240,8 @@ export default function Team() {
           title="Team"
           actions={manager ? <ScopePicker /> : undefined}
         />
-        <Page>
+        <main className="flex-1 overflow-y-auto bg-page">
+        <div className="p-6">
           <div className={`grid grid-cols-2 gap-4 ${manager ? "xl:grid-cols-4" : "xl:grid-cols-5"}`}>
             {STATS.map((s) => (
               <Card key={s.label} className="p-4">
@@ -415,7 +416,8 @@ export default function Team() {
               </div>
             </div>
           </Card>
-        </Page>
+        </div>
+        </main>
       </div>
 
       {selected && (
