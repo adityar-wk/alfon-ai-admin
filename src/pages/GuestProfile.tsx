@@ -4,7 +4,7 @@ import { Search, User, Lightbulb, Bell, BedDouble, UtensilsCrossed, Target, Mess
 import { Topbar } from "../components/Topbar";
 import { Card, Badge, Modal, Button, Field, Input, Select, RoomNo } from "../components/ui";
 import { Flag } from "../components/Flag";
-import { SIDE_PANEL, SIDE_ROW, sideRowTone, SideSearch, SideFilterButton } from "../components/SidePanel";
+import { SIDE_PANEL, SideSearch, SideFilterButton } from "../components/SidePanel";
 import { GUESTS, type Guest } from "../data/guests";
 import { type ChatMsg } from "../components/GuestChat";
 
@@ -327,11 +327,16 @@ function GuestList({ activeId }: { activeId: number }) {
         {list.map((g) => {
           const on = g.id === activeId;
           return (
-            <Link key={g.id} to={`/guests/${g.id}`} className={`${SIDE_ROW} items-center gap-3 ${sideRowTone(on)}`}>
-              <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full font-display text-[12px] font-semibold ${g.tint}`}>{g.initials}</span>
+            <Link
+              key={g.id}
+              to={`/guests/${g.id}`}
+              className={`flex items-center gap-3 border-b border-line px-4 py-3 ${on ? "bg-brand-tint" : "hover:bg-[#FAFAFA]"}`}
+              style={{ borderLeft: on ? "3px solid #E8623A" : "3px solid transparent" }}
+            >
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-tint font-display text-[12px] font-semibold text-brand">{g.initials}</span>
               <span className="min-w-0 flex-1 leading-tight">
                 <span className="block truncate font-display text-[14px] font-semibold text-ink">{g.name}</span>
-                <span className="block truncate text-[12px] text-ink-tertiary"><RoomNo room={g.room} /> · {STATUS_LABEL[g.status]}</span>
+                <span className="block truncate text-[12px] text-ink-secondary"><RoomNo room={g.room} /> · {STATUS_LABEL[g.status]}</span>
               </span>
               <Flag country={g.country} />
             </Link>
