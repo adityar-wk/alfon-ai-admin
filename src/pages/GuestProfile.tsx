@@ -401,18 +401,17 @@ const PREF_CARDS: { key: keyof Prefs; label: string; icon: React.ComponentType<{
   { key: "newspaper", label: "Newspaper Preference", icon: Newspaper },
 ];
 
-/** left-border accent card used for the AI-generated Guest Profile / Anticipated Needs insights, matching the Alt Prototype */
+/** card used for the AI-generated Guest Profile / Anticipated Needs insights */
 function InsightCard({
-  icon: Icon, label, color, accent, children,
+  icon: Icon, label, color, children,
 }: {
   icon: React.ComponentType<{ className?: string }>;
   label: string;
   color: string;
-  accent: string;
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-card border border-line bg-white p-6 shadow-card" style={{ borderLeft: `3px solid ${accent}` }}>
+    <div className="rounded-card border border-line bg-white p-6 shadow-card">
       <div className="mb-2 flex items-center gap-1.5 text-[12px] font-semibold" style={{ color }}>
         <Icon className="h-3.5 w-3.5" /> {label}
       </div>
@@ -530,8 +529,8 @@ export default function GuestProfile() {
             {/* left: guest profile, anticipated needs, preferences and stay history stacked; right: actions and notes stacked */}
             <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-5">
               <div className="flex min-w-0 flex-col gap-4 xl:col-span-3">
-                <InsightCard icon={User} label="GUEST PROFILE" color="#2E86AB" accent="#93C5FD">{p.summary}</InsightCard>
-                <InsightCard icon={Lightbulb} label="ANTICIPATED NEEDS" color="#B45309" accent="#F59E0B">{p.anticipated}</InsightCard>
+                <InsightCard icon={User} label="GUEST PROFILE" color="#2E86AB">{p.summary}</InsightCard>
+                <InsightCard icon={Lightbulb} label="ANTICIPATED NEEDS" color="#B45309">{p.anticipated}</InsightCard>
 
                 <Card className="p-6">
                   <div className="mb-4 flex items-center justify-between">
@@ -567,7 +566,7 @@ export default function GuestProfile() {
               </div>
 
               <div className="flex min-w-0 flex-col gap-6 xl:col-span-2">
-                <div className="rounded-card border border-line bg-white px-5 py-4 shadow-card" style={{ borderLeft: "3px solid #E8623A" }}>
+                <div className="rounded-card border border-line bg-white px-5 py-4 shadow-card">
                   <div className="mb-3 flex items-center gap-1.5">
                     <Bell className="h-3 w-3 text-brand" />
                     <span className="text-[10px] font-bold uppercase tracking-widest text-brand">Actions</span>
