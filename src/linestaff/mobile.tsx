@@ -214,7 +214,7 @@ export function TaskCard({
   return (
     <div className={`relative rounded-2xl border border-[#E6E4DF] bg-white px-3.5 py-2.5 ${done ? "" : "shadow-card"}`}>
       <div onClick={onClick} role={onClick ? "button" : undefined} className={onClick ? "cursor-pointer active:scale-[0.99]" : ""}>
-        <div className={`font-display text-[14px] font-semibold leading-snug ${done ? "text-ink-secondary" : "text-ink"}`}>{note}</div>
+        <div className={`font-display text-[14px] font-medium leading-snug ${done ? "text-ink-secondary" : "text-ink"}`}>{note}</div>
         <div className="mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-[12px]">
           <span className="flex items-center gap-1 text-ink-secondary">
             {/^Room\s/i.test(room) ? <><DoorOpen className="h-3.5 w-3.5" />{room.replace(/^Room\s+/i, "")}</> : room}
