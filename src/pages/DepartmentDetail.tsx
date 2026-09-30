@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Navigate, useParams, useSearchParams } from "react-router-dom";
 import {
   Plus,
+  Pencil,
   CheckCircle2,
   Check,
   Trash2,
@@ -15,62 +16,16 @@ import { deptIcon } from "../data/deptIcons";
 
 type SlaRow = { hours247: boolean; hoursStart: string; hoursEnd: string; response: string; resolve: string };
 type Level = { id: number; trigger: string; to: string };
+type ModalState = { mode: "add" } | { mode: "edit"; service: DeptService } | null;
 
 const blankSla = (): SlaRow => ({ hours247: true, hoursStart: "09:00", hoursEnd: "18:00", response: "20", resolve: "90" });
+const hoursLabel = (row: SlaRow) => (row.hours247 ? "Open all day" : `${row.hoursStart} – ${row.hoursEnd}`);
 
 const SEED_LEVELS: Level[] = [
   { id: 1, trigger: "Escalation", to: "Supervisor" },
   { id: 2, trigger: "+15 min after Level 1", to: "Department Head" },
   { id: 3, trigger: "+30 min after Level 2", to: "General Manager" },
 ];
-
-function ServiceHours({
-  allDay,
-  start,
-  end,
-  onChange,
-}: {
-  allDay: boolean;
-  start: string;
-  end: string;
-  onChange: (patch: Partial<Pick<SlaRow, "hours247" | "hoursStart" | "hoursEnd">>) => void;
-}) {
-  const [open, setOpen] = useState(false);
-  return (
-    <div className="relative">
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="text-[12px] font-medium text-ink-secondary underline decoration-[#E5E5E5] underline-offset-2 hover:text-ink"
-      >
-        {allDay ? "Open all day" : `${start} – ${end}`}
-      </button>
-      {open && (
-        <>
-          <button aria-label="Close hours" className="fixed inset-0 z-10 cursor-default" onClick={() => setOpen(false)} />
-          <div className="absolute left-0 top-6 z-20 w-56 overflow-hidden rounded-xl border border-line bg-white p-3 shadow-lg">
-            <div className="flex rounded-full bg-[#F7F7F7] p-0.5 text-[12px] font-medium">
-              <button type="button" onClick={() => onChange({ hours247: true })} className={`flex-1 rounded-full py-1 ${allDay ? "bg-white text-ink shadow-sm" : "text-ink-secondary"}`}>All day</button>
-              <button type="button" onClick={() => onChange({ hours247: false })} className={`flex-1 rounded-full py-1 ${!allDay ? "bg-white text-ink shadow-sm" : "text-ink-secondary"}`}>Set hours</button>
-            </div>
-            {!allDay && (
-              <div className="mt-3 space-y-2">
-                <label className="block">
-                  <span className="mb-1 block text-[11px] text-ink-tertiary">Starts</span>
-                  <Input type="time" className="h-9 w-full min-w-0 px-2 text-[12px]" value={start} onChange={(e) => onChange({ hoursStart: e.target.value })} />
-                </label>
-                <label className="block">
-                  <span className="mb-1 block text-[11px] text-ink-tertiary">Ends</span>
-                  <Input type="time" className="h-9 w-full min-w-0 px-2 text-[12px]" value={end} onChange={(e) => onChange({ hoursEnd: e.target.value })} />
-                </label>
-              </div>
-            )}
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
 
 export default function DepartmentDetail() {
   const { slug = "" } = useParams();
@@ -80,8 +35,8 @@ export default function DepartmentDetail() {
 
   const [members, setMembers] = useState<DeptMember[]>(dept?.members ?? []);
   const [services, setServices] = useState<DeptService[]>(dept?.services ?? []);
-  const [addingService, setAddingService] = useState(false);
-  const [newService, setNewService] = useState({ name: "", description: "" });
+  const [modal, setModal] = useState<ModalState>(null);
+  const [deleteTarget, setDeleteTarget] = useState<DeptService | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [managerName, setManagerName] = useState<string | null>(null); // set once the manager is edited or added
   const [editingManager, setEditingManager] = useState(false);
@@ -89,8 +44,6 @@ export default function DepartmentDetail() {
   const [description, setDescription] = useState(dept?.description ?? "");
   const [editingDesc, setEditingDesc] = useState(false);
   const [descDraft, setDescDraft] = useState("");
-  const [editingService, setEditingService] = useState<string | null>(null);
-  const [serviceDescDraft, setServiceDescDraft] = useState("");
   const [sla, setSla] = useState<Record<string, SlaRow>>({});
   const [levels, setLevels] = useState<Level[]>(() => SEED_LEVELS.map((l) => ({ ...l })));
 
@@ -118,41 +71,42 @@ export default function DepartmentDetail() {
   const head = managerName ?? members.find((m) => m.role === "Department Head")?.name ?? "";
   const Icon = deptIcon(dept.name);
 
-  const addService = () => {
-    if (!newService.name.trim()) return;
-    const name = newService.name.trim();
-    setServices((s) => [
-      ...s,
-      { name, description: newService.description.trim() || undefined, active: true },
-    ]);
-    setSla((rows) => ({ ...rows, [name]: blankSla() }));
-    setNewService({ name: "", description: "" });
-    setAddingService(false);
-  };
-
-  const patchSla = (name: string, patch: Partial<SlaRow>) =>
-    setSla((rows) => ({ ...rows, [name]: { ...(rows[name] ?? blankSla()), ...patch } }));
-
   const targets = Array.from(new Set([...members.map((m) => m.role).filter((r) => r !== "Line Staff"), "Duty Manager", "General Manager"]));
 
-  const saveServiceDesc = (name: string) => {
-    setServices((s) => s.map((sv) => (sv.name === name ? { ...sv, description: serviceDescDraft.trim() || undefined } : sv)));
-    setEditingService(null);
-    setToast("Service description updated");
+  const saveService = (s: DeptService, row: SlaRow, editingName?: string) => {
+    if (editingName) {
+      setServices((ss) => ss.map((x) => (x.name === editingName ? s : x)));
+      setSla((rows) => {
+        const next = { ...rows };
+        if (editingName !== s.name) delete next[editingName];
+        next[s.name] = row;
+        return next;
+      });
+      setToast(`"${s.name}" updated`);
+    } else {
+      setServices((ss) => [...ss, s]);
+      setSla((rows) => ({ ...rows, [s.name]: row }));
+      setToast(`"${s.name}" added`);
+    }
+    setModal(null);
+  };
+
+  const deleteService = () => {
+    if (!deleteTarget) return;
+    setServices((ss) => ss.filter((x) => x.name !== deleteTarget.name));
+    setSla((rows) => {
+      const next = { ...rows };
+      delete next[deleteTarget.name];
+      return next;
+    });
+    setToast(`"${deleteTarget.name}" removed`);
+    setDeleteTarget(null);
   };
 
   return (
     <div className="flex min-h-0 flex-1">
       <div className="flex min-w-0 flex-1 flex-col">
-        <Topbar
-          title="Department"
-          backTo={listPath}
-          actions={
-            <Button onClick={() => setToast("Changes saved")}>
-              <Check className="h-4 w-4" /> Save Changes
-            </Button>
-          }
-        />
+        <Topbar title="Department" backTo={listPath} />
         <Page>
           <div className="flex items-center gap-4">
             <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-brand-tint text-brand">
@@ -181,106 +135,64 @@ export default function DepartmentDetail() {
             </button>
           </div>
 
-          <div className="mt-8 grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
-            <div className="min-w-0 max-w-3xl">
+          <div className="mt-8 grid items-start gap-6 xl:grid-cols-[3fr_2fr]">
+            <div className="min-w-0">
               <div className="flex items-baseline justify-between">
                 <h3 className="text-[16px] font-semibold text-ink">Services</h3>
-                <button onClick={() => setAddingService((v) => !v)} className="flex items-center gap-1.5 text-[13px] font-medium text-brand">
+                <button onClick={() => setModal({ mode: "add" })} className="flex items-center gap-1.5 text-[13px] font-medium text-brand">
                   <Plus className="h-4 w-4" /> Add Service
                 </button>
               </div>
 
-              <div className="mt-3 overflow-x-auto">
-                <table className="w-full table-fixed text-left">
-                  <colgroup>
-                    <col className="w-[28%]" />
-                    <col />
-                    <col className="w-[7rem]" />
-                    <col className="w-[4.5rem]" />
-                    <col className="w-[4.5rem]" />
-                  </colgroup>
+              <div className="mt-3 overflow-x-auto rounded-xl border border-line">
+                <table className="w-full min-w-[640px] text-left">
                   <thead>
-                    <tr className="border-b border-line text-[11px] uppercase tracking-wide text-ink-secondary">
-                      <th className="pb-3 font-medium">Service</th>
-                      <th className="pb-3 font-medium">Description</th>
-                      <th className="pb-3 font-medium">Service time</th>
-                      <th className="pb-3 text-center font-medium">
-                        Response
-                        <span className="mt-0.5 block text-[10px] font-normal normal-case tracking-normal text-ink-tertiary">min</span>
-                      </th>
-                      <th className="pb-3 text-center font-medium">
-                        Resolution
-                        <span className="mt-0.5 block text-[10px] font-normal normal-case tracking-normal text-ink-tertiary">min</span>
-                      </th>
+                    <tr className="bg-[#F4F4F5] text-[11px] uppercase tracking-wide text-ink-secondary">
+                      <th className="py-3 pl-4 pr-3 font-medium">Service</th>
+                      <th className="py-3 pl-4 pr-3 font-medium">Description</th>
+                      <th className="py-3 pl-4 pr-3 font-medium">Service time</th>
+                      <th className="py-3 pl-4 pr-3 font-medium">Response</th>
+                      <th className="py-3 pl-4 pr-3 font-medium">Resolution</th>
+                      <th className="py-3 pl-4 pr-4" aria-label="Actions" />
                     </tr>
                   </thead>
                   <tbody>
                     {services.map((sv) => {
                       const row = sla[sv.name] ?? blankSla();
-                      const editing = editingService === sv.name;
                       return (
-                        <tr key={sv.name} className="border-b border-line/60 align-top last:border-0">
-                          <td className="py-3 pr-3 text-[14px] font-medium text-ink">{sv.name}</td>
-                          <td className="py-3 pr-3">
-                            {editing ? (
-                              <div className="space-y-2">
-                                <Textarea
-                                  autoFocus
-                                  rows={2}
-                                  placeholder="What does this service cover?"
-                                  value={serviceDescDraft}
-                                  onChange={(e) => setServiceDescDraft(e.target.value)}
-                                />
-                                <div className="flex gap-2">
-                                  <Button className="h-8 px-3 text-[12px]" onClick={() => saveServiceDesc(sv.name)}>Save</Button>
-                                  <Button variant="outline" className="h-8 px-3 text-[12px]" onClick={() => setEditingService(null)}>Cancel</Button>
-                                </div>
-                              </div>
-                            ) : (
-                              <button
-                                onClick={() => { setEditingService(sv.name); setServiceDescDraft(sv.description ?? ""); }}
-                                className="text-left text-[13px] leading-relaxed text-ink-secondary hover:text-ink"
-                              >
-                                {sv.description || <span className="text-ink-tertiary">Add description</span>}
-                              </button>
-                            )}
+                        <tr key={sv.name} className="border-t border-line/60">
+                          <td className="whitespace-nowrap py-3 pl-4 pr-3 text-[13px] font-medium text-ink">{sv.name}</td>
+                          <td className="py-3 pl-4 pr-3 text-[13px] leading-relaxed text-ink-secondary">
+                            {sv.description || <span className="text-ink-tertiary">—</span>}
                           </td>
-                          <td className="py-3 pr-3">
-                            <ServiceHours
-                              allDay={row.hours247}
-                              start={row.hoursStart}
-                              end={row.hoursEnd}
-                              onChange={(patch) => patchSla(sv.name, patch)}
-                            />
-                          </td>
-                          <td className="py-3">
-                            <Input className="h-9 px-1 text-center" value={row.response} onChange={(e) => patchSla(sv.name, { response: e.target.value })} />
-                          </td>
-                          <td className="py-3 pl-2">
-                            <Input className="h-9 px-1 text-center" value={row.resolve} onChange={(e) => patchSla(sv.name, { resolve: e.target.value })} />
+                          <td className="whitespace-nowrap py-3 pl-4 pr-3 text-[13px] text-ink-secondary">{hoursLabel(row)}</td>
+                          <td className="whitespace-nowrap py-3 pl-4 pr-3 text-[13px] text-ink-secondary">{row.response} min</td>
+                          <td className="whitespace-nowrap py-3 pl-4 pr-3 text-[13px] text-ink-secondary">{row.resolve} min</td>
+                          <td className="whitespace-nowrap py-3 pl-4 pr-4 text-right">
+                            <button
+                              onClick={() => setModal({ mode: "edit", service: sv })}
+                              aria-label={`Edit ${sv.name}`}
+                              className="rounded-md p-1.5 text-ink-tertiary hover:bg-subtle hover:text-ink"
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </button>
+                            <button
+                              onClick={() => setDeleteTarget(sv)}
+                              aria-label={`Delete ${sv.name}`}
+                              className="rounded-md p-1.5 text-ink-tertiary hover:bg-red-50 hover:text-red-600"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
                           </td>
                         </tr>
                       );
                     })}
+                    {!services.length && (
+                      <tr><td colSpan={6} className="py-8 text-center text-[13px] text-ink-tertiary">No services yet — add the first one.</td></tr>
+                    )}
                   </tbody>
                 </table>
-                {!services.length && <p className="py-6 text-center text-[13px] text-ink-tertiary">No services added yet.</p>}
               </div>
-
-              {addingService && (
-                <div className="mt-3 max-w-lg space-y-3 rounded-lg border border-line bg-subtle p-4">
-                  <Field label="Service Name" required>
-                    <Input autoFocus placeholder="e.g. Pillow Menu" value={newService.name} onChange={(e) => setNewService((sv) => ({ ...sv, name: e.target.value }))} />
-                  </Field>
-                  <Field label="Description (Optional)">
-                    <Textarea rows={2} placeholder="What does this service cover?" value={newService.description} onChange={(e) => setNewService((sv) => ({ ...sv, description: e.target.value }))} />
-                  </Field>
-                  <div className="flex gap-2">
-                    <Button onClick={addService}>Add</Button>
-                    <Button variant="outline" onClick={() => setAddingService(false)}>Cancel</Button>
-                  </div>
-                </div>
-              )}
             </div>
 
             <div className="xl:border-l xl:border-line xl:pl-8">
@@ -325,8 +237,42 @@ export default function DepartmentDetail() {
               </div>
             </div>
           </div>
+
+          <div className="mt-8 flex justify-end border-t border-line pt-6">
+            <Button onClick={() => setToast("Changes saved")}>
+              <Check className="h-4 w-4" /> Save Changes
+            </Button>
+          </div>
         </Page>
       </div>
+
+      {modal && (
+        <ServiceModal
+          key={modal.mode === "edit" ? modal.service.name : "new"}
+          initial={modal.mode === "edit" ? modal.service : null}
+          initialSla={modal.mode === "edit" ? sla[modal.service.name] ?? blankSla() : blankSla()}
+          existingNames={services.map((s) => s.name)}
+          onClose={() => setModal(null)}
+          onSave={(s, row) => saveService(s, row, modal.mode === "edit" ? modal.service.name : undefined)}
+        />
+      )}
+
+      {deleteTarget && (
+        <Modal
+          title="Delete service"
+          onClose={() => setDeleteTarget(null)}
+          footer={
+            <>
+              <Button variant="outline" onClick={() => setDeleteTarget(null)}>Cancel</Button>
+              <Button tone="bg-red-600" onClick={deleteService}>Delete service</Button>
+            </>
+          }
+        >
+          <p className="text-[13px] text-ink-secondary">
+            Remove "{deleteTarget.name}" from {dept.name}? This can't be undone.
+          </p>
+        </Modal>
+      )}
 
       {editingManager && (
         <Modal
@@ -380,5 +326,77 @@ export default function DepartmentDetail() {
         </div>
       )}
     </div>
+  );
+}
+
+function ServiceModal({
+  initial, initialSla, existingNames, onClose, onSave,
+}: {
+  initial: DeptService | null;
+  initialSla: SlaRow;
+  existingNames: string[];
+  onClose: () => void;
+  onSave: (s: DeptService, row: SlaRow) => void;
+}) {
+  const [name, setName] = useState(initial?.name ?? "");
+  const [description, setDescription] = useState(initial?.description ?? "");
+  const [allDay, setAllDay] = useState(initialSla.hours247);
+  const [start, setStart] = useState(initialSla.hoursStart);
+  const [end, setEnd] = useState(initialSla.hoursEnd);
+  const [response, setResponse] = useState(initialSla.response);
+  const [resolve, setResolve] = useState(initialSla.resolve);
+
+  const trimmedName = name.trim();
+  const duplicate = trimmedName.toLowerCase() !== (initial?.name ?? "").toLowerCase() && existingNames.some((n) => n.toLowerCase() === trimmedName.toLowerCase());
+  const ok = trimmedName && response.trim() && resolve.trim() && !duplicate;
+
+  return (
+    <Modal
+      title={initial ? "Edit Service" : "Add Service"}
+      onClose={onClose}
+      footer={
+        <>
+          <Button variant="outline" onClick={onClose}>Cancel</Button>
+          <Button
+            disabled={!ok}
+            className="disabled:opacity-40"
+            onClick={() =>
+              onSave(
+                { name: trimmedName, description: description.trim() || undefined, active: true },
+                { hours247: allDay, hoursStart: start, hoursEnd: end, response: response.trim(), resolve: resolve.trim() },
+              )
+            }
+          >
+            {initial ? "Save Changes" : "Add Service"}
+          </Button>
+        </>
+      }
+    >
+      <div className="space-y-4">
+        <Field label="Service Name" required hint={duplicate ? "A service with this name already exists." : undefined}>
+          <Input autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Pillow Menu" />
+        </Field>
+        <Field label="Description (Optional)">
+          <Textarea rows={2} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="What does this service cover?" />
+        </Field>
+        <div>
+          <span className="mb-1.5 block text-[13px] font-medium text-ink-secondary">Service hours</span>
+          <div className="flex rounded-full bg-subtle p-0.5 text-[12px] font-medium">
+            <button type="button" onClick={() => setAllDay(true)} className={`flex-1 rounded-full py-1.5 ${allDay ? "bg-white text-ink shadow-sm" : "text-ink-secondary"}`}>All day</button>
+            <button type="button" onClick={() => setAllDay(false)} className={`flex-1 rounded-full py-1.5 ${!allDay ? "bg-white text-ink shadow-sm" : "text-ink-secondary"}`}>Set hours</button>
+          </div>
+          {!allDay && (
+            <div className="mt-2 grid grid-cols-2 gap-3">
+              <Field label="Starts"><Input type="time" value={start} onChange={(e) => setStart(e.target.value)} /></Field>
+              <Field label="Ends"><Input type="time" value={end} onChange={(e) => setEnd(e.target.value)} /></Field>
+            </div>
+          )}
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Response Target (min)" required><Input value={response} onChange={(e) => setResponse(e.target.value)} placeholder="e.g. 20" /></Field>
+          <Field label="Resolve Target (min)" required><Input value={resolve} onChange={(e) => setResolve(e.target.value)} placeholder="e.g. 90" /></Field>
+        </div>
+      </div>
+    </Modal>
   );
 }
