@@ -141,48 +141,168 @@ function PeakHoursHeatmap() {
 }
 
 function AnalyticsScreen() {
-  const [range, setRange] = React.useState("This Week");
+  const [range, setRange] = React.useState("week"); // "week" | "month" | "custom"
+  const [offset, setOffset] = React.useState(0); // weeks back, only used when range === "week"
+  const [from, setFrom] = React.useState("2026-05-01");
+  const [to, setTo] = React.useState("2026-05-15");
+  const [filtersOpen, setFiltersOpen] = React.useState(false);
   const [activeDept, setActiveDept] = React.useState(null);
   const m = window.analyticsMetrics;
+
+  const short = (d) => d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  const fmtDate = (iso) => new Date(iso + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  const days = Math.max(1, Math.round((new Date(to) - new Date(from)) / 86400000) + 1);
+  const factor = range === "week" ? Math.max(0.5, 1 - 0.06 * offset) : range === "month" ? 4.3 : days / 7;
+  const scale = (n) => Math.round(n * factor);
+
+  const weekStart = new Date(2026, 4, 3 - 7 * offset);
+  const weekEnd = new Date(2026, 4, 9 - 7 * offset);
+  const label =
+    range === "week"
+      ? `${short(weekStart)} – ${short(weekEnd)}, ${weekEnd.getFullYear()}`
+      : range === "month"
+        ? "May 1 – May 31, 2026"
+        : `${fmtDate(from)} – ${fmtDate(to)}`;
+  const period = range === "week" ? (offset === 0 ? "This Week" : offset === 1 ? "Last Week" : "Earlier week") : range === "month" ? "This Month" : "Custom";
+  const activeFilters = range === "week" && offset === 0 ? 0 : 1;
+
+  const pickPeriod = (v) => {
+    if (v === "This Week") { setRange("week"); setOffset(0); }
+    else if (v === "Last Week") { setRange("week"); setOffset(1); }
+    else if (v === "This Month") setRange("month");
+    else if (v === "Custom") setRange("custom");
+  };
+  const step = (dir) => {
+    if (range !== "week") { setRange("week"); setOffset(dir === -1 ? 1 : 0); return; }
+    setOffset((o) => Math.max(0, Math.min(8, o - dir)));
+  };
+
+  // scale every department's total, and its categories proportionally so they still sum to the total
+  const depts = window.departmentTaskBreakdown.map((d) => {
+    const total = scale(d.total);
+    const sum = d.categories.reduce((a, c) => a + c.value, 0) || 1;
+    const categories = d.categories.map((c) => ({ name: c.name, value: Math.round((total * c.value) / sum) }));
+    return { ...d, total, categories };
+  });
+
+  const totalTasks = scale(m.totalTasks.value);
+  const completed = scale(m.completed.value);
+  const overdue = scale(m.overdue.value);
+
+  const complaints = [
+    { name: "Room Move", value: 67 }, { name: "AC Not Working", value: 31 }, { name: "Elevator Issues", value: 18 },
+    { name: "Restaurant Unavailability", value: 14 }, { name: "Noise Disturbance", value: 11 }, { name: "Housekeeping Delay", value: 9 },
+  ].map((c) => ({ ...c, scaled: scale(c.value) }));
+  const complaintMax = Math.max(...complaints.map((c) => c.scaled));
+
+  const topRequests = window.topRequestsBreakdown.map((r) => ({ ...r, scaled: scale(r.count) }));
+  const topRequestsMax = topRequests.length ? topRequests[0].scaled : 1;
+
+  const exportData = () => {
+    const rows = [["Department", "Tasks", "Period"], ...depts.map((d) => [d.department, String(d.total), label])];
+    const blob = new Blob([rows.map((r) => r.map((c) => `"${c}"`).join(",")).join("\n")], { type: "text/csv" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "alfon-analytics.csv";
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
 
   return (
     <div>
       <Header title="Analytics" subtitle="Operational performance across all departments" />
       <div className="p-6 space-y-5">
-        <div className="flex items-center justify-between gap-2 flex-wrap">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="px-3 py-1.5 rounded-lg bg-white border border-border text-sm font-medium text-darktext">May 3 – May 9, 2026</span>
-            {["This Week", "Last Week", "This Month", "Custom"].map((r) => (
-              <button
-                key={r}
-                onClick={() => setRange(r)}
-                className="px-3.5 py-1.5 rounded-full text-sm font-medium transition-colors duration-200"
-                style={range === r ? { background: "#E8623A", color: "#FFFFFF" } : { background: "#FFFFFF", border: "1px solid #F0F0F0", color: "#6B7280" }}
-              >
-                {r}
-              </button>
-            ))}
+        <div className="relative flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-1 rounded-lg bg-white p-1" style={{ border: "1px solid #F0F0F0" }}>
+            <button onClick={() => step(-1)} aria-label="Previous period" className="alfon-btn p-1.5 rounded-md hover:bg-lightgray" style={{ color: "#6B7280" }}>
+              <Icon name="ChevronLeft" size={16} />
+            </button>
+            <span className="flex items-center justify-center gap-2 px-2 text-sm font-semibold" style={{ minWidth: 200, color: "#1A1A1A" }}>
+              <Icon name="CalendarDays" size={15} color="#9CA3AF" /> {label}
+            </span>
+            <button onClick={() => step(1)} disabled={range === "week" && offset === 0} aria-label="Next period" className="alfon-btn p-1.5 rounded-md hover:bg-lightgray disabled:opacity-30" style={{ color: "#6B7280" }}>
+              <Icon name="ChevronRight" size={16} />
+            </button>
           </div>
-          <button
-            onClick={() => window.print()}
-            className="alfon-btn flex items-center gap-1.5 font-display font-semibold text-sm px-4 py-2 rounded-lg"
-            style={{ border: "1px solid #F0F0F0", color: "#1A1A1A" }}
-          >
-            <Icon name="Download" size={15} color="#9CA3AF" /> Export Data
-          </button>
+          {activeFilters > 0 && (
+            <button onClick={() => pickPeriod("This Week")} className="text-sm font-medium" style={{ color: "#E8623A" }}>
+              Back to this week
+            </button>
+          )}
+
+          <div className="ml-auto flex items-center gap-3">
+            <button
+              onClick={exportData}
+              className="alfon-btn flex items-center gap-1.5 font-display font-semibold text-sm px-4 py-2 rounded-lg"
+              style={{ border: "1px solid #F0F0F0", color: "#1A1A1A" }}
+            >
+              <Icon name="Download" size={15} color="#9CA3AF" /> Export Data
+            </button>
+            <button
+              onClick={() => setFiltersOpen((o) => !o)}
+              aria-label="Filters"
+              className="alfon-btn relative flex items-center justify-center rounded-lg"
+              style={{ width: 40, height: 40, ...(filtersOpen || activeFilters ? { border: "1px solid #E8623A", background: "#FFF4F0", color: "#E8623A" } : { border: "1px solid #F0F0F0", background: "#FFFFFF", color: "#6B7280" }) }}
+            >
+              <Icon name="Filter" size={16} />
+              {activeFilters > 0 && (
+                <span
+                  className="absolute flex items-center justify-center rounded-full text-white font-semibold"
+                  style={{ top: -6, right: -6, height: 16, minWidth: 16, fontSize: 10, background: "#E8623A" }}
+                >
+                  {activeFilters}
+                </span>
+              )}
+            </button>
+          </div>
+
+          {filtersOpen && (
+            <div className="absolute right-0 top-12 z-20 rounded-xl bg-white p-4 shadow-lg space-y-3" style={{ width: 290, border: "1px solid #F0F0F0" }}>
+              <div>
+                <label className="text-xs font-medium" style={{ color: "#6B7280" }}>Period</label>
+                <select
+                  value={period}
+                  onChange={(e) => pickPeriod(e.target.value)}
+                  className="w-full mt-1 px-3 py-2 text-sm rounded-lg"
+                  style={{ border: "1px solid #F0F0F0", color: "#1A1A1A" }}
+                >
+                  <option>This Week</option>
+                  <option>Last Week</option>
+                  <option>This Month</option>
+                  <option>Custom</option>
+                  {period === "Earlier week" && <option>Earlier week</option>}
+                </select>
+              </div>
+              {range === "custom" && (
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-xs font-medium" style={{ color: "#6B7280" }}>From</label>
+                    <input type="date" value={from} max={to} onChange={(e) => setFrom(e.target.value)} className="w-full mt-1 px-3 py-2 text-sm rounded-lg" style={{ border: "1px solid #F0F0F0", color: "#1A1A1A" }} />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium" style={{ color: "#6B7280" }}>To</label>
+                    <input type="date" value={to} min={from} onChange={(e) => setTo(e.target.value)} className="w-full mt-1 px-3 py-2 text-sm rounded-lg" style={{ border: "1px solid #F0F0F0", color: "#1A1A1A" }} />
+                  </div>
+                </div>
+              )}
+              <div className="flex justify-end">
+                <button onClick={() => setFiltersOpen(false)} className="text-sm font-semibold" style={{ color: "#E8623A" }}>Done</button>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <MetricCard icon="ListChecks" label="Total Tasks" value={m.totalTasks.value.toLocaleString()} trend={m.totalTasks.trend} change={m.totalTasks.change} />
-          <MetricCard icon="CheckCircle2" label="Completed" value={m.completed.value.toLocaleString()} trend={m.completed.trend} change={m.completed.change} />
-          <MetricCard icon="AlertTriangle" label="Overdue" value={m.overdue.value} trend={m.overdue.trend} change={m.overdue.change} />
+          <MetricCard icon="ListChecks" label="Total Tasks" value={totalTasks.toLocaleString()} trend={m.totalTasks.trend} change={m.totalTasks.change} />
+          <MetricCard icon="CheckCircle2" label="Completed" value={completed.toLocaleString()} trend={m.completed.trend} change={m.completed.change} />
+          <MetricCard icon="AlertTriangle" label="Overdue" value={overdue} trend={m.overdue.trend} change={m.overdue.change} />
           <MetricCard icon="Timer" label="Avg Response" value={m.avgResponse.value} trend={m.avgResponse.trend} change={m.avgResponse.change} />
         </div>
 
         <div>
           <h3 className="font-display font-semibold mb-3" style={{ color: "#1A1A1A" }}>Tasks by Department</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {window.departmentTaskBreakdown.map((dept) => (
+            {depts.map((dept) => (
               <DepartmentCard key={dept.department} dept={dept} onClick={() => setActiveDept(dept)} />
             ))}
           </div>
@@ -194,14 +314,14 @@ function AnalyticsScreen() {
           <Card style={{ padding: "24px" }}>
             <h3 className="font-display font-semibold mb-5" style={{ color: "#1A1A1A" }}>Complaint Insights</h3>
             <div className="space-y-4">
-              {[{ name: "Room Move", value: 67 }, { name: "AC Not Working", value: 31 }, { name: "Elevator Issues", value: 18 }, { name: "Restaurant Unavailability", value: 14 }, { name: "Noise Disturbance", value: 11 }, { name: "Housekeeping Delay", value: 9 }].map((item, i) => (
+              {complaints.map((item, i) => (
                 <div key={item.name}>
                   <div className="flex items-center justify-between mb-1.5">
                     <span className="text-sm" style={{ color: "#374151" }}>{item.name}</span>
-                    <span className="text-sm font-semibold tabular-nums" style={{ color: "#1A1A1A" }}>{item.value}</span>
+                    <span className="text-sm font-semibold tabular-nums" style={{ color: "#1A1A1A" }}>{item.scaled}</span>
                   </div>
                   <div className="w-full rounded-full overflow-hidden" style={{ height: 8, background: "#F3F4F6" }}>
-                    <div className="h-full rounded-full" style={{ width: `${(item.value / 67) * 100}%`, background: i === 0 ? A : i === 1 ? A_MID : A_LIGHT }} />
+                    <div className="h-full rounded-full" style={{ width: `${(item.scaled / complaintMax) * 100}%`, background: i === 0 ? A : i === 1 ? A_MID : A_LIGHT }} />
                   </div>
                 </div>
               ))}
@@ -212,7 +332,7 @@ function AnalyticsScreen() {
           <Card style={{ padding: "24px" }}>
             <h3 className="font-display font-semibold mb-3" style={{ color: "#1A1A1A" }}>Department Comparison</h3>
             {(() => {
-              const sorted = [...window.departmentTaskBreakdown].sort((a, b) => b.total - a.total);
+              const sorted = [...depts].sort((a, b) => b.total - a.total);
               const PIE_COLORS = ["#9E7C3F", "#B8924F", "#C9A96E", "#DBBE8E", "#EDD9B4", "#F5E8CC", "#FAF3E8"];
               return (
                 <div>
@@ -267,15 +387,15 @@ function AnalyticsScreen() {
           <Card style={{ padding: "24px" }}>
             <h3 className="font-display font-semibold mb-4" style={{ color: "#1A1A1A" }}>Top Requests</h3>
             <div className="space-y-2.5">
-              {window.topRequestsBreakdown.map((r, i) => (
+              {topRequests.map((r, i) => (
                 <div key={r.name} className="flex items-center gap-3">
                   <span style={{ width: 16, fontSize: 10, color: "#9CA3AF", fontWeight: 600, textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{i + 1}</span>
                   <span className="text-sm flex-1 truncate" style={{ color: "#374151" }}>{r.name}</span>
                   <div className="flex items-center gap-2" style={{ width: 160 }}>
                     <div className="flex-1 rounded-full overflow-hidden" style={{ height: 6, background: "#F3F4F6" }}>
-                      <div className="h-full rounded-full" style={{ width: `${(r.count / window.topRequestsBreakdown[0].count) * 100}%`, background: i === 0 ? A : i === 1 ? A_MID : A_LIGHT }} />
+                      <div className="h-full rounded-full" style={{ width: `${(r.scaled / topRequestsMax) * 100}%`, background: i === 0 ? A : i === 1 ? A_MID : A_LIGHT }} />
                     </div>
-                    <span style={{ fontSize: 11, color: "#1A1A1A", fontVariantNumeric: "tabular-nums", minWidth: 28, textAlign: "right" }}>{r.count}</span>
+                    <span style={{ fontSize: 11, color: "#1A1A1A", fontVariantNumeric: "tabular-nums", minWidth: 28, textAlign: "right" }}>{r.scaled}</span>
                   </div>
                 </div>
               ))}
