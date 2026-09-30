@@ -28,7 +28,7 @@ export const SPECIAL_RULES = [
   { key: "takeover", label: "Take over guest conversations", desc: "Switch a chat from Auto to Manual" },
   { key: "notes", label: "Add management notes", desc: "Notes visible to managers only" },
   { key: "audit", label: "View audit trail", desc: "Escalations, overrides and task changes" },
-  { key: "export", label: "Export reports", desc: "Download CSV / PDF reports" },
+  { key: "export", label: "Export reports", desc: "Download CSV reports" },
 ] as const;
 export type RuleKey = (typeof SPECIAL_RULES)[number]["key"];
 

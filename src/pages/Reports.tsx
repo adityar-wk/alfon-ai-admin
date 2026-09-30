@@ -15,7 +15,6 @@ import {
   Lock,
   ArrowRight,
   Download,
-  FileText,
   ChevronLeft,
   ChevronDown,
   X,
@@ -141,56 +140,6 @@ function downloadCsv(r: Report, rows: string[][], meta: string[]) {
   const q = (c: string) => `"${c.replace(/"/g, '""')}"`;
   const lines = [[r.title], ...meta.map((m) => [m]), [], r.cols, ...rows].map((row) => row.map(q).join(","));
   saveBlob(new Blob([lines.join("\n")], { type: "text/csv" }), `${r.key}-report.csv`);
-}
-
-/** minimal dependency-free PDF (Helvetica, A4, paginated table) */
-function downloadPdf(r: Report, rows: string[][], meta: string[]) {
-  const esc = (t: string) =>
-    t.replace(/[\u2013\u2014]/g, "-").replace(/\u2192/g, "->").replace(/[\\()]/g, (c) => "\\" + c).replace(/[^\x20-\x7e]/g, (c) => (c.charCodeAt(0) < 256 ? "\\" + c.charCodeAt(0).toString(8).padStart(3, "0") : "?"));
-  const W = 595, H = 842, M = 40, usable = W - M * 2;
-  const colW = usable / r.cols.length;
-  const fit = (t: string, size: number) => { const max = Math.max(3, Math.floor(colW / (size * 0.5)) - 1); return t.length > max ? t.slice(0, max - 1) + "..." : t; };
-  const rowH = 20;
-  const perPage = Math.floor((H - M * 2 - 90) / rowH);
-  const pages: string[] = [];
-  for (let start = 0, pg = 0; start < Math.max(rows.length, 1); start += perPage, pg++) {
-    let y = H - M;
-    let c = "";
-    if (pg === 0) {
-      c += `BT /F2 16 Tf ${M} ${y} Td (${esc(r.title)}) Tj ET\n`;
-      y -= 18;
-      meta.forEach((m) => { c += `BT /F1 9 Tf 0.4 g ${M} ${y} Td (${esc(m)}) Tj ET 0 g\n`; y -= 12; });
-      y -= 12;
-    }
-    c += `0.95 g ${M} ${y - 6} ${usable} ${rowH} re f 0 g\n`;
-    r.cols.forEach((h, i) => { c += `BT /F2 9 Tf ${M + i * colW + 6} ${y} Td (${esc(fit(h.toUpperCase(), 9))}) Tj ET\n`; });
-    y -= rowH;
-    rows.slice(start, start + perPage).forEach((row) => {
-      row.forEach((cell, i) => { c += `BT /F1 9 Tf ${M + i * colW + 6} ${y} Td (${esc(fit(cell, 9))}) Tj ET\n`; });
-      c += `0.88 G ${M} ${y - 6} m ${W - M} ${y - 6} l S 0 G\n`;
-      y -= rowH;
-    });
-    c += `BT /F1 8 Tf 0.5 g ${M} 24 Td (Page ${pg + 1}) Tj ET\n`;
-    pages.push(c);
-  }
-  const objs: string[] = [];
-  objs[1] = "<< /Type /Catalog /Pages 2 0 R >>";
-  objs[2] = `<< /Type /Pages /Kids [${pages.map((_, i) => `${5 + i * 2} 0 R`).join(" ")}] /Count ${pages.length} >>`;
-  objs[3] = "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>";
-  objs[4] = "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>";
-  pages.forEach((content, i) => {
-    objs[5 + i * 2] = `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${W} ${H}] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents ${6 + i * 2} 0 R >>`;
-    objs[6 + i * 2] = `<< /Length ${content.length} >>\nstream\n${content}endstream`;
-  });
-  let out = "%PDF-1.4\n";
-  const offsets: number[] = [];
-  for (let i = 1; i < objs.length; i++) { offsets[i] = out.length; out += `${i} 0 obj\n${objs[i]}\nendobj\n`; }
-  const xref = out.length;
-  out += `xref\n0 ${objs.length}\n0000000000 65535 f \n` + offsets.slice(1).map((o) => `${String(o).padStart(10, "0")} 00000 n \n`).join("");
-  out += `trailer\n<< /Size ${objs.length} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`;
-  const bytes = new Uint8Array(out.length);
-  for (let i = 0; i < out.length; i++) bytes[i] = out.charCodeAt(i) & 0xff;
-  saveBlob(new Blob([bytes], { type: "application/pdf" }), `${r.key}-report.pdf`);
 }
 
 export default function Reports() {
@@ -322,11 +271,8 @@ export default function Reports() {
             {!reportRows.length && <p className="pt-4 text-center text-[13px] text-ink-tertiary">Nothing to report for this filter.</p>}
           </div>
           <div className="flex justify-end gap-2 border-t border-line px-6 py-3.5">
-            <Button variant="outline" onClick={() => { downloadCsv(active, reportRows, meta); flash("CSV downloaded"); }}>
+            <Button onClick={() => { downloadCsv(active, reportRows, meta); flash("CSV downloaded"); }}>
               <Download className="h-4 w-4" /> CSV
-            </Button>
-            <Button onClick={() => { downloadPdf(active, reportRows, meta); flash("PDF downloaded"); }}>
-              <FileText className="h-4 w-4" /> PDF
             </Button>
           </div>
         </Overlay>
