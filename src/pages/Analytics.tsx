@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ListChecks, CheckCircle2, AlertTriangle, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, Download, Filter, CalendarDays, X } from "lucide-react";
 import { Field, Input, Select } from "../components/ui";
 import { Topbar } from "../components/Topbar";
-import { Page, Card } from "../components/ui";
+import { Card } from "../components/ui";
 import { Donut } from "../components/Donut";
 import { Flag } from "../components/Flag";
 import { usePersona, canonDept } from "../persona";
@@ -178,7 +178,8 @@ export default function Analytics() {
   return (
     <>
       <Topbar title="Analytics" actions={manager ? <ScopePicker /> : undefined} />
-      <Page>
+      <main className="flex-1 overflow-y-auto bg-page">
+        <div className="p-6">
         {/* date range + export + filter, one line */}
         <div className="relative flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-1 rounded-lg border border-line bg-white p-1">
@@ -347,24 +348,24 @@ export default function Analytics() {
           <h3 className="text-[15px] font-semibold text-ink">Tasks by Department</h3>
           <span className="text-[12px] text-ink-tertiary">Tap a department for its task breakdown</span>
         </div>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {depts.map((d) => {
             const color = TAGS[deptIdx(d.name)].mid;
             return (
               <button
                 key={d.name}
                 onClick={() => setBreakdown({ title: `${d.name} — Task Breakdown`, items: d.items, total: d.n })}
-                className="rounded-card border border-line bg-white p-4 text-left hover:border-brand/40"
+                className="w-full rounded-card border border-line bg-white p-5 text-left shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lift"
               >
-                <div className="flex items-center justify-between gap-2">
-                  <span className="truncate text-[14px] font-semibold text-ink">{d.name}</span>
-                  <ChevronRight className="h-4 w-4 shrink-0 text-ink-tertiary" />
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <span className="truncate font-display text-sm font-semibold text-ink">{d.name}</span>
+                  <ChevronRight className="h-[15px] w-[15px] shrink-0 text-ink-tertiary" />
                 </div>
-                <div className="mt-2 text-[26px] font-bold leading-none text-ink">{d.n.toLocaleString()}</div>
-                <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-subtle">
+                <div className="mb-2 font-display text-[22px] font-bold leading-none text-ink">{d.n.toLocaleString()}</div>
+                <div className="h-1.5 w-full overflow-hidden rounded-full bg-subtle">
                   <div className="h-full rounded-full" style={{ width: `${(d.n / maxDeptN) * 100}%`, background: color }} />
                 </div>
-                <div className="mt-2 text-[12px] text-ink-tertiary">tasks this period</div>
+                <div className="mt-1.5 text-xs text-ink-tertiary">tasks this period</div>
               </button>
             );
           })}
@@ -510,7 +511,8 @@ export default function Analytics() {
         </div>
           </>
         )}
-      </Page>
+        </div>
+      </main>
 
       {breakdown && <BreakdownModal {...breakdown} onClose={() => setBreakdown(null)} />}
 

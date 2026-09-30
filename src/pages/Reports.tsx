@@ -21,7 +21,7 @@ import {
   X,
 } from "lucide-react";
 import { Topbar } from "../components/Topbar";
-import { Page, Button, Field, Select, Input } from "../components/ui";
+import { Button, Field, Select, Input } from "../components/ui";
 import { AUDIT, TASKS } from "../data/tasks";
 import { usePersona } from "../persona";
 import { ScopePicker } from "../components/ScopePicker";
@@ -238,23 +238,32 @@ export default function Reports() {
   return (
     <>
       <Topbar title="Reports" actions={manager ? <ScopePicker /> : undefined} />
-      <Page>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {list.map((r) => (
-            <div key={r.key} className="relative flex flex-col rounded-card border border-line bg-white p-5 transition-colors hover:border-brand/40">
-              <span className="flex h-10 w-10 items-center justify-center rounded-control border border-brand/30 bg-brand-tint/40 text-brand">
-                <r.icon className="h-5 w-5" />
-              </span>
-              <h3 className="mt-4 text-[15px] font-semibold text-ink">{r.title}</h3>
-              <p className="mt-1 flex-1 text-[13px] leading-snug text-ink-secondary">{r.desc}</p>
-              <button onClick={() => run(r)} className="mt-4 flex items-center gap-1.5 self-start text-[13px] font-semibold text-brand hover:underline">
-                {LABEL[r.action]}
-                <ArrowRight className="h-3.5 w-3.5" />
-              </button>
-            </div>
-          ))}
+      <main className="flex-1 overflow-y-auto bg-page">
+        <div className="p-6">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {list.map((r) => (
+              <div key={r.key} className="flex w-full flex-col rounded-card border border-line bg-white p-5 shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lift">
+                <span className="flex h-10 w-10 items-center justify-center rounded-lg border border-brand/25 bg-white text-brand">
+                  <r.icon className="h-[18px] w-[18px]" />
+                </span>
+                <h3 className="mb-1 mt-3 font-display text-sm font-semibold text-ink">{r.title}</h3>
+                <p className="flex-1 text-xs text-ink-secondary">{r.desc}</p>
+                <button onClick={() => run(r)} className="mt-3 flex items-center gap-1 self-start text-xs font-medium text-brand hover:underline">
+                  {r.action === "download" ? (
+                    <>
+                      <Download className="h-[13px] w-[13px]" /> {LABEL[r.action]}
+                    </>
+                  ) : (
+                    <>
+                      {LABEL[r.action]} <ArrowRight className="h-[13px] w-[13px]" />
+                    </>
+                  )}
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
-      </Page>
+      </main>
 
       {active && (
         <Overlay onClose={() => setActive(null)} title={active.title} wide>
