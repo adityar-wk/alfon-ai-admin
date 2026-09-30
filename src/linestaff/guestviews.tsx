@@ -13,6 +13,7 @@ export const DetailRow = ({ icon: Icon, label, children }: { icon: React.Compone
 );
 
 const PROFILE_SECTION_TONE = {
+  plain: { bg: `bg-white ${CARD_SHADOW}`, icon: "text-brand", label: "text-brand" },
   blue: { bg: "bg-[#EEF3FF]", icon: "text-blue-600", label: "text-blue-700" },
   amber: { bg: "bg-amber-50", icon: "text-amber-600", label: "text-amber-700" },
   red: { bg: "bg-red-50", icon: "text-red-600", label: "text-red-700" },
@@ -198,7 +199,7 @@ export function GuestProfileScreen({ name, onBack, onMessage, author = "Staff" }
               </div>
             </div>
 
-            <ProfileSection icon={User} label="Guest profile" tone="amber">
+            <ProfileSection icon={User} label="Guest profile" tone="plain">
               <p className="text-[13px] leading-relaxed text-ink">{profileInfo.profile}</p>
             </ProfileSection>
 

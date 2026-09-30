@@ -649,6 +649,18 @@ const COMP_TYPES = ["Chocolate Cake — $10", "Fruit Platter — $10", "Date Box
 const APPROVERS = ["Sophia Carter (General Manager)", "Duty Manager", "Daniel Reyes (Housekeeping Manager)"];
 
 
+/** pill background + text for the task detail drawer's status badge, matching the Alt Prototype's StatusBadge */
+const STATUS_BADGE: Record<string, { background: string; color: string }> = {
+  Escalated: { background: "#FEF2F2", color: "#DC2626" },
+  "SLA breached": { background: "#FEF2F2", color: "#DC2626" },
+  "SLA at risk": { background: "#FFFBEB", color: "#D97706" },
+  "In Progress": { background: "#FFF9EC", color: "#D97706" },
+  Pending: { background: "#F5F5F5", color: "#6B7280" },
+  Completed: { background: "#F0FDF4", color: "#22C55E" },
+  "Unable to Complete": { background: "#F5F5F5", color: "#6B7280" },
+  Void: { background: "#F5F5F5", color: "#9CA3AF" },
+};
+
 const SLA_TARGET: Record<Priority, number> = { Critical: 10, High: 20, Medium: 40, Low: 60 };
 const slaMinutes = (text: string) => {
   const h = text.match(/(\d+)\s*hr/);
@@ -722,6 +734,7 @@ function ManagerTaskWindow({
   const [compReason, setCompReason] = useState("");
   const [compBy, setCompBy] = useState("");
   const [compOther, setCompOther] = useState("");
+  const [notesDraft, setNotesDraft] = useState(task.details ?? "");
 
   useEffect(() => {
     const h = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -807,7 +820,12 @@ function ManagerTaskWindow({
             </button>
           </div>
           <div className="mt-2.5 flex flex-wrap items-center gap-2">
-            <span className={`text-[13px] font-medium ${STATUS_PILL[taskStatus(task)]}`}>{taskStatus(task)}</span>
+            <span
+              className="inline-flex rounded-full px-2.5 py-1 text-[12px] font-medium"
+              style={STATUS_BADGE[taskStatus(task)] ?? { background: "#F5F5F5", color: "#6B7280" }}
+            >
+              {taskStatus(task)}
+            </span>
             {task.tag === "Complaint" && (
               <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px] font-semibold ${COMPLAINT_PILL}`}>
                 <AlertTriangle className="h-3.5 w-3.5" /> Complaint
@@ -902,6 +920,17 @@ function ManagerTaskWindow({
 
           <div className="border-t border-line pt-5">
             <div className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-ink-tertiary">Notes</div>
+            <Textarea
+              rows={3}
+              value={notesDraft}
+              onChange={(e) => setNotesDraft(e.target.value)}
+              onBlur={() => { if (notesDraft !== (task.details ?? "")) onApply({ details: notesDraft }, "Notes updated", notesDraft, "Notes updated"); }}
+              disabled={closed}
+            />
+          </div>
+
+          <div className="border-t border-line pt-5">
+            <div className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-ink-tertiary">Internal Notes</div>
             {notes.length ? (
               <div className="space-y-2">
                 {notes.map((n, i) => (
