@@ -55,7 +55,7 @@ function StepCard({ s, status }: { s: OnboardingStep; status: StepStatus }) {
 export function OnboardingStepsGrid() {
   const { steps, isDone, currentStep } = useOnboardingProgress();
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
       {steps.map((s) => (
         <StepCard key={s.id} s={s} status={isDone(s.id) ? "done" : s.id === currentStep.id ? "current" : "todo"} />
       ))}
