@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
-import { Search, Plus, User, Lightbulb, Bell, BedDouble, UtensilsCrossed, Target, MessageCircle, AlarmClock, Thermometer, Wine, Newspaper, Calendar, Hourglass, History, Check } from "lucide-react";
+import { Search, User, Lightbulb, Bell, BedDouble, UtensilsCrossed, Target, MessageCircle, AlarmClock, Thermometer, Wine, Newspaper, Calendar, Hourglass, History, Check, Pencil } from "lucide-react";
 import { Topbar } from "../components/Topbar";
-import { Card, Modal, Button, Field, Input, Select, RoomNo } from "../components/ui";
+import { Card, Badge, Modal, Button, Field, Input, Select, RoomNo } from "../components/ui";
 import { Flag } from "../components/Flag";
 import { SIDE_PANEL, SIDE_ROW, sideRowTone, SideSearch, SideFilterButton } from "../components/SidePanel";
 import { GUESTS, type Guest } from "../data/guests";
@@ -297,11 +297,6 @@ export function buildProfile(g: Guest): Profile {
 
 
 const STATUS_LABEL: Record<Guest["status"], string> = { "In House": "In-House", Arriving: "Pre-Arrival", "Checked Out": "Checked Out" };
-const STATUS_PILL: Record<Guest["status"], string> = {
-  "In House": "text-emerald-600",
-  Arriving: "text-blue-600",
-  "Checked Out": "text-slate-500",
-};
 const LIST_FILTERS = ["All", "In House", "Arriving", "Checked Out"] as const;
 
 function GuestList({ activeId }: { activeId: number }) {
@@ -335,7 +330,7 @@ function GuestList({ activeId }: { activeId: number }) {
             <Link key={g.id} to={`/guests/${g.id}`} className={`${SIDE_ROW} items-center gap-3 ${sideRowTone(on)}`}>
               <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full font-display text-[12px] font-semibold ${g.tint}`}>{g.initials}</span>
               <span className="min-w-0 flex-1 leading-tight">
-                <span className="block truncate text-[14px] font-semibold text-ink">{g.name}</span>
+                <span className="block truncate font-display text-[14px] font-semibold text-ink">{g.name}</span>
                 <span className="block truncate text-[12px] text-ink-tertiary"><RoomNo room={g.room} /> · {STATUS_LABEL[g.status]}</span>
               </span>
               <Flag country={g.country} />
@@ -374,53 +369,69 @@ export function seedChat(g: Guest): ChatMsg[] {
   ];
 }
 
-const PREF_CARDS: { key: keyof Prefs; label: string; icon: React.ComponentType<{ className?: string }>; tone: string }[] = [
-  { key: "room", label: "Room preferences", icon: BedDouble, tone: "bg-sky-50 text-sky-600" },
-  { key: "dietary", label: "Dietary requirements", icon: UtensilsCrossed, tone: "bg-emerald-50 text-emerald-600" },
-  { key: "purpose", label: "Purpose of visit", icon: Target, tone: "bg-violet-50 text-violet-600" },
-  { key: "language", label: "Communication language", icon: MessageCircle, tone: "bg-blue-50 text-blue-600" },
-  { key: "wake", label: "Wake up call preference", icon: AlarmClock, tone: "bg-amber-50 text-amber-600" },
-  { key: "temp", label: "Temperature preference", icon: Thermometer, tone: "bg-cyan-50 text-cyan-600" },
-  { key: "minibar", label: "Minibar preference", icon: Wine, tone: "bg-rose-50 text-rose-600" },
-  { key: "newspaper", label: "Newspaper preference", icon: Newspaper, tone: "bg-orange-50 text-orange-600" },
+const PREF_CARDS: { key: keyof Prefs; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
+  { key: "room", label: "Room Preferences", icon: BedDouble },
+  { key: "dietary", label: "Dietary Requirements", icon: UtensilsCrossed },
+  { key: "purpose", label: "Purpose of Visit", icon: Target },
+  { key: "language", label: "Communication Language", icon: MessageCircle },
+  { key: "wake", label: "Wake Up Call Preference", icon: AlarmClock },
+  { key: "temp", label: "Temperature Preference", icon: Thermometer },
+  { key: "minibar", label: "Minibar Preference", icon: Wine },
+  { key: "newspaper", label: "Newspaper Preference", icon: Newspaper },
 ];
 
-function Heading({ icon: Icon, tone, children }: { icon: React.ComponentType<{ className?: string }>; tone: string; children: React.ReactNode }) {
+/** left-border accent card used for the AI-generated Guest Profile / Anticipated Needs insights */
+function InsightCard({
+  icon: Icon, label, color, borderColor, children,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  color: string;
+  borderColor: string;
+  children: React.ReactNode;
+}) {
   return (
-    <div className="mb-3 flex items-center gap-2">
-      <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md ${tone}`}><Icon className="h-3.5 w-3.5" /></span>
-      <span className="text-[11px] font-bold uppercase tracking-wide text-ink-tertiary">{children}</span>
+    <div className="rounded-card border border-line bg-white p-6 shadow-card" style={{ borderLeftWidth: 3, borderLeftColor: borderColor }}>
+      <div className="mb-2 flex items-center gap-1.5 text-[12px] font-semibold" style={{ color }}>
+        <Icon className="h-3.5 w-3.5" /> {label}
+      </div>
+      <p className="text-[14px] text-ink">{children}</p>
     </div>
   );
 }
 
-function PrefCategory({
-  label, icon: Icon, tone, text, editing, onChange,
+function PreferenceCard({
+  label, icon: Icon, text, editing, onChange,
 }: {
   label: string;
   icon: React.ComponentType<{ className?: string }>;
-  tone: string;
   text: string;
   editing: boolean;
   onChange: (v: string) => void;
 }) {
+  const tags = text.split(",").map((t) => t.trim()).filter(Boolean);
   return (
-    <div>
-      <div className="mb-1.5 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-ink-tertiary">
-        <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded ${tone}`}><Icon className="h-3 w-3" /></span> {label}
+    <div className="rounded-xl bg-subtle p-4">
+      <div className="mb-2 flex items-center gap-2">
+        <Icon className="h-[13px] w-[13px] text-ink-tertiary" />
+        <span className="text-[11px] font-semibold uppercase tracking-wide text-ink-tertiary">{label}</span>
       </div>
       {editing ? (
         <textarea
           rows={2}
           value={text}
           onChange={(e) => onChange(e.target.value)}
-          placeholder="Add details for this preference…"
+          placeholder="Add details for this preference, separated by commas…"
           className="w-full rounded-lg border border-line bg-white p-2.5 text-[13px] text-ink outline-none placeholder:text-ink-tertiary focus:border-brand"
         />
-      ) : (
-        <div className="rounded-lg bg-subtle px-3 py-2.5 text-[13px] leading-relaxed text-ink">
-          {text || <span className="text-ink-tertiary">None yet</span>}
+      ) : tags.length ? (
+        <div className="flex flex-wrap gap-1.5">
+          {tags.map((tag) => (
+            <span key={tag} className="inline-flex rounded-full bg-white px-2.5 py-1 text-[13px] text-ink">{tag}</span>
+          ))}
         </div>
+      ) : (
+        <span className="text-[13px] text-ink-tertiary">None yet</span>
       )}
     </div>
   );
@@ -431,7 +442,6 @@ export default function GuestProfile() {
   const guest = GUESTS.find((g) => String(g.id) === id);
   const [extraNotes, setExtraNotes] = useState<Record<number, Note[]>>({});
   const [done, setDone] = useState<Record<string, boolean>>({});
-  const [noteOpen, setNoteOpen] = useState(false);
   const [draft, setDraft] = useState("");
   const [editOpen, setEditOpen] = useState(false);
   const [editingPrefs, setEditingPrefs] = useState(false);
@@ -439,7 +449,6 @@ export default function GuestProfile() {
   const [, refresh] = useState(0);
 
   useEffect(() => {
-    setNoteOpen(false);
     setDraft("");
     setEditingPrefs(false);
   }, [id]);
@@ -457,7 +466,6 @@ export default function GuestProfile() {
     if (!draft.trim()) return;
     setExtraNotes((n) => ({ ...n, [guest.id]: [{ author: "You", time: "Just now", text: draft.trim() }, ...(n[guest.id] ?? [])] }));
     setDraft("");
-    setNoteOpen(false);
   };
 
   return (
@@ -469,30 +477,30 @@ export default function GuestProfile() {
         <div className="min-w-0 flex-1 overflow-y-auto bg-subtle/40 p-5">
           <div className="mx-auto max-w-[1400px] space-y-4">
             <Card className="p-6">
-              <div className="flex items-start gap-4">
-                <span className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-full font-display text-[20px] font-semibold ${guest.tint}`}>{guest.initials}</span>
-                <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h1 className="text-[22px] font-bold leading-tight text-ink">{guest.name}</h1>
-                    <span className={`text-[13px] font-medium ${STATUS_PILL[guest.status]}`}>{STATUS_LABEL[guest.status]}</span>
+              <div className="flex flex-wrap items-start gap-5">
+                <span className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-brand-tint font-display text-[28px] font-bold text-brand">{guest.initials}</span>
+                <div className="min-w-[220px] flex-1">
+                  <div className="mb-1 flex justify-end gap-2">
+                    <button onClick={() => setEditOpen(true)} className="flex items-center gap-1.5 rounded-lg border border-line px-3 py-1.5 text-[13px] font-medium text-ink hover:bg-subtle">
+                      <Pencil className="h-3.5 w-3.5 text-ink-tertiary" /> Edit Profile
+                    </button>
+                    <Link to={`/guest-chats?guest=${guest.id}`} className="flex items-center gap-1.5 rounded-lg border border-line px-3 py-1.5 text-[13px] font-medium text-ink hover:bg-subtle">
+                      <MessageCircle className="h-3.5 w-3.5 text-ink-tertiary" /> Open Chat
+                    </Link>
                   </div>
-                  <div className="mt-1.5 flex flex-wrap items-center gap-x-2 text-[13px] text-ink-secondary">
+                  <div className="mb-1 flex flex-wrap items-center gap-2">
+                    <h1 className="font-display text-[24px] font-bold text-ink">{guest.name}</h1>
+                    <Badge tone={guest.status === "In House" ? "success" : guest.status === "Arriving" ? "warning" : "neutral"}>{STATUS_LABEL[guest.status]}</Badge>
+                  </div>
+                  <div className="mb-4 flex flex-wrap items-center gap-x-2 text-[13px] text-ink-secondary">
                     <Flag country={guest.country} /> {guest.country} <span>·</span> <RoomNo room={guest.room} /> <span>·</span> {guest.roomType}
                   </div>
-                  <div className="mt-3 flex flex-wrap items-center gap-x-6 gap-y-1 text-[13px] text-ink-secondary">
-                    <span className="flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5 text-ink-tertiary" /> Check-in <b className="text-ink">{guest.from}, 2025</b></span>
-                    <span className="flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5 text-ink-tertiary" /> Check-out <b className="text-ink">{guest.to}, 2025</b></span>
-                    <span className="flex items-center gap-1.5"><Hourglass className="h-3.5 w-3.5 text-ink-tertiary" /> Length of stay <b className="text-ink">{guest.nights} nights</b></span>
-                    <span className="flex items-center gap-1.5"><History className="h-3.5 w-3.5 text-ink-tertiary" /> Previous stays <b className="text-ink">{p.previousStays}</b></span>
+                  <div className="flex flex-wrap items-center gap-x-8 gap-y-2 text-[13px]">
+                    <span className="flex items-center gap-2"><Calendar className="h-3.5 w-3.5 text-ink-tertiary" /> <span className="text-ink-tertiary">Check-in</span> <span className="font-medium text-ink">{guest.from}, 2025</span></span>
+                    <span className="flex items-center gap-2"><Calendar className="h-3.5 w-3.5 text-ink-tertiary" /> <span className="text-ink-tertiary">Check-out</span> <span className="font-medium text-ink">{guest.to}, 2025</span></span>
+                    <span className="flex items-center gap-2"><Hourglass className="h-3.5 w-3.5 text-ink-tertiary" /> <span className="text-ink-tertiary">Length of Stay</span> <span className="font-medium text-ink">{guest.nights} nights</span></span>
+                    <span className="flex items-center gap-2"><History className="h-3.5 w-3.5 text-ink-tertiary" /> <span className="text-ink-tertiary">Previous Stays</span> <span className="font-medium text-ink">{p.previousStays}</span></span>
                   </div>
-                </div>
-                <div className="flex shrink-0 items-center gap-2">
-                  <button onClick={() => setEditOpen(true)} className="rounded-control border border-line px-3.5 py-2 text-[13px] font-semibold text-ink hover:bg-subtle">
-                    Edit profile
-                  </button>
-                  <Link to={`/guest-chats?guest=${guest.id}`} className="rounded-lg border border-line px-3.5 py-2 text-[13px] font-semibold text-ink hover:bg-subtle">
-                    Open chat
-                  </Link>
                 </div>
               </div>
             </Card>
@@ -500,29 +508,22 @@ export default function GuestProfile() {
             {/* left: guest profile, anticipated needs, preferences and stay history stacked; right: actions and notes stacked */}
             <div className="grid grid-cols-1 items-start gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
               <div className="flex min-w-0 flex-col gap-4">
-                <Card className="p-6">
-                  <Heading icon={User} tone="bg-sky-50 text-sky-600">Guest profile</Heading>
-                  <p className="text-[14px] leading-relaxed text-ink">{p.summary}</p>
-                </Card>
-                <Card className="p-6">
-                  <Heading icon={Lightbulb} tone="bg-amber-50 text-amber-600">Anticipated needs</Heading>
-                  <p className="text-[14px] leading-relaxed text-ink">{p.anticipated}</p>
-                </Card>
+                <InsightCard icon={User} label="GUEST PROFILE" color="#2E86AB" borderColor="#93C5FD">{p.summary}</InsightCard>
+                <InsightCard icon={Lightbulb} label="ANTICIPATED NEEDS" color="#B45309" borderColor="#F59E0B">{p.anticipated}</InsightCard>
 
                 <Card className="p-6">
-                  <div className="mb-3 flex items-center justify-between">
-                    <span className="text-[11px] font-bold uppercase tracking-wide text-ink-tertiary">Preferences</span>
+                  <div className="mb-4 flex items-center justify-between">
+                    <span className="text-[11px] font-semibold uppercase tracking-wide text-ink-tertiary">Preferences</span>
                     <button onClick={() => setEditingPrefs((e) => !e)} className="text-[13px] font-medium text-brand hover:underline">
                       {editingPrefs ? "Done" : "Edit"}
                     </button>
                   </div>
-                  <div className="grid grid-cols-1 gap-x-8 gap-y-5 md:grid-cols-2">
-                    {PREF_CARDS.map(({ key, label, icon: Icon, tone }) => (
-                      <PrefCategory
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    {PREF_CARDS.map(({ key, label, icon: Icon }) => (
+                      <PreferenceCard
                         key={key}
                         label={label}
                         icon={Icon}
-                        tone={tone}
                         text={prefText(key)}
                         editing={editingPrefs}
                         onChange={(v) => setPrefText(key, v)}
@@ -532,31 +533,37 @@ export default function GuestProfile() {
                 </Card>
 
                 <Card className="p-6">
-                  <Heading icon={History} tone="bg-violet-50 text-violet-600">Stay history</Heading>
-                  <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
-                    {p.history.map((h) => <div key={h} className="rounded-lg bg-subtle/70 px-3 py-2 text-[13px] text-ink-secondary">{h}</div>)}
-                    {!p.history.length && <p className="text-[13px] text-ink-tertiary">No previous stays.</p>}
-                  </div>
+                  <div className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-ink-tertiary">Stay History</div>
+                  {p.history.length ? (
+                    <div className="space-y-1.5">
+                      {p.history.map((h) => <div key={h} className="rounded-lg bg-subtle px-3 py-2 text-[13px] text-ink">{h}</div>)}
+                    </div>
+                  ) : (
+                    <p className="text-[13px] text-ink-secondary">No previous stays on record. This is {guest.name.split(" ")[0]}'s first visit.</p>
+                  )}
                 </Card>
               </div>
 
               <div className="flex min-w-0 flex-col gap-4">
-                <Card className="p-6">
-                  <Heading icon={Bell} tone="bg-red-50 text-red-600">Actions</Heading>
-                  <div className="divide-y divide-line/70">
+                <div className="rounded-card border border-line bg-white p-5 shadow-card" style={{ borderLeftWidth: 3, borderLeftColor: "#E8623A" }}>
+                  <div className="mb-3 flex items-center gap-1.5">
+                    <Bell className="h-3 w-3 text-brand" />
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-brand">Actions</span>
+                  </div>
+                  <div>
                     {actions.map((a, i) => {
                       const isDone = a.status === "Completed" || done[a.key];
                       return (
-                        <div key={a.key} className="flex items-start gap-3 py-3">
-                          <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-50 text-[11px] font-bold text-red-600">{i + 1}</span>
+                        <div key={a.key} className={`flex items-start gap-3 py-2.5 ${i > 0 ? "border-t border-line/60" : ""}`}>
+                          <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-tint text-[10px] font-bold text-brand">{i + 1}</span>
                           <div className="min-w-0 flex-1">
-                            <p className="text-[13px] leading-snug text-ink">{a.text}</p>
+                            <p className="text-[13px] leading-relaxed text-ink-secondary">{a.text}</p>
                             <div className="mt-2 flex flex-wrap items-center gap-2">
-                              <span className="rounded-full bg-subtle px-2 py-0.5 text-[11px] font-medium text-ink-secondary">{a.dept}</span>
-                              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-brand-tint text-[9px] font-bold text-brand">{a.who}</span>
+                              <span className="whitespace-nowrap rounded-full bg-subtle px-2 py-0.5 text-[10px] font-medium text-ink-secondary">{a.dept}</span>
+                              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-brand-tint text-[9px] font-bold text-brand">{a.who}</span>
                               <button
                                 onClick={() => !isDone && setDone((d) => ({ ...d, [a.key]: true }))}
-                                className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${isDone ? "bg-emerald-50 text-emerald-600" : "bg-amber-50 text-amber-700 hover:bg-amber-100"}`}
+                                className={`whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-semibold ${isDone ? "bg-emerald-50 text-emerald-600" : "bg-amber-50 text-amber-700 hover:bg-amber-100"}`}
                               >
                                 {isDone ? "Completed" : "Pending"}
                               </button>
@@ -567,34 +574,35 @@ export default function GuestProfile() {
                     })}
                     {!actions.length && <p className="py-3 text-[13px] text-ink-tertiary">No open actions for this guest.</p>}
                   </div>
-                </Card>
+                </div>
 
                 <Card className="p-6">
                   <div className="mb-3 flex items-center justify-between">
-                    <span className="text-[11px] font-bold uppercase tracking-wide text-ink-tertiary">Notes</span>
-                    <button onClick={() => setNoteOpen((o) => !o)} className="flex items-center gap-1 text-[12px] font-medium text-brand"><Plus className="h-3.5 w-3.5" /> Add note</button>
+                    <span className="text-[11px] font-semibold uppercase tracking-wide text-ink-tertiary">Notes</span>
                   </div>
-                  {noteOpen && (
-                    <div className="mb-3">
-                      <textarea
-                        autoFocus
-                        rows={2}
-                        value={draft}
-                        onChange={(e) => setDraft(e.target.value)}
-                        placeholder="Add an internal note…"
-                        className="w-full rounded-lg bg-subtle p-2.5 text-[13px] outline-none placeholder:text-ink-tertiary focus:ring-1 focus:ring-brand"
-                      />
-                      <button onClick={addNote} disabled={!draft.trim()} className="mt-2 rounded-control bg-brand px-[18px] py-2.5 text-[14px] font-semibold text-white transition-colors duration-200 hover:bg-brand-hover disabled:opacity-40">Add Note</button>
+                  {notes.length ? (
+                    <div className="mb-3 space-y-2">
+                      {notes.map((n, i) => (
+                        <div key={i} className="rounded-lg bg-subtle p-3">
+                          <div className="mb-1 flex items-center gap-2">
+                            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-tint font-display text-[10px] font-semibold text-brand">{n.author[0]}</span>
+                            <span className="text-[12px] text-ink-tertiary">{n.author} · {n.time}</span>
+                          </div>
+                          <p className="text-[13px] leading-snug text-ink">{n.text}</p>
+                        </div>
+                      ))}
                     </div>
+                  ) : (
+                    <p className="mb-3 text-[13px] text-ink-secondary">No internal notes yet.</p>
                   )}
-                  <div className="space-y-2">
-                    {notes.map((n, i) => (
-                      <div key={i} className="rounded-lg bg-subtle/70 p-3">
-                        <p className="text-[11px] text-ink-tertiary">{n.author} · {n.time}</p>
-                        <p className="mt-1 text-[13px] leading-snug text-ink">{n.text}</p>
-                      </div>
-                    ))}
-                  </div>
+                  <textarea
+                    rows={2}
+                    value={draft}
+                    onChange={(e) => setDraft(e.target.value)}
+                    placeholder="Add an internal note…"
+                    className="mb-2 w-full rounded-control border-none bg-subtle p-2.5 text-[13px] text-ink outline-none placeholder:text-ink-tertiary focus:ring-1 focus:ring-brand"
+                  />
+                  <Button disabled={!draft.trim()} onClick={addNote} className="disabled:opacity-40">Add Note</Button>
                 </Card>
               </div>
             </div>
