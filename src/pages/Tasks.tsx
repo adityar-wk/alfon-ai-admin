@@ -649,6 +649,9 @@ const COMP_TYPES = ["Chocolate Cake — $10", "Fruit Platter — $10", "Date Box
 const APPROVERS = ["Sophia Carter (General Manager)", "Duty Manager", "Daniel Reyes (Housekeeping Manager)"];
 
 
+/** the drawer's badge doesn't surface SLA-breach/at-risk as a status — the countdown already shows that; it just reads "In Progress" */
+const drawerStatus = (label: string) => (label === "SLA breached" || label === "SLA at risk" ? "In Progress" : label);
+
 /** pill background + text for the task detail drawer's status badge, matching the Alt Prototype's StatusBadge */
 const STATUS_BADGE: Record<string, { background: string; color: string }> = {
   Escalated: { background: "#FEF2F2", color: "#DC2626" },
@@ -822,9 +825,9 @@ function ManagerTaskWindow({
           <div className="mt-2.5 flex flex-wrap items-center gap-2">
             <span
               className="inline-flex rounded-full px-2.5 py-1 text-[12px] font-medium"
-              style={STATUS_BADGE[taskStatus(task)] ?? { background: "#F5F5F5", color: "#6B7280" }}
+              style={STATUS_BADGE[drawerStatus(taskStatus(task))] ?? { background: "#F5F5F5", color: "#6B7280" }}
             >
-              {taskStatus(task)}
+              {drawerStatus(taskStatus(task))}
             </span>
             {task.tag === "Complaint" && (
               <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px] font-semibold ${COMPLAINT_PILL}`}>

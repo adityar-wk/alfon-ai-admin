@@ -267,7 +267,7 @@ export function ManagerPrototype() {
       left: t.status === "completed" ? undefined : t.slaLeft,
       total: t.slaTotal,
       done: t.status === "completed",
-      status: escalated || !STATUS_LABEL[t.status] ? undefined : { label: STATUS_LABEL[t.status], tone: STATUS_TONE[t.status] },
+      status: escalated || t.status === "completed" || !STATUS_LABEL[t.status] ? undefined : { label: STATUS_LABEL[t.status], tone: STATUS_TONE[t.status] },
       flags,
     };
   };
