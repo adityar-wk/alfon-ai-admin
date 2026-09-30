@@ -107,11 +107,11 @@ export function Sidebar() {
 
   return (
     <aside className="flex h-full w-[220px] shrink-0 flex-col border-r border-line bg-white">
-      <div className="px-6 pb-6 pt-6">
-        <Logo />
+      <div className="flex items-center justify-center border-b border-subtle px-4 pb-8 pt-9">
+        <Logo className="h-5 w-auto" />
       </div>
 
-      <nav className="flex-1 space-y-0.5 overflow-y-auto px-3 no-scrollbar">
+      <nav className="flex-1 space-y-1 overflow-y-auto px-4 no-scrollbar">
         {nav.map(({ label, to, icon: Icon, badge, match }) => {
           const forced = !!match && (Array.isArray(match) ? match : [match]).some((m) => pathname.startsWith(m));
           const count = manager && label === "Tasks" ? escalated : badge;
@@ -121,20 +121,29 @@ export function Sidebar() {
               to={to}
               className={({ isActive }) =>
                 [
-                  "group flex items-center gap-2.5 rounded-control px-3 py-2.5 text-[14px] font-medium transition-colors duration-200",
-                  isActive || forced ? "bg-brand-tint font-semibold text-brand" : "text-ink-secondary hover:bg-subtle hover:text-ink",
+                  "flex items-center gap-3 rounded-[10px] px-3.5 py-2.5 text-left transition-all duration-200 hover:-translate-y-px",
+                  isActive || forced ? "bg-brand-tint" : "bg-transparent hover:bg-brand-tint",
                 ].join(" ")
               }
             >
-              {({ isActive }) => (
-                <>
-                  <Icon className="h-[18px] w-[18px]" />
-                  <span className="flex-1">{label}</span>
-                  {count != null && (
-                    <span className={["text-xs", isActive || forced ? "text-brand" : "text-ink-tertiary"].join(" ")}>{count}</span>
-                  )}
-                </>
-              )}
+              {({ isActive }) => {
+                const on = isActive || forced;
+                return (
+                  <>
+                    <Icon className={`h-[18px] w-[18px] shrink-0 ${on ? "text-brand" : "text-ink-tertiary"}`} />
+                    <span className={`flex-1 text-sm ${on ? "font-semibold text-brand" : "font-medium text-ink-secondary"}`}>{label}</span>
+                    {count != null && (
+                      <span
+                        className={`min-w-[20px] rounded-full px-1.5 py-0.5 text-center text-[11px] font-semibold leading-4 ${
+                          on ? "bg-brand text-white" : "bg-subtle text-ink-secondary"
+                        }`}
+                      >
+                        {count}
+                      </span>
+                    )}
+                  </>
+                );
+              }}
             </NavLink>
           );
         })}
