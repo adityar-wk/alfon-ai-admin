@@ -191,9 +191,6 @@ export default function Team() {
   const off = manager ? scoped.filter((s) => s.status === "Off Duty").length : 5;
   const pct = (n: number) => `${Math.round((n / Math.max(total, 1)) * 100)}%`;
 
-  // staff carrying three or more open tasks at once
-  const overloaded = staff.filter((x) => TASKS.filter((t) => t.owner === shortName(x.name) && !["Completed", "Unable to Complete", "Void"].includes(t.status)).length >= 3).length;
-
   const STATS = manager
     ? [
         { label: "Total Staff", value: total, foot: scopeDepts.join(" + ") },
@@ -203,10 +200,8 @@ export default function Team() {
       ]
     : [
         { label: "Total Staff", value: total, foot: `Across ${new Set(staff.map((x) => x.dept)).size} departments` },
-        { label: "Tasks Completed Today", value: TASKS.filter((t) => t.status === "Completed").length, foot: "By the whole team" },
         { label: "Avg Response Time", value: "2m 45s", foot: "18% faster than last week" },
         { label: "SLA On-time Rate", value: `${Math.round((1 - TASKS.filter((t) => t.sla.kind === "overdue").length / Math.max(TASKS.length, 1)) * 100)}%`, foot: "Tasks within their SLA" },
-        { label: "Overloaded Staff", value: overloaded, foot: "3 or more open tasks" },
       ];
 
   const toggle = (id: string) =>
@@ -242,7 +237,7 @@ export default function Team() {
         />
         <main className="flex-1 overflow-y-auto bg-page">
         <div className="p-6">
-          <div className={`grid grid-cols-2 gap-4 ${manager ? "xl:grid-cols-4" : "xl:grid-cols-5"}`}>
+          <div className={`grid grid-cols-2 gap-4 ${manager ? "xl:grid-cols-4" : "sm:grid-cols-3"}`}>
             {STATS.map((s) => (
               <Card key={s.label} className="p-4">
                 <div className="text-[13px] text-ink-secondary">{s.label}</div>
