@@ -30,7 +30,7 @@ import { GuestChat, type ChatMsg, type ChatMode } from "../components/GuestChat"
 import { Card, Button, Field, Input, Select, Textarea, RoomNo } from "../components/ui";
 import { TASKS, HELP_REQUESTS, AI_DRAFTS, logAudit, pendingHelpFor, resolveHelp, shortName, type Task, type Priority } from "../data/tasks";
 import { GUESTS } from "../data/guests";
-import { taskStatus, STATUS_PILL, COMPLAINT_PILL, slaSecs, useClock } from "../data/attention";
+import { taskStatus, STATUS_PILL, COMPLAINT_PILL, slaSecs, useClock, type TaskStatusLabel } from "../data/attention";
 import { SlaClock } from "../components/SlaClock";
 import { usePersona } from "../persona";
 import { ScopePicker } from "../components/ScopePicker";
@@ -123,8 +123,11 @@ function ComplaintPill({ className = "" }: { className?: string }) {
   );
 }
 
+/** SLA-breach/at-risk isn't surfaced as a status anywhere the countdown already shows it — it just reads "In Progress" */
+const displayStatus = (label: TaskStatusLabel): TaskStatusLabel => (label === "SLA breached" || label === "SLA at risk" ? "In Progress" : label);
+
 function StatusLabel({ t }: { t: Pick<Task, "status" | "owner" | "sla"> }) {
-  const label = taskStatus(t);
+  const label = displayStatus(taskStatus(t));
   return <span className={`whitespace-nowrap text-[13px] font-medium ${STATUS_PILL[label]}`}>{label}</span>;
 }
 
@@ -399,14 +402,14 @@ export default function Tasks() {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[1120px] table-fixed text-left">
               <colgroup>
-                <col className="w-[90px]" />
-                <col className="w-[80px]" />
-                <col />
-                <col className="w-[90px]" />
-                <col className="w-[140px]" />
-                <col className="w-[130px]" />
-                <col className="w-[150px]" />
-                <col className="w-[140px]" />
+                <col className="w-[12.5%]" />
+                <col className="w-[12.5%]" />
+                <col className="w-[12.5%]" />
+                <col className="w-[12.5%]" />
+                <col className="w-[12.5%]" />
+                <col className="w-[12.5%]" />
+                <col className="w-[12.5%]" />
+                <col className="w-[12.5%]" />
               </colgroup>
               <thead>
                 <tr className="bg-[#F4F4F5] text-[12px] uppercase tracking-wide text-[#6B7280]">
@@ -654,9 +657,6 @@ const COMP_TYPES = ["Chocolate Cake — $10", "Fruit Platter — $10", "Date Box
 const APPROVERS = ["Sophia Carter (General Manager)", "Duty Manager", "Daniel Reyes (Housekeeping Manager)"];
 
 
-/** the drawer's badge doesn't surface SLA-breach/at-risk as a status — the countdown already shows that; it just reads "In Progress" */
-const drawerStatus = (label: string) => (label === "SLA breached" || label === "SLA at risk" ? "In Progress" : label);
-
 /** pill background + text for the task detail drawer's status badge, matching the Alt Prototype's StatusBadge */
 const STATUS_BADGE: Record<string, { background: string; color: string }> = {
   Escalated: { background: "#FEF2F2", color: "#DC2626" },
@@ -830,9 +830,9 @@ function ManagerTaskWindow({
           <div className="mt-2.5 flex flex-wrap items-center gap-2">
             <span
               className="inline-flex rounded-full px-2.5 py-1 text-[12px] font-medium"
-              style={STATUS_BADGE[drawerStatus(taskStatus(task))] ?? { background: "#F5F5F5", color: "#6B7280" }}
+              style={STATUS_BADGE[displayStatus(taskStatus(task))] ?? { background: "#F5F5F5", color: "#6B7280" }}
             >
-              {drawerStatus(taskStatus(task))}
+              {displayStatus(taskStatus(task))}
             </span>
             {task.tag === "Complaint" && (
               <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px] font-semibold ${COMPLAINT_PILL}`}>
