@@ -1,19 +1,34 @@
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ChevronRight, ListChecks, Building2, AlertTriangle, Timer, MessageCircle, UserRound } from "lucide-react";
+import { ChevronRight, ListChecks, AlertTriangle, Timer, MessageCircle, UserRound, CheckCircle2 } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { Page, Card, RoomNo, StatCard } from "../components/ui";
 import { ScopePicker } from "../components/ScopePicker";
 import { TASKS, shortName } from "../data/tasks";
 import { INITIAL } from "../data/staff";
 import { usePersona } from "../persona";
-import { taskStatus, STATUS_PILL, statusPillClass, COMPLAINT_PILL, useClock } from "../data/attention";
+import { formatClock, slaSecs, taskStatus, useClock } from "../data/attention";
 import { SlaClock } from "../components/SlaClock";
-import { DEPT_ICON } from "./Home";
+import { FilterPill } from "./Home";
+
+const STATUS_BADGE: Record<string, { background: string; color: string }> = {
+  Escalated: { background: "#FEF2F2", color: "#EF4444" },
+  "In Progress": { background: "#FFF9EC", color: "#D97706" },
+  Pending: { background: "#F5F5F5", color: "#6B7280" },
+  Completed: { background: "#F0FDF4", color: "#22C55E" },
+  "Unable to Complete": { background: "#F5F5F5", color: "#6B7280" },
+  Void: { background: "#F5F5F5", color: "#9CA3AF" },
+};
 
 export default function DepartmentDashboard() {
   useClock();
   const navigate = useNavigate();
-  const { scopeDepts, inScope } = usePersona();
+  const { scopeDepts, inScope, me } = usePersona();
+  const [dept, setDept] = useState("all");
+  const [priority, setPriority] = useState("all");
+  const first = me.name.split(" ")[0];
+  const hour = new Date().getHours();
+  const hello = `${hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening"}, ${first} 👋`;
 
   const mine = TASKS.filter((t) => inScope(t.dept));
   const open = mine.filter((t) => t.status !== "Completed" && t.status !== "Unable to Complete" && t.status !== "Void");
@@ -22,12 +37,6 @@ export default function DepartmentDashboard() {
   const atRisk = open.filter((t) => t.sla.kind === "due");
   const complaints = open.filter((t) => t.tag === "Complaint");
   const unassignedCritical = open.filter((t) => t.owner === null && (t.priority === "High" || t.priority === "Critical" || t.sla.kind === "due" || t.sla.kind === "overdue"));
-
-  // needs attention: escalations, complaints, SLA breaches and unassigned tasks about to breach
-  const attentionRank = (t: (typeof TASKS)[number]) => (t.status === "Escalated" ? 0 : t.sla.kind === "overdue" ? 1 : t.tag === "Complaint" ? 2 : 3);
-  const attention = open
-    .filter((t) => t.status === "Escalated" || t.tag === "Complaint" || t.sla.kind === "overdue" || (t.owner === null && t.sla.kind === "due"))
-    .sort((x, y) => attentionRank(x) - attentionRank(y));
 
   // open unassigned tasks the manager can review and pick up
   const pickable = open.filter((t) => t.owner === null);
@@ -41,6 +50,11 @@ export default function DepartmentDashboard() {
   const maxPicked = Math.max(1, ...team.map((s) => s.n));
   const busiest = Math.max(...team.map((s) => s.n));
 
+  const depts = Array.from(new Set(open.map((t) => t.dept))).sort();
+  const pending = open
+    .filter((t) => (dept === "all" || t.dept === dept) && (priority === "all" || t.priority === priority))
+    .slice(0, 12);
+
   const ops = [
     { label: "Open tasks", value: open.length, to: "/tasks?view=all", icon: ListChecks },
     { label: "SLA at risk", value: atRisk.length, to: "/tasks?view=risk", icon: Timer },
@@ -51,73 +65,129 @@ export default function DepartmentDashboard() {
   ];
   return (
     <>
-      <Topbar title="Department Dashboard" actions={<ScopePicker />} />
+      <Topbar title={hello} subtitle={`Here's what's happening in ${scopeDepts.join(" & ")}`} actions={<ScopePicker />} />
       <Page>
-        <h3 className="mb-3 flex items-center gap-2.5 text-[16px] font-semibold text-ink"><span className="h-2 w-2 rounded-full bg-brand" /> Department operations</h3>
         <div className="grid grid-cols-2 gap-5 md:grid-cols-3 xl:grid-cols-6">
           {ops.map((k) => (
             <StatCard key={k.label} icon={k.icon} label={k.label} value={k.value} onClick={() => navigate(k.to)} />
           ))}
         </div>
 
-        <div className="mt-5 grid grid-cols-1 gap-5">
+        <div className="mt-7 grid grid-cols-1 gap-5">
           <div className="space-y-5">
             <Card table className="overflow-hidden">
-              <div className="flex flex-wrap items-center gap-3 px-5 py-4">
-                <ListChecks className="h-[18px] w-[18px] text-brand" />
-                <h3 className="text-[16px] font-semibold text-ink">Tasks</h3>
-                <Link to="/tasks" className="ml-auto flex items-center gap-1 text-[13px] font-semibold text-brand">
-                  All department tasks <ChevronRight className="h-3.5 w-3.5" />
-                </Link>
+              <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-line px-6 py-4">
+                <div className="flex items-center gap-2">
+                  <ListChecks className="h-4 w-4 text-brand" />
+                  <h3 className="font-display text-[16px] font-semibold text-ink">Pending Tasks</h3>
+                </div>
+                <div className="flex items-center gap-2">
+                  {depts.length > 1 && (
+                    <FilterPill
+                      label="All Departments"
+                      value={dept}
+                      onChange={setDept}
+                      options={[{ id: "all", label: "All Departments" }, ...depts.map((d) => ({ id: d, label: d }))]}
+                    />
+                  )}
+                  <FilterPill
+                    label="All Priority"
+                    value={priority}
+                    onChange={setPriority}
+                    options={[
+                      { id: "all", label: "All Priority" },
+                      { id: "Critical", label: "Critical" },
+                      { id: "High", label: "High" },
+                      { id: "Medium", label: "Medium" },
+                      { id: "Low", label: "Low" },
+                    ]}
+                  />
+                  <Link to="/tasks" className="ml-1 text-[14px] font-medium text-brand">View all</Link>
+                </div>
               </div>
-              <div className="overflow-x-auto border-t border-line">
-                <table className="w-full min-w-[860px] table-fixed text-left">
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[1120px] table-fixed text-left">
                   <colgroup>
-                    <col className="w-[120px]" />
-                    <col />
-                    <col className="w-[140px]" />
-                    <col className="w-[140px]" />
-                    <col className="w-[170px]" />
-                    <col className="w-[130px]" />
+                    <col className="w-[8%]" />
+                    <col className="w-[22%]" />
+                    <col className="w-[13%]" />
+                    <col className="w-[8%]" />
+                    <col className="w-[13%]" />
+                    <col className="w-[13%]" />
+                    <col className="w-[11%]" />
+                    <col className="w-[12%]" />
                   </colgroup>
                   <thead>
-                    <tr className="bg-[#F4F4F5] text-[12px] uppercase tracking-wide text-[#6B7280]">
-                      <th className="py-3.5 pl-6 font-medium">SLA</th>
-                      <th className="py-3.5 pl-6 font-medium">Task</th>
-                      <th className="py-3.5 pl-6 font-medium">Guest</th>
-                      <th className="py-3.5 pl-6 font-medium">Status</th>
-                      <th className="py-3.5 pl-6 font-medium">Department</th>
-                      <th className="py-3.5 pl-6 font-medium">Assigned To</th>
+                    <tr className="bg-subtle text-[12px] uppercase tracking-wide text-ink-secondary">
+                      <th className="truncate px-4 py-3 font-medium">#</th>
+                      <th className="truncate px-4 py-3 font-medium">Task</th>
+                      <th className="truncate px-4 py-3 font-medium">Guest</th>
+                      <th className="truncate px-4 py-3 font-medium">Room</th>
+                      <th className="truncate px-4 py-3 font-medium">Department</th>
+                      <th className="truncate px-4 py-3 font-medium">Assigned To</th>
+                      <th className="truncate px-4 py-3 font-medium">SLA</th>
+                      <th className="truncate px-4 py-3 font-medium">Status</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {attention.map((t) => {
-                      const D = DEPT_ICON[t.dept] ?? Building2;
-                      const status = taskStatus(t);
+                    {pending.map((t) => {
+                      const label = taskStatus(t);
+                      const status = label === "SLA breached" || label === "SLA at risk" ? "In Progress" : label;
+                      const badge = STATUS_BADGE[status] ?? { background: "#F5F5F5", color: "#6B7280" };
+                      const secs = slaSecs(t.sla);
+                      const overdue = secs !== null && (secs < 0 || t.sla.kind === "overdue");
+                      const slaColor = overdue ? "text-red-600" : t.sla.kind === "due" ? "text-amber-600" : "text-emerald-600";
                       return (
-                        <tr key={t.id} onClick={() => navigate(`/tasks?open=${t.id}`)} className="cursor-pointer border-b border-line/50 last:border-0 hover:bg-subtle/60">
-                          <td className="whitespace-nowrap py-3.5 pl-6 pr-3"><SlaClock sla={t.sla} /></td>
-                          <td className="py-3.5 pl-6 pr-3">
-                            <div className="flex items-center gap-2 text-[13px] font-semibold text-ink">
-                              {t.title}
+                        <tr
+                          key={t.id}
+                          onClick={() => navigate(`/tasks?open=${t.id}`)}
+                          className="cursor-pointer border-b border-line/60 transition-colors duration-200 last:border-0 hover:bg-subtle/60"
+                        >
+                          <td className="px-4 py-3">
+                            <span className="font-mono text-[10px] font-semibold text-ink-tertiary">#{String(t.id).padStart(3, "0")}</span>
+                          </td>
+                          <td className="min-w-0 px-4 py-3">
+                            <div className="flex min-w-0 items-center gap-1.5 text-[13px] font-medium text-ink">
+                              <span className="truncate">{t.title}</span>
+                              {!!t.compensation?.length && (
+                                <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[10px] font-bold" style={{ background: "#F0FDF4", color: "#22C55E" }} title="Compensation logged">$</span>
+                              )}
                               {t.tag === "Complaint" && (
-                                <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ${COMPLAINT_PILL}`}>
-                                  <AlertTriangle className="h-3 w-3" /> Complaint
+                                <span className="inline-flex shrink-0 items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-bold" style={{ background: "#FEF2F2", color: "#DC2626" }}>
+                                  <AlertTriangle className="h-2.5 w-2.5" /> Complaint
                                 </span>
                               )}
                             </div>
-                            <div className="text-[12px] text-ink-tertiary"><RoomNo room={t.room} /></div>
                           </td>
-                          <td className="whitespace-nowrap py-3.5 pl-6 pr-3 text-[14px] text-ink-secondary">{t.guest}</td>
-                          <td className="whitespace-nowrap py-3.5 pl-6 pr-3"><span className={`${statusPillClass} ${STATUS_PILL[status]}`}>{status}</span></td>
-                          <td className="whitespace-nowrap py-3.5 pl-6 pr-3 text-[14px] text-ink-secondary"><span className="flex items-center gap-2"><D className="h-4 w-4 text-ink-tertiary" />{t.dept}</span></td>
-                          <td className="whitespace-nowrap py-3.5 pl-6 pr-3 text-[14px]">
-                            {t.owner ? <span className="text-ink">{t.owner}</span> : <span className="font-medium text-brand">Unassigned</span>}
+                          <td className="truncate px-4 py-3 text-[13px] text-ink-secondary">{t.guest}</td>
+                          <td className="truncate px-4 py-3 text-[13px] text-ink-secondary">{String(t.room).replace(/^Room\s+/i, "")}</td>
+                          <td className="truncate px-4 py-3 text-[13px] text-ink-secondary">{t.dept}</td>
+                          <td className="truncate px-4 py-3 text-[13px]">
+                            {t.owner ? <span className="truncate text-ink">{t.owner}</span> : <span className="font-medium text-brand">Unassigned</span>}
+                          </td>
+                          <td className="truncate px-4 py-3">
+                            {t.status === "Completed" || t.sla.kind === "met" ? (
+                              <span className="inline-flex items-center gap-1 text-[12px] font-medium text-emerald-600"><CheckCircle2 className="h-3.5 w-3.5" /> SLA met</span>
+                            ) : secs === null ? (
+                              <span className="text-[12px] text-ink-tertiary">{t.sla.text}</span>
+                            ) : (
+                              <span className={`inline-flex items-center gap-1 font-display text-[12px] font-semibold ${slaColor}`}>
+                                <Timer className="h-3 w-3" />
+                                {overdue ? `+${formatClock(Math.abs(secs))}` : formatClock(secs)}
+                              </span>
+                            )}
+                          </td>
+                          <td className="truncate px-4 py-3">
+                            <span className="inline-flex rounded-full px-2.5 py-1 text-[12px] font-medium" style={badge}>{status}</span>
                           </td>
                         </tr>
                       );
                     })}
-                    {!attention.length && <tr><td colSpan={6} className="py-8 pl-6 pr-3 text-center text-[14px] text-ink-tertiary">Nothing needs attention in your department.</td></tr>}
+                    {!pending.length && (
+                      <tr>
+                        <td colSpan={8} className="px-4 py-3.5 text-center text-[14px] text-ink-tertiary">No pending tasks match.</td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -127,7 +197,7 @@ export default function DepartmentDashboard() {
 
           <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-2">
             <Card className="p-5">
-              <h3 className="text-[15px] font-semibold text-ink">Team availability &amp; workload</h3>
+              <h3 className="text-[16px] font-semibold text-ink">Team availability &amp; workload</h3>
               <div className="mt-3 flex items-center gap-2 text-[12px]">
                 <span className="text-ink-tertiary">{totalPicked} picked up today</span>
               </div>
@@ -168,7 +238,7 @@ export default function DepartmentDashboard() {
 
             <Card className="p-5">
               <div className="flex items-center justify-between">
-                <h3 className="text-[15px] font-semibold text-ink">Open tasks to pick up</h3>
+                <h3 className="text-[16px] font-semibold text-ink">Open tasks to pick up</h3>
                 <span className="text-[12px] text-ink-tertiary">{pickable.length} unassigned</span>
               </div>
               {!!pickable.length && (

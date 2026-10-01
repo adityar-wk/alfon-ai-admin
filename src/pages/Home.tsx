@@ -12,12 +12,6 @@ import {
   ArrowUp,
   ArrowRight,
   Minus,
-  Wrench,
-  ConciergeBell,
-  KeyRound,
-  UtensilsCrossed,
-  Wine,
-  Headset,
   HeartPulse,
   Activity,
   Home as HomeIcon,
@@ -70,11 +64,6 @@ const SCORE_PILLARS: { title: string; weight: number; icon: Icon; text: string }
   { title: "Workload Balance", weight: 15, icon: Scale, text: "Measures how evenly work is distributed across the team — whether tasks are being claimed by multiple staff members or concentrated on one person, and whether any department is understaffed relative to its open task volume." },
   { title: "Recovery Rate", weight: 10, icon: Zap, text: "Scores how well the team turns a negative guest experience into a positive one — complaint-to-resolution time, compensation approvals, and whether a follow-up was made after the issue was closed." },
 ];
-
-export const DEPT_ICON: Record<string, Icon> = {
-  Engineering: Wrench, Concierge: ConciergeBell, "Front Desk": KeyRound, "Room Service": UtensilsCrossed,
-  Housekeeping: BedDouble, "Food & Beverage": Wine, "Guest Services": Headset,
-};
 
 const DEPT_PERF = [
   { name: "Housekeeping", tasks: 52, onTime: 96 },
@@ -202,14 +191,14 @@ function Trend({ t }: { t: "up" | "down" | "flat" }) {
   return <Minus className="h-3.5 w-3.5 text-ink-tertiary" />;
 }
 
-const STATUS_STYLE: Record<string, { bg: string; color: string }> = {
+export const STATUS_STYLE: Record<string, { bg: string; color: string }> = {
   "In Progress": { bg: "#FFF9EC", color: "#D97706" },
   Pending: { bg: "#F5F5F5", color: "#6B7280" },
   Escalated: { bg: "#FEF2F2", color: "#EF4444" },
   Completed: { bg: "#F0FDF4", color: "#22C55E" },
 };
 
-function homeStatus(t: Task) {
+export function homeStatus(t: Task) {
   if (t.status === "Escalated") return "Escalated";
   if (t.status === "In Progress") return "In Progress";
   if (t.status === "Completed") return "Completed";
@@ -217,7 +206,7 @@ function homeStatus(t: Task) {
 }
 
 /** clock time the task is due, from the SLA offset, matching the prototype Due column */
-function dueClock(sla: Task["sla"]) {
+export function dueClock(sla: Task["sla"]) {
   if (sla.kind === "met") return "—";
   const h = sla.text.match(/(\d+)\s*hr/);
   const m = sla.text.match(/(\d+)\s*min/);
@@ -227,11 +216,11 @@ function dueClock(sla: Task["sla"]) {
   return d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
 }
 
-function initials(name: string) {
+export function initials(name: string) {
   return name.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase();
 }
 
-function FilterPill({
+export function FilterPill({
   label,
   value,
   options,
@@ -297,23 +286,6 @@ export default function Home() {
   const score = Math.max(0, Math.min(100, Math.round(82 + BASELINE - penalty(TASKS))));
   const band = scoreBand(score);
 
-  if (persona === "hoteladmin") {
-    return (
-      <>
-        <Topbar title={hello} subtitle={`Here's what's happening at ${HOTEL}`} />
-        <main className="flex-1 overflow-y-auto bg-page">
-        <div className="px-8 pb-8 pt-7">
-          <OnboardingProgressCard />
-          <div className="mt-6">
-            <h3 className="mb-3 text-[15px] font-semibold text-ink">Setup steps</h3>
-            <OnboardingStepsGrid />
-          </div>
-        </div>
-        </main>
-      </>
-    );
-  }
-
   const topStats = [
     { label: "Open Tasks", value: String(open.length), sub: "Needs action", subTone: "text-ink-tertiary", icon: ListChecks },
     { label: "Guest Chats", value: String(GUESTS.length), sub: "Active conversations", subTone: "text-ink-tertiary", icon: MessageCircle },
@@ -326,6 +298,15 @@ export default function Home() {
       <Topbar title={hello} subtitle={`Here's what's happening at ${HOTEL}`} />
       <main className="flex-1 overflow-y-auto bg-page">
         <div className="flex flex-col gap-7 px-8 pb-8 pt-7">
+        {persona === "hoteladmin" && (
+          <>
+            <OnboardingProgressCard />
+            <div>
+              <h3 className="mb-3 font-display text-[16px] font-semibold text-ink">Setup steps</h3>
+              <OnboardingStepsGrid />
+            </div>
+          </>
+        )}
         <div className="grid grid-cols-2 gap-5 sm:grid-cols-4">
           {topStats.map((s) => (
             <Card key={s.label} className="px-6 py-5">
