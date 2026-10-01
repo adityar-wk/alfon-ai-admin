@@ -338,7 +338,7 @@ export default function Home() {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 items-stretch gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="grid grid-cols-1 items-start gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
           <div className="flex flex-col gap-5">
             <Card className="flex min-h-[460px] flex-col items-center justify-center px-6 py-10">
               <Orb score={score} />
@@ -384,10 +384,10 @@ export default function Home() {
                   <span className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg border border-brand/25 bg-white text-brand">
                     <p.icon className="h-[18px] w-[18px]" />
                   </span>
-                  <div className="text-sm text-ink-secondary">{p.label}</div>
+                  <div className="text-[13px] text-ink-secondary">{p.label}</div>
                   <div className="mt-0.5 flex items-end justify-between gap-2">
                     <div>
-                      <div className="font-display text-[24px] font-bold leading-tight text-ink">{p.value}</div>
+                      <div className="whitespace-nowrap font-display text-[20px] font-bold leading-tight text-ink">{p.value}</div>
                       <div className={`mt-1 flex items-center gap-1 text-xs font-medium ${p.tag === "Excellent" ? "text-success" : "text-warning"}`}>
                         <Trend t={p.trend} /> {p.tag}
                       </div>
@@ -399,13 +399,15 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="flex min-h-0 flex-col gap-5 xl:h-0 xl:min-h-full">
-            <Card className="flex min-h-0 flex-1 flex-col p-6">
+          <div className="flex flex-col gap-5">
+            <Card className="p-6">
               <div className="flex items-center justify-between">
                 <h3 className="text-[16px] font-semibold text-ink">Department Performance</h3>
-                <Link to="/analytics" className="text-[13px] font-semibold text-brand">Analytics</Link>
+                <Link to="/analytics" aria-label="View analytics" className="text-ink-tertiary hover:text-ink">
+                  <MoreVertical className="h-[18px] w-[18px]" />
+                </Link>
               </div>
-              <div className="mt-3 min-h-0 flex-1 divide-y divide-line/70 overflow-y-auto">
+              <div className="mt-3 divide-y divide-line/70">
                 {DEPT_PERF.map((d) => (
                   <div key={d.name} className="flex items-center gap-3 py-2.5">
                     <div className="min-w-0 flex-1 text-[13px] font-semibold text-ink">{d.name}</div>
