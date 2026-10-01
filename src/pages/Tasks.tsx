@@ -483,7 +483,7 @@ export default function Tasks() {
                         </div>
                       </td>
                       <td className="truncate px-4 py-3 text-[13px] text-ink-secondary">{t.guest}</td>
-                      <td className="truncate px-4 py-3 text-[13px] text-ink-secondary"><RoomNo room={t.room} /></td>
+                      <td className="truncate px-4 py-3 text-[13px] text-ink-secondary">{String(t.room).replace(/^Room\s+/i, "")}</td>
                       <td className="truncate px-4 py-3 text-[13px] text-ink-secondary">{t.dept}</td>
                       <td className="truncate px-4 py-3 text-[13px]">
                         {t.owner ? <span className="truncate text-ink">{t.owner}</span> : <span className="font-medium text-brand">Unassigned</span>}
