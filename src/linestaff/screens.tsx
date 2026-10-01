@@ -49,7 +49,7 @@ function MoreNavIcon({ className }: { className?: string }) {
 }
 
 const CHAT_FILTERS = ["All", "Unread", "Open tasks"] as const;
-const TASK_FILTERS = ["All", "Open", "Active", "Completed"] as const;
+const TASK_FILTERS = ["All", "Unassigned", "At Risk", "Overdue", "Completed"] as const;
 
 type HelpKind = "escalate" | "escalateDuty" | "reassign";
 const HELP_OPTIONS: { key: HelpKind; label: string; cta: string; placeholder: string }[] = [
@@ -216,20 +216,19 @@ export function LineStaffPrototype() {
   const lsComplaints = tasks.filter((t) => t.complaint && t.status !== "completed");
   const services = DEPARTMENTS.find((d) => d.name === dept)?.services.filter((s) => s.active).map((s) => s.name) ?? [];
 
+  const taskFilterFn: Record<(typeof TASK_FILTERS)[number], (t: Task) => boolean> = {
+    All: () => true,
+    Unassigned: (t) => t.status === "pending",
+    "At Risk": (t) => t.status !== "completed" && t.left >= 0 && t.left / t.total < 0.35,
+    Overdue: (t) => t.status !== "completed" && t.left < 0,
+    Completed: (t) => t.status === "completed",
+  };
   const tasksFiltered = tasks.filter((t) => {
     const q = taskQuery.trim().toLowerCase();
     const matches = !q || `${t.title} ${t.room} ${t.guest}`.toLowerCase().includes(q);
-    const statusOk =
-      taskFilter === "All" ||
-      (taskFilter === "Open" ? t.status === "pending" : taskFilter === "Active" ? t.status === "progress" : t.status === "completed");
-    return matches && statusOk;
+    return matches && taskFilterFn[taskFilter](t);
   });
-  const taskChipCounts: Record<(typeof TASK_FILTERS)[number], number> = {
-    All: tasks.length,
-    Open: pending.length,
-    Active: inProgress.length,
-    Completed: completed.length,
-  };
+  const taskChipCounts = Object.fromEntries(TASK_FILTERS.map((f) => [f, tasks.filter(taskFilterFn[f]).length])) as Record<(typeof TASK_FILTERS)[number], number>;
 
   const guests = useMemo(() => {
     const map = new Map<string, { name: string; room: string; title: string; open: boolean }>();
@@ -355,7 +354,6 @@ export function LineStaffPrototype() {
           <StatCard calm label="Overdue" value={lsOverdue.length} onClick={() => nav.go({ name: "tasks" })} />
           <StatCard calm label="Active Chats" value={guests.length} onClick={() => nav.go({ name: "guests" })} />
           <StatCard calm label="Complaints" value={lsComplaints.length} onClick={() => nav.go({ name: "tasks" })} />
-          <StatCard calm label="Completed tasks" value={completed.length} onClick={() => nav.go({ name: "tasks" })} />
         </div>
 
         <div className="mt-6"><SectionTitle dot={false} small action={<span className="text-[12px] text-ink-tertiary">{inProgress.length}</span>}>Active tasks</SectionTitle></div>
@@ -399,7 +397,7 @@ export function LineStaffPrototype() {
         </div>
         <div className="mt-3"><Chips flat items={TASK_FILTERS} active={taskFilter} onChange={setTaskFilter} counts={taskChipCounts} /></div>
         <div className="mt-3 space-y-3 px-6">
-          {tasksFiltered.map((t) => <LsCard key={t.id} t={t} onOpen={() => openTask(t.id)} onAccept={t.status === "pending" ? () => accept(t.id) : undefined} />)}
+          {tasksFiltered.map((t) => <LsCard key={t.id} t={t} onOpen={() => openTask(t.id)} />)}
           {!tasksFiltered.length && <p className="rounded-2xl bg-white p-6 text-center text-[13px] text-ink-tertiary">No tasks match.</p>}
         </div>
       </div>
