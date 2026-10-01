@@ -338,82 +338,98 @@ export default function Home() {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 items-stretch gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(380px,40%)]">
-          <Card className="flex min-h-[520px] flex-col items-center justify-center px-6 py-10">
-            <Orb score={score} />
-            <div className="mt-5 text-[11px] font-semibold uppercase tracking-[0.2em] text-ink-tertiary">Hotel Health Score</div>
-            <p className={`mt-2.5 rounded-full px-3 py-1 text-center text-[13px] font-medium ${band.pill}`}>
-              {band.key === "excellent"
-                ? "Your hotel is performing strong."
-                : band.key === "good"
-                  ? "Your hotel is doing well, with room to improve."
-                  : band.key === "attention"
-                    ? "Several things need attention."
-                    : "Urgent: resolve overdue and escalated tasks."}
-            </p>
-            <button
-              onClick={() => setScoreOpen((o) => !o)}
-              aria-expanded={scoreOpen}
-              className="mt-5 inline-flex items-center gap-1 text-[13px] font-semibold text-brand hover:underline"
-            >
-              {scoreOpen ? "View less" : "View more"} <ChevronDown className={`h-4 w-4 transition-transform ${scoreOpen ? "rotate-180" : ""}`} />
-            </button>
+        <div className="grid grid-cols-1 items-start gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
+          <div className="flex flex-col gap-5">
+            <Card className="flex min-h-[460px] flex-col items-center justify-center px-6 py-10">
+              <Orb score={score} />
+              <div className="mt-5 text-[11px] font-semibold uppercase tracking-[0.2em] text-ink-tertiary">Hotel Health Score</div>
+              <p className={`mt-2.5 rounded-full px-3 py-1 text-center text-[13px] font-medium ${band.pill}`}>
+                {band.key === "excellent"
+                  ? "Your hotel is performing strong."
+                  : band.key === "good"
+                    ? "Your hotel is doing well, with room to improve."
+                    : band.key === "attention"
+                      ? "Several things need attention."
+                      : "Urgent: resolve overdue and escalated tasks."}
+              </p>
+              <button
+                onClick={() => setScoreOpen((o) => !o)}
+                aria-expanded={scoreOpen}
+                className="mt-5 inline-flex items-center gap-1 text-[13px] font-semibold text-brand hover:underline"
+              >
+                {scoreOpen ? "View less" : "View more"} <ChevronDown className={`h-4 w-4 transition-transform ${scoreOpen ? "rotate-180" : ""}`} />
+              </button>
 
-            <div className="mt-8 w-full max-w-[280px]">
-              <div className="flex items-center justify-between text-[10px] font-semibold text-ink-tertiary">
-                <span>0</span>
-                <span>100</span>
-              </div>
-              <div className="relative mt-1 h-2 w-full rounded-full" style={{ background: "linear-gradient(90deg, #F0776C 0%, #F5B15D 50%, #5FD3A9 100%)" }}>
-                <div
-                  className="absolute top-1/2 h-4 w-4 -translate-y-1/2 rounded-full border-[3px] border-white shadow-[0_1px_4px_rgba(0,0,0,0.35)] transition-[left] duration-700"
-                  style={{ left: `calc(${score}% - 8px)`, background: band.color }}
-                />
-              </div>
-              <div className="mt-2 flex items-center justify-between text-[11px] font-medium text-ink-tertiary">
-                <span>Needs Attention</span>
-                <span>Thriving</span>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-6">
-            <div className="flex items-center justify-between">
-              <h3 className="text-[16px] font-semibold text-ink">Department Performance</h3>
-              <Link to="/analytics" className="text-[13px] font-semibold text-brand">Analytics</Link>
-            </div>
-            <div className="mt-3 max-h-[440px] divide-y divide-line/70 overflow-y-auto">
-              {DEPT_PERF.map((d) => (
-                <div key={d.name} className="flex items-center gap-3 py-3">
-                  <div className="min-w-0 flex-1 text-[13px] font-semibold text-ink">{d.name}</div>
-                  <div className="text-right leading-tight">
-                    <div className="text-[13px] font-semibold text-ink">{d.tasks} tasks</div>
-                    <div className="text-[11px] text-ink-tertiary">{d.onTime}% on time</div>
-                  </div>
+              <div className="mt-8 w-full max-w-[280px]">
+                <div className="flex items-center justify-between text-[10px] font-semibold text-ink-tertiary">
+                  <span>0</span>
+                  <span>100</span>
                 </div>
-              ))}
-            </div>
-          </Card>
-        </div>
-
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-5">
-          {PILLARS.map((p) => (
-            <Card key={p.label} className="px-6 py-5">
-              <span className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg border border-brand/25 bg-white text-brand">
-                <p.icon className="h-[18px] w-[18px]" />
-              </span>
-              <div className="text-sm text-ink-secondary">{p.label}</div>
-              <div className="mt-0.5 flex items-end justify-between gap-3">
-                <div>
-                  <div className="font-display text-[28px] font-bold leading-tight text-ink">{p.value}</div>
-                  <div className={`mt-1 flex items-center gap-1 text-xs font-medium ${p.tag === "Excellent" ? "text-success" : "text-warning"}`}>
-                    <Trend t={p.trend} /> {p.tag}
-                  </div>
+                <div className="relative mt-1 h-2 w-full rounded-full" style={{ background: "linear-gradient(90deg, #F0776C 0%, #F5B15D 50%, #5FD3A9 100%)" }}>
+                  <div
+                    className="absolute top-1/2 h-4 w-4 -translate-y-1/2 rounded-full border-[3px] border-white shadow-[0_1px_4px_rgba(0,0,0,0.35)] transition-[left] duration-700"
+                    style={{ left: `calc(${score}% - 8px)`, background: band.color }}
+                  />
                 </div>
-                <div className="w-24 shrink-0"><Spark data={p.spark} /></div>
+                <div className="mt-2 flex items-center justify-between text-[11px] font-medium text-ink-tertiary">
+                  <span>Needs Attention</span>
+                  <span>Thriving</span>
+                </div>
               </div>
             </Card>
-          ))}
+
+            <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 xl:grid-cols-5">
+              {PILLARS.map((p) => (
+                <Card key={p.label} className="px-5 py-4">
+                  <span className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg border border-brand/25 bg-white text-brand">
+                    <p.icon className="h-[18px] w-[18px]" />
+                  </span>
+                  <div className="text-sm text-ink-secondary">{p.label}</div>
+                  <div className="mt-0.5 flex items-end justify-between gap-2">
+                    <div>
+                      <div className="font-display text-[24px] font-bold leading-tight text-ink">{p.value}</div>
+                      <div className={`mt-1 flex items-center gap-1 text-xs font-medium ${p.tag === "Excellent" ? "text-success" : "text-warning"}`}>
+                        <Trend t={p.trend} /> {p.tag}
+                      </div>
+                    </div>
+                    <div className="w-16 shrink-0"><Spark data={p.spark} /></div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-5">
+            <Card className="p-6">
+              <div className="flex items-center justify-between">
+                <h3 className="text-[16px] font-semibold text-ink">Department Performance</h3>
+                <Link to="/analytics" className="text-[13px] font-semibold text-brand">Analytics</Link>
+              </div>
+              <div className="mt-3 max-h-[320px] divide-y divide-line/70 overflow-y-auto">
+                {DEPT_PERF.map((d) => (
+                  <div key={d.name} className="flex items-center gap-3 py-2.5">
+                    <div className="min-w-0 flex-1 text-[13px] font-semibold text-ink">{d.name}</div>
+                    <div className="text-right leading-tight">
+                      <div className="text-[13px] font-semibold text-ink">{d.tasks} tasks</div>
+                      <div className="text-[11px] text-ink-tertiary">{d.onTime}% on time</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+
+            <Card className="p-6">
+              <h3 className="text-[16px] font-semibold text-ink">Occupancy Today</h3>
+              <dl className="mt-4 space-y-3.5 text-[13px]">
+                {[["Occupancy", "87%"], ["Check-ins Today", "34"], ["Check-outs Today", "28"], ["Total Rooms", "245"]].map(([l, v]) => (
+                  <div key={l} className="flex items-center justify-between">
+                    <dt className="text-ink-secondary">{l}</dt>
+                    <dd className="font-semibold text-ink">{v}</dd>
+                  </div>
+                ))}
+              </dl>
+            </Card>
+          </div>
         </div>
 
         {scoreOpen && (
@@ -442,9 +458,8 @@ export default function Home() {
           </Card>
         )}
 
-        <div className="grid grid-cols-1 items-stretch gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(420px,46%)]">
-          {/* height:0 + min-h-full so the tasks card matches the right column without growing the row */}
-          <Card table className="flex min-h-0 flex-col overflow-hidden xl:h-0 xl:min-h-full">
+        <div className="grid grid-cols-1 items-start gap-5 xl:grid-cols-[7fr_3fr]">
+          <Card table className="flex min-h-0 flex-col overflow-hidden">
             <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-line px-6 py-4">
               <div className="flex items-center gap-2">
                 <ListChecks className="h-4 w-4 text-brand" />
@@ -472,7 +487,7 @@ export default function Home() {
                 <Link to="/tasks" className="ml-1 text-[14px] font-medium text-brand">View all</Link>
               </div>
             </div>
-            <div className="min-h-0 flex-1 overflow-auto">
+            <div className="max-h-[640px] min-h-0 flex-1 overflow-auto">
               <table className="w-full min-w-[760px] text-left text-[14px]">
                 <thead className="sticky top-0 z-10 bg-white">
                   <tr className="text-[12px] uppercase tracking-wide text-ink-tertiary">
@@ -546,59 +561,45 @@ export default function Home() {
             </div>
           </Card>
 
-          <div className="flex h-full flex-col gap-5">
-            <Card className="p-6">
-              <h3 className="text-[16px] font-semibold text-ink">Occupancy Today</h3>
-              <dl className="mt-4 space-y-3.5 text-[13px]">
-                {[["Occupancy", "87%"], ["Check-ins Today", "34"], ["Check-outs Today", "28"], ["Total Rooms", "245"]].map(([l, v]) => (
-                  <div key={l} className="flex items-center justify-between">
-                    <dt className="text-ink-secondary">{l}</dt>
-                    <dd className="font-semibold text-ink">{v}</dd>
+          <div className="flex flex-col gap-5">
+            <Card className="p-5">
+              <div className="mb-3 flex items-center justify-between">
+                <h3 className="text-[16px] font-semibold text-ink">Guest Chats</h3>
+                <Link to="/guest-chats" className="text-[13px] font-semibold text-brand">View all</Link>
+              </div>
+              <div className="space-y-1">
+                {CHAT_PREVIEW.map((c) => (
+                  <Link key={c.id} to={`/guest-chats?guest=${c.id}`} className="flex items-center gap-3 rounded-lg p-2 hover:bg-subtle/70">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-tint font-display text-[11px] font-semibold text-brand">{c.initials}</span>
+                    <span className="min-w-0 flex-1">
+                      <span className="flex items-center justify-between gap-3">
+                        <span className="truncate text-[14px] font-semibold text-ink">{c.name}</span>
+                        <span className="shrink-0 text-[11px] text-ink-tertiary">{c.time}</span>
+                      </span>
+                      <span className="mt-0.5 block truncate text-[12px] text-ink-secondary">{c.preview}</span>
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            </Card>
+
+            <Card className="p-5">
+              <h3 className="mb-3 text-[16px] font-semibold text-ink">Analytics Overview</h3>
+              <AnalyticsChart />
+              <div className="mt-3 grid grid-cols-3 text-center">
+                {[
+                  { n: TASKS.length, label: "Total Tasks", tone: "text-ink" },
+                  { n: TASKS.filter((t) => t.status === "Completed").length, label: "Completed", tone: "text-emerald-500" },
+                  { n: TASKS.filter((t) => t.status !== "Completed" && t.status !== "Void" && t.status !== "Unable to Complete" && t.sla.kind === "overdue").length, label: "Overdue", tone: "text-red-500" },
+                ].map((s) => (
+                  <div key={s.label}>
+                    <div className={`font-display text-[28px] font-bold leading-none ${s.tone}`}>{s.n}</div>
+                    <div className="mt-1 text-[11px] text-ink-tertiary">{s.label}</div>
                   </div>
                 ))}
-              </dl>
+              </div>
             </Card>
           </div>
-        </div>
-
-        <div className="grid grid-cols-1 items-stretch gap-5 lg:grid-cols-2">
-          <Card className="p-5">
-            <div className="mb-3 flex items-center justify-between">
-              <h3 className="text-[16px] font-semibold text-ink">Guest Chats</h3>
-              <Link to="/guest-chats" className="text-[13px] font-semibold text-brand">View all</Link>
-            </div>
-            <div className="space-y-1">
-              {CHAT_PREVIEW.map((c) => (
-                <Link key={c.id} to={`/guest-chats?guest=${c.id}`} className="flex items-center gap-3 rounded-lg p-2 hover:bg-subtle/70">
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-tint font-display text-[11px] font-semibold text-brand">{c.initials}</span>
-                  <span className="min-w-0 flex-1">
-                    <span className="flex items-center justify-between gap-3">
-                      <span className="truncate text-[14px] font-semibold text-ink">{c.name}</span>
-                      <span className="shrink-0 text-[11px] text-ink-tertiary">{c.time}</span>
-                    </span>
-                    <span className="mt-0.5 block truncate text-[12px] text-ink-secondary">{c.preview}</span>
-                  </span>
-                </Link>
-              ))}
-            </div>
-          </Card>
-
-          <Card className="p-5">
-            <h3 className="mb-3 text-[16px] font-semibold text-ink">Analytics Overview</h3>
-            <AnalyticsChart />
-            <div className="mt-3 grid grid-cols-3 text-center">
-              {[
-                { n: TASKS.length, label: "Total Tasks", tone: "text-ink" },
-                { n: TASKS.filter((t) => t.status === "Completed").length, label: "Completed", tone: "text-emerald-500" },
-                { n: TASKS.filter((t) => t.status !== "Completed" && t.status !== "Void" && t.status !== "Unable to Complete" && t.sla.kind === "overdue").length, label: "Overdue", tone: "text-red-500" },
-              ].map((s) => (
-                <div key={s.label}>
-                  <div className={`font-display text-[28px] font-bold leading-none ${s.tone}`}>{s.n}</div>
-                  <div className="mt-1 text-[11px] text-ink-tertiary">{s.label}</div>
-                </div>
-              ))}
-            </div>
-          </Card>
         </div>
 
         </div>
