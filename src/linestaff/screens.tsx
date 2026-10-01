@@ -1,7 +1,7 @@
 import { Button } from "../components/ui";
 import { Logo } from "../components/Logo";
 import { useEffect, useMemo, useState } from "react";
-import { Bell, ChevronRight, Plus, BedDouble, User, Building2, ChevronLeft, ArrowUpRight, ListChecks, MessageCircle, Search, Send } from "lucide-react";
+import { Bell, ChevronRight, Plus, BedDouble, User, Building2, ChevronLeft, ArrowUpRight, ListChecks, MessageCircle, Search, Send, Home as HomeIcon, UserCog } from "lucide-react";
 import { DEPARTMENTS } from "../data/departments";
 import {
   PhoneFrame,
@@ -27,12 +27,13 @@ import {
   NotifRow,
   SearchField,
   Chips,
+  StatCard,
   sampleUnread,
 } from "./mobile";
 import { GuestProfileScreen, GuestChatScreen, type ChatMsg } from "./guestviews";
 import { ProfileScreen, NotificationSettingsScreen, SignedOutScreen } from "./profile";
 
-type Screen = { name: "home" | "notifications" | "taskDetail" | "create" | "guests" | "guestChat" | "guestProfile" | "profile" | "notifSettings"; id?: string };
+type Screen = { name: "home" | "tasks" | "notifications" | "taskDetail" | "create" | "guests" | "guestChat" | "guestProfile" | "profile" | "notifSettings"; id?: string };
 
 const LS_ME = "Aanya Khan";
 const LS_ME_INITIALS = LS_ME.split(" ").map((p) => p[0]).join("").slice(0, 2);
@@ -48,6 +49,7 @@ function MoreNavIcon({ className }: { className?: string }) {
 }
 
 const CHAT_FILTERS = ["All", "Unread", "Open tasks"] as const;
+const TASK_FILTERS = ["All", "Open", "Active", "Completed"] as const;
 
 type HelpKind = "escalate" | "reassign";
 const HELP_OPTIONS: { key: HelpKind; label: string; cta: string; placeholder: string }[] = [
@@ -185,6 +187,8 @@ export function LineStaffPrototype() {
   const [manual, setManual] = useState<Record<string, boolean>>({});
   const [guestQuery, setGuestQuery] = useState("");
   const [guestFilter, setGuestFilter] = useState<(typeof CHAT_FILTERS)[number]>("All");
+  const [taskQuery, setTaskQuery] = useState("");
+  const [taskFilter, setTaskFilter] = useState<(typeof TASK_FILTERS)[number]>("All");
   const [newChatOpen, setNewChatOpen] = useState(false);
   const [aiDrafts, setAiDrafts] = useState<Record<string, string>>({});
   const [signedOut, setSignedOut] = useState(false);
@@ -204,6 +208,21 @@ export function LineStaffPrototype() {
   const completed = tasks.filter((t) => t.status === "completed");
   const active = tasks.find((t) => t.id === cur.id) ?? tasks[0];
   const services = DEPARTMENTS.find((d) => d.name === dept)?.services.filter((s) => s.active).map((s) => s.name) ?? [];
+
+  const tasksFiltered = tasks.filter((t) => {
+    const q = taskQuery.trim().toLowerCase();
+    const matches = !q || `${t.title} ${t.room} ${t.guest}`.toLowerCase().includes(q);
+    const statusOk =
+      taskFilter === "All" ||
+      (taskFilter === "Open" ? t.status === "pending" : taskFilter === "Active" ? t.status === "progress" : t.status === "completed");
+    return matches && statusOk;
+  });
+  const taskChipCounts: Record<(typeof TASK_FILTERS)[number], number> = {
+    All: tasks.length,
+    Open: pending.length,
+    Active: inProgress.length,
+    Completed: completed.length,
+  };
 
   const guests = useMemo(() => {
     const map = new Map<string, { name: string; room: string; title: string; open: boolean }>();
@@ -245,12 +264,13 @@ export function LineStaffPrototype() {
     <FloatingNav
       showLabels={false}
       items={[
+        { key: "home", label: "Home", icon: HomeIcon },
         { key: "tasks", label: "Tasks", icon: ListChecks },
         { key: "guests", label: "Chats", icon: MessageCircle },
         { key: "profile", label: "More", icon: MoreNavIcon },
       ]}
-      active={cur.name === "guests" ? "guests" : cur.name === "profile" ? "profile" : "tasks"}
-      onChange={(k) => nav.go({ name: k === "guests" ? "guests" : k === "profile" ? "profile" : "home" })}
+      active={cur.name === "guests" ? "guests" : cur.name === "profile" ? "profile" : cur.name === "tasks" ? "tasks" : "home"}
+      onChange={(k) => nav.go({ name: k as "home" | "tasks" | "guests" | "profile" })}
     />
   );
 
@@ -322,7 +342,13 @@ export function LineStaffPrototype() {
           </div>
         </div>
 
-        <div className="mt-5"><SectionTitle dot={false} small action={<span className="text-[12px] text-ink-tertiary">{inProgress.length}</span>}>Active tasks</SectionTitle></div>
+        <div className="mt-5 grid grid-cols-3 gap-3 px-6">
+          <StatCard calm label="Active tasks" value={inProgress.length} onClick={() => nav.go({ name: "tasks" })} />
+          <StatCard calm label="Open tasks" value={pending.length} onClick={() => nav.go({ name: "tasks" })} />
+          <StatCard calm label="Completed" value={completed.length} onClick={() => nav.go({ name: "tasks" })} />
+        </div>
+
+        <div className="mt-6"><SectionTitle dot={false} small action={<span className="text-[12px] text-ink-tertiary">{inProgress.length}</span>}>Active tasks</SectionTitle></div>
         <div className="mt-2.5 space-y-3 px-6">
           {inProgress.map((t) => <LsCard key={t.id} t={t} onOpen={() => openTask(t.id)} />)}
           {!inProgress.length && <p className="rounded-2xl bg-white p-4 text-center text-[12px] text-ink-tertiary">Nothing active. Accept a pending task.</p>}
@@ -337,6 +363,34 @@ export function LineStaffPrototype() {
         <div className="mt-6"><SectionTitle dot={false} small action={<span className="text-[12px] text-ink-tertiary">{completed.length}</span>}>Completed</SectionTitle></div>
         <div className="mt-2.5 space-y-3 px-6">
           {completed.map((t) => <LsCard key={t.id} t={t} onOpen={() => openTask(t.id)} />)}
+        </div>
+      </div>
+      {lsNav}
+    </div>
+  );
+
+  const Tasks = (
+    <div className="relative h-full">
+      <div className="h-full overflow-y-auto pb-28 no-scrollbar">
+        <div className="flex items-center justify-between px-6 py-2">
+          <div className="text-[20px] font-semibold text-ink">Tasks</div>
+          <div className="flex items-center gap-2">
+            <button onClick={() => nav.push({ name: "notifications" })} aria-label="Notifications" className="relative flex h-11 w-11 items-center justify-center rounded-full text-ink active:bg-ink/5">
+              <Bell className="h-[22px] w-[22px] text-ink" />
+              <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-red-500" />
+            </button>
+            <button onClick={openCreate} aria-label="Create task" className="flex h-11 w-11 items-center justify-center rounded-full bg-brand text-white active:bg-brand-hover">
+              <Plus className="h-6 w-6" strokeWidth={2.25} />
+            </button>
+          </div>
+        </div>
+        <div className="mt-3 px-6">
+          <SearchField value={taskQuery} onChange={setTaskQuery} placeholder="Search room, guest or task" />
+        </div>
+        <div className="mt-3"><Chips flat items={TASK_FILTERS} active={taskFilter} onChange={setTaskFilter} counts={taskChipCounts} /></div>
+        <div className="mt-3 space-y-3 px-6">
+          {tasksFiltered.map((t) => <LsCard key={t.id} t={t} onOpen={() => openTask(t.id)} onAccept={t.status === "pending" ? () => accept(t.id) : undefined} />)}
+          {!tasksFiltered.length && <p className="rounded-2xl bg-white p-6 text-center text-[13px] text-ink-tertiary">No tasks match.</p>}
         </div>
       </div>
       {lsNav}
@@ -455,7 +509,23 @@ export function LineStaffPrototype() {
           )}
           <Row icon={BedDouble} label="Room">{active.room}</Row>
           <Row icon={Building2} label="Department">{active.dept ?? "Housekeeping"}</Row>
+          <Row icon={UserCog} label="Assigned to">
+            {active.status === "pending" ? <span className="text-red-600">Unassigned</span> : LS_ME}
+          </Row>
         </div>
+
+        {active.guest !== "—" && (
+          <button
+            onClick={() => nav.push({ name: "guestChat", id: active.guest })}
+            className="flex w-full items-center justify-between rounded-2xl border border-line bg-white px-4 py-3.5 text-left"
+          >
+            <span className="flex items-center gap-3">
+              <MessageCircle className="h-4 w-4 text-ink-tertiary" />
+              <span className="text-[14px] font-medium text-ink">Go to guest chat</span>
+            </span>
+            <ChevronRight className="h-4 w-4 text-ink-tertiary" />
+          </button>
+        )}
 
         <div className="rounded-2xl bg-[#F6F6F8] p-4">
           <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-ink-tertiary">Notes</div>
@@ -578,7 +648,7 @@ export function LineStaffPrototype() {
   );
   const NotifSettings = <NotificationSettingsScreen persona="line" onBack={nav.back} />;
 
-  const VIEWS: Record<Screen["name"], React.ReactNode> = { home: Home, notifications: Notifications, taskDetail: TaskDetail, create: Create, guests: Guests, guestChat: GuestChat, guestProfile: GuestProfile, profile: Profile, notifSettings: NotifSettings };
+  const VIEWS: Record<Screen["name"], React.ReactNode> = { home: Home, tasks: Tasks, notifications: Notifications, taskDetail: TaskDetail, create: Create, guests: Guests, guestChat: GuestChat, guestProfile: GuestProfile, profile: Profile, notifSettings: NotifSettings };
 
   return (
     <div className="flex flex-col items-center gap-4">
