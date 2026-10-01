@@ -5,8 +5,6 @@ import {
   ArrowUp,
   ArrowDown,
   Minus,
-  ChevronDown,
-  Filter,
   Search,
   MessageCircle,
   MessageSquare,
@@ -21,11 +19,12 @@ import { Topbar } from "../components/Topbar";
 import { Breadcrumb } from "../components/Breadcrumb";
 import { Drawer } from "../components/Drawer";
 import { BarChart } from "../components/BarChart";
-import { Card, Button, Field, Input, Select, Modal, RoomNo } from "../components/ui";
+import { Card, Button, Field, Input, Select, Modal, RoomNo, StatCard } from "../components/ui";
 import { TASKS, assignTask, shortName } from "../data/tasks";
 import { usePersona, canonDept } from "../persona";
 import { ScopePicker } from "../components/ScopePicker";
 import { INITIAL, SHIFT_TIME, TINTS, type Staff, type Status, type ShiftName } from "../data/staff";
+import { DEPARTMENTS } from "../data/departments";
 
 const STATUS_STYLE: Record<Status, string> = {
   "On Duty": "bg-emerald-50 text-emerald-600",
@@ -91,7 +90,7 @@ export function levelOf(p: Perms): string {
   return Object.keys(PRESETS).find((n) => samePerms(PRESETS[n], p)) ?? "Custom";
 }
 
-const DEPT_OPTIONS = ["Housekeeping", "Engineering", "Guest Services", "Front Desk", "F&B", "Security", "Concierge"];
+const DEPT_CHIPS = DEPARTMENTS.map((d) => d.name);
 
 function initials(name: string) {
   return name.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
@@ -129,16 +128,10 @@ function TrendCell({ pct }: { pct: number }) {
   return <span className="inline-flex items-center gap-1 text-[13px] font-medium text-ink-tertiary"><Minus className="h-3.5 w-3.5" /> 0%</span>;
 }
 
-type GroupBy = "none" | "dept" | "shift" | "availability";
-
 export default function Team() {
   const [staff, setStaff] = useState<Staff[]>(INITIAL);
   const [query, setQuery] = useState("");
   const [dept, setDept] = useState("All Departments");
-  const [status, setStatus] = useState("All Statuses");
-  const [shift, setShift] = useState("All Shifts");
-  const [groupBy, setGroupBy] = useState<GroupBy>("none");
-  const [filtersOpen, setFiltersOpen] = useState(false);
   const [selected, setSelected] = useState<Staff | null>(null);
   const [checked, setChecked] = useState<Set<string>>(new Set());
   const [adding, setAdding] = useState(false);
@@ -160,31 +153,12 @@ export default function Team() {
       (s) =>
         inScope(s.dept) &&
         (!q || [s.name, s.role, s.dept, s.id].some((v) => v.toLowerCase().includes(q))) &&
-        (dept === "All Departments" || s.dept === dept) &&
-        (status === "All Statuses" || s.status === status) &&
-        (shift === "All Shifts" || s.shift === shift),
+        (dept === "All Departments" || canonDept(s.dept) === canonDept(dept)),
     );
-    if (groupBy === "dept") r = [...r].sort((a, b) => a.dept.localeCompare(b.dept));
-    if (groupBy === "shift") {
-      const order: ShiftName[] = ["Morning", "Afternoon", "Night"];
-      r = [...r].sort((a, b) => order.indexOf(a.shift) - order.indexOf(b.shift));
-    }
-    if (groupBy === "availability") {
-      const order: Status[] = ["On Duty", "On Break", "Off Duty"];
-      r = [...r].sort((a, b) => order.indexOf(a.status) - order.indexOf(b.status));
-    }
     return r;
-  }, [staff, query, dept, status, shift, groupBy, scopeDepts, manager]);
+  }, [staff, query, dept, scopeDepts, manager]);
 
-  const activeFilters =
-    Number(dept !== "All Departments") + Number(status !== "All Statuses") + Number(shift !== "All Shifts") + Number(groupBy !== "none");
-  const filtered = !!query || activeFilters > 0;
-  const clearFilters = () => {
-    setDept("All Departments");
-    setStatus("All Statuses");
-    setShift("All Shifts");
-    setGroupBy("none");
-  };
+  const filtered = !!query || dept !== "All Departments";
   const scoped = staff.filter((s) => inScope(s.dept));
   const total = manager ? scoped.length : 63 + (staff.length - INITIAL.length);
   const onDuty = manager ? scoped.filter((s) => s.status === "On Duty").length : 48;
@@ -237,22 +211,15 @@ export default function Team() {
           actions={manager ? <ScopePicker /> : undefined}
         />
         <main className="flex-1 overflow-y-auto bg-page">
-        <div className="p-6">
+        <div className="px-8 pb-8 pt-7">
           <div className={`grid grid-cols-2 gap-5 ${manager ? "xl:grid-cols-4" : "sm:grid-cols-3"}`}>
             {STATS.map((s) => (
-              <Card key={s.label} className="p-4">
-                <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-brand/25 bg-white text-brand">
-                  <s.icon className="h-[18px] w-[18px]" />
-                </span>
-                <div className="mt-3 text-[13px] font-medium text-ink-secondary">{s.label}</div>
-                <div className="mt-1 text-[28px] font-bold leading-none text-ink">{s.value}</div>
-                <div className="mt-1 text-[12px] font-medium text-ink-tertiary">{s.foot}</div>
-              </Card>
+              <StatCard key={s.label} icon={s.icon} label={s.label} value={s.value} foot={s.foot} />
             ))}
           </div>
 
-          <div className="relative mt-5 flex items-center gap-3">
-            <div className="relative min-w-0 max-w-md flex-1">
+          <div className="mt-7 space-y-3">
+            <div className="relative w-full max-w-sm">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-tertiary" />
               <input
                 value={query}
@@ -261,72 +228,22 @@ export default function Team() {
                 className="h-10 w-full rounded-control border border-line bg-white pl-9 pr-3 text-[13px] outline-none placeholder:text-ink-tertiary focus:border-brand"
               />
             </div>
-            <div className="relative shrink-0">
-              <button
-                onClick={() => setFiltersOpen((o) => !o)}
-                aria-label="Filters"
-                className={`relative flex h-10 w-10 items-center justify-center rounded-lg border ${
-                  filtersOpen || activeFilters
-                    ? "border-brand bg-brand-tint text-brand"
-                    : "border-line bg-white text-ink-secondary hover:bg-subtle"
-                }`}
-              >
-                <Filter className="h-4 w-4" />
-                {activeFilters > 0 && (
-                  <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-brand px-1 text-[10px] font-semibold text-white">
-                    {activeFilters}
-                  </span>
-                )}
-              </button>
-              {filtersOpen && (
-                <div className="absolute left-0 top-12 z-30 w-[360px] rounded-card border border-line bg-white p-4 shadow-lg">
-                  <div className="grid grid-cols-2 gap-3">
-                    {manager && <label className="block">
-                      <span className="mb-1 block text-[11px] text-ink-secondary">Availability</span>
-                      <Select className="h-9 text-[13px]" value={status} onChange={(e) => setStatus(e.target.value)}>
-                        <option>All Statuses</option>
-                        <option>On Duty</option>
-                        <option>On Break</option>
-                        <option>Off Duty</option>
-                      </Select>
-                    </label>}
-                    <label className="block">
-                      <span className="mb-1 block text-[11px] text-ink-secondary">Sort / group by</span>
-                      <Select className="h-9 text-[13px]" value={groupBy} onChange={(e) => setGroupBy(e.target.value as GroupBy)}>
-                        <option value="none">None</option>
-                        <option value="dept">Department</option>
-                        {manager && <option value="availability">Availability</option>}
-                      </Select>
-                    </label>
-                  </div>
-                  <div className="mt-3 flex items-center justify-between text-[12px] text-ink-secondary">
-                    <span>{rows.length} staff match</span>
-                    <button onClick={() => setFiltersOpen(false)} className="font-semibold text-brand">
-                      Done
-                    </button>
-                  </div>
-                </div>
-              )}
+            <div className="flex flex-wrap gap-2">
+              {["All", ...DEPT_CHIPS].map((d) => {
+                const on = d === "All" ? dept === "All Departments" : dept === d;
+                return (
+                  <button
+                    key={d}
+                    onClick={() => setDept(d === "All" ? "All Departments" : d)}
+                    className={`whitespace-nowrap rounded-full px-3.5 py-1.5 text-[13px] font-medium transition-all duration-200 hover:-translate-y-px ${
+                      on ? "bg-brand text-white" : "border border-line bg-white text-ink-secondary hover:bg-subtle"
+                    }`}
+                  >
+                    {d}
+                  </button>
+                );
+              })}
             </div>
-            {activeFilters > 0 && (
-              <button onClick={clearFilters} className="text-[13px] font-medium text-brand">
-                Clear filters
-              </button>
-            )}
-          </div>
-
-          <div className="mt-3 flex flex-wrap gap-2">
-            {["All Departments", ...DEPT_OPTIONS.filter(inScope)].map((d) => (
-              <button
-                key={d}
-                onClick={() => setDept(d)}
-                className={`whitespace-nowrap rounded-full px-3.5 py-1.5 text-[13px] font-medium transition-all duration-200 hover:-translate-y-px ${
-                  dept === d ? "bg-brand text-white" : "border border-line bg-white text-ink-secondary hover:bg-subtle"
-                }`}
-              >
-                {d}
-              </button>
-            ))}
           </div>
 
           <Card table className="mt-4">
@@ -699,7 +616,7 @@ function AddStaffModal({
       <div className="mt-3 grid grid-cols-2 gap-3">
         <Field label="Department">
           <Select value={dept} onChange={(e) => setDept(e.target.value)}>
-            {DEPT_OPTIONS.map((d) => (
+            {DEPT_CHIPS.map((d) => (
               <option key={d}>{d}</option>
             ))}
           </Select>

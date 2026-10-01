@@ -119,7 +119,7 @@ export default function GuestChats() {
   return (
     <>
       <Topbar title="Guest Chats" />
-      <div className="flex min-h-0 flex-1 gap-5 bg-page p-6">
+      <div className="flex min-h-0 flex-1 gap-5 bg-page px-8 pb-8 pt-7">
         {/* ---------------- conversations ---------------- */}
         <div className={`${SIDE_PANEL} transition-[width] duration-200 ${collapsed ? "w-[80px]" : "w-72"}`}>
           {collapsed ? (
@@ -184,7 +184,7 @@ export default function GuestChats() {
                         )}
                       </span>
                       <span className="min-w-0 flex-1">
-                        <span className="block truncate text-[14px] font-semibold text-ink">{g.name}</span>
+                        <span className="block truncate font-display text-[14px] font-semibold text-ink">{g.name}</span>
                         <span className="mt-0.5 block text-[12px] text-brand">Room {g.room}</span>
                         <span className="mt-1 flex items-center gap-2">
                           <span className="min-w-0 flex-1 truncate text-[12px] text-ink-secondary">{lm ? lm.text : "No messages yet"}</span>
@@ -210,7 +210,7 @@ export default function GuestChats() {
           <div className="flex items-center gap-3 border-b border-line/60 p-4">
             <span className={`flex h-10 w-10 items-center justify-center rounded-full font-display text-[13px] font-semibold ${guest.tint}`}>{guest.initials}</span>
             <div className="min-w-0 flex-1">
-              <div className="text-[16px] font-semibold leading-tight text-ink">{guest.name}</div>
+              <div className="font-display text-[16px] font-semibold leading-tight text-ink">{guest.name}</div>
               <div className="mt-0.5 text-[12px] text-ink-secondary">
                 Room {guest.room}{guest.nights > 0 && ` · ${guest.nights} Nights Stay`}
               </div>
@@ -240,7 +240,7 @@ export default function GuestChats() {
         {/* ---------------- guest information ---------------- */}
         <div className={`w-[320px] shrink-0 overflow-y-auto p-7 ${CARD}`}>
           <div className="flex items-center justify-between">
-            <span className="text-[14px] font-semibold text-ink">Guest Information</span>
+            <span className="font-display text-[14px] font-semibold text-ink">Guest Information</span>
             <Link to={`/guests/${guest.id}`} className="text-[13px] font-medium text-brand">View Profile</Link>
           </div>
           <div className="mt-5 flex flex-col items-center text-center">

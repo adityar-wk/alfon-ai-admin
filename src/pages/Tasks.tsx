@@ -27,10 +27,10 @@ import {
 } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { GuestChat, type ChatMsg, type ChatMode } from "../components/GuestChat";
-import { Card, Button, Field, Input, Select, Textarea, RoomNo } from "../components/ui";
+import { Card, Button, Field, Input, Select, Textarea, RoomNo, StatCard } from "../components/ui";
 import { TASKS, HELP_REQUESTS, AI_DRAFTS, logAudit, pendingHelpFor, resolveHelp, shortName, type Task, type Priority } from "../data/tasks";
 import { GUESTS } from "../data/guests";
-import { taskStatus, STATUS_PILL, COMPLAINT_PILL, slaSecs, formatClock, useClock, type TaskStatusLabel } from "../data/attention";
+import { taskStatus, STATUS_PILL, statusPillClass, COMPLAINT_PILL, slaSecs, formatClock, useClock, type TaskStatusLabel } from "../data/attention";
 import { SlaClock } from "../components/SlaClock";
 import { usePersona } from "../persona";
 import { ScopePicker } from "../components/ScopePicker";
@@ -127,15 +127,14 @@ function ComplaintPill({ className = "" }: { className?: string }) {
 const displayStatus = (label: TaskStatusLabel): TaskStatusLabel => (label === "SLA breached" || label === "SLA at risk" ? "In Progress" : label);
 
 function StatusLabel({ t }: { t: Pick<Task, "status" | "owner" | "sla"> }) {
-  const label = displayStatus(taskStatus(t));
-  return <span className={`whitespace-nowrap text-[13px] font-medium ${STATUS_PILL[label]}`}>{label}</span>;
+  return <StatusPill t={t} />;
 }
 
 /** pill background + text, matching the Alt Prototype's StatusBadge */
 const STATUS_BADGE: Record<string, { background: string; color: string }> = {
-  Escalated: { background: "#FEF2F2", color: "#DC2626" },
-  "SLA breached": { background: "#FEF2F2", color: "#DC2626" },
-  "SLA at risk": { background: "#FFFBEB", color: "#D97706" },
+  Escalated: { background: "#FEF2F2", color: "#EF4444" },
+  "SLA breached": { background: "#FEF2F2", color: "#EF4444" },
+  "SLA at risk": { background: "#FFF9EC", color: "#F59E0B" },
   "In Progress": { background: "#FFF9EC", color: "#D97706" },
   Pending: { background: "#F5F5F5", color: "#6B7280" },
   Completed: { background: "#F0FDF4", color: "#22C55E" },
@@ -308,22 +307,11 @@ export default function Tasks() {
         }
       />
       <main className="flex-1 overflow-y-auto bg-page">
-        <div className="p-6">
+        <div className="px-8 pb-8 pt-7">
 
         <div className={`grid grid-cols-2 gap-5 lg:grid-cols-3 ${manager ? "xl:grid-cols-6" : "xl:grid-cols-5"}`}>
           {stats.map((s) => (
-            <button
-              key={s.label}
-              onClick={() => setView(s.go)}
-              className="rounded-card border border-line bg-white p-4 text-left shadow-card transition duration-200 hover:-translate-y-0.5 hover:shadow-lift"
-            >
-              <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-brand/25 bg-white text-brand">
-                <s.icon className="h-[18px] w-[18px]" />
-              </span>
-              <div className="mt-3 text-[13px] font-medium text-ink-secondary">{s.label}</div>
-              <div className="mt-1 text-[28px] font-bold leading-none text-ink">{s.value}</div>
-              <div className="mt-1 text-[12px] font-medium text-ink-tertiary">{s.foot}</div>
-            </button>
+            <StatCard key={s.label} icon={s.icon} label={s.label} value={s.value} foot={s.foot} onClick={() => setView(s.go)} />
           ))}
         </div>
 
@@ -428,7 +416,7 @@ export default function Tasks() {
                           <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
                             {cap(t) && <ComplaintPill />}
                             {(taskStatus(t) === "SLA at risk" || taskStatus(t) === "SLA breached") && (
-                              <span className={`text-[11px] font-medium ${STATUS_PILL[taskStatus(t)]}`}>{taskStatus(t)}</span>
+                              <span className={`${statusPillClass} ${STATUS_PILL[taskStatus(t)]}`}>{taskStatus(t)}</span>
                             )}
                           </div>
                         </div>
@@ -734,7 +722,7 @@ function SlaTimer({ task }: { task: Task }) {
   const tone = met ? "text-emerald-600" : over ? "text-red-600" : frac < 0.25 ? "text-brand" : "text-emerald-600";
   const bar = met ? "bg-emerald-500" : over ? "bg-red-500" : frac < 0.25 ? "bg-brand" : "bg-emerald-500";
   const abs = Math.abs(secs);
-  const clock = `${over ? "-" : ""}${String(Math.floor(abs / 60)).padStart(2, "0")}:${String(abs % 60).padStart(2, "0")}`;
+  const clock = `${String(Math.floor(abs / 60)).padStart(2, "0")}:${String(abs % 60).padStart(2, "0")}`;
   return (
     <div>
       <div className="text-[11px] font-medium uppercase tracking-wide text-ink-secondary">

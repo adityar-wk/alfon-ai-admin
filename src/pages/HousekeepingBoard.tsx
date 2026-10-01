@@ -15,7 +15,7 @@ import {
   ClipboardCheck,
 } from "lucide-react";
 import { Topbar } from "../components/Topbar";
-import { Button, Field, Select, Input, Modal } from "../components/ui";
+import { Button, Card, Field, Select, Input, Modal } from "../components/ui";
 import { getDepartment } from "../data/departments";
 import { CLEANING_CHECKLIST, INSPECTION_CHECKLIST, TAG_TONE } from "../data/housekeepingChecklists";
 
@@ -192,24 +192,24 @@ export default function HousekeepingBoard() {
     <>
       <Topbar title="Housekeeping" />
       <main className="flex-1 overflow-y-auto bg-page">
-        <div className="p-6">
+        <div className="px-8 pb-8 pt-7">
         <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-5">
           {HEAD.map((h) => (
             <button
               key={h.status}
               onClick={() => setStatuses((cur) => (cur.length === 1 && cur[0] === h.status ? [] : [h.status]))}
-              className={`rounded-card border bg-white p-4 text-left shadow-card transition duration-200 hover:-translate-y-0.5 hover:shadow-lift ${statuses.length === 1 && statuses[0] === h.status ? "border-brand" : "border-line"}`}
+              className={`rounded-card border bg-white px-6 py-5 text-left shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lift ${statuses.length === 1 && statuses[0] === h.status ? "border-brand" : "border-line"}`}
             >
-              <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-brand/25 bg-white text-brand">
+              <span className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg border border-brand/25 bg-white text-brand">
                 <h.icon className="h-[18px] w-[18px]" />
               </span>
-              <div className="mt-3 text-[13px] font-medium text-ink-secondary">{STATUS_LABEL[h.status]}</div>
-              <div className="mt-1 text-[28px] font-bold leading-none text-ink">{count(h.status)}</div>
+              <div className="text-sm text-ink-secondary">{STATUS_LABEL[h.status]}</div>
+              <div className="mt-0.5 font-display text-[28px] font-bold leading-tight text-ink">{count(h.status)}</div>
             </button>
           ))}
         </div>
 
-        <div className="relative mt-6 flex items-center gap-3">
+        <div className="relative mt-6 flex items-center gap-2">
           <div className="relative shrink-0">
             <button
               aria-label="Filters"
@@ -248,28 +248,28 @@ export default function HousekeepingBoard() {
               </div>
             )}
           </div>
-          {activeFilters > 0 && <button onClick={clearFilters} className="text-[13px] font-medium text-brand">Clear filters</button>}
-        </div>
-
-        <div className="mt-3 flex flex-wrap gap-2">
+          {activeFilters > 0 && <button onClick={clearFilters} className="shrink-0 text-[13px] font-medium text-brand">Clear filters</button>}
+          <div className="flex min-w-0 flex-1 flex-nowrap items-center gap-2 overflow-x-auto">
           {(["all", ...FLOORS] as const).map((f) => (
             <button
               key={f}
               onClick={() => setFloor(f)}
-              className={`whitespace-nowrap rounded-full px-3.5 py-1.5 text-[13px] font-medium transition-all duration-200 hover:-translate-y-px ${
+              className={`shrink-0 whitespace-nowrap rounded-full px-3.5 py-1.5 text-[13px] font-medium transition-all duration-200 hover:-translate-y-px ${
                 floor === f ? "bg-brand text-white" : "border border-line bg-white text-ink-secondary hover:bg-subtle"
               }`}
             >
               {f === "all" ? "All floors" : `Floor ${f}`}
             </button>
           ))}
+          </div>
         </div>
 
         <div className="mt-3 text-[12px] text-ink-tertiary">
           Showing {visible.length ? (pageSafe - 1) * PAGE_SIZE + 1 : 0}–{Math.min(pageSafe * PAGE_SIZE, visible.length)} of {visible.length} rooms
         </div>
 
-        <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <Card className="mt-3 p-5">
+        <div className="grid grid-cols-5 gap-3">
           {paged.map((r) => {
             const occupied = !!r.guest;
             const dulled = r.status === "ooo";
@@ -282,33 +282,33 @@ export default function HousekeepingBoard() {
                 aria-label={`Open room ${r.no}`}
                 onClick={() => setAssignFor(r)}
                 onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && setAssignFor(r)}
-                className={`flex cursor-pointer flex-col rounded-2xl border p-4 transition-colors hover:border-brand/40 ${
+                className={`flex cursor-pointer flex-col rounded-2xl border p-3 ${
                   dulled ? "bg-subtle" : "bg-white"
                 } ${STATUS_BORDER[r.status]}`}
               >
                 <div className="flex items-start justify-between">
-                  {(() => { const Icon = STATUS_ICON[r.status]; return <span title={STATUS_LABEL[r.status]} aria-label={STATUS_LABEL[r.status]} role="img" className={`flex h-9 w-9 items-center justify-center rounded-full ${STATUS_ICON_TONE[r.status]}`}><Icon className="h-[18px] w-[18px]" /></span>; })()}
+                  {(() => { const Icon = STATUS_ICON[r.status]; return <span title={STATUS_LABEL[r.status]} aria-label={STATUS_LABEL[r.status]} role="img" className={`flex h-7 w-7 items-center justify-center rounded-full ${STATUS_ICON_TONE[r.status]}`}><Icon className="h-3.5 w-3.5" /></span>; })()}
                   <span
                     title={occupied ? "Occupied" : "Vacant"}
                     aria-label={occupied ? "Occupied" : "Vacant"}
-                    className="flex h-8 w-8 items-center justify-center text-ink"
+                    className="flex h-6 w-6 items-center justify-center text-ink"
                   >
-                    {occupied ? <User className="h-4 w-4" /> : <DoorClosed className="h-4 w-4" />}
+                    {occupied ? <User className="h-3.5 w-3.5" /> : <DoorClosed className="h-3.5 w-3.5" />}
                   </span>
                 </div>
-                <div className={`mt-3 text-[15px] font-bold ${dulled ? "text-ink-tertiary" : "text-ink"}`}>Room {r.no}</div>
-                <div className="truncate text-[12px] text-ink-secondary">{r.type} · Floor {r.floor}</div>
-                <div className={`mt-2 text-[13px] font-semibold ${STATUS_TEXT_TONE[r.status]}`}>{STATUS_LABEL[r.status]}</div>
+                <div className={`mt-2 text-[13px] font-bold ${dulled ? "text-ink-tertiary" : "text-ink"}`}>Room {r.no}</div>
+                <div className="truncate text-[11px] text-ink-secondary">{r.type} · Floor {r.floor}</div>
+                <div className={`mt-1.5 text-[12px] font-semibold ${STATUS_TEXT_TONE[r.status]}`}>{STATUS_LABEL[r.status]}</div>
                 {r.mins != null && (
-                  <div className="mt-2.5">
-                    <div className="h-1.5 overflow-hidden rounded-full bg-subtle">
+                  <div className="mt-2">
+                    <div className="h-1 overflow-hidden rounded-full bg-subtle">
                       <div className="h-full rounded-full bg-emerald-500" style={{ width: `${progressPct}%` }} />
                     </div>
-                    <div className="mt-1.5 flex items-center justify-between gap-2">
-                      <span className="flex shrink-0 items-center gap-1 text-[12px] font-medium text-emerald-600">
+                    <div className="mt-1 flex items-center justify-between gap-2">
+                      <span className="flex shrink-0 items-center gap-1 text-[11px] font-medium text-emerald-600">
                         <Timer className="h-3 w-3" /> {r.mins} mins left
                       </span>
-                      {r.assignedTo && <span className="truncate text-[11px] font-medium text-ink-secondary">{r.assignedTo}</span>}
+                      {r.assignedTo && <span className="truncate text-[10px] font-medium text-ink-secondary">{r.assignedTo}</span>}
                     </div>
                   </div>
                 )}
@@ -321,6 +321,7 @@ export default function HousekeepingBoard() {
             </div>
           )}
         </div>
+        </Card>
 
         {totalPages > 1 && (
           <div className="mt-4 flex items-center justify-between">

@@ -20,6 +20,24 @@
     background: theme("colors.brand.tint");
     color: theme("colors.brand.hover");
   }
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #e5e5e5 transparent;
+  }
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #e5e5e5;
+    border-radius: 8px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #d4d4d4;
+  }
   /* Sora: headings and key numbers; everything else is Inter */
   h1,
   h2,
@@ -131,9 +149,9 @@
     justify-content: center;
   }
   .health-orb__score {
-    font-family: theme("fontFamily.display");
+    font-family: "Outfit", "Sora", sans-serif;
     font-weight: 600;
-    font-size: 54px;
+    font-size: 46px;
     letter-spacing: -1.5px;
     line-height: 1;
     color: #1c1c1e;

@@ -20,9 +20,9 @@ export default {
         surface2: "#F6F4EF",
         teal: "#2E86AB",
         purple: "#7C3AED",
-        success: "#16A34A",
-        warning: "#D97706",
-        danger: "#DC2626",
+        success: "#22C55E",
+        warning: "#F59E0B",
+        danger: "#EF4444",
         info: "#2E86AB",
       },
       fontFamily: {

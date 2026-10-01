@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   ListChecks,
@@ -28,16 +28,16 @@ import {
   CheckCircle2,
   Circle,
   AlertTriangle,
+  MoreVertical,
 } from "lucide-react";
 import { Topbar } from "../components/Topbar";
-import { Card, Select, RoomNo } from "../components/ui";
-import { TASKS } from "../data/tasks";
+import { Card } from "../components/ui";
+import { TASKS, type Task } from "../data/tasks";
 import { GUESTS } from "../data/guests";
 import { seedChat } from "./GuestProfile";
 import Orb from "../components/Orb";
 import { scoreBand } from "../data/scoreBand";
-import { taskStatus, STATUS_PILL, COMPLAINT_PILL, useClock, type TaskStatusLabel } from "../data/attention";
-import { SlaClock } from "../components/SlaClock";
+import { useClock } from "../data/attention";
 import { usePersona } from "../persona";
 import { useOnboardingProgress } from "../data/onboarding";
 import { OnboardingStepsGrid } from "../components/OnboardingSteps";
@@ -193,8 +193,81 @@ function Trend({ t }: { t: "up" | "down" | "flat" }) {
   return <Minus className="h-3.5 w-3.5 text-ink-tertiary" />;
 }
 
-// what needs attention: escalations, SLA breaches, SLA at risk and pending (unassigned) work
-const ATTENTION: TaskStatusLabel[] = ["Escalated", "SLA breached", "SLA at risk", "Pending"];
+const STATUS_STYLE: Record<string, { bg: string; color: string }> = {
+  "In Progress": { bg: "#FFF9EC", color: "#D97706" },
+  Pending: { bg: "#F5F5F5", color: "#6B7280" },
+  Escalated: { bg: "#FEF2F2", color: "#EF4444" },
+  Completed: { bg: "#F0FDF4", color: "#22C55E" },
+};
+
+function homeStatus(t: Task) {
+  if (t.status === "Escalated") return "Escalated";
+  if (t.status === "In Progress") return "In Progress";
+  if (t.status === "Completed") return "Completed";
+  return "Pending";
+}
+
+/** clock time the task is due, from the SLA offset, matching the prototype Due column */
+function dueClock(sla: Task["sla"]) {
+  if (sla.kind === "met") return "—";
+  const h = sla.text.match(/(\d+)\s*hr/);
+  const m = sla.text.match(/(\d+)\s*min/);
+  const mins = (h ? Number(h[1]) * 60 : 0) + (m ? Number(m[1]) : 0);
+  const d = new Date();
+  d.setMinutes(d.getMinutes() + (sla.kind === "overdue" ? -mins : mins));
+  return d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
+}
+
+function initials(name: string) {
+  return name.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase();
+}
+
+function FilterPill({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  options: { id: string; label: string }[];
+  onChange: (id: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const close = (e: MouseEvent) => !ref.current?.contains(e.target as Node) && setOpen(false);
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+  }, [open]);
+  const current = options.find((o) => o.id === value)?.label ?? label;
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="rounded-full bg-subtle px-2.5 py-1 text-[12px] text-ink-secondary"
+      >
+        {current}
+      </button>
+      {open && (
+        <div className="absolute right-0 top-8 z-20 max-h-64 w-44 overflow-auto rounded-xl border border-line bg-white p-1 shadow-lg">
+          {options.map((o) => (
+            <button
+              key={o.id}
+              type="button"
+              onClick={() => { onChange(o.id); setOpen(false); }}
+              className={`block w-full rounded-lg px-2.5 py-1.5 text-left text-[12px] hover:bg-subtle ${o.id === value ? "font-semibold text-brand" : "text-ink"}`}
+            >
+              {o.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function Home() {
   useClock();
@@ -202,21 +275,15 @@ export default function Home() {
   const { persona, me } = usePersona();
   const hello = greeting(me.name);
   const [dept, setDept] = useState("all");
+  const [priority, setPriority] = useState("all");
   const [scoreOpen, setScoreOpen] = useState(false);
 
   const open = TASKS.filter((t) => t.status !== "Completed" && t.status !== "Unable to Complete" && t.status !== "Void");
 
   const depts = Array.from(new Set(open.map((t) => t.dept))).sort();
-  // a mix of what needs attention: escalations, SLA breaches, SLA at risk and complaints
-  const pending = useMemo(() => {
-    const buckets = ATTENTION.map((r) => open.filter((t) => (dept === "all" || t.dept === dept) && taskStatus(t) === r));
-    const picked: (typeof TASKS)[number][] = [];
-    for (let i = 0; picked.length < 6 && buckets.some((b) => i < b.length); i++) {
-      for (const b of buckets) if (i < b.length && picked.length < 6) picked.push(b[i]);
-    }
-    return picked.sort((x, y) => ATTENTION.indexOf(taskStatus(x)) - ATTENTION.indexOf(taskStatus(y)));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [TASKS.length, dept]);
+  const pending = open
+    .filter((t) => (dept === "all" || t.dept === dept) && (priority === "all" || t.priority === priority))
+    .slice(0, 6);
 
   const score = Math.max(0, Math.min(100, Math.round(82 + BASELINE - penalty(TASKS))));
   const band = scoreBand(score);
@@ -226,7 +293,7 @@ export default function Home() {
       <>
         <Topbar title={hello} subtitle={`Here's what's happening at ${HOTEL}`} />
         <main className="flex-1 overflow-y-auto bg-page">
-        <div className="p-6">
+        <div className="px-8 pb-8 pt-7">
           <OnboardingProgressCard />
           <div className="mt-6">
             <h3 className="mb-3 text-[15px] font-semibold text-ink">Setup steps</h3>
@@ -242,21 +309,20 @@ export default function Home() {
     <>
       <Topbar title={hello} subtitle={`Here's what's happening at ${HOTEL}`} />
       <main className="flex-1 overflow-y-auto bg-page">
-        <div className="flex flex-col gap-8 p-6">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="flex flex-col gap-7 px-8 pb-8 pt-7">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
           {PILLARS.map((p) => (
-            <Card key={p.label} className="flex flex-col justify-between p-5">
-              <div className="flex items-center justify-between">
-                <span className="flex items-center gap-2 text-[12px] text-ink-secondary">
-                  <span className="flex h-7 w-7 items-center justify-center rounded-lg border border-line text-brand"><p.icon className="h-3.5 w-3.5" /></span>
-                  {p.label}
-                </span>
-                <Trend t={p.trend} />
-              </div>
-              <div className="mt-2 flex items-end justify-between gap-3">
+            <Card key={p.label} className="px-6 py-5">
+              <span className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg border border-brand/25 bg-white text-brand">
+                <p.icon className="h-[18px] w-[18px]" />
+              </span>
+              <div className="text-sm text-ink-secondary">{p.label}</div>
+              <div className="mt-0.5 flex items-end justify-between gap-3">
                 <div>
-                  <div className="text-[22px] font-bold leading-tight text-ink">{p.value}</div>
-                  <div className={`text-[12px] font-medium ${p.tag === "Excellent" ? "text-emerald-600" : "text-amber-600"}`}>{p.tag}</div>
+                  <div className="font-display text-[28px] font-bold leading-tight text-ink">{p.value}</div>
+                  <div className={`mt-1 flex items-center gap-1 text-xs font-medium ${p.tag === "Excellent" ? "text-success" : "text-warning"}`}>
+                    <Trend t={p.trend} /> {p.tag}
+                  </div>
                 </div>
                 <div className="w-24 shrink-0"><Spark data={p.spark} /></div>
               </div>
@@ -327,65 +393,106 @@ export default function Home() {
         <div className="grid grid-cols-1 items-stretch gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(420px,46%)]">
           {/* height:0 + min-h-full so the tasks card matches the right column without growing the row */}
           <Card table className="flex min-h-0 flex-col overflow-hidden xl:h-0 xl:min-h-full">
-            <div className="flex shrink-0 flex-wrap items-center gap-3 px-5 py-4">
-              <ListChecks className="h-[18px] w-[18px] text-brand" />
-              <h3 className="text-[16px] font-semibold text-ink">Tasks</h3>
-              <div className="ml-auto flex items-center gap-2">
-                <div className="w-40"><Select className="h-9 text-[12px]" value={dept} onChange={(e) => setDept(e.target.value)} aria-label="Department">
-                  <option value="all">All Departments</option>{depts.map((d) => <option key={d}>{d}</option>)}
-                </Select></div>
-                <Link to="/tasks" className="ml-2 text-[13px] font-semibold text-brand">View all</Link>
+            <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-line px-6 py-4">
+              <div className="flex items-center gap-2">
+                <ListChecks className="h-4 w-4 text-brand" />
+                <h3 className="font-display text-[16px] font-semibold text-ink">Pending Tasks</h3>
+              </div>
+              <div className="flex items-center gap-2">
+                <FilterPill
+                  label="All Departments"
+                  value={dept}
+                  onChange={setDept}
+                  options={[{ id: "all", label: "All Departments" }, ...depts.map((d) => ({ id: d, label: d }))]}
+                />
+                <FilterPill
+                  label="All Priority"
+                  value={priority}
+                  onChange={setPriority}
+                  options={[
+                    { id: "all", label: "All Priority" },
+                    { id: "Critical", label: "Critical" },
+                    { id: "High", label: "High" },
+                    { id: "Medium", label: "Medium" },
+                    { id: "Low", label: "Low" },
+                  ]}
+                />
+                <Link to="/tasks" className="ml-1 text-[14px] font-medium text-brand">View all</Link>
               </div>
             </div>
-            <div className="min-h-0 flex-1 overflow-auto border-t border-line">
-              <table className="w-full table-fixed text-left">
-                <colgroup>
-                  <col className="w-[20%]" />
-                  <col className="w-[20%]" />
-                  <col className="w-[20%]" />
-                  <col className="w-[20%]" />
-                  <col className="w-[20%]" />
-                </colgroup>
-                <thead className="sticky top-0 z-10">
-                  <tr className="bg-[#F4F4F5] text-[12px] uppercase tracking-wide text-[#6B7280]">
-                    <th className="truncate py-3.5 pl-4 font-medium">SLA</th>
-                    <th className="truncate py-3.5 pl-3 font-medium">Task</th>
-                    <th className="truncate py-3.5 pl-3 font-medium">Status</th>
-                    <th className="truncate py-3.5 pl-3 font-medium">Department</th>
-                    <th className="truncate py-3.5 pl-3 font-medium">Assigned To</th>
+            <div className="min-h-0 flex-1 overflow-auto">
+              <table className="w-full min-w-[760px] text-left text-[14px]">
+                <thead className="sticky top-0 z-10 bg-white">
+                  <tr className="text-[12px] uppercase tracking-wide text-ink-tertiary">
+                    <th className="px-6 py-2 font-medium" />
+                    <th className="px-3 py-2 font-medium">Task</th>
+                    <th className="px-3 py-2 font-medium">Department</th>
+                    <th className="px-3 py-2 font-medium">Assigned To</th>
+                    <th className="px-3 py-2 font-medium">Status</th>
+                    <th className="px-3 py-2 font-medium">Due</th>
+                    <th className="px-3 py-2 font-medium" />
                   </tr>
                 </thead>
                 <tbody>
                   {pending.map((t) => {
                     const D = DEPT_ICON[t.dept] ?? Building2;
-                    const status = taskStatus(t);
+                    const status = homeStatus(t);
+                    const pill = STATUS_STYLE[status];
                     return (
-                      <tr key={t.id} onClick={() => navigate(`/tasks?open=${t.id}`)} className="cursor-pointer border-b border-line/50 last:border-0 hover:bg-subtle/60">
-                        <td className="truncate py-3.5 pl-4 pr-2">
-                          <SlaClock sla={t.sla} />
+                      <tr
+                        key={t.id}
+                        onClick={() => navigate(`/tasks?open=${t.id}`)}
+                        className="cursor-pointer border-t border-line hover:bg-[#FAFAFA]"
+                      >
+                        <td className="px-6 py-3">
+                          <input type="checkbox" aria-label={`Select ${t.title}`} className="accent-brand" onClick={(e) => e.stopPropagation()} />
                         </td>
-                        <td className="min-w-0 py-3.5 pl-3 pr-2">
-                          <div className="flex min-w-0 items-center gap-2 text-[13px] font-semibold text-ink">
+                        <td className="px-3 py-3">
+                          <div className="flex items-center gap-1.5 font-medium text-ink">
                             <span className="truncate">{t.title}</span>
+                            {!!t.compensation?.length && (
+                              <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-[#F0FDF4] text-[10px] font-bold text-[#22C55E]" title="Compensation logged">$</span>
+                            )}
                             {t.tag === "Complaint" && (
-                              <span className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ${COMPLAINT_PILL}`}>
-                                <AlertTriangle className="h-3 w-3" /> Complaint
+                              <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[#FEF2F2] px-1.5 py-0.5 text-[10px] font-bold text-[#DC2626]">
+                                <AlertTriangle className="h-2.5 w-2.5" /> Complaint
                               </span>
                             )}
                           </div>
-                          <div className="truncate text-[12px] text-ink-tertiary"><RoomNo room={t.room} /></div>
+                          <div className="text-[12px] text-ink-tertiary">{t.guest} · Room {t.room}</div>
                         </td>
-                        <td className="truncate py-3.5 pl-3 pr-2">
-                          <span className={`text-[13px] font-medium ${STATUS_PILL[status]}`}>{status}</span>
+                        <td className="px-3 py-3">
+                          <span className="flex items-center gap-1.5 whitespace-nowrap text-ink-secondary">
+                            <D className="h-[13px] w-[13px] shrink-0 text-ink-tertiary" /> {t.dept}
+                          </span>
                         </td>
-                        <td className="truncate text-[13px] text-ink-secondary py-3.5 pl-3 pr-2"><span className="flex min-w-0 items-center gap-1.5"><D className="h-3.5 w-3.5 shrink-0 text-ink-tertiary" /><span className="truncate">{t.dept}</span></span></td>
-                        <td className="truncate text-[13px] py-3.5 pl-3 pr-3">
-                          {t.owner ? <span className="truncate text-ink">{t.owner}</span> : <span className="font-medium text-brand">Unassigned</span>}
+                        <td className="px-3 py-3">
+                          {t.owner ? (
+                            <span className="flex items-center gap-1.5 whitespace-nowrap">
+                              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-tint font-display text-[10px] font-semibold text-brand">{initials(t.owner)}</span>
+                              <span className="text-ink">{t.owner}</span>
+                            </span>
+                          ) : (
+                            <span className="font-medium text-brand">Unassigned</span>
+                          )}
+                        </td>
+                        <td className="px-3 py-3">
+                          <span className="inline-flex whitespace-nowrap rounded-full px-2.5 py-1 text-[12px] font-medium" style={{ background: pill.bg, color: pill.color }}>
+                            {status}
+                          </span>
+                        </td>
+                        <td className="whitespace-nowrap px-3 py-3 text-ink">{dueClock(t.sla)}</td>
+                        <td className="px-3 py-3">
+                          <MoreVertical className="h-[15px] w-[15px] text-ink-tertiary" />
                         </td>
                       </tr>
                     );
                   })}
-                  {!pending.length && <tr><td colSpan={5} className="text-center text-[14px] text-ink-tertiary py-3.5 pl-4 pr-3">No pending tasks match.</td></tr>}
+                  {!pending.length && (
+                    <tr>
+                      <td colSpan={7} className="px-6 py-6 text-center text-[14px] text-ink-tertiary">No pending tasks match.</td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -455,7 +562,7 @@ export default function Home() {
                 { n: TASKS.filter((t) => t.status !== "Completed" && t.status !== "Void" && t.status !== "Unable to Complete" && t.sla.kind === "overdue").length, label: "Overdue", tone: "text-red-500" },
               ].map((s) => (
                 <div key={s.label}>
-                  <div className={`font-display text-[22px] font-bold leading-none ${s.tone}`}>{s.n}</div>
+                  <div className={`font-display text-[28px] font-bold leading-none ${s.tone}`}>{s.n}</div>
                   <div className="mt-1 text-[11px] text-ink-tertiary">{s.label}</div>
                 </div>
               ))}

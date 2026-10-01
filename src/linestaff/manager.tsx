@@ -3,7 +3,7 @@ import { Logo } from "../components/Logo";
 import { useMemo, useState } from "react";
 import {
   Bell, Home as HomeIcon, Plus, Users, UserCog, UserPlus, ArrowUpRight, MessageCircle, Send, Filter, ChevronRight, ChevronLeft, Search,
-  ListChecks, ContactRound, BarChart3, AlertTriangle, User, BedDouble, DoorOpen, Building2, FileText, Download, Lock, UtensilsCrossed, Languages, Thermometer, AlarmClock, Wine, Phone, Mail, Sparkles, SlidersHorizontal, LogOut,
+  ListChecks, ContactRound, BarChart3, AlertTriangle, User, BedDouble, DoorOpen, Building2, FileText, Download, UtensilsCrossed, Languages, Thermometer, AlarmClock, Wine, Phone, Mail, Sparkles, SlidersHorizontal, LogOut,
   CheckCircle2, Loader, AlertCircle, CircleSlash, Wrench, ClipboardCheck,
 } from "lucide-react";
 import { CLEANING_CHECKLIST, INSPECTION_CHECKLIST, TAG_TONE } from "../data/housekeepingChecklists";
@@ -104,9 +104,7 @@ const MENU_ITEMS = [
   { key: "reports" as const, label: "Reports", icon: FileText },
 ];
 
-const REPORTS: { name: string; desc: string; locked?: boolean }[] = [
-  { name: "Manual Task Integrity Report", desc: "All manually created tasks, with automatic flagging of suspicious patterns for review.", locked: true },
-  { name: "SLA & Timing Adjustment Report", desc: "Every change made to SLA targets or task completion times, with full attribution.", locked: true },
+const REPORTS: { name: string; desc: string }[] = [
   { name: "Action Report", desc: "All proactive guest actions flagged by Alfon AI — department, assignee, and completion status." },
   { name: "Pre-Arrival Preference Report", desc: "Amenity preparation guide per arriving guest — dietary, minibar, room setup, and special requests." },
   { name: "Task Report", desc: "Breakdown of all tasks by department, status, and response time." },
@@ -211,6 +209,9 @@ export function ManagerPrototype() {
   const [draft, setDraft] = useState("");
   const [aiDrafts, setAiDrafts] = useState<Record<string, string>>({});
   const [signedOut, setSignedOut] = useState(false);
+  const [reportFrom, setReportFrom] = useState(() => { const d = new Date(); d.setDate(d.getDate() - 6); return d.toISOString().slice(0, 10); });
+  const [reportTo, setReportTo] = useState(() => new Date().toISOString().slice(0, 10));
+  const [reportDept, setReportDept] = useState("All departments");
   const [editingDraft, setEditingDraft] = useState(false);
   // create task
   const [service, setService] = useState("");
@@ -971,59 +972,72 @@ export function ManagerPrototype() {
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-2">
-          <div className={`min-w-0 rounded-2xl bg-white p-3 ${CARD_SHADOW}`}>
-            <div className="text-[11px] font-semibold leading-tight text-ink">Top requests</div>
-            <div className="mt-2 space-y-1.5">
-              {HK_TOP_REQUESTS.slice(0, 3).map(([l, v]) => (
-                <div key={l} className="min-w-0">
-                  <div className="truncate text-[10px] text-ink-secondary">{l}</div>
-                  <div className="text-[12px] font-semibold text-ink">{v.toLocaleString()}</div>
+        <div className={`rounded-2xl bg-white p-4 ${CARD_SHADOW}`}>
+          <div className="text-[13px] font-semibold text-ink">Top requests</div>
+          <div className="mt-3 space-y-3">
+            {HK_TOP_REQUESTS.slice(0, 4).map(([label, count]) => (
+              <div key={label}>
+                <div className="flex items-baseline justify-between gap-3">
+                  <span className="text-[13px] text-ink">{label}</span>
+                  <span className="font-display text-[14px] font-semibold text-ink">{count.toLocaleString()}</span>
                 </div>
-              ))}
-            </div>
-          </div>
-
-          <div className={`min-w-0 rounded-2xl bg-white p-3 ${CARD_SHADOW}`}>
-            <div className="text-[11px] font-semibold leading-tight text-ink">Recurring complaints</div>
-            <div className="mt-2 space-y-1.5">
-              {HK_COMPLAINTS.slice(0, 3).map((c) => (
-                <div key={c.name} className="min-w-0">
-                  <div className="truncate text-[10px] text-ink-secondary">{c.name}</div>
-                  <div className="text-[12px] font-semibold text-ink">{c.v}</div>
+                <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-[#F0EEE8]">
+                  <div className="h-full rounded-full bg-brand" style={{ width: `${Math.round((count / HK_TOP_REQUESTS[0][1]) * 100)}%` }} />
                 </div>
-              ))}
-              {!HK_COMPLAINTS.length && <p className="text-[10px] text-ink-tertiary">None this week.</p>}
-            </div>
-          </div>
-
-          <div className={`min-w-0 rounded-2xl bg-white p-3 ${CARD_SHADOW}`}>
-            <div className="text-[11px] font-semibold leading-tight text-ink">Guest satisfaction</div>
-            <div className="mt-2">
-              <div className="flex items-baseline gap-1">
-                <span className="text-[22px] font-bold leading-none text-ink">{HK_SATISFACTION.score}</span>
-                <span className="text-[10px] text-ink-tertiary">/ 5</span>
               </div>
-              <div className="mt-0.5 text-[10px] font-medium text-brand">{HK_SATISFACTION.delta} vs last week</div>
-              <div className="mt-2 space-y-0.5 text-[10px] text-ink-secondary">
-                <div className="flex justify-between gap-1"><span>Promoters</span><span className="font-semibold text-ink">{HK_SATISFACTION.promoters}%</span></div>
-                <div className="flex justify-between gap-1"><span>Neutral</span><span className="font-semibold text-ink">{HK_SATISFACTION.neutral}%</span></div>
-                <div className="flex justify-between gap-1"><span>Detractors</span><span className="font-semibold text-ink">{HK_SATISFACTION.detractors}%</span></div>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
 
         <div className={`rounded-2xl bg-white p-4 ${CARD_SHADOW}`}>
-          <div className="text-[13px] font-semibold text-ink">Peak hour by department</div>
-          <div className="mt-3 space-y-2.5">
-            {HK_PEAK_HOURS.map((row) => (
-              <div key={row.dept} className="min-w-0">
-                <div className="flex items-center justify-between gap-2 text-[12px]">
-                  <span className="truncate text-ink-secondary">{row.dept}</span>
-                  <span className="shrink-0 font-semibold text-ink">{row.peak}</span>
+          <div className="text-[13px] font-semibold text-ink">Recurring complaints</div>
+          <div className="mt-3 space-y-3">
+            {HK_COMPLAINTS.slice(0, 4).map((c) => (
+              <div key={c.name} className="flex items-center justify-between gap-3">
+                <span className="min-w-0 text-[13px] text-ink">{c.name}</span>
+                <span className="shrink-0 font-display text-[14px] font-semibold text-ink">{c.v}</span>
+              </div>
+            ))}
+            {!HK_COMPLAINTS.length && <p className="text-[13px] text-ink-tertiary">None this week.</p>}
+          </div>
+        </div>
+
+        <div className={`rounded-2xl bg-white p-4 ${CARD_SHADOW}`}>
+          <div className="text-[13px] font-semibold text-ink">Guest satisfaction</div>
+          <div className="mt-2 flex items-baseline gap-1.5">
+            <span className="font-display text-[32px] font-bold leading-none text-ink">{HK_SATISFACTION.score}</span>
+            <span className="text-[13px] text-ink-tertiary">/ 5</span>
+            <span className="ml-auto text-[12px] font-medium text-brand">{HK_SATISFACTION.delta} vs last week</span>
+          </div>
+          <div className="mt-4 space-y-2.5">
+            {([
+              ["Promoters", HK_SATISFACTION.promoters, "bg-emerald-500"],
+              ["Neutral", HK_SATISFACTION.neutral, "bg-amber-400"],
+              ["Detractors", HK_SATISFACTION.detractors, "bg-red-400"],
+            ] as const).map(([label, pct, bar]) => (
+              <div key={label}>
+                <div className="flex items-baseline justify-between text-[13px]">
+                  <span className="text-ink-secondary">{label}</span>
+                  <span className="font-semibold text-ink">{pct}%</span>
                 </div>
                 <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-[#F0EEE8]">
+                  <div className={`h-full rounded-full ${bar}`} style={{ width: `${pct}%` }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className={`rounded-2xl bg-white p-4 ${CARD_SHADOW}`}>
+          <div className="text-[13px] font-semibold text-ink">Peak hour</div>
+          <div className="mt-3 space-y-3">
+            {HK_PEAK_HOURS.map((row) => (
+              <div key={row.dept}>
+                <div className="flex items-baseline justify-between gap-3">
+                  <span className="text-[13px] text-ink">{row.dept}</span>
+                  <span className="shrink-0 text-[13px] font-semibold text-ink">{row.peak}</span>
+                </div>
+                <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-[#F0EEE8]">
                   <div className="h-full rounded-full bg-brand" style={{ width: `${row.load}%` }} />
                 </div>
               </div>
@@ -1034,37 +1048,57 @@ export function ManagerPrototype() {
     </div>
   );
 
+  const reportRangeOk = !!reportFrom && !!reportTo && reportFrom <= reportTo;
+  const reportDeptOk = (dept: string) => reportDept === "All departments" || dept === reportDept;
   const reportRows = (name: string): (string | number)[][] => {
+    const meta: (string | number)[][] = [[name], [`Period: ${reportFrom} to ${reportTo}`], [`Department: ${reportDept}`], []];
+    const scoped = tasks.filter(() => reportDeptOk("Housekeeping"));
     const taskRow = (t: MTask) => [t.room, t.title, t.priority, t.status, t.owner ?? "Unassigned", t.slaLeft];
     const taskHead = ["Room", "Task", "Priority", "Status", "Owner", "SLA left (min)"];
-    if (name === "Team Performance Report") return [["Name", "Role"], ...STAFF.map((x) => [x.name, x.role])];
-    if (name === "Pre-Arrival Preference Report") return [["Guest", "Room", "Arrival", "Preferences"], ...PRE_ARRIVAL_GUESTS.map((g) => [g.name, g.room, g.eta, g.prefs.map((p) => `${p.label}: ${p.value}`).join("; ")])];
-    if (name === "Complaint Report") return [taskHead, ...tasks.filter((t) => t.complaint).map(taskRow)];
-    if (name === "SLA Breach Report") return [taskHead, ...tasks.filter(isOverdue).map(taskRow)];
-    if (name === "Audit Trail") return [["Room", "Time", "Event"], ...tasks.flatMap((t) => t.timeline.map((e) => [t.room, e.t, e.text]))];
-    return [taskHead, ...tasks.map(taskRow)];
+    if (name === "Team Performance Report") return [...meta, ["Name", "Role"], ...(reportDeptOk("Housekeeping") ? STAFF.map((x) => [x.name, x.role]) : [])];
+    if (name === "Pre-Arrival Preference Report") return [...meta, ["Guest", "Room", "Arrival", "Preferences"], ...(reportDeptOk("Housekeeping") ? PRE_ARRIVAL_GUESTS.map((g) => [g.name, g.room, g.eta, g.prefs.map((p) => `${p.label}: ${p.value}`).join("; ")]) : [])];
+    if (name === "Complaint Report") return [...meta, taskHead, ...scoped.filter((t) => t.complaint).map(taskRow)];
+    if (name === "SLA Breach Report") return [...meta, taskHead, ...scoped.filter(isOverdue).map(taskRow)];
+    if (name === "Audit Trail") return [...meta, ["Room", "Time", "Event"], ...scoped.flatMap((t) => t.timeline.map((e) => [t.room, e.t, e.text]))];
+    return [...meta, taskHead, ...scoped.map(taskRow)];
   };
 
   const Reports = (
     <div className="flex h-full flex-col">
       <ScreenHeader title="Reports" onBack={nav.back} />
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-6 pb-6 pt-2 no-scrollbar">
+        <div className={`rounded-2xl bg-white p-4 ${CARD_SHADOW}`}>
+          <div className="grid grid-cols-2 gap-3">
+            <label className="block">
+              <span className="mb-1.5 block text-[12px] font-semibold text-ink-secondary">From</span>
+              <input type="date" value={reportFrom} max={reportTo || undefined} onChange={(e) => setReportFrom(e.target.value)} className="h-11 w-full rounded-xl border border-line bg-white px-2 text-[13px] text-ink outline-none focus:border-brand" />
+            </label>
+            <label className="block">
+              <span className="mb-1.5 block text-[12px] font-semibold text-ink-secondary">To</span>
+              <input type="date" value={reportTo} min={reportFrom || undefined} onChange={(e) => setReportTo(e.target.value)} className="h-11 w-full rounded-xl border border-line bg-white px-2 text-[13px] text-ink outline-none focus:border-brand" />
+            </label>
+          </div>
+          <div className="mt-3">
+            <span className="mb-1.5 block text-[12px] font-semibold text-ink-secondary">Department</span>
+            <SelectField value={reportDept} onChange={setReportDept} placeholder="Department" options={["All departments", ...DEPARTMENTS.map((d) => d.name)]} />
+          </div>
+          {!reportRangeOk && <p className="mt-2 text-[12px] text-red-600">Choose a start date on or before the end date.</p>}
+        </div>
         {REPORTS.map((r) => (
-          <div key={r.name} className={`flex items-center gap-3 rounded-2xl bg-white p-4 ${CARD_SHADOW} ${r.locked ? "opacity-55" : ""}`}>
+          <div key={r.name} className={`flex items-center gap-3 rounded-2xl bg-white p-4 ${CARD_SHADOW}`}>
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-tint text-brand"><FileText className="h-[18px] w-[18px]" /></span>
             <div className="min-w-0 flex-1">
               <div className="text-[14px] font-semibold text-ink">{r.name}</div>
-              {r.locked && <div className="mt-0.5 flex items-center gap-1 text-[11px] text-ink-tertiary"><Lock className="h-3 w-3" /> Restricted to General Manager</div>}
+              <div className="mt-0.5 text-[12px] text-ink-secondary">{r.desc}</div>
             </div>
-            {!r.locked && (
-              <button
-                onClick={() => { downloadCsv(r.name, reportRows(r.name)); flash(`${r.name} downloaded`); }}
-                aria-label={`Download ${r.name}`}
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-tint text-brand"
-              >
-                <Download className="h-[18px] w-[18px]" />
-              </button>
-            )}
+            <button
+              disabled={!reportRangeOk}
+              onClick={() => { downloadCsv(r.name, reportRows(r.name)); flash(`${r.name} downloaded`); }}
+              aria-label={`Download ${r.name}`}
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-tint text-brand disabled:opacity-40"
+            >
+              <Download className="h-[18px] w-[18px]" />
+            </button>
           </div>
         ))}
       </div>

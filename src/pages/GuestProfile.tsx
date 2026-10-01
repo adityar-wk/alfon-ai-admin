@@ -349,10 +349,10 @@ function GuestList({ activeId }: { activeId: number }) {
               to={`/guests/${g.id}`}
               className={`${SIDE_ROW} items-center gap-3 ${sideRowTone(on)}`}
             >
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-tint font-display text-[12px] font-semibold text-brand">{g.initials}</span>
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-subtle font-display text-[12px] font-semibold text-ink">{g.initials}</span>
               <span className="min-w-0 flex-1 leading-tight">
                 <span className="block truncate font-display text-[14px] font-semibold text-ink">{g.name}</span>
-                <span className="block truncate text-[12px] text-ink-secondary"><RoomNo room={g.room} /> · {STATUS_LABEL[g.status]}</span>
+                <span className="block truncate text-[12px] text-ink-secondary">{g.room} · {STATUS_LABEL[g.status]}</span>
               </span>
               <CountryCode country={g.country} />
             </Link>
@@ -415,7 +415,7 @@ function InsightCard({
       <div className="mb-2 flex items-center gap-1.5 text-[12px] font-semibold" style={{ color }}>
         <Icon className="h-3.5 w-3.5" /> {label}
       </div>
-      <p className="text-[14px] text-ink">{children}</p>
+      <p className="text-[14px] leading-relaxed text-ink">{children}</p>
     </div>
   );
 }
@@ -433,8 +433,8 @@ function PreferenceCard({
   return (
     <div className="rounded-xl bg-[#FAFAFA] p-4">
       <div className="mb-2 flex items-center gap-2">
-        <Icon className="h-[13px] w-[13px] text-ink-tertiary" />
-        <span className="text-[11px] font-semibold uppercase tracking-wide text-ink-tertiary">{label}</span>
+        <Icon className="h-3.5 w-3.5 text-ink-tertiary" />
+        <span className="text-[12px] font-semibold uppercase tracking-wide text-ink-tertiary">{label}</span>
       </div>
       {editing ? (
         <textarea
@@ -442,16 +442,16 @@ function PreferenceCard({
           value={text}
           onChange={(e) => onChange(e.target.value)}
           placeholder="Add details for this preference, separated by commas…"
-          className="w-full rounded-lg border border-line bg-white p-2.5 text-[13px] text-ink outline-none placeholder:text-ink-tertiary focus:border-brand"
+          className="w-full rounded-lg border border-line bg-white p-2.5 text-[14px] text-ink outline-none placeholder:text-ink-tertiary focus:border-brand"
         />
       ) : tags.length ? (
         <div className="flex flex-wrap gap-1.5">
           {tags.map((tag) => (
-            <span key={tag} className="inline-flex rounded-full bg-subtle px-2.5 py-1 text-[13px] text-ink">{tag}</span>
+            <span key={tag} className="inline-flex rounded-full bg-subtle px-2.5 py-1 text-[14px] text-ink">{tag}</span>
           ))}
         </div>
       ) : (
-        <span className="text-[13px] text-ink-tertiary">None yet</span>
+        <span className="text-[14px] text-ink-tertiary">None yet</span>
       )}
     </div>
   );
@@ -492,31 +492,31 @@ export default function GuestProfile() {
   return (
     <>
       <Topbar title="Guests" />
-      <div className="flex min-h-0 flex-1 gap-5 bg-page p-6">
+      <div className="flex min-h-0 flex-1 gap-5 bg-page px-8 pb-8 pt-7">
         <GuestList activeId={guest.id} />
 
         <div className="min-h-0 min-w-0 flex-1 overflow-y-auto">
           <div className="space-y-4">
             <Card className="p-6">
               <div className="flex flex-wrap items-start gap-5">
-                <span className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-brand-tint font-display text-[28px] font-bold text-brand">{guest.initials}</span>
+                <span className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-subtle font-display text-[28px] font-bold text-ink">{guest.initials}</span>
                 <div className="min-w-[220px] flex-1">
                   <div className="mb-1 flex justify-end gap-2">
-                    <button onClick={() => setEditOpen(true)} className="flex items-center gap-1.5 rounded-lg border border-line px-3 py-1.5 text-[13px] font-medium text-ink hover:bg-subtle">
+                    <button onClick={() => setEditOpen(true)} className="flex items-center gap-1.5 rounded-lg border border-line px-3 py-1.5 text-[14px] font-medium text-ink hover:bg-subtle">
                       <Pencil className="h-3.5 w-3.5 text-ink-tertiary" /> Edit Profile
                     </button>
-                    <Link to={`/guest-chats?guest=${guest.id}`} className="flex items-center gap-1.5 rounded-lg border border-line px-3 py-1.5 text-[13px] font-medium text-ink hover:bg-subtle">
+                    <Link to={`/guest-chats?guest=${guest.id}`} className="flex items-center gap-1.5 rounded-lg border border-line px-3 py-1.5 text-[14px] font-medium text-ink hover:bg-subtle">
                       <MessageCircle className="h-3.5 w-3.5 text-ink-tertiary" /> Open Chat
                     </Link>
                   </div>
                   <div className="mb-1 flex flex-wrap items-center gap-2">
-                    <h1 className="font-display text-[24px] font-bold text-ink">{guest.name}</h1>
+                    <h1 className="font-display text-[25px] font-bold text-ink">{guest.name}</h1>
                     <Badge tone={guest.status === "In House" ? "success" : guest.status === "Arriving" ? "warning" : "neutral"}>{STATUS_LABEL[guest.status]}</Badge>
                   </div>
-                  <div className="mb-4 flex flex-wrap items-center gap-x-2 text-[13px] text-ink-secondary">
+                  <div className="mb-4 flex flex-wrap items-center gap-x-2 text-[14px] text-ink-secondary">
                     <CountryCode country={guest.country} /> {guest.country} <span>·</span> <RoomNo room={guest.room} /> <span>·</span> {guest.roomType}
                   </div>
-                  <div className="flex flex-wrap items-center gap-x-8 gap-y-2 text-[13px]">
+                  <div className="flex flex-wrap items-center gap-x-8 gap-y-2 text-[14px]">
                     <span className="flex items-center gap-2"><Calendar className="h-3.5 w-3.5 text-ink-tertiary" /> <span className="text-ink-tertiary">Check-in</span> <span className="font-medium text-ink">{guest.from}, 2025</span></span>
                     <span className="flex items-center gap-2"><Calendar className="h-3.5 w-3.5 text-ink-tertiary" /> <span className="text-ink-tertiary">Check-out</span> <span className="font-medium text-ink">{guest.to}, 2025</span></span>
                     <span className="flex items-center gap-2"><Hourglass className="h-3.5 w-3.5 text-ink-tertiary" /> <span className="text-ink-tertiary">Length of Stay</span> <span className="font-medium text-ink">{guest.nights} nights</span></span>
@@ -534,8 +534,8 @@ export default function GuestProfile() {
 
                 <Card className="p-6">
                   <div className="mb-4 flex items-center justify-between">
-                    <span className="text-[11px] font-semibold uppercase tracking-wide text-ink-tertiary">Preferences</span>
-                    <button onClick={() => setEditingPrefs((e) => !e)} className="text-[13px] font-medium text-brand hover:underline">
+                    <span className="text-[12px] font-semibold uppercase tracking-wide text-ink-tertiary">Preferences</span>
+                    <button onClick={() => setEditingPrefs((e) => !e)} className="text-[14px] font-medium text-brand hover:underline">
                       {editingPrefs ? "Done" : "Edit"}
                     </button>
                   </div>
@@ -554,13 +554,13 @@ export default function GuestProfile() {
                 </Card>
 
                 <Card className="p-6">
-                  <div className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-ink-tertiary">Stay History</div>
+                  <div className="mb-3 text-[12px] font-semibold uppercase tracking-wide text-ink-tertiary">Stay History</div>
                   {p.history.length ? (
                     <div className="space-y-1.5">
-                      {p.history.map((h) => <div key={h} className="rounded-lg bg-subtle px-3 py-2 text-[13px] text-ink">{h}</div>)}
+                      {p.history.map((h) => <div key={h} className="rounded-lg bg-subtle px-3 py-2 text-[14px] text-ink">{h}</div>)}
                     </div>
                   ) : (
-                    <p className="text-[13px] text-ink-secondary">No previous stays on record. This is {guest.name.split(" ")[0]}'s first visit.</p>
+                    <p className="text-[14px] text-ink-secondary">No previous stays on record. This is {guest.name.split(" ")[0]}'s first visit.</p>
                   )}
                 </Card>
               </div>

@@ -142,6 +142,89 @@ function downloadCsv(r: Report, rows: string[][], meta: string[]) {
   saveBlob(new Blob([lines.join("\n")], { type: "text/csv" }), `${r.key}-report.csv`);
 }
 
+const pdfEscape = (s: string) => s.replace(/[^\x20-\x7E]/g, " ").replace(/\\/g, "\\\\").replace(/\(/g, "\\(").replace(/\)/g, "\\)");
+const fitPdf = (s: string, width: number, size: number) => {
+  const max = Math.max(1, Math.floor(width / (size * 0.5)));
+  return s.length > max ? `${s.slice(0, Math.max(1, max - 3))}...` : s;
+};
+
+/** one-page-or-more PDF of the same rows the CSV uses, with no extra library */
+function downloadPdf(r: Report, rows: string[][], meta: string[]) {
+  const W = 595;
+  const H = 842;
+  const M = 40;
+  const colW = (W - M * 2) / Math.max(r.cols.length, 1);
+  const pages: string[][] = [];
+  let cmds: string[] = [];
+  let y = H - M;
+
+  const txt = (font: "F1" | "F2", size: number, x: number, yy: number, s: string, color = "0 0 0") => {
+    cmds.push("BT", `${color} rg`, `/${font} ${size} Tf`, `1 0 0 1 ${x.toFixed(1)} ${yy.toFixed(1)} Tm`, `(${pdfEscape(s)}) Tj`, "ET");
+  };
+  const rule = (yy: number) => cmds.push(`0.9 0.9 0.9 RG ${M} ${yy.toFixed(1)} m ${W - M} ${yy.toFixed(1)} l S`);
+  const header = (continued: boolean) => {
+    txt("F2", 16, M, y - 16, r.title);
+    y -= 28;
+    if (continued) {
+      txt("F1", 9, M, y, "Continued", "0.45 0.45 0.45");
+      y -= 16;
+    } else {
+      for (const line of meta) {
+        txt("F1", 10, M, y, line, "0.35 0.35 0.35");
+        y -= 14;
+      }
+      y -= 6;
+    }
+    r.cols.forEach((c, i) => txt("F2", 8, M + i * colW, y, fitPdf(c, colW - 8, 8)));
+    y -= 6;
+    rule(y);
+    y -= 16;
+  };
+  const nextPage = () => {
+    if (cmds.length) pages.push(cmds);
+    cmds = [];
+    y = H - M;
+    header(true);
+  };
+
+  header(false);
+  if (!rows.length) txt("F1", 10, M, y, "Nothing to report for this filter.", "0.45 0.45 0.45");
+  for (const row of rows) {
+    if (y < M + 16) nextPage();
+    row.forEach((c, i) => txt("F1", 9, M + i * colW, y, fitPdf(String(c), colW - 8, 9)));
+    y -= 16;
+  }
+  pages.push(cmds);
+
+  const streams = pages.map((p) => p.join("\n"));
+  const pagesId = 2;
+  let id = 5;
+  const contentIds = streams.map(() => id++);
+  const pageIds = streams.map(() => id++);
+  const total = id - 1;
+  const bodies: string[] = [];
+  bodies[1] = "<< /Type /Catalog /Pages 2 0 R >>";
+  bodies[2] = `<< /Type /Pages /Kids [${pageIds.map((n) => `${n} 0 R`).join(" ")}] /Count ${streams.length} >>`;
+  bodies[3] = "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>";
+  bodies[4] = "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>";
+  streams.forEach((s, i) => {
+    bodies[contentIds[i]] = `<< /Length ${s.length} >>\nstream\n${s}\nendstream`;
+    bodies[pageIds[i]] = `<< /Type /Page /Parent ${pagesId} 0 R /MediaBox [0 0 ${W} ${H}] /Contents ${contentIds[i]} 0 R /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> >>`;
+  });
+
+  let out = "%PDF-1.4\n";
+  const offsets = [0];
+  for (let n = 1; n <= total; n++) {
+    offsets[n] = out.length;
+    out += `${n} 0 obj\n${bodies[n]}\nendobj\n`;
+  }
+  const xref = out.length;
+  out += `xref\n0 ${total + 1}\n0000000000 65535 f \n`;
+  for (let n = 1; n <= total; n++) out += `${String(offsets[n]).padStart(10, "0")} 00000 n \n`;
+  out += `trailer\n<< /Size ${total + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`;
+  saveBlob(new Blob([out], { type: "application/pdf" }), `${r.key}-report.pdf`);
+}
+
 export default function Reports() {
   const { manager, scopeDepts, inScope } = usePersona();
   // hotel-wide reports (guest origin, compensation) stay with the General Manager
@@ -188,7 +271,7 @@ export default function Reports() {
     <>
       <Topbar title="Reports" actions={manager ? <ScopePicker /> : undefined} />
       <main className="flex-1 overflow-y-auto bg-page">
-        <div className="p-6">
+        <div className="px-8 pb-8 pt-7">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {list.map((r) => (
               <div key={r.key} className="flex w-full flex-col rounded-card border border-line bg-white p-5 shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lift">
@@ -271,6 +354,9 @@ export default function Reports() {
             {!reportRows.length && <p className="pt-4 text-center text-[13px] text-ink-tertiary">Nothing to report for this filter.</p>}
           </div>
           <div className="flex justify-end gap-2 border-t border-line px-6 py-3.5">
+            <Button variant="outline" onClick={() => { downloadPdf(active, reportRows, meta); flash("PDF downloaded"); }}>
+              <Download className="h-4 w-4" /> PDF
+            </Button>
             <Button onClick={() => { downloadCsv(active, reportRows, meta); flash("CSV downloaded"); }}>
               <Download className="h-4 w-4" /> CSV
             </Button>

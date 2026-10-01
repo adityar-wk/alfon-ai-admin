@@ -1,12 +1,12 @@
 import { Link, useNavigate } from "react-router-dom";
 import { ChevronRight, ListChecks, Building2, AlertTriangle, Timer, MessageCircle, UserRound } from "lucide-react";
 import { Topbar } from "../components/Topbar";
-import { Page, Card, RoomNo } from "../components/ui";
+import { Page, Card, RoomNo, StatCard } from "../components/ui";
 import { ScopePicker } from "../components/ScopePicker";
 import { TASKS, shortName } from "../data/tasks";
 import { INITIAL } from "../data/staff";
 import { usePersona } from "../persona";
-import { taskStatus, STATUS_PILL, COMPLAINT_PILL, useClock } from "../data/attention";
+import { taskStatus, STATUS_PILL, statusPillClass, COMPLAINT_PILL, useClock } from "../data/attention";
 import { SlaClock } from "../components/SlaClock";
 import { DEPT_ICON } from "./Home";
 
@@ -56,13 +56,7 @@ export default function DepartmentDashboard() {
         <h3 className="mb-3 flex items-center gap-2.5 text-[16px] font-semibold text-ink"><span className="h-2 w-2 rounded-full bg-brand" /> Department operations</h3>
         <div className="grid grid-cols-2 gap-5 md:grid-cols-3 xl:grid-cols-6">
           {ops.map((k) => (
-            <button key={k.label} onClick={() => navigate(k.to)} className="rounded-card border border-line bg-white p-4 text-left shadow-card transition duration-200 hover:-translate-y-0.5 hover:shadow-lift">
-              <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-brand/25 bg-white text-brand">
-                <k.icon className="h-[18px] w-[18px]" />
-              </span>
-              <div className="mt-3 text-[13px] font-medium text-ink-secondary">{k.label}</div>
-              <div className="mt-1 text-[28px] font-bold leading-none text-ink">{k.value}</div>
-            </button>
+            <StatCard key={k.label} icon={k.icon} label={k.label} value={k.value} onClick={() => navigate(k.to)} />
           ))}
         </div>
 
@@ -115,7 +109,7 @@ export default function DepartmentDashboard() {
                             <div className="text-[12px] text-ink-tertiary"><RoomNo room={t.room} /></div>
                           </td>
                           <td className="whitespace-nowrap py-3.5 pl-6 pr-3 text-[14px] text-ink-secondary">{t.guest}</td>
-                          <td className="whitespace-nowrap py-3.5 pl-6 pr-3"><span className={`text-[13px] font-medium ${STATUS_PILL[status]}`}>{status}</span></td>
+                          <td className="whitespace-nowrap py-3.5 pl-6 pr-3"><span className={`${statusPillClass} ${STATUS_PILL[status]}`}>{status}</span></td>
                           <td className="whitespace-nowrap py-3.5 pl-6 pr-3 text-[14px] text-ink-secondary"><span className="flex items-center gap-2"><D className="h-4 w-4 text-ink-tertiary" />{t.dept}</span></td>
                           <td className="whitespace-nowrap py-3.5 pl-6 pr-3 text-[14px]">
                             {t.owner ? <span className="text-ink">{t.owner}</span> : <span className="font-medium text-brand">Unassigned</span>}

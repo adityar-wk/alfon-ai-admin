@@ -26,16 +26,19 @@ export function taskStatus(t: Pick<Task, "status" | "owner" | "sla">): TaskStatu
   return t.owner ? "In Progress" : "Pending";
 }
 
-/** text colour only, no chip */
+/** Filled status pill, matching the Alt Prototype StatusBadge. */
+export const statusPillClass =
+  "inline-flex items-center whitespace-nowrap rounded-full px-2.5 py-1 text-[12px] font-medium";
+
 export const STATUS_PILL: Record<TaskStatusLabel, string> = {
-  Escalated: "text-red-600",
-  "SLA breached": "text-orange-600",
-  "SLA at risk": "text-amber-600",
-  "In Progress": "text-[#5B9EE8]",
-  Pending: "text-slate-500",
-  Completed: "text-emerald-600",
-  "Unable to Complete": "text-gray-500",
-  Void: "text-gray-400",
+  Escalated: "bg-[#FEF2F2] text-[#EF4444]",
+  "SLA breached": "bg-[#FEF2F2] text-[#EF4444]",
+  "SLA at risk": "bg-[#FFF9EC] text-[#F59E0B]",
+  "In Progress": "bg-[#FFF9EC] text-[#D97706]",
+  Pending: "bg-[#F5F5F5] text-[#6B7280]",
+  Completed: "bg-[#F0FDF4] text-[#22C55E]",
+  "Unable to Complete": "bg-[#F5F5F5] text-[#6B7280]",
+  Void: "bg-[#F5F5F5] text-[#9CA3AF]",
 };
 
 export const COMPLAINT_PILL = "bg-amber-50 text-amber-600";

@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ListChecks, CheckCircle2, AlertTriangle, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, Download, Filter, CalendarDays, X } from "lucide-react";
 import { Field, Input, Select } from "../components/ui";
 import { Topbar } from "../components/Topbar";
-import { Card } from "../components/ui";
+import { Card, StatCard } from "../components/ui";
 import { Donut } from "../components/Donut";
 import { Flag } from "../components/Flag";
 import { usePersona, canonDept } from "../persona";
@@ -179,7 +179,7 @@ export default function Analytics() {
     <>
       <Topbar title="Analytics" actions={manager ? <ScopePicker /> : undefined} />
       <main className="flex-1 overflow-y-auto bg-page">
-        <div className="p-6">
+        <div className="px-8 pb-8 pt-7">
         {/* date range + export + filter, one line */}
         <div className="relative flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-1 rounded-lg border border-line bg-white p-1">
@@ -246,16 +246,13 @@ export default function Analytics() {
         {/* KPIs */}
         <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3">
           {kpis.map((k) => (
-            <Card key={k.label} className="p-4">
-              <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-brand/25 bg-white text-brand">
-                <k.icon className="h-[18px] w-[18px]" />
-              </span>
-              <div className="mt-3 text-[13px] font-medium text-ink-secondary">{k.label}</div>
-              <div className="mt-1 text-[28px] font-bold leading-none text-ink">{k.value}</div>
-              <div className="mt-1 flex items-center gap-1 text-[12px] font-medium text-ink-tertiary">
-                {k.up ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />} {k.delta}
-              </div>
-            </Card>
+            <StatCard
+              key={k.label}
+              icon={k.icon}
+              label={k.label}
+              value={k.value}
+              foot={<span className="inline-flex items-center gap-1">{k.up ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />} {k.delta}</span>}
+            />
           ))}
         </div>
 

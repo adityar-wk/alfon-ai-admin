@@ -10,7 +10,7 @@ import { FakeQR } from "../components/FakeQR";
 import { NotificationBell } from "../components/Notifications";
 import { SlaClock } from "../components/SlaClock";
 import { ArrivalCalendar } from "./PreArrival";
-import { STATUS_PILL, COMPLAINT_PILL, useClock, type TaskStatusLabel } from "../data/attention";
+import { STATUS_PILL, statusPillClass, COMPLAINT_PILL, useClock, type TaskStatusLabel } from "../data/attention";
 import {
   ScreenHeader, ChatRow, Chips, StatCard, SlaClockChip, Avatar, Segmented, FloatingNav, TaskCard,
 } from "../linestaff/mobile";
@@ -20,6 +20,7 @@ import {
 type Item = { id: string; name: string; group: string; note: string };
 
 const INVENTORY: Item[] = [
+  { id: "compare", name: "System comparison", group: "Foundations", note: "Alt Prototype beside General Manager — colour, type, spacing, components" },
   { id: "colors", name: "Colour", group: "Foundations", note: "Warm Orange accent, neutrals, teal, purple and semantic colours" },
   { id: "type", name: "Typography", group: "Foundations", note: "Sora for headings and key numbers, Inter for everything else (SLA clock: Sora 600 / 14px)" },
   { id: "surface", name: "Surfaces & spacing", group: "Foundations", note: "Radii, hairline border, double shadow, sidebar width" },
@@ -31,7 +32,7 @@ const INVENTORY: Item[] = [
   { id: "toggle", name: "Toggle, checkbox, stars", group: "Forms", note: "Small selection controls" },
   { id: "calendar", name: "Date picker", group: "Forms", note: "Arrival-date calendar with arrival dots" },
   { id: "badge", name: "Badges", group: "Status", note: "Priority badges with a dot, plain status badges" },
-  { id: "status", name: "Task status", group: "Status", note: "Coloured text only, one rule for every list" },
+  { id: "status", name: "Task status", group: "Status", note: "Filled pill, 12px, one rule for every list" },
   { id: "sla", name: "SLA clock", group: "Status", note: "Live countdown, counts up once breached" },
   { id: "toast", name: "Toast", group: "Feedback", note: "Short confirmation at the bottom of the screen" },
   { id: "card", name: "Card & stat card", group: "Data display", note: "Standard card and the KPI card" },
@@ -92,6 +93,277 @@ function Swatch({ name, hex, cls }: { name: string; hex: string; cls: string }) 
 
 const STATUSES: TaskStatusLabel[] = ["Escalated", "SLA breached", "SLA at risk", "In Progress", "Pending", "Completed"];
 
+/* ------------------------------------------------------------------ comparison */
+
+const Spec = ({ children }: { children: ReactNode }) => (
+  <p className="mt-3 font-mono text-[11px] leading-relaxed text-ink-tertiary">{children}</p>
+);
+
+function Tone({ name, hex }: { name: string; hex: string }) {
+  return (
+    <div className="flex items-center gap-2.5">
+      <span className="h-8 w-8 shrink-0 rounded-lg border border-black/5" style={{ background: hex }} />
+      <span>
+        <span className="block text-[13px] font-medium text-ink">{name}</span>
+        <span className="font-mono text-[11px] text-ink-tertiary">{hex}</span>
+      </span>
+    </div>
+  );
+}
+
+function Frame({ kicker, children }: { kicker: string; children: ReactNode }) {
+  return (
+    <div className="rounded-card border border-line bg-white p-5 shadow-card">
+      <div className="mb-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-tertiary">{kicker}</div>
+      {children}
+    </div>
+  );
+}
+
+function CompareRow({ title, note, alt, gm }: { title: string; note: string; alt: ReactNode; gm: ReactNode }) {
+  return (
+    <div>
+      <h3 className="text-[18px] font-semibold text-ink">{title}</h3>
+      <p className="mt-1 max-w-3xl text-[13px] leading-relaxed text-ink-secondary">{note}</p>
+      <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <Frame kicker="Alt Prototype">{alt}</Frame>
+        <Frame kicker="General Manager">{gm}</Frame>
+      </div>
+    </div>
+  );
+}
+
+function CompareSystems() {
+  return (
+    <section id="compare" className="scroll-mt-6">
+      <h2 className="text-[20px] font-semibold text-ink">Alt Prototype and General Manager</h2>
+      <p className="mt-1 max-w-3xl text-[13px] leading-relaxed text-ink-secondary">
+        One family, read from the code each system actually ships. Shared tokens sit in the strip. Everything under it is the same piece drawn twice, so the difference is the thing you see.
+      </p>
+
+      <div className="mt-5">
+        <Label>Shared</Label>
+        <div className="flex flex-wrap gap-2">
+          {[
+            ["Warm Orange", "#E8623A"],
+            ["Hover", "#D4522D"],
+            ["Tint", "#FFF4F0"],
+            ["Ink", "#1A1A1A"],
+            ["Secondary", "#6B7280"],
+            ["Tertiary", "#9CA3AF"],
+            ["Hairline", "#F0F0F0"],
+            ["Subtle", "#F5F5F5"],
+            ["Teal", "#2E86AB"],
+            ["Purple", "#7C3AED"],
+          ].map(([name, hex]) => (
+            <span key={name} className="inline-flex items-center gap-2 rounded-full border border-line bg-white py-1 pl-1 pr-3">
+              <span className="h-6 w-6 rounded-full border border-black/5" style={{ background: hex }} />
+              <span className="text-[12px] font-medium text-ink">{name}</span>
+              <span className="font-mono text-[11px] text-ink-tertiary">{hex}</span>
+            </span>
+          ))}
+        </div>
+        <Spec>Card radius 16px · control radius 10px · sidebar 220px · nav item 10×14px, radius 10px · card shadow 0 1px 3px rgba(0,0,0,.06), 0 4px 16px rgba(0,0,0,.04)</Spec>
+      </div>
+
+      <div className="mt-10 space-y-10">
+        <CompareRow
+          title="Colour"
+          note="Accent, neutrals, and the semantic set are the same on both. General Manager now uses the prototype success, warning, and error."
+          alt={
+            <>
+              <div className="grid grid-cols-3 gap-4">
+                <Tone name="Success" hex="#22C55E" />
+                <Tone name="Warning" hex="#F59E0B" />
+                <Tone name="Error" hex="#EF4444" />
+              </div>
+              <Spec>Success #22C55E · Warning #F59E0B · Error #EF4444</Spec>
+            </>
+          }
+          gm={
+            <>
+              <div className="grid grid-cols-3 gap-4">
+                <Tone name="Success" hex="#22C55E" />
+                <Tone name="Warning" hex="#F59E0B" />
+                <Tone name="Error" hex="#EF4444" />
+              </div>
+              <Spec>Success #22C55E · Warning #F59E0B · Error #EF4444</Spec>
+            </>
+          }
+        />
+
+        <CompareRow
+          title="Type"
+          note="Both run Sora for headings and Inter for UI. Stat numbers, body size, and the health-score face now match the prototype."
+          alt={
+            <div className="space-y-4">
+              <div className="flex items-baseline justify-between gap-4 border-b border-line pb-3">
+                <span className="font-display text-[16px] font-medium text-ink">Good morning, Franck</span>
+                <span className="shrink-0 font-mono text-[11px] text-ink-tertiary">Sora 500 / 16</span>
+              </div>
+              <div className="flex items-baseline justify-between gap-4 border-b border-line pb-3">
+                <span className="font-display text-[16px] font-semibold text-ink">Pending Tasks</span>
+                <span className="shrink-0 font-mono text-[11px] text-ink-tertiary">Sora 600 / 16</span>
+              </div>
+              <div className="flex items-baseline justify-between gap-4 border-b border-line pb-3">
+                <span className="font-display text-[28px] font-bold leading-none text-ink">2m 45s</span>
+                <span className="shrink-0 font-mono text-[11px] text-ink-tertiary">Sora 700 / 28</span>
+              </div>
+              <div className="flex items-baseline justify-between gap-4 border-b border-line pb-3">
+                <span className="text-[14px] text-ink-secondary">Active conversations</span>
+                <span className="shrink-0 font-mono text-[11px] text-ink-tertiary">Inter 400 / 14</span>
+              </div>
+              <div className="flex items-baseline justify-between gap-4">
+                <span className="text-[46px] font-semibold leading-none tracking-[-1.5px] text-[#1C1C1E]" style={{ fontFamily: '"Outfit", "Sora", sans-serif' }}>88%</span>
+                <span className="shrink-0 font-mono text-[11px] text-ink-tertiary">Outfit 600 / 46</span>
+              </div>
+            </div>
+          }
+          gm={
+            <div className="space-y-4">
+              <div className="flex items-baseline justify-between gap-4 border-b border-line pb-3">
+                <span className="font-display text-[16px] font-medium text-ink">Good morning, Sophia</span>
+                <span className="shrink-0 font-mono text-[11px] text-ink-tertiary">Sora 500 / 16</span>
+              </div>
+              <div className="flex items-baseline justify-between gap-4 border-b border-line pb-3">
+                <span className="font-display text-[16px] font-semibold text-ink">Pending Tasks</span>
+                <span className="shrink-0 font-mono text-[11px] text-ink-tertiary">Sora 600 / 16</span>
+              </div>
+              <div className="flex items-baseline justify-between gap-4 border-b border-line pb-3">
+                <span className="font-display text-[28px] font-bold leading-none text-ink">2m 45s</span>
+                <span className="shrink-0 font-mono text-[11px] text-ink-tertiary">Sora 700 / 28</span>
+              </div>
+              <div className="flex items-baseline justify-between gap-4 border-b border-line pb-3">
+                <span className="text-[14px] text-ink-secondary">Here's what's happening today</span>
+                <span className="shrink-0 font-mono text-[11px] text-ink-tertiary">Inter 400 / 14</span>
+              </div>
+              <div className="flex items-baseline justify-between gap-4">
+                <span className="text-[46px] font-semibold leading-none tracking-[-1.5px] text-[#1C1C1E]" style={{ fontFamily: '"Outfit", "Sora", sans-serif' }}>88%</span>
+                <span className="shrink-0 font-mono text-[11px] text-ink-tertiary">Outfit 600 / 46</span>
+              </div>
+            </div>
+          }
+        />
+
+        <CompareRow
+          title="Spacing"
+          note="Page inset, section rhythm, stat padding, and button padding are now the prototype's on General Manager and the other web personas."
+          alt={
+            <>
+              <div className="rounded-xl bg-brand-tint px-8 pb-8 pt-7">
+                <div className="rounded-lg border border-white/80 bg-white px-6 py-5 text-[13px] text-ink shadow-card">Page content · card padding 24px</div>
+              </div>
+              <div className="mt-3 flex items-center">
+                <div className="h-8 flex-1 rounded-lg bg-subtle" />
+                <div className="w-7 shrink-0" />
+                <div className="h-8 flex-1 rounded-lg bg-subtle" />
+              </div>
+              <Spec>Page inset 32px horizontal, 28px top, 32px bottom · section gap 28px · stat card padding 20×24 · button padding 10×20</Spec>
+            </>
+          }
+          gm={
+            <>
+              <div className="rounded-xl bg-brand-tint px-8 pb-8 pt-7">
+                <div className="rounded-lg border border-white/80 bg-white px-6 py-5 text-[13px] text-ink shadow-card">Page content · card padding 24px</div>
+              </div>
+              <div className="mt-3 flex items-center">
+                <div className="h-8 flex-1 rounded-lg bg-subtle" />
+                <div className="w-7 shrink-0" />
+                <div className="h-8 flex-1 rounded-lg bg-subtle" />
+              </div>
+              <Spec>Page inset 32px horizontal, 28px top, 32px bottom · section gap 28px · stat card padding 20×24 · button padding 10×20</Spec>
+            </>
+          }
+        />
+
+        <CompareRow
+          title="Surfaces"
+          note="Radius, shadow, and the 1px button lift match. Directory tables in General Manager still use a grey header band the prototype home table does not."
+          alt={
+            <>
+              <button
+                className="inline-flex items-center gap-1.5 rounded-[10px] bg-brand px-5 py-2.5 font-display text-[14px] font-semibold text-white transition-transform duration-200 hover:-translate-y-px hover:bg-brand-hover"
+              >
+                New Chat
+              </button>
+              <div className="mt-4 overflow-hidden rounded-[16px] border border-line">
+                <div className="px-3 py-2 text-[12px] font-medium uppercase tracking-wide text-ink-tertiary">Task · Status</div>
+                <div className="border-t border-line px-3 py-3 text-[14px] text-ink">AC Not Working</div>
+              </div>
+              <Spec>Button lifts 1px on hover, 200ms · table header has no fill · scrollbar thumb #F0F0F0</Spec>
+            </>
+          }
+          gm={
+            <>
+              <Button>New Chat</Button>
+              <div className="mt-4 overflow-hidden rounded-[16px] border border-line">
+                <div className="bg-[#F4F4F5] px-6 py-3.5 text-[12px] font-medium uppercase tracking-wide text-[#6B7280]">Task · Status</div>
+                <div className="border-t border-line/50 px-6 py-3.5 text-[14px] text-ink">AC Not Working</div>
+              </div>
+              <Spec>Button lifts 1px on hover, 200ms · directory tables use header #F4F4F5 · scrollbar thumb #E5E5E5</Spec>
+            </>
+          }
+        />
+
+        <CompareRow
+          title="Components"
+          note="Status pills and stat cards now match the prototype. Guest initials on the profile stay grey."
+          alt={
+            <div className="space-y-5">
+              <div>
+                <Label>Status</Label>
+                <div className="flex flex-wrap gap-2">
+                  <span className="inline-flex rounded-full px-2.5 py-1 text-[12px] font-medium" style={{ background: "#FFF4F0", color: "#E8623A" }}>Open</span>
+                  <span className="inline-flex rounded-full px-2.5 py-1 text-[12px] font-medium" style={{ background: "#FFF9EC", color: "#D97706" }}>In Progress</span>
+                  <span className="inline-flex rounded-full px-2.5 py-1 text-[12px] font-medium" style={{ background: "#F0FDF4", color: "#22C55E" }}>Completed</span>
+                </div>
+              </div>
+              <div>
+                <Label>Guest initial</Label>
+                <span className="flex h-10 w-10 items-center justify-center rounded-full font-display text-[13px] font-semibold" style={{ background: "#FFF4F0", color: "#E8623A" }}>ED</span>
+              </div>
+              <div>
+                <Label>Stat</Label>
+                <div className="max-w-[200px] rounded-[16px] border border-line p-5 shadow-card" style={{ padding: "20px 24px" }}>
+                  <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg border border-brand/25 bg-white text-brand"><ListChecks className="h-[18px] w-[18px]" /></div>
+                  <div className="text-[14px] text-ink-secondary">Open Tasks</div>
+                  <div className="mt-0.5 font-display text-[28px] font-bold leading-tight text-ink">15</div>
+                </div>
+              </div>
+              <Spec>Status is a filled pill, 12px · initials sit on orange tint · stat is Sora 28 with a 36px icon</Spec>
+            </div>
+          }
+          gm={
+            <div className="space-y-5">
+              <div>
+                <Label>Status</Label>
+                <div className="flex flex-wrap gap-2">
+                  <span className="inline-flex rounded-full px-2.5 py-1 text-[12px] font-medium" style={{ background: "#FEF2F2", color: "#EF4444" }}>Escalated</span>
+                  <span className="inline-flex rounded-full px-2.5 py-1 text-[12px] font-medium" style={{ background: "#FFF9EC", color: "#D97706" }}>In Progress</span>
+                  <span className="inline-flex rounded-full px-2.5 py-1 text-[12px] font-medium" style={{ background: "#F0FDF4", color: "#22C55E" }}>Completed</span>
+                </div>
+              </div>
+              <div>
+                <Label>Guest initial</Label>
+                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-subtle font-display text-[13px] font-semibold text-ink">ED</span>
+              </div>
+              <div>
+                <Label>Stat</Label>
+                <div className="max-w-[200px] rounded-[16px] border border-line px-6 py-5 shadow-card">
+                  <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg border border-brand/25 bg-white text-brand"><ListChecks className="h-[18px] w-[18px]" /></div>
+                  <div className="text-sm text-ink-secondary">Open Tasks</div>
+                  <div className="mt-0.5 font-display text-[28px] font-bold leading-tight text-ink">15</div>
+                </div>
+              </div>
+              <Spec>Status is a filled pill, 12px · guest initials stay grey · stat is Sora 28 with a 36px icon</Spec>
+            </div>
+          }
+        />
+      </div>
+    </section>
+  );
+}
+
 /* ------------------------------------------------------------------ page */
 
 export default function ComponentDesign() {
@@ -109,8 +381,10 @@ export default function ComponentDesign() {
     <>
       <Topbar title="Component Design" />
       <Page>
+        <CompareSystems />
+
         {/* ---------------------------------------------------- inventory */}
-        <h2 className="text-[20px] font-semibold text-ink">Component inventory</h2>
+        <h2 className="mt-14 text-[20px] font-semibold text-ink">Component inventory</h2>
         <p className="mt-1 text-[13px] text-ink-secondary">Every reusable piece of the prototype. Click a name to jump to its design.</p>
         <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
           {GROUPS.map((g) => (
@@ -153,9 +427,9 @@ export default function ComponentDesign() {
                 <Swatch name="Purple" hex="#7C3AED" cls="bg-purple" />
               </div></div>
               <div><Label>Semantic</Label><div className="flex flex-wrap gap-3.5">
-                <Swatch name="Success" hex="#16A34A" cls="bg-success" />
-                <Swatch name="Warning" hex="#D97706" cls="bg-warning" />
-                <Swatch name="Error / critical" hex="#DC2626" cls="bg-danger" />
+                <Swatch name="Success" hex="#22C55E" cls="bg-success" />
+                <Swatch name="Warning" hex="#F59E0B" cls="bg-warning" />
+                <Swatch name="Error / critical" hex="#EF4444" cls="bg-danger" />
               </div></div>
             </div>
           </Section>
@@ -195,7 +469,7 @@ export default function ComponentDesign() {
           </Section>
 
           {/* ------------------------------------------------ actions */}
-          <Section id="button" title="Button" note="Inter 600 / 14px, 10px radius, 10px 18px padding. Primary is Warm Orange; the orange outline pairs an orange border and label with a white fill; ghost is an orange label with no border. Labels never carry tick marks.">
+          <Section id="button" title="Button" note="Sora 600 / 14px, 10px radius, 10×20 padding, 1px lift on hover. Primary is Warm Orange; the orange outline pairs an orange border and label with a white fill; ghost is an orange label with no border. Labels never carry tick marks.">
             <div className="flex flex-wrap items-center gap-3">
               <Button>New Chat</Button>
               <Button variant="brand-outline">Orange outline</Button>
@@ -270,8 +544,8 @@ export default function ComponentDesign() {
             </div>
           </Section>
 
-          <Section id="status" title="Task status" note="Escalation, then SLA breach, then SLA at risk, then where the work stands. Coloured text, no chip.">
-            <div className="flex flex-wrap gap-8">{STATUSES.map((s) => <span key={s} className={`text-[13px] font-medium ${STATUS_PILL[s]}`}>{s}</span>)}</div>
+          <Section id="status" title="Task status" note="Escalation, then SLA breach, then SLA at risk, then where the work stands. Filled pill, same treatment as the Alt Prototype.">
+            <div className="flex flex-wrap gap-3">{STATUSES.map((s) => <span key={s} className={`${statusPillClass} ${STATUS_PILL[s]}`}>{s}</span>)}</div>
           </Section>
 
           <Section id="sla" title="SLA clock" note="Counts down while on time, turns red and counts up once breached.">
@@ -288,10 +562,14 @@ export default function ComponentDesign() {
           </Section>
 
           {/* ------------------------------------------------ data display */}
-          <Section id="card" title="Card & stat card" note="Cards are white with a hairline border; stat cards show a number and a label.">
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-              {[["Escalated", "7", "text-red-600"], ["Complaints", "8", "text-cyan-600"], ["SLA at risk", "24", "text-ink"], ["Unassigned", "8", "text-ink"]].map(([l, v, c]) => (
-                <Card key={l} className="p-4"><div className="text-[13px] text-ink-secondary">{l}</div><div className={`mt-1 text-[26px] font-bold leading-tight ${c}`}>{v}</div></Card>
+          <Section id="card" title="Card & stat card" note="Stat cards use 20×24 padding, a 36px icon, a 14px label, and a Sora 28 number.">
+            <div className="grid grid-cols-2 gap-5 md:grid-cols-4">
+              {[["Escalated", "7"], ["Complaints", "8"], ["SLA at risk", "24"], ["Unassigned", "8"]].map(([l, v]) => (
+                <Card key={l} className="px-6 py-5">
+                  <span className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg border border-brand/25 bg-white text-brand"><ListChecks className="h-[18px] w-[18px]" /></span>
+                  <div className="text-sm text-ink-secondary">{l}</div>
+                  <div className="mt-0.5 font-display text-[28px] font-bold leading-tight text-ink">{v}</div>
+                </Card>
               ))}
             </div>
           </Section>
@@ -309,7 +587,7 @@ export default function ComponentDesign() {
                     <tr key={id} className="border-b border-line/50 last:border-0">
                       <td className="py-3.5 pl-6"><SlaClock sla={{ kind: k as "overdue" | "due" | "left", text: t }} /></td>
                       <td className="py-3.5 pl-6"><div className="text-[13px] font-semibold text-ink">{n}</div><div className="text-[12px] text-ink-tertiary">{id}</div></td>
-                      <td className="py-3.5 pl-6"><span className={`text-[13px] font-medium ${STATUS_PILL[st as TaskStatusLabel]}`}>{st}</span></td>
+                      <td className="py-3.5 pl-6"><span className={`${statusPillClass} ${STATUS_PILL[st as TaskStatusLabel]}`}>{st}</span></td>
                       <td className="py-3.5 pl-6 text-[14px] text-ink-secondary"><span className="flex items-center gap-2"><Wrench className="h-4 w-4 text-ink-tertiary" />{d}</span></td>
                       <td className="py-3.5 pl-6 text-[14px] text-ink">{o}</td>
                     </tr>

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Building2, CheckCircle2, AlertTriangle, Activity, Search, Plus, MoreHorizontal, Check, X, Clock } from "lucide-react";
 import { Topbar } from "../../components/Topbar";
-import { Page, Card, Button, Select } from "../../components/ui";
+import { Page, Card, Button, Select, StatCard } from "../../components/ui";
 import { HOTELS, REGIONS, type Hotel, type ConnStatus } from "../../data/hotels";
 
 const TABS = ["All", "Active", "Inactive", "New"] as const;
@@ -32,10 +32,10 @@ export default function HotelsList() {
   const avgHealth = scored.length ? Math.round(scored.reduce((n, h) => n + (h.healthScore ?? 0), 0) / scored.length) : 0;
 
   const KPIS = [
-    { label: "Total Hotels", icon: Building2, tint: "bg-brand-tint text-brand", value: total, foot: `Across ${REGIONS.length} regions` },
-    { label: "Needs Attention", icon: AlertTriangle, tint: "bg-amber-50 text-amber-600", value: needsAttention, foot: `${inactive} inactive · ${connIssues} connection issue${connIssues === 1 ? "" : "s"}` },
-    { label: "Active Hotels", icon: CheckCircle2, tint: "bg-emerald-50 text-emerald-600", value: active, foot: `${Math.round((active / total) * 100)}% of the network` },
-    { label: "Avg Health Score", icon: Activity, tint: "bg-sky-50 text-sky-600", value: `${avgHealth}%`, foot: `Across ${scored.length} scored hotels` },
+    { label: "Total Hotels", icon: Building2, value: total, foot: `Across ${REGIONS.length} regions` },
+    { label: "Needs Attention", icon: AlertTriangle, value: needsAttention, foot: `${inactive} inactive · ${connIssues} connection issue${connIssues === 1 ? "" : "s"}` },
+    { label: "Active Hotels", icon: CheckCircle2, value: active, foot: `${Math.round((active / total) * 100)}% of the network` },
+    { label: "Avg Health Score", icon: Activity, value: `${avgHealth}%`, foot: `Across ${scored.length} scored hotels` },
   ];
 
   useEffect(() => {
@@ -71,16 +71,9 @@ export default function HotelsList() {
         <h2 className="font-display text-[26px] font-bold leading-tight text-ink">Manage Hotels</h2>
         <p className="mt-1 text-[13px] text-ink-secondary">Add new hotels, view their status, manage connections and monitor performance.</p>
 
-        <div className="mt-5 grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <div className="mt-5 grid grid-cols-2 gap-5 lg:grid-cols-4">
           {KPIS.map((k) => (
-            <Card key={k.label} className="p-4">
-              <span className={`flex h-9 w-9 items-center justify-center rounded-lg ${k.tint}`}>
-                <k.icon className="h-[18px] w-[18px]" />
-              </span>
-              <div className="mt-3 text-[13px] text-ink-secondary">{k.label}</div>
-              <div className="text-[26px] font-bold leading-tight text-ink">{k.value}</div>
-              <div className="text-[12px] text-ink-tertiary">{k.foot}</div>
-            </Card>
+            <StatCard key={k.label} icon={k.icon} label={k.label} value={k.value} foot={k.foot} />
           ))}
         </div>
 

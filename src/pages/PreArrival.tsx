@@ -33,7 +33,7 @@ const PRE_ARRIVAL_TEMPLATES: MessageTemplate[] = [
   { label: "Messaging consent", text: "Hi {name}, may we message you here with updates about your stay? Reply YES to opt in." },
 ];
 import { Drawer } from "../components/Drawer";
-import { Button, Modal, Select } from "../components/ui";
+import { Button, Modal, Select, StatCard } from "../components/ui";
 import { PRE_GUESTS, mk, type PreGuest, type Ready, type ReqStatus } from "../data/preArrival";
 
 /* ---------- small pieces ---------- */
@@ -301,7 +301,7 @@ export default function PreArrival() {
         }
       />
       <main className="flex-1 overflow-y-auto bg-page">
-        <div className="p-6">
+        <div className="px-8 pb-8 pt-7">
         {/* KPIs */}
         <div className="grid grid-cols-2 gap-5 lg:grid-cols-4">
           <Kpi
@@ -415,7 +415,7 @@ export default function PreArrival() {
         {/* table */}
         <div className="mt-5 overflow-hidden rounded-[20px] border border-line/40 bg-white shadow-[0_1px_3px_rgba(16,24,40,0.05)]">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[1160px] table-fixed text-left">
+            <table className="w-full min-w-[1280px] table-fixed text-left">
               <colgroup>
                 <col /><col /><col /><col /><col /><col />
                 <col className="w-16" />
@@ -425,7 +425,7 @@ export default function PreArrival() {
                   <th className="py-3.5 pl-6 font-medium">Guest</th>
                   <th className="py-3.5 pl-6 font-medium">WhatsApp</th>
                   <th className="py-3.5 pl-6 font-medium">Stay</th>
-                  <th className="py-3.5 pl-6 font-medium">Arrival</th>
+                  <th className="py-3.5 pl-6 font-medium">Check-in time</th>
                   <th className="py-3.5 pl-6 font-medium">Engagement</th>
                   <th className="py-3.5 pl-6 font-medium">Last Interaction</th>
                   <th className="w-12 py-3.5 pr-6" aria-label="Actions" />
@@ -454,10 +454,7 @@ export default function PreArrival() {
                       <td className="whitespace-nowrap py-3.5 pl-6 pr-3 text-[14px] text-ink-secondary">
                         {shortDay(checkinDay(g))} – {shortDay(checkinDay(g) + g.nights)}
                       </td>
-                      <td className="whitespace-nowrap py-3.5 pl-6 pr-3">
-                        <div className="text-[14px] text-ink-secondary">{arrivalLabel(g)}</div>
-                        <div className="text-[12px] text-ink-tertiary">{g.time}</div>
-                      </td>
+                      <td className="whitespace-nowrap py-3.5 pl-6 pr-3 text-[14px] text-ink">{g.time}</td>
                       <td className="py-3.5 pl-6 pr-3">
                         <span className={`whitespace-nowrap text-[14px] font-medium ${ENG_PILL[g.eng]}`}>
                           {ENG_LABEL[g.eng]}
@@ -529,7 +526,7 @@ export default function PreArrival() {
 }
 
 function Kpi({
-  icon: Icon, label, value, sub, subTone = "text-ink-tertiary", onClick,
+  icon, label, value, sub, subTone = "text-ink-tertiary", onClick,
 }: {
   icon: React.ComponentType<{ className?: string }>;
   label: string;
@@ -538,19 +535,7 @@ function Kpi({
   subTone?: string;
   onClick: () => void;
 }) {
-  return (
-    <button
-      onClick={onClick}
-      className="rounded-card border border-line bg-white p-4 text-left shadow-card transition duration-200 hover:-translate-y-0.5 hover:shadow-lift"
-    >
-      <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-brand/25 bg-white text-brand">
-        <Icon className="h-[18px] w-[18px]" />
-      </span>
-      <div className="mt-3 text-[13px] font-medium text-ink-secondary">{label}</div>
-      <div className="mt-1 text-[28px] font-bold leading-none text-ink">{value}</div>
-      {sub && <div className={`mt-1 text-[12px] font-medium ${subTone}`}>{sub}</div>}
-    </button>
-  );
+  return <StatCard icon={icon} label={label} value={value} foot={sub} footClass={subTone} onClick={onClick} />;
 }
 
 /** Day numbers count from 1 May 2025 (today is the 24th); 32 is 1 June. */

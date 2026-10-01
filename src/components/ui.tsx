@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useState, type ComponentType, type ReactNode } from "react";
 import { DoorOpen, X } from "lucide-react";
 
 /** room number shown as the open-door icon plus the number, instead of the word "Room" */
@@ -14,7 +14,7 @@ export function RoomNo({ room }: { room: string | number }) {
 export function Page({ children }: { children: ReactNode }) {
   return (
     <main className="flex-1 overflow-y-auto bg-page">
-      <div className="p-6">{children}</div>
+      <div className="px-8 pb-8 pt-7">{children}</div>
     </main>
   );
 }
@@ -39,6 +39,44 @@ export function Card({
       {children}
     </div>
   );
+}
+
+/** KPI tile from the Alt Prototype: 20×24 padding, 36px icon, 14px label, Sora 28 value. */
+export function StatCard({
+  icon: Icon,
+  label,
+  value,
+  foot,
+  footClass = "text-ink-tertiary",
+  iconClassName = "border border-brand/25 bg-white text-brand",
+  onClick,
+}: {
+  icon: ComponentType<{ className?: string }>;
+  label: string;
+  value: ReactNode;
+  foot?: ReactNode;
+  footClass?: string;
+  iconClassName?: string;
+  onClick?: () => void;
+}) {
+  const body = (
+    <>
+      <span className={`mb-3 flex h-9 w-9 items-center justify-center rounded-lg ${iconClassName}`}>
+        <Icon className="h-[18px] w-[18px]" />
+      </span>
+      <div className="text-sm text-ink-secondary">{label}</div>
+      <div className="mt-0.5 font-display text-[28px] font-bold leading-tight text-ink">{value}</div>
+      {foot != null && foot !== "" && <div className={`mt-1 text-xs font-medium ${footClass}`}>{foot}</div>}
+    </>
+  );
+  if (onClick) {
+    return (
+      <button onClick={onClick} className="rounded-card border border-line bg-white px-6 py-5 text-left shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lift">
+        {body}
+      </button>
+    );
+  }
+  return <Card className="px-6 py-5">{body}</Card>;
 }
 
 type Tone = "success" | "warning" | "danger" | "neutral" | "brand" | "info";
@@ -95,7 +133,7 @@ export function Button({
   }[variant];
   return (
     <button
-      className={`inline-flex items-center justify-center gap-2 rounded-control px-[18px] py-2.5 font-display text-[14px] font-semibold transition-colors duration-200 ${styles} ${className}`}
+      className={`inline-flex items-center justify-center gap-2 rounded-control px-5 py-2.5 font-display text-[14px] font-semibold transition-all duration-200 hover:-translate-y-px disabled:hover:translate-y-0 ${styles} ${className}`}
       {...rest}
     >
       {children}
