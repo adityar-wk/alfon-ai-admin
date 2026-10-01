@@ -1,6 +1,6 @@
 import { Button } from "../components/ui";
 import { useState } from "react";
-import { BedDouble, ChevronRight, LogOut, SlidersHorizontal } from "lucide-react";
+import { ChevronRight, LogOut, SlidersHorizontal } from "lucide-react";
 import { Avatar, ScreenHeader, CARD_SHADOW } from "./mobile";
 
 const Toggle = ({ on, onChange, label }: { on: boolean; onChange: () => void; label: string }) => (
@@ -11,9 +11,9 @@ const Toggle = ({ on, onChange, label }: { on: boolean; onChange: () => void; la
 
 /** The "More" screen: who you are, notification settings, sign out. */
 export function ProfileScreen({
-  name, role, email, onNotifSettings, onSignOut, onBack, onHousekeeping,
+  name, role, email, onNotifSettings, onSignOut, onBack,
 }: {
-  name: string; role: string; email: string; dept?: string; onNotifSettings: () => void; onSignOut: () => void; onBack?: () => void; onHousekeeping?: () => void;
+  name: string; role: string; email: string; dept?: string; onNotifSettings: () => void; onSignOut: () => void; onBack?: () => void;
 }) {
   return (
     <div className="flex h-full flex-col">
@@ -27,16 +27,6 @@ export function ProfileScreen({
         </div>
 
         <div className="mt-2">
-          {onHousekeeping && (
-            <button onClick={onHousekeeping} className="flex w-full items-center gap-4 border-b border-[#EEEEF1] py-4 text-left">
-              <BedDouble className="h-[19px] w-[19px] shrink-0 text-brand" />
-              <span className="min-w-0 flex-1">
-                <span className="block text-[15px] font-medium text-ink">Housekeeping Checklist</span>
-                <span className="block text-[12px] text-ink-tertiary">Room inspection</span>
-              </span>
-              <ChevronRight className="h-4 w-4 shrink-0 text-ink-tertiary" />
-            </button>
-          )}
           <button onClick={onNotifSettings} className="flex w-full items-center gap-4 border-b border-[#EEEEF1] py-4 text-left">
             <SlidersHorizontal className="h-[19px] w-[19px] shrink-0 text-ink" />
             <span className="min-w-0 flex-1 text-[15px] font-medium text-ink">Notification settings</span>

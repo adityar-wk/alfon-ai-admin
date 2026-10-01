@@ -1,9 +1,8 @@
 import { Button } from "../components/ui";
 import { Logo } from "../components/Logo";
 import { useEffect, useMemo, useState } from "react";
-import { AlertTriangle, Bath, Bell, Check, CheckCircle2, ChevronRight, Plus, BedDouble, User, Building2, ChevronLeft, ArrowUpRight, ListChecks, MessageCircle, Search, Send } from "lucide-react";
+import { Bell, ChevronRight, Plus, BedDouble, User, Building2, ChevronLeft, ArrowUpRight, ListChecks, MessageCircle, Search, Send } from "lucide-react";
 import { DEPARTMENTS } from "../data/departments";
-import { HOUSEKEEPING_CHECKLIST } from "../data/housekeepingChecklists";
 import {
   PhoneFrame,
   ScreenHeader,
@@ -33,17 +32,7 @@ import {
 import { GuestProfileScreen, GuestChatScreen, type ChatMsg } from "./guestviews";
 import { ProfileScreen, NotificationSettingsScreen, SignedOutScreen } from "./profile";
 
-type Screen = { name: "home" | "notifications" | "taskDetail" | "create" | "guests" | "guestChat" | "guestProfile" | "profile" | "notifSettings" | "housekeeping" | "hkCheck"; id?: string };
-
-type HkRoom = { number: string; type: string; guest: string; status: "Needs Inspection" | "In Progress" | "Approved" };
-const HK_ROOMS: HkRoom[] = [
-  { number: "1201", type: "Deluxe Room", guest: "Mr. Oliver Bennett", status: "Needs Inspection" },
-  { number: "1408", type: "Junior Suite", guest: "Ms. Clara Fontaine", status: "Needs Inspection" },
-  { number: "1608", type: "Deluxe Room", guest: "Ms. Emma Davis", status: "Needs Inspection" },
-  { number: "1710", type: "Classic Room", guest: "Mr. Khalid Al-Mansouri", status: "Needs Inspection" },
-  { number: "2104", type: "Signature Suite", guest: "Mr. Liam Anderson", status: "In Progress" },
-];
-const HK_TOTAL = HOUSEKEEPING_CHECKLIST.reduce((n, s) => n + s.items.length, 0);
+type Screen = { name: "home" | "notifications" | "taskDetail" | "create" | "guests" | "guestChat" | "guestProfile" | "profile" | "notifSettings"; id?: string };
 
 const LS_ME = "Aanya Khan";
 const LS_ME_INITIALS = LS_ME.split(" ").map((p) => p[0]).join("").slice(0, 2);
@@ -171,83 +160,6 @@ function LsCard({ t, onOpen, onAccept }: { t: Task; onOpen?: () => void; onAccep
   );
 }
 
-function HousekeepingChecklistScreen({
-  room, onBack, onDone,
-}: {
-  room: HkRoom;
-  onBack: () => void;
-  onDone: (flagged: boolean) => void;
-}) {
-  const [checked, setChecked] = useState<Record<string, boolean>>({});
-  const doneCount = Object.values(checked).filter(Boolean).length;
-  const allDone = doneCount === HK_TOTAL;
-  const toggle = (key: string) => setChecked((c) => ({ ...c, [key]: !c[key] }));
-
-  return (
-    <div className="flex h-full flex-col">
-      <div className="shrink-0 border-b border-line px-4 pb-3.5 pt-4">
-        <div className="mb-3.5 flex items-center gap-2.5">
-          <button onClick={onBack} aria-label="Back" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-subtle text-ink">
-            <ChevronLeft className="h-5 w-5" />
-          </button>
-          <div className="min-w-0 flex-1">
-            <div className="font-display text-[17px] font-bold leading-tight text-ink">Room {room.number} · Housekeeping Checklist</div>
-            <div className="text-[12px] text-ink-secondary">{room.type} · {room.guest}</div>
-          </div>
-        </div>
-        <div className="flex items-center gap-2.5">
-          <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-line">
-            <div className={`h-full rounded-full ${allDone ? "bg-emerald-600" : "bg-brand"}`} style={{ width: `${(doneCount / HK_TOTAL) * 100}%` }} />
-          </div>
-          <span className={`min-w-9 text-right text-[12px] font-bold ${allDone ? "text-emerald-600" : "text-brand"}`}>{doneCount}/{HK_TOTAL}</span>
-        </div>
-      </div>
-      <div className="min-h-0 flex-1 overflow-y-auto no-scrollbar">
-        {HOUSEKEEPING_CHECKLIST.map((section) => {
-          const sectionDone = section.items.filter((_, i) => checked[`${section.section}-${i}`]).length;
-          const Icon = section.section === "Bedroom" ? BedDouble : Bath;
-          return (
-            <div key={section.section}>
-              <div className="flex items-center gap-2 border-b border-line bg-[#FAFAFA] px-5 py-3">
-                <Icon className="h-3.5 w-3.5 text-brand" />
-                <span className="text-[12px] font-bold uppercase tracking-wide text-brand">{section.section}</span>
-                <span className="ml-auto text-[11px] text-ink-tertiary">{sectionDone}/{section.items.length}</span>
-              </div>
-              {section.items.map((item, i) => {
-                const key = `${section.section}-${i}`;
-                const on = !!checked[key];
-                return (
-                  <button key={key} onClick={() => toggle(key)} className="flex w-full items-start gap-3.5 border-b border-[#F5F5F5] px-5 py-3 text-left">
-                    <span className={`mt-0.5 flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-md ${on ? "bg-emerald-600 text-white" : "border-2 border-[#D1D5DB]"}`}>
-                      {on && <Check className="h-3.5 w-3.5" />}
-                    </span>
-                    <span className={`text-[13px] leading-snug ${on ? "text-ink-secondary line-through" : "text-ink"}`}>{item}</span>
-                  </button>
-                );
-              })}
-            </div>
-          );
-        })}
-      </div>
-      <div className="flex shrink-0 flex-col gap-2.5 border-t border-line bg-white px-5 pb-7 pt-3">
-        <button
-          disabled={!allDone}
-          onClick={() => onDone(false)}
-          className={`flex w-full items-center justify-center gap-2 rounded-2xl py-3.5 font-display text-[15px] font-bold ${allDone ? "bg-emerald-600 text-white" : "bg-subtle text-ink-tertiary"}`}
-        >
-          <CheckCircle2 className="h-4 w-4" /> Approve Room
-        </button>
-        <button
-          onClick={() => onDone(true)}
-          className="flex w-full items-center justify-center gap-2 rounded-2xl border border-red-200 bg-red-50 py-3 font-display text-[14px] font-semibold text-red-600"
-        >
-          <AlertTriangle className="h-4 w-4" /> Flag for Recleaning
-        </button>
-      </div>
-    </div>
-  );
-}
-
 function Row({ icon: Icon, label, children }: { icon: React.ComponentType<{ className?: string }>; label: string; children: React.ReactNode }) {
   return (
     <div className="flex items-center gap-3 py-3.5">
@@ -276,8 +188,6 @@ export function LineStaffPrototype() {
   const [newChatOpen, setNewChatOpen] = useState(false);
   const [aiDrafts, setAiDrafts] = useState<Record<string, string>>({});
   const [signedOut, setSignedOut] = useState(false);
-  const [hkRooms, setHkRooms] = useState<HkRoom[]>(HK_ROOMS);
-
   // create manual task
   const [dept, setDept] = useState("");
   const [service, setService] = useState("");
@@ -339,7 +249,7 @@ export function LineStaffPrototype() {
         { key: "guests", label: "Chats", icon: MessageCircle },
         { key: "profile", label: "More", icon: MoreNavIcon },
       ]}
-      active={cur.name === "guests" ? "guests" : cur.name === "profile" || cur.name === "housekeeping" ? "profile" : "tasks"}
+      active={cur.name === "guests" ? "guests" : cur.name === "profile" ? "profile" : "tasks"}
       onChange={(k) => nav.go({ name: k === "guests" ? "guests" : k === "profile" ? "profile" : "home" })}
     />
   );
@@ -659,7 +569,6 @@ export function LineStaffPrototype() {
       <div className="h-full overflow-y-auto pb-24 no-scrollbar">
         <ProfileScreen
           name="Aanya Khan" role="Line Staff" email="aanya.khan@alfonhotel.com" dept="Housekeeping"
-          onHousekeeping={() => nav.push({ name: "housekeeping" })}
           onNotifSettings={() => nav.push({ name: "notifSettings" })}
           onSignOut={() => setSignedOut(true)}
         />
@@ -669,61 +578,11 @@ export function LineStaffPrototype() {
   );
   const NotifSettings = <NotificationSettingsScreen persona="line" onBack={nav.back} />;
 
-  const Housekeeping = (
-    <div className="relative h-full">
-      <div className="flex h-full flex-col">
-        <div className="shrink-0 border-b border-line px-6 pb-4 pt-4">
-          <h1 className="font-display text-[20px] font-bold text-ink">Housekeeping</h1>
-          <p className="text-[12px] text-ink-secondary">Room inspection checklist</p>
-        </div>
-        <div className="min-h-0 flex-1 space-y-2.5 overflow-y-auto px-5 pb-28 pt-4 no-scrollbar">
-          {hkRooms.map((r) => (
-            <button
-              key={r.number}
-              disabled={r.status === "Approved"}
-              onClick={() => nav.push({ name: "hkCheck", id: r.number })}
-              className={`flex w-full items-center gap-3 rounded-[18px] border p-4 text-left ${r.status === "Approved" ? "border-emerald-200 bg-emerald-50" : "border-line bg-white"}`}
-            >
-              <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-[14px] ${r.status === "Approved" ? "bg-emerald-100 text-emerald-600" : "bg-brand-tint text-brand"}`}>
-                {r.status === "Approved" ? <CheckCircle2 className="h-[22px] w-[22px]" /> : <BedDouble className="h-[22px] w-[22px]" />}
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="flex items-center justify-between gap-2">
-                  <span className={`font-display text-[15px] font-bold ${r.status === "Approved" ? "text-emerald-600" : "text-ink"}`}>Room {r.number}</span>
-                  <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${r.status === "Approved" ? "bg-emerald-100 text-emerald-600" : r.status === "Needs Inspection" ? "bg-brand-tint text-brand" : "bg-amber-50 text-amber-600"}`}>
-                    {r.status}
-                  </span>
-                </span>
-                <span className="mt-0.5 block text-[13px] text-ink-secondary">{r.type}</span>
-                <span className="block text-[12px] text-ink-tertiary">{r.guest}</span>
-              </span>
-              {r.status !== "Approved" && <ChevronRight className="h-4 w-4 shrink-0 text-ink-tertiary" />}
-            </button>
-          ))}
-        </div>
-      </div>
-      {lsNav}
-    </div>
-  );
-
-  const hkRoom = hkRooms.find((r) => r.number === cur.id);
-  const HkCheck = hkRoom ? (
-    <HousekeepingChecklistScreen
-      room={hkRoom}
-      onBack={nav.back}
-      onDone={(flagged) => {
-        setHkRooms((rs) => rs.map((r) => (r.number === hkRoom.number ? { ...r, status: flagged ? "In Progress" : "Approved" } : r)));
-        flash(flagged ? `${hkRoom.number} flagged for recleaning` : `Room ${hkRoom.number} approved`);
-        nav.back();
-      }}
-    />
-  ) : null;
-
-  const VIEWS: Record<Screen["name"], React.ReactNode> = { home: Home, notifications: Notifications, taskDetail: TaskDetail, create: Create, guests: Guests, guestChat: GuestChat, guestProfile: GuestProfile, profile: Profile, notifSettings: NotifSettings, housekeeping: Housekeeping, hkCheck: HkCheck };
+  const VIEWS: Record<Screen["name"], React.ReactNode> = { home: Home, notifications: Notifications, taskDetail: TaskDetail, create: Create, guests: Guests, guestChat: GuestChat, guestProfile: GuestProfile, profile: Profile, notifSettings: NotifSettings };
 
   return (
     <div className="flex flex-col items-center gap-4">
-      <PhoneFrame white={!signedOut && ["guests", "profile", "housekeeping", "hkCheck"].includes(cur.name)}>
+      <PhoneFrame white={!signedOut && ["guests", "profile"].includes(cur.name)}>
         {signedOut ? <SignedOutScreen onSignIn={() => { setSignedOut(false); nav.reset(); }} /> : VIEWS[cur.name]}
         {HelpSheet}
         {NewChatSheet}

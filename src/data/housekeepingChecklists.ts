@@ -54,50 +54,6 @@ export const INSPECTION_CHECKLIST: InspectionItem[] = [
   { n: 36, section: "Bathroom", text: "Were bathrobes and slippers present on arrival and were they clean and in excellent repair?", tag: "Cleanliness" },
 ];
 
-/** mobile housekeeping inspection — separate from the room-cleaning list and the long LQA form */
-export const HOUSEKEEPING_CHECKLIST: { section: "Bedroom" | "Bathroom"; items: string[] }[] = [
-  {
-    section: "Bedroom",
-    items: [
-      "Carpet / floors clean and free of stains and dust",
-      "Walls, doors and baseboards clean and free of marks",
-      "Bed neatly made with fresh, stain-free linen",
-      "Headboard and pillows clean and in excellent condition",
-      "All upholstered furniture clean and free of stains",
-      "All surfaces dusted and smear-free",
-      "Mirrors and glass surfaces clean and streak-free",
-      "Curtains and blinds clean and properly fitted",
-      "Minibar restocked and inventory checked",
-      "Television clean and correctly functioning",
-      "All light fixtures working and dust-free",
-      "Wastepaper bin clean and emptied",
-      "Notepad and pen available by telephone",
-      "Wardrobe and drawers clean and free of debris",
-      "In-room collateral clean and neatly arranged",
-      "Pre-arrival preferences in place (pillows, amenities, etc.)",
-      "Water provided in glass bottles or eco-friendly containers",
-      "Balcony clean and furniture neatly set (if applicable)",
-    ],
-  },
-  {
-    section: "Bathroom",
-    items: [
-      "Bathroom completely mould-free",
-      "Floor, walls, doors and ceiling clean",
-      "Shower, bath, sink and toilet clean and sanitised",
-      "Showerhead and taps polished and free of lime scale",
-      "Shower screen or door clean and streak-free",
-      "All counters, shelves and soap dishes clean and dry",
-      "Full set of unused amenities present and complete",
-      "Tissues, toilet roll and spare roll available",
-      "Two clean drinking glasses present",
-      "Towels clean, unstained and in excellent repair",
-      "Bathrobes and slippers clean and in excellent condition",
-      "Wastepaper bin clean and emptied",
-    ],
-  },
-];
-
 export const TAG_TONE: Record<InspectionItem["tag"], string> = {
   Cleanliness: "bg-sky-50 text-sky-700",
   Sustainability: "bg-emerald-50 text-emerald-700",

@@ -1336,7 +1336,12 @@ function CleaningChecklistSheet({
     <Sheet title={`${room.number} — Room Cleaning`} onClose={onClose}>
       <div className="mb-4 flex items-center justify-between rounded-2xl bg-[#F6F6F8] p-3 text-[13px]">
         <span className="text-ink-secondary">Housekeeper: <span className="font-medium text-ink">{room.assignee ?? "Unassigned"}</span></span>
-        <span className="text-ink-tertiary">{doneCount} / {CLEANING_CHECKLIST.length}</span>
+        <span className="flex items-center gap-3">
+          <span className="text-ink-tertiary">{doneCount} / {CLEANING_CHECKLIST.length}</span>
+          <button type="button" onClick={() => setChecked(CLEANING_CHECKLIST.map(() => !allDone))} className="font-semibold text-brand">
+            {allDone ? "Clear all" : "Select all"}
+          </button>
+        </span>
       </div>
       <div className="space-y-2">
         {CLEANING_CHECKLIST.map((item, i) => (
@@ -1380,8 +1385,11 @@ function InspectionChecklistSheet({
       <div className="rounded-2xl bg-[#F6F6F8] p-3">
         <div className="text-[11px] font-semibold uppercase tracking-wide text-ink-tertiary">Leading Quality Assurance Standard</div>
         <div className="mt-1 text-[13px] text-ink-secondary">Housekeeper: <span className="font-medium text-ink">{room.assignee ?? "Unassigned"}</span></div>
-        <div className="mt-2 flex items-center justify-between text-[12px] text-ink-tertiary">
+        <div className="mt-2 flex items-center justify-between gap-2 text-[12px] text-ink-tertiary">
           <span>{doneCount} / {INSPECTION_CHECKLIST.length} verified</span>
+          <button type="button" onClick={() => setChecked(INSPECTION_CHECKLIST.map(() => !allDone))} className="font-semibold text-brand">
+            {allDone ? "Clear all" : "Select all"}
+          </button>
           <span className="font-semibold text-ink">{pct}%</span>
         </div>
         <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white">
