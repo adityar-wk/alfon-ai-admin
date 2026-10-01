@@ -56,6 +56,7 @@ function greeting(name: string) {
 const PILLARS = [
   { label: "Guest Satisfaction", value: "88%", tag: "Excellent", trend: "up", icon: Smile, spark: [60, 62, 61, 64, 66, 68] },
   { label: "Response Time", value: "2m 45s", tag: "Excellent", trend: "up", icon: Timer, spark: [50, 48, 52, 47, 46, 45] },
+  { label: "Task Completion", value: "86%", tag: "Good", trend: "flat", icon: CheckCircle2, spark: [59, 61, 60, 63, 62, 64] },
   { label: "Service Quality", value: "79%", tag: "Good", trend: "flat", icon: Heart, spark: [55, 54, 56, 55, 56, 55] },
   { label: "Team Performance", value: "84%", tag: "Excellent", trend: "up", icon: Users, spark: [58, 59, 60, 60, 61, 62] },
 ] as const;
@@ -310,7 +311,45 @@ export default function Home() {
       <Topbar title={hello} subtitle={`Here's what's happening at ${HOTEL}`} />
       <main className="flex-1 overflow-y-auto bg-page">
         <div className="flex flex-col gap-7 px-8 pb-8 pt-7">
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+        <Card className="flex min-h-[520px] flex-col items-center justify-center px-6 py-10">
+          <Orb score={score} />
+          <div className="mt-5 text-[11px] font-semibold uppercase tracking-[0.2em] text-ink-tertiary">Hotel Health Score</div>
+          <p className={`mt-2.5 rounded-full px-3 py-1 text-center text-[13px] font-medium ${band.pill}`}>
+            {band.key === "excellent"
+              ? "Your hotel is performing strong."
+              : band.key === "good"
+                ? "Your hotel is doing well, with room to improve."
+                : band.key === "attention"
+                  ? "Several things need attention."
+                  : "Urgent: resolve overdue and escalated tasks."}
+          </p>
+          <button
+            onClick={() => setScoreOpen((o) => !o)}
+            aria-expanded={scoreOpen}
+            className="mt-5 inline-flex items-center gap-1 text-[13px] font-semibold text-brand hover:underline"
+          >
+            {scoreOpen ? "View less" : "View more"} <ChevronDown className={`h-4 w-4 transition-transform ${scoreOpen ? "rotate-180" : ""}`} />
+          </button>
+
+          <div className="mt-8 w-full max-w-[280px]">
+            <div className="flex items-center justify-between text-[10px] font-semibold text-ink-tertiary">
+              <span>0</span>
+              <span>100</span>
+            </div>
+            <div className="relative mt-1 h-2 w-full rounded-full" style={{ background: "linear-gradient(90deg, #F0776C 0%, #F5B15D 50%, #5FD3A9 100%)" }}>
+              <div
+                className="absolute top-1/2 h-4 w-4 -translate-y-1/2 rounded-full border-[3px] border-white shadow-[0_1px_4px_rgba(0,0,0,0.35)] transition-[left] duration-700"
+                style={{ left: `calc(${score}% - 8px)`, background: band.color }}
+              />
+            </div>
+            <div className="mt-2 flex items-center justify-between text-[11px] font-medium text-ink-tertiary">
+              <span>Needs Attention</span>
+              <span>Thriving</span>
+            </div>
+          </div>
+        </Card>
+
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-5">
           {PILLARS.map((p) => (
             <Card key={p.label} className="px-6 py-5">
               <span className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg border border-brand/25 bg-white text-brand">
@@ -329,40 +368,6 @@ export default function Home() {
             </Card>
           ))}
         </div>
-
-        <Card className="flex min-h-[520px] flex-col items-center justify-center px-6 py-10">
-          <Orb score={score} />
-          <div className="mt-5 text-[11px] font-semibold uppercase tracking-[0.2em] text-ink-tertiary">Hotel Health Score</div>
-          <p className="mt-2.5 text-center text-[14px] text-ink-secondary">
-            {band.key === "excellent"
-              ? "Your hotel is performing strong."
-              : band.key === "good"
-                ? "Your hotel is doing well, with room to improve."
-                : band.key === "attention"
-                  ? "Several things need attention."
-                  : "Urgent: resolve overdue and escalated tasks."}
-          </p>
-          <button
-            onClick={() => setScoreOpen((o) => !o)}
-            aria-expanded={scoreOpen}
-            className="mt-5 inline-flex items-center gap-1 text-[13px] font-semibold text-brand hover:underline"
-          >
-            {scoreOpen ? "View less" : "View more"} <ChevronDown className={`h-4 w-4 transition-transform ${scoreOpen ? "rotate-180" : ""}`} />
-          </button>
-
-          <div className="mt-8 w-full max-w-[280px]">
-            <div className="relative h-2 w-full rounded-full" style={{ background: "linear-gradient(90deg, #F0776C 0%, #F5B15D 50%, #5FD3A9 100%)" }}>
-              <div
-                className="absolute top-1/2 h-4 w-4 -translate-y-1/2 rounded-full border-[3px] border-white shadow-[0_1px_4px_rgba(0,0,0,0.35)] transition-[left] duration-700"
-                style={{ left: `calc(${score}% - 8px)`, background: band.color }}
-              />
-            </div>
-            <div className="mt-2 flex items-center justify-between text-[11px] font-medium text-ink-tertiary">
-              <span>Needs Attention</span>
-              <span>Thriving</span>
-            </div>
-          </div>
-        </Card>
 
         {scoreOpen && (
           <Card className="p-6">
