@@ -3,12 +3,14 @@ import { Check, X } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { LineStaffPrototype } from "../linestaff/screens";
 import { ManagerPrototype } from "../linestaff/manager";
+import { GuestLandingPrototype } from "../linestaff/guestLanding";
 
-type Tab = "line" | "manager";
+type Tab = "line" | "manager" | "landing";
 
 const TABS: { key: Tab; label: string }[] = [
   { key: "line", label: "Line Staff" },
   { key: "manager", label: "Mid Manager" },
+  { key: "landing", label: "Landing Page" },
 ];
 
 const INFO: Record<Tab, { title: string; blurb: string; flows: string[]; included: string[]; excluded: string[] }> = {
@@ -47,6 +49,19 @@ const INFO: Record<Tab, { title: string; blurb: string; flows: string[]; include
     included: ["Department-only scope", "Reasons required for unable / override / GM escalation"],
     excluded: ["Department analytics and SLA trend charts", "Staff performance and Hotel Health Score drill-down", "Reports, SLA / department / role / knowledge-base configuration"],
   },
+  landing: {
+    title: "Guest Verification Landing",
+    blurb: "What a guest sees after scanning the in-room QR code — verify the stay, then jump straight into WhatsApp with the AI Concierge.",
+    flows: [
+      "Full name, phone number with country code, and room number",
+      "Consent checkbox linking to the Privacy Policy before anything is sent",
+      "Connect on WhatsApp — opens a chat with the AI Concierge pre-filled with the guest's details",
+      "Confirmation screen while WhatsApp opens, with a way back to the form",
+      "Trust row: Secure, Verified, Instant Access",
+    ],
+    included: ["Works without an app install", "Consent captured before any messaging starts"],
+    excluded: ["Any hotel-staff functionality — this is guest-facing only"],
+  },
 };
 
 export default function LineStaff() {
@@ -74,6 +89,7 @@ export default function LineStaff() {
             {/* remount on tab change so each phone starts fresh */}
             {tab === "line" && <LineStaffPrototype />}
             {tab === "manager" && <ManagerPrototype />}
+            {tab === "landing" && <GuestLandingPrototype />}
 
             <div className="space-y-5">
               <div className="rounded-card border border-line bg-white p-5">

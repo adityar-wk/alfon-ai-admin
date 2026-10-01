@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { MessageCircle, ArrowRight, Lock, ShieldCheck, Zap, User, KeyRound } from "lucide-react";
 import { PhoneFrame } from "./mobile";
-
-const HOTEL_NAME = "ALFON";
+import logoSrc from "../assets/alfon-logo.png";
+import heroBg from "../assets/guest-landing-bg.webp";
 
 const COUNTRIES = [
   { flag: "🇦🇪", code: "+971" },
@@ -11,29 +11,25 @@ const COUNTRIES = [
   { flag: "🇮🇳", code: "+91" },
 ];
 
-/** a warm, photo-free hero — soft gradient light, an arch alcove and a potted plant, evoking a boutique hotel lobby */
-function HeroArt() {
+/** the ALFON wordmark, recoloured brand-orange via a CSS mask of the logo PNG */
+function LogoMark({ className = "" }: { className?: string }) {
   return (
-    <svg viewBox="0 0 400 300" className="absolute inset-0 h-full w-full" preserveAspectRatio="xMidYMid slice" aria-hidden>
-      <defs>
-        <linearGradient id="gl-warm-bg" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#F6E9D8" />
-          <stop offset="55%" stopColor="#F9F0E2" />
-          <stop offset="100%" stopColor="#FBF5EB" />
-        </linearGradient>
-        <linearGradient id="gl-arch" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#EFDBC0" />
-          <stop offset="100%" stopColor="#E6CBA3" />
-        </linearGradient>
-      </defs>
-      <rect width="400" height="300" fill="url(#gl-warm-bg)" />
-      <ellipse cx="55" cy="30" rx="150" ry="95" fill="#ffffff" opacity="0.4" />
-      <path d="M245 300 V150 a75 75 0 0 1 150 0 V300 Z" fill="url(#gl-arch)" opacity="0.75" />
-      <rect x="292" y="238" width="44" height="48" rx="6" fill="#D8BB92" />
-      <path d="M298 238 C296 205 280 190 268 172" stroke="#93A480" strokeWidth="6" fill="none" strokeLinecap="round" />
-      <path d="M316 238 C316 198 330 180 348 158" stroke="#84996F" strokeWidth="6" fill="none" strokeLinecap="round" />
-      <path d="M328 238 C332 208 348 195 362 182" stroke="#A3B48C" strokeWidth="5" fill="none" strokeLinecap="round" />
-    </svg>
+    <div
+      role="img"
+      aria-label="ALFON"
+      className={className}
+      style={{
+        backgroundColor: "#E8623A",
+        WebkitMaskImage: `url(${logoSrc})`,
+        maskImage: `url(${logoSrc})`,
+        WebkitMaskSize: "contain",
+        maskSize: "contain",
+        WebkitMaskRepeat: "no-repeat",
+        maskRepeat: "no-repeat",
+        WebkitMaskPosition: "center",
+        maskPosition: "center",
+      }}
+    />
   );
 }
 
@@ -50,11 +46,14 @@ export function GuestLandingPrototype() {
   return (
     <PhoneFrame white>
       <div className="flex h-full flex-col overflow-y-auto no-scrollbar">
-        <div className="relative shrink-0 px-6 pb-9 pt-1">
-          <HeroArt />
+        <div
+          className="relative shrink-0 bg-cover bg-no-repeat px-6 pb-9 pt-7"
+          style={{ backgroundImage: `url(${heroBg})`, backgroundPosition: "25% 35%" }}
+        >
+          <div className="absolute inset-0" style={{ background: "linear-gradient(100deg, rgba(255,255,255,0.72) 0%, rgba(255,255,255,0.45) 45%, rgba(255,255,255,0.08) 75%)" }} />
           <div className="relative">
-            <div className="text-center font-display text-[24px] font-bold tracking-[0.3em] text-brand">{HOTEL_NAME}</div>
-            <div className="mt-2 flex items-center justify-center gap-2 text-[10px] font-semibold tracking-[0.35em] text-ink-tertiary">
+            <LogoMark className="mx-auto h-8 w-[170px]" />
+            <div className="mt-3 flex items-center justify-center gap-2 text-[10px] font-semibold tracking-[0.35em] text-ink-tertiary">
               <span className="h-px w-5 bg-ink-tertiary/40" /> GUEST VERIFICATION <span className="h-px w-5 bg-ink-tertiary/40" />
             </div>
             <h1 className="mt-7 font-display text-[24px] font-bold leading-tight text-ink">
