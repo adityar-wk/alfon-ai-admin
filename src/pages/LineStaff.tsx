@@ -27,7 +27,7 @@ const INFO: Record<Tab, { title: string; blurb: string; flows: string[]; include
       "Each card shows the task name first, the room second and the SLA timer",
       "Pending cards have ✕ Reject and Accept inside the card",
       "Tap a card → Task details (task, room, guest and assignee details; tap the guest to open their profile, or jump straight to the guest chat)",
-      "Task details → Need help (escalate to your supervisor) or Mark complete",
+      "Task details → Need help (escalate to your supervisor or the Duty Manager, or reassign) or Mark complete",
       "Bell → Notifications",
       "+ button (top right, after the bell) → Create Manual Task (department, service, room, optional details)",
       "Chats: all guest chats — tap a chat to reply (take over from ALFON AI), tap the avatar for the guest profile",

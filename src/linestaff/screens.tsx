@@ -51,9 +51,10 @@ function MoreNavIcon({ className }: { className?: string }) {
 const CHAT_FILTERS = ["All", "Unread", "Open tasks"] as const;
 const TASK_FILTERS = ["All", "Open", "Active", "Completed"] as const;
 
-type HelpKind = "escalate" | "reassign";
+type HelpKind = "escalate" | "escalateDuty" | "reassign";
 const HELP_OPTIONS: { key: HelpKind; label: string; cta: string; placeholder: string }[] = [
-  { key: "escalate", label: "Escalate task", cta: "Escalate", placeholder: "Tell your supervisor what's blocking you…" },
+  { key: "escalate", label: "Escalate to supervisor", cta: "Escalate", placeholder: "Tell your supervisor what's blocking you…" },
+  { key: "escalateDuty", label: "Escalate to Duty Manager", cta: "Escalate to Duty Manager", placeholder: "Tell the Duty Manager what's blocking you…" },
   { key: "reassign", label: "Reassign", cta: "Send request", placeholder: "Why does this need to be reassigned…" },
 ];
 type Status = "pending" | "progress" | "completed";
@@ -77,7 +78,7 @@ type Task = {
   staffNote?: string;
   dept?: string;
   compensation?: { type: string; reason: string; by: string }[];
-  escalatedTo?: "Supervisor" | "Mid Manager";
+  escalatedTo?: "Supervisor" | "Mid Manager" | "Duty Manager";
   complaint?: boolean;
   assignedBy?: string;
 };
@@ -477,7 +478,7 @@ export function LineStaffPrototype() {
   );
 
   const TaskDetail = (
-    <div className="flex h-full flex-col">
+    <div className="relative flex h-full flex-col">
       <div className="flex shrink-0 items-center gap-3 border-b border-line px-6 pb-3 pt-4">
         <button onClick={nav.back} aria-label="Back" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-ink shadow-sm">
           <ChevronLeft className="h-5 w-5" />
@@ -514,19 +515,6 @@ export function LineStaffPrototype() {
           </Row>
         </div>
 
-        {active.guest !== "—" && (
-          <button
-            onClick={() => nav.push({ name: "guestChat", id: active.guest })}
-            className="flex w-full items-center justify-between rounded-2xl border border-line bg-white px-4 py-3.5 text-left"
-          >
-            <span className="flex items-center gap-3">
-              <MessageCircle className="h-4 w-4 text-ink-tertiary" />
-              <span className="text-[14px] font-medium text-ink">Go to guest chat</span>
-            </span>
-            <ChevronRight className="h-4 w-4 text-ink-tertiary" />
-          </button>
-        )}
-
         <div className="rounded-2xl bg-[#F6F6F8] p-4">
           <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-ink-tertiary">Notes</div>
           <p className="mt-2 text-[14px] font-normal leading-[1.6] text-ink">{active.note}</p>
@@ -558,6 +546,16 @@ export function LineStaffPrototype() {
         )}
       </div>
 
+      {active.guest !== "—" && (
+        <button
+          onClick={() => nav.push({ name: "guestChat", id: active.guest })}
+          aria-label="Go to guest chat"
+          className="absolute bottom-24 right-5 z-10 flex h-14 w-14 items-center justify-center rounded-full bg-brand text-white shadow-[0_6px_18px_rgba(232,98,58,0.4)]"
+        >
+          <MessageCircle className="h-6 w-6" />
+        </button>
+      )}
+
       <div className="flex shrink-0 gap-3 px-6 pb-6 pt-3">
         {active.status === "pending" ? (
           <Button className="w-full !font-bold" onClick={() => accept(active.id)}>Accept</Button>
@@ -578,8 +576,9 @@ export function LineStaffPrototype() {
   );
 
   const helpSubmit = () => {
-    const msg = helpKind === "escalate" ? "Escalated to your supervisor" : "Reassignment request sent to your supervisor";
-    if (helpKind === "escalate") setTasks((ts) => ts.map((t) => (t.id === active.id ? { ...t, escalatedTo: "Supervisor" } : t)));
+    const target = helpKind === "escalate" ? "Supervisor" : helpKind === "escalateDuty" ? "Duty Manager" : null;
+    const msg = target ? `Escalated to the ${target}` : "Reassignment request sent to your supervisor";
+    if (target) setTasks((ts) => ts.map((t) => (t.id === active.id ? { ...t, escalatedTo: target } : t)));
     flash(msg);
     setHelpOpen(false);
     setHelpNote("");
