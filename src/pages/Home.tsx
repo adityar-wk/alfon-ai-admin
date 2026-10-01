@@ -291,7 +291,7 @@ export default function Home() {
   const depts = Array.from(new Set(open.map((t) => t.dept))).sort();
   const pending = open
     .filter((t) => (dept === "all" || t.dept === dept) && (priority === "all" || t.priority === priority))
-    .slice(0, 6);
+    .slice(0, 12);
 
   const score = Math.max(0, Math.min(100, Math.round(82 + BASELINE - penalty(TASKS))));
   const band = scoreBand(score);
@@ -338,7 +338,7 @@ export default function Home() {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 items-start gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="grid grid-cols-1 items-stretch gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
           <div className="flex flex-col gap-5">
             <Card className="flex min-h-[460px] flex-col items-center justify-center px-6 py-10">
               <Orb score={score} />
@@ -399,13 +399,13 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="flex flex-col gap-5">
-            <Card className="p-6">
+          <div className="flex min-h-0 flex-col gap-5 xl:h-0 xl:min-h-full">
+            <Card className="flex min-h-0 flex-1 flex-col p-6">
               <div className="flex items-center justify-between">
                 <h3 className="text-[16px] font-semibold text-ink">Department Performance</h3>
                 <Link to="/analytics" className="text-[13px] font-semibold text-brand">Analytics</Link>
               </div>
-              <div className="mt-3 max-h-[320px] divide-y divide-line/70 overflow-y-auto">
+              <div className="mt-3 min-h-0 flex-1 divide-y divide-line/70 overflow-y-auto">
                 {DEPT_PERF.map((d) => (
                   <div key={d.name} className="flex items-center gap-3 py-2.5">
                     <div className="min-w-0 flex-1 text-[13px] font-semibold text-ink">{d.name}</div>
@@ -458,8 +458,8 @@ export default function Home() {
           </Card>
         )}
 
-        <div className="grid grid-cols-1 items-start gap-5 xl:grid-cols-[7fr_3fr]">
-          <Card table className="flex min-h-0 flex-col overflow-hidden">
+        <div className="grid grid-cols-1 items-stretch gap-5 xl:grid-cols-[7fr_3fr]">
+          <Card table className="flex min-h-0 flex-col overflow-hidden xl:h-0 xl:min-h-full">
             <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-line px-6 py-4">
               <div className="flex items-center gap-2">
                 <ListChecks className="h-4 w-4 text-brand" />
@@ -487,7 +487,7 @@ export default function Home() {
                 <Link to="/tasks" className="ml-1 text-[14px] font-medium text-brand">View all</Link>
               </div>
             </div>
-            <div className="max-h-[640px] min-h-0 flex-1 overflow-auto">
+            <div className="min-h-0 flex-1 overflow-auto">
               <table className="w-full min-w-[760px] text-left text-[14px]">
                 <thead className="sticky top-0 z-10 bg-white">
                   <tr className="text-[12px] uppercase tracking-wide text-ink-tertiary">
