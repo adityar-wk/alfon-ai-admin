@@ -208,6 +208,12 @@ export function LineStaffPrototype() {
   const inProgress = tasks.filter((t) => t.status === "progress");
   const completed = tasks.filter((t) => t.status === "completed");
   const active = tasks.find((t) => t.id === cur.id) ?? tasks[0];
+
+  // home stat cards — same set as the Mid Manager home, with Escalations swapped for Active Chats
+  const lsOpen = tasks.filter((t) => t.status !== "completed");
+  const lsAtRisk = tasks.filter((t) => t.status !== "completed" && t.left >= 0 && t.left / t.total < 0.35);
+  const lsOverdue = tasks.filter((t) => t.status !== "completed" && t.left < 0);
+  const lsComplaints = tasks.filter((t) => t.complaint && t.status !== "completed");
   const services = DEPARTMENTS.find((d) => d.name === dept)?.services.filter((s) => s.active).map((s) => s.name) ?? [];
 
   const tasksFiltered = tasks.filter((t) => {
@@ -344,9 +350,11 @@ export function LineStaffPrototype() {
         </div>
 
         <div className="mt-5 grid grid-cols-3 gap-3 px-6">
-          <StatCard calm label="Active tasks" value={inProgress.length} onClick={() => nav.go({ name: "tasks" })} />
-          <StatCard calm label="Open tasks" value={pending.length} onClick={() => nav.go({ name: "tasks" })} />
-          <StatCard calm label="Completed" value={completed.length} onClick={() => nav.go({ name: "tasks" })} />
+          <StatCard calm label="Open tasks" value={lsOpen.length} onClick={() => nav.go({ name: "tasks" })} />
+          <StatCard calm label="SLA at risk" value={lsAtRisk.length} onClick={() => nav.go({ name: "tasks" })} />
+          <StatCard calm label="Overdue" value={lsOverdue.length} onClick={() => nav.go({ name: "tasks" })} />
+          <StatCard calm label="Active Chats" value={guests.length} onClick={() => nav.go({ name: "guests" })} />
+          <StatCard calm label="Complaints" value={lsComplaints.length} onClick={() => nav.go({ name: "tasks" })} />
         </div>
 
         <div className="mt-6"><SectionTitle dot={false} small action={<span className="text-[12px] text-ink-tertiary">{inProgress.length}</span>}>Active tasks</SectionTitle></div>
