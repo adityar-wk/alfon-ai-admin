@@ -54,12 +54,12 @@ const INFO: Record<Tab, { title: string; blurb: string; flows: string[]; include
     blurb: "What a guest sees after scanning the in-room QR code — verify the stay, then jump straight into WhatsApp with the AI Concierge.",
     flows: [
       "Full name, phone number with country code, and room number",
-      "Consent checkbox linking to the Privacy Policy before anything is sent",
+      "Consent checkbox linking to the Terms & Privacy Policy, required before sending the code",
+      "OTP verification — a 6-digit code sent to the guest's number",
       "Connect on WhatsApp — opens a chat with the AI Concierge pre-filled with the guest's details",
       "Confirmation screen while WhatsApp opens, with a way back to the form",
-      "Trust row: Secure, Verified, Instant Access",
     ],
-    included: ["Works without an app install", "Consent captured before any messaging starts"],
+    included: ["Works without an app install", "Consent and number verification captured before any messaging starts"],
     excluded: ["Any hotel-staff functionality — this is guest-facing only"],
   },
 };
