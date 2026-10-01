@@ -21,7 +21,7 @@ const INFO: Record<Tab, { title: string; blurb: string; flows: string[]; include
     blurb: "On-the-floor app for housekeeping and other line staff — do the next task, ask for help, create a manual task.",
     flows: [
       "Bottom nav: Home, Tasks, Chats, and More",
-      "Home: greeting, stat cards (Open tasks / SLA at risk / Overdue / Active Chats / Complaints — same set as the Mid Manager home, with Active Chats in place of Escalations), then the same tasks grouped by status",
+      "Home: greeting, stat cards (Open tasks / SLA at risk / Overdue / Active Chats / Complaints / Completed tasks), then the same tasks grouped by status",
       "Assigned by a supervisor or mid manager: a drop-down banner shows the task and its SLA (no Accept needed — it is already yours)",
       "Tasks: a dedicated, searchable list with filter chips (All / Open / Active / Completed)",
       "Each card shows the task name first, the room second and the SLA timer",

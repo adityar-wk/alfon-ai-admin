@@ -355,6 +355,7 @@ export function LineStaffPrototype() {
           <StatCard calm label="Overdue" value={lsOverdue.length} onClick={() => nav.go({ name: "tasks" })} />
           <StatCard calm label="Active Chats" value={guests.length} onClick={() => nav.go({ name: "guests" })} />
           <StatCard calm label="Complaints" value={lsComplaints.length} onClick={() => nav.go({ name: "tasks" })} />
+          <StatCard calm label="Completed tasks" value={completed.length} onClick={() => nav.go({ name: "tasks" })} />
         </div>
 
         <div className="mt-6"><SectionTitle dot={false} small action={<span className="text-[12px] text-ink-tertiary">{inProgress.length}</span>}>Active tasks</SectionTitle></div>
