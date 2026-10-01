@@ -340,7 +340,7 @@ export default function Home() {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 items-start gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="grid grid-cols-1 items-stretch gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
           <div className="flex flex-col gap-5">
             <Card className="flex flex-col items-center px-6 py-10">
               <Orb score={score} />
@@ -405,8 +405,8 @@ export default function Home() {
             </Card>
           </div>
 
-          <div className="flex flex-col gap-5">
-            <Card className="p-6">
+          <div className="flex h-full flex-col gap-5">
+            <Card className="flex flex-col p-6">
               <div className="flex items-center justify-between">
                 <h3 className="text-[16px] font-semibold text-ink">Department Performance</h3>
                 <Link to="/analytics" aria-label="View analytics" className="text-ink-tertiary hover:text-ink">
@@ -414,7 +414,7 @@ export default function Home() {
                 </Link>
               </div>
               <div className="mt-3 divide-y divide-line/70">
-                {DEPT_PERF.map((d) => (
+                {DEPT_PERF.slice(0, 10).map((d) => (
                   <div key={d.name} className="flex items-center gap-3 py-2.5">
                     <div className="min-w-0 flex-1 text-[13px] font-semibold text-ink">{d.name}</div>
                     <div className="text-right leading-tight">
