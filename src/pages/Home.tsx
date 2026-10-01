@@ -78,10 +78,16 @@ export const DEPT_ICON: Record<string, Icon> = {
 const DEPT_PERF = [
   { name: "Housekeeping", tasks: 52, onTime: 96 },
   { name: "Front Desk", tasks: 32, onTime: 97 },
+  { name: "Food and Beverage", tasks: 29, onTime: 92 },
   { name: "Concierge", tasks: 18, onTime: 94 },
   { name: "Room Service", tasks: 21, onTime: 91 },
   { name: "Guest Services", tasks: 27, onTime: 93 },
   { name: "Engineering", tasks: 15, onTime: 88 },
+  { name: "Laundry", tasks: 19, onTime: 95 },
+  { name: "Security", tasks: 11, onTime: 98 },
+  { name: "Reservations", tasks: 14, onTime: 96 },
+  { name: "IT", tasks: 8, onTime: 97 },
+  { name: "Operator", tasks: 9, onTime: 99 },
 ];
 
 /** Health score = 82 at the starting data; it moves as tasks are resolved or new problems appear. */
@@ -332,43 +338,63 @@ export default function Home() {
           ))}
         </div>
 
-        <Card className="flex min-h-[520px] flex-col items-center justify-center px-6 py-10">
-          <Orb score={score} />
-          <div className="mt-5 text-[11px] font-semibold uppercase tracking-[0.2em] text-ink-tertiary">Hotel Health Score</div>
-          <p className={`mt-2.5 rounded-full px-3 py-1 text-center text-[13px] font-medium ${band.pill}`}>
-            {band.key === "excellent"
-              ? "Your hotel is performing strong."
-              : band.key === "good"
-                ? "Your hotel is doing well, with room to improve."
-                : band.key === "attention"
-                  ? "Several things need attention."
-                  : "Urgent: resolve overdue and escalated tasks."}
-          </p>
-          <button
-            onClick={() => setScoreOpen((o) => !o)}
-            aria-expanded={scoreOpen}
-            className="mt-5 inline-flex items-center gap-1 text-[13px] font-semibold text-brand hover:underline"
-          >
-            {scoreOpen ? "View less" : "View more"} <ChevronDown className={`h-4 w-4 transition-transform ${scoreOpen ? "rotate-180" : ""}`} />
-          </button>
+        <div className="grid grid-cols-1 items-stretch gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(380px,40%)]">
+          <Card className="flex min-h-[520px] flex-col items-center justify-center px-6 py-10">
+            <Orb score={score} />
+            <div className="mt-5 text-[11px] font-semibold uppercase tracking-[0.2em] text-ink-tertiary">Hotel Health Score</div>
+            <p className={`mt-2.5 rounded-full px-3 py-1 text-center text-[13px] font-medium ${band.pill}`}>
+              {band.key === "excellent"
+                ? "Your hotel is performing strong."
+                : band.key === "good"
+                  ? "Your hotel is doing well, with room to improve."
+                  : band.key === "attention"
+                    ? "Several things need attention."
+                    : "Urgent: resolve overdue and escalated tasks."}
+            </p>
+            <button
+              onClick={() => setScoreOpen((o) => !o)}
+              aria-expanded={scoreOpen}
+              className="mt-5 inline-flex items-center gap-1 text-[13px] font-semibold text-brand hover:underline"
+            >
+              {scoreOpen ? "View less" : "View more"} <ChevronDown className={`h-4 w-4 transition-transform ${scoreOpen ? "rotate-180" : ""}`} />
+            </button>
 
-          <div className="mt-8 w-full max-w-[280px]">
-            <div className="flex items-center justify-between text-[10px] font-semibold text-ink-tertiary">
-              <span>0</span>
-              <span>100</span>
+            <div className="mt-8 w-full max-w-[280px]">
+              <div className="flex items-center justify-between text-[10px] font-semibold text-ink-tertiary">
+                <span>0</span>
+                <span>100</span>
+              </div>
+              <div className="relative mt-1 h-2 w-full rounded-full" style={{ background: "linear-gradient(90deg, #F0776C 0%, #F5B15D 50%, #5FD3A9 100%)" }}>
+                <div
+                  className="absolute top-1/2 h-4 w-4 -translate-y-1/2 rounded-full border-[3px] border-white shadow-[0_1px_4px_rgba(0,0,0,0.35)] transition-[left] duration-700"
+                  style={{ left: `calc(${score}% - 8px)`, background: band.color }}
+                />
+              </div>
+              <div className="mt-2 flex items-center justify-between text-[11px] font-medium text-ink-tertiary">
+                <span>Needs Attention</span>
+                <span>Thriving</span>
+              </div>
             </div>
-            <div className="relative mt-1 h-2 w-full rounded-full" style={{ background: "linear-gradient(90deg, #F0776C 0%, #F5B15D 50%, #5FD3A9 100%)" }}>
-              <div
-                className="absolute top-1/2 h-4 w-4 -translate-y-1/2 rounded-full border-[3px] border-white shadow-[0_1px_4px_rgba(0,0,0,0.35)] transition-[left] duration-700"
-                style={{ left: `calc(${score}% - 8px)`, background: band.color }}
-              />
+          </Card>
+
+          <Card className="p-6">
+            <div className="flex items-center justify-between">
+              <h3 className="text-[16px] font-semibold text-ink">Department Performance</h3>
+              <Link to="/analytics" className="text-[13px] font-semibold text-brand">Analytics</Link>
             </div>
-            <div className="mt-2 flex items-center justify-between text-[11px] font-medium text-ink-tertiary">
-              <span>Needs Attention</span>
-              <span>Thriving</span>
+            <div className="mt-3 max-h-[440px] divide-y divide-line/70 overflow-y-auto">
+              {DEPT_PERF.map((d) => (
+                <div key={d.name} className="flex items-center gap-3 py-3">
+                  <div className="min-w-0 flex-1 text-[13px] font-semibold text-ink">{d.name}</div>
+                  <div className="text-right leading-tight">
+                    <div className="text-[13px] font-semibold text-ink">{d.tasks} tasks</div>
+                    <div className="text-[11px] text-ink-tertiary">{d.onTime}% on time</div>
+                  </div>
+                </div>
+              ))}
             </div>
-          </div>
-        </Card>
+          </Card>
+        </div>
 
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-5">
           {PILLARS.map((p) => (
@@ -450,8 +476,7 @@ export default function Home() {
               <table className="w-full min-w-[760px] text-left text-[14px]">
                 <thead className="sticky top-0 z-10 bg-white">
                   <tr className="text-[12px] uppercase tracking-wide text-ink-tertiary">
-                    <th className="px-6 py-2 font-medium" />
-                    <th className="px-3 py-2 font-medium">Task</th>
+                    <th className="px-6 py-2 font-medium">Task</th>
                     <th className="px-3 py-2 font-medium">Department</th>
                     <th className="px-3 py-2 font-medium">Assigned To</th>
                     <th className="px-3 py-2 font-medium">Status</th>
@@ -471,9 +496,6 @@ export default function Home() {
                         className="cursor-pointer border-t border-line hover:bg-[#FAFAFA]"
                       >
                         <td className="px-6 py-3">
-                          <input type="checkbox" aria-label={`Select ${t.title}`} className="accent-brand" onClick={(e) => e.stopPropagation()} />
-                        </td>
-                        <td className="px-3 py-3">
                           <div className="flex items-center gap-1.5 font-medium text-ink">
                             <span className="truncate">{t.title}</span>
                             {!!t.compensation?.length && (
@@ -516,7 +538,7 @@ export default function Home() {
                   })}
                   {!pending.length && (
                     <tr>
-                      <td colSpan={7} className="px-6 py-6 text-center text-[14px] text-ink-tertiary">No pending tasks match.</td>
+                      <td colSpan={6} className="px-6 py-6 text-center text-[14px] text-ink-tertiary">No pending tasks match.</td>
                     </tr>
                   )}
                 </tbody>
@@ -525,23 +547,6 @@ export default function Home() {
           </Card>
 
           <div className="flex h-full flex-col gap-5">
-            <Card className="p-6">
-              <div className="flex items-center justify-between">
-                <h3 className="text-[16px] font-semibold text-ink">Department Performance</h3>
-                <Link to="/analytics" className="text-[13px] font-semibold text-brand">Analytics</Link>
-              </div>
-              <div className="mt-3 divide-y divide-line/70">
-                {DEPT_PERF.map((d) => (
-                  <div key={d.name} className="flex items-center gap-3 py-3">
-                    <div className="min-w-0 flex-1 text-[13px] font-semibold text-ink">{d.name}</div>
-                    <div className="text-right leading-tight">
-                      <div className="text-[13px] font-semibold text-ink">{d.tasks} tasks</div>
-                      <div className="text-[11px] text-ink-tertiary">{d.onTime}% on time</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Card>
             <Card className="p-6">
               <h3 className="text-[16px] font-semibold text-ink">Occupancy Today</h3>
               <dl className="mt-4 space-y-3.5 text-[13px]">
