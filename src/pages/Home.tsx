@@ -30,6 +30,8 @@ import {
   Circle,
   AlertTriangle,
   MoreVertical,
+  TrendingUp,
+  Sparkles,
 } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { Card } from "../components/ui";
@@ -340,63 +342,67 @@ export default function Home() {
 
         <div className="grid grid-cols-1 items-start gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
           <div className="flex flex-col gap-5">
-            <Card className="flex min-h-[460px] flex-col items-center justify-center px-6 py-10">
+            <Card className="flex flex-col items-center px-6 py-10">
               <Orb score={score} />
               <div className="mt-5 text-[11px] font-semibold uppercase tracking-[0.2em] text-ink-tertiary">Hotel Health Score</div>
-              <p className={`mt-2.5 rounded-full px-3 py-1 text-center text-[13px] font-medium ${band.pill}`}>
-                {band.key === "excellent"
-                  ? "Your hotel is performing strong."
-                  : band.key === "good"
-                    ? "Your hotel is doing well, with room to improve."
-                    : band.key === "attention"
-                      ? "Several things need attention."
-                      : "Urgent: resolve overdue and escalated tasks."}
-              </p>
-              <button
-                onClick={() => setScoreOpen((o) => !o)}
-                aria-expanded={scoreOpen}
-                className="mt-5 inline-flex items-center gap-1 text-[13px] font-semibold text-brand hover:underline"
-              >
-                {scoreOpen ? "View less" : "View more"} <ChevronDown className={`h-4 w-4 transition-transform ${scoreOpen ? "rotate-180" : ""}`} />
-              </button>
 
-              <div className="mt-8 w-full max-w-[280px]">
-                <div className="flex items-center justify-between text-[10px] font-semibold text-ink-tertiary">
-                  <span>0</span>
-                  <span>100</span>
+              <div className="mt-6 w-full max-w-[460px]">
+                <div className="flex items-center justify-between text-[13px] font-semibold text-ink">
+                  <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-ink" />Needs Attention</span>
+                  <span className="flex items-center gap-1.5">Thriving <Sparkles className="h-3.5 w-3.5 text-ink-tertiary" /></span>
                 </div>
-                <div className="relative mt-1 h-2 w-full rounded-full" style={{ background: "linear-gradient(90deg, #F0776C 0%, #F5B15D 50%, #5FD3A9 100%)" }}>
+                <div className="relative mt-2 h-2 w-full rounded-full" style={{ background: "linear-gradient(90deg, #F0776C 0%, #F5B15D 50%, #5FD3A9 100%)" }}>
                   <div
                     className="absolute top-1/2 h-4 w-4 -translate-y-1/2 rounded-full border-[3px] border-white shadow-[0_1px_4px_rgba(0,0,0,0.35)] transition-[left] duration-700"
                     style={{ left: `calc(${score}% - 8px)`, background: band.color }}
                   />
                 </div>
                 <div className="mt-2 flex items-center justify-between text-[11px] font-medium text-ink-tertiary">
-                  <span>Needs Attention</span>
-                  <span>Thriving</span>
+                  <span>0%</span>
+                  <span>50%</span>
+                  <span>100%</span>
                 </div>
               </div>
-            </Card>
 
-            <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 xl:grid-cols-5">
-              {PILLARS.map((p) => (
-                <Card key={p.label} className="px-5 py-4">
-                  <span className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg border border-brand/25 bg-white text-brand">
-                    <p.icon className="h-[18px] w-[18px]" />
-                  </span>
-                  <div className="text-[13px] text-ink-secondary">{p.label}</div>
-                  <div className="mt-0.5 flex items-end justify-between gap-2">
-                    <div>
-                      <div className="whitespace-nowrap font-display text-[20px] font-bold leading-tight text-ink">{p.value}</div>
-                      <div className={`mt-1 flex items-center gap-1 text-xs font-medium ${p.tag === "Excellent" ? "text-success" : "text-warning"}`}>
-                        <Trend t={p.trend} /> {p.tag}
+              <p className={`mt-5 inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-center text-[13px] font-medium ${band.pill}`}>
+                <TrendingUp className="h-3.5 w-3.5" />
+                {band.key === "excellent"
+                  ? "Your hotel is performing strong. Keep up the great work."
+                  : band.key === "good"
+                    ? "Your hotel is doing well, with room to improve."
+                    : band.key === "attention"
+                      ? "Several things need attention."
+                      : "Urgent: resolve overdue and escalated tasks."}
+              </p>
+
+              <button
+                onClick={() => setScoreOpen((o) => !o)}
+                aria-expanded={scoreOpen}
+                className="mt-4 inline-flex items-center gap-1 text-[13px] font-semibold text-brand hover:underline"
+              >
+                {scoreOpen ? "View less" : "View more"} <ChevronDown className={`h-4 w-4 transition-transform ${scoreOpen ? "rotate-180" : ""}`} />
+              </button>
+
+              <div className="mt-8 grid w-full grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-5">
+                {PILLARS.map((p) => (
+                  <div key={p.label} className="rounded-xl border border-line bg-white p-4">
+                    <span className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg border border-brand/25 bg-white text-brand">
+                      <p.icon className="h-[18px] w-[18px]" />
+                    </span>
+                    <div className="text-[13px] text-ink-secondary">{p.label}</div>
+                    <div className="mt-0.5 flex items-end justify-between gap-2">
+                      <div>
+                        <div className="whitespace-nowrap font-display text-[20px] font-bold leading-tight text-ink">{p.value}</div>
+                        <div className={`mt-1 flex items-center gap-1 text-xs font-medium ${p.tag === "Excellent" ? "text-success" : "text-warning"}`}>
+                          <Trend t={p.trend} /> {p.tag}
+                        </div>
                       </div>
+                      <div className="w-16 shrink-0"><Spark data={p.spark} /></div>
                     </div>
-                    <div className="w-16 shrink-0"><Spark data={p.spark} /></div>
                   </div>
-                </Card>
-              ))}
-            </div>
+                ))}
+              </div>
+            </Card>
           </div>
 
           <div className="flex flex-col gap-5">
