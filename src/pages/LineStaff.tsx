@@ -4,13 +4,15 @@ import { Topbar } from "../components/Topbar";
 import { LineStaffPrototype } from "../linestaff/screens";
 import { ManagerPrototype } from "../linestaff/manager";
 import { GuestLandingPrototype } from "../linestaff/guestLanding";
+import { GuestLandingGlassPrototype } from "../linestaff/guestLandingGlass";
 
-type Tab = "line" | "manager" | "landing";
+type Tab = "line" | "manager" | "landing" | "landing-glass";
 
 const TABS: { key: Tab; label: string }[] = [
   { key: "line", label: "Line Staff" },
   { key: "manager", label: "Mid Manager" },
   { key: "landing", label: "Landing Page" },
+  { key: "landing-glass", label: "Landing Page (Glass)" },
 ];
 
 const INFO: Record<Tab, { title: string; blurb: string; flows: string[]; included: string[]; excluded: string[] }> = {
@@ -62,6 +64,17 @@ const INFO: Record<Tab, { title: string; blurb: string; flows: string[]; include
     included: ["Works without an app install", "Consent and number verification captured before any messaging starts"],
     excluded: ["Any hotel-staff functionality — this is guest-facing only"],
   },
+  "landing-glass": {
+    title: "Guest Verification Landing — Glass",
+    blurb: "A glassmorphic take on the same guest verification screen — a frosted, translucent card floating over the full photo background instead of a solid white sheet.",
+    flows: [
+      "Same form, OTP and WhatsApp-connect flow as the standard Landing Page",
+      "Frosted-glass card: translucent fill, blurred backdrop, soft white border",
+      "Translucent input fields that blur the photo behind them",
+    ],
+    included: ["Same validation and verification flow as the standard version"],
+    excluded: ["Any hotel-staff functionality — this is guest-facing only"],
+  },
 };
 
 export default function LineStaff() {
@@ -90,6 +103,7 @@ export default function LineStaff() {
             {tab === "line" && <LineStaffPrototype />}
             {tab === "manager" && <ManagerPrototype />}
             {tab === "landing" && <GuestLandingPrototype />}
+            {tab === "landing-glass" && <GuestLandingGlassPrototype />}
 
             <div className="space-y-5">
               <div className="rounded-card border border-line bg-white p-5">
