@@ -4,6 +4,7 @@ import {
   ListChecks,
   Timer,
   BedDouble,
+  MessageCircle,
   Smile,
   Heart,
   Users,
@@ -306,11 +307,31 @@ export default function Home() {
     );
   }
 
+  const topStats = [
+    { label: "Open Tasks", value: String(open.length), sub: "Needs action", subTone: "text-ink-tertiary", icon: ListChecks },
+    { label: "Guest Chats", value: String(GUESTS.length), sub: "Active conversations", subTone: "text-ink-tertiary", icon: MessageCircle },
+    { label: "Avg Response", value: "2m 45s", sub: "↓ 18%", subTone: "text-success", icon: Timer },
+    { label: "Occupancy", value: "87%", sub: "34 arriving today", subTone: "text-ink-tertiary", icon: BedDouble },
+  ];
+
   return (
     <>
       <Topbar title={hello} subtitle={`Here's what's happening at ${HOTEL}`} />
       <main className="flex-1 overflow-y-auto bg-page">
         <div className="flex flex-col gap-7 px-8 pb-8 pt-7">
+        <div className="grid grid-cols-2 gap-5 sm:grid-cols-4">
+          {topStats.map((s) => (
+            <Card key={s.label} className="px-6 py-5">
+              <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-brand/25 bg-white text-brand">
+                <s.icon className="h-[18px] w-[18px]" />
+              </span>
+              <div className="mt-3 text-sm text-ink-secondary">{s.label}</div>
+              <div className="mt-0.5 font-display text-[28px] font-bold leading-tight text-ink">{s.value}</div>
+              <div className={`mt-1 text-xs font-medium ${s.subTone}`}>{s.sub}</div>
+            </Card>
+          ))}
+        </div>
+
         <Card className="flex min-h-[520px] flex-col items-center justify-center px-6 py-10">
           <Orb score={score} />
           <div className="mt-5 text-[11px] font-semibold uppercase tracking-[0.2em] text-ink-tertiary">Hotel Health Score</div>
