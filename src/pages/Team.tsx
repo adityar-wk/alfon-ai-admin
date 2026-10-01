@@ -589,7 +589,7 @@ function AddStaffModal({
 }) {
   const [name, setName] = useState("");
   const [role, setRole] = useState("");
-  const [dept, setDept] = useState(DEPT_OPTIONS[0]);
+  const [dept, setDept] = useState(DEPT_CHIPS[0]);
   const [shift, setShift] = useState<ShiftName>("Morning");
 
   return (
