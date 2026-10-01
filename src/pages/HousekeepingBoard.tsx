@@ -298,7 +298,10 @@ export default function HousekeepingBoard() {
                 </div>
                 <div className={`mt-2 text-[13px] font-bold ${dulled ? "text-ink-tertiary" : "text-ink"}`}>Room {r.no}</div>
                 <div className="truncate text-[11px] text-ink-secondary">{r.type} · Floor {r.floor}</div>
-                <div className={`mt-1.5 text-[12px] font-semibold ${STATUS_TEXT_TONE[r.status]}`}>{STATUS_LABEL[r.status]}</div>
+                <div className={`mt-1.5 flex items-center gap-1.5 text-[12px] font-semibold ${STATUS_TEXT_TONE[r.status]}`}>
+                  <span>{STATUS_LABEL[r.status]}</span>
+                  {r.status === "inspected" && <span className="font-semibold text-emerald-600">Clean</span>}
+                </div>
                 {r.mins != null && (
                   <div className="mt-2">
                     <div className="h-1 overflow-hidden rounded-full bg-subtle">
@@ -487,7 +490,14 @@ function EditRoomModal({
                 >
                   <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${STATUS_ICON_TONE[st]}`}><Icon className="h-4 w-4" /></span>
                   <span className="min-w-0 flex-1">
-                    {STATUS_LABEL[st]}
+                    <span className="flex flex-wrap items-center gap-1.5">
+                      {STATUS_LABEL[st]}
+                      {st === "inspected" && (
+                        <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${room.status === "inspected" ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>
+                          {room.status === "inspected" ? "Clean" : "Dirty"}
+                        </span>
+                      )}
+                    </span>
                     {gated && <span className="mt-0.5 flex items-center gap-1 text-[11px] font-normal text-ink-tertiary"><ClipboardCheck className="h-3 w-3" /> Requires checklist</span>}
                   </span>
                 </button>

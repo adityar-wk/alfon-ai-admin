@@ -632,7 +632,14 @@ export function ManagerPrototype() {
             >
               <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${ROOM_STATUS_ICON_TONE[v]}`}><Icon className="h-4 w-4" /></span>
               <span className="min-w-0 flex-1">
-                <span className="block text-[14px] font-medium text-ink">{v}</span>
+                <span className="flex flex-wrap items-center gap-1.5 text-[14px] font-medium text-ink">
+                  {v}
+                  {v === "Inspected" && (
+                    <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${roomEntry.status === "Inspected" ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>
+                      {roomEntry.status === "Inspected" ? "Clean" : "Dirty"}
+                    </span>
+                  )}
+                </span>
                 {gated && <span className="flex items-center gap-1 text-[11px] text-ink-tertiary"><ClipboardCheck className="h-3 w-3" /> Requires checklist</span>}
               </span>
               <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${on ? "border-brand" : "border-line"}`}>

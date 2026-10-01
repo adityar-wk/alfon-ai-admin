@@ -18,7 +18,6 @@ import {
   UtensilsCrossed,
   Wine,
   Headset,
-  Building2,
   HeartPulse,
   Activity,
   Home as HomeIcon,
@@ -509,7 +508,6 @@ export default function Home() {
                 </thead>
                 <tbody>
                   {pending.map((t) => {
-                    const D = DEPT_ICON[t.dept] ?? Building2;
                     const status = homeStatus(t);
                     const pill = STATUS_STYLE[status];
                     return (
@@ -533,9 +531,7 @@ export default function Home() {
                           <div className="text-[12px] text-ink-tertiary">{t.guest} · Room {t.room}</div>
                         </td>
                         <td className="px-3 py-3">
-                          <span className="flex items-center gap-1.5 whitespace-nowrap text-ink-secondary">
-                            <D className="h-[13px] w-[13px] shrink-0 text-ink-tertiary" /> {t.dept}
-                          </span>
+                          <span className="whitespace-nowrap text-ink-secondary">{t.dept}</span>
                         </td>
                         <td className="px-3 py-3">
                           {t.owner ? (

@@ -89,6 +89,30 @@ const ASSIGNED_SAMPLES = [
   { title: "Turndown service", room: "Room 1206", note: "Evening turndown with extra water bottles.", total: 25, by: "Sarah Ali · Supervisor", guest: "James Whitfield", roomType: "Executive Room", floor: 12, stay: "In house · 3 nights", prefs: ["Late turndown"] },
 ];
 
+/** A new task the staff member has not accepted yet — Open, then Accept, then continue. */
+const TASK_NOTIFICATION = {
+  title: "Private Transfer — Emma Davis",
+  room: "Room 1608",
+  note: "Guest is ready for a private transfer. Confirm the pickup and escort them to the car.",
+  total: 30,
+  dept: "Concierge",
+  guest: "Emma Davis",
+  time: "09:57",
+  roomType: "Deluxe King",
+  floor: 16,
+  stay: "In house · 3 nights",
+  prefs: ["Airport transfer"],
+};
+
+type Incoming = {
+  id: string;
+  title: string;
+  room: string;
+  total: number;
+  by: string;
+  kind: "assigned" | "offer";
+};
+
 const INITIAL: Task[] = [
   {
     id: "t20", title: "Dirty bathroom complaint", room: "Room 1108", note: "Guest complained the bathroom was not cleaned properly.",
@@ -177,7 +201,7 @@ export function LineStaffPrototype() {
   const nav = useNav<Screen>({ name: "home" });
   const { flash, node: toast } = useToast();
   const [tasks, setTasks] = useState<Task[]>(INITIAL);
-  const [incoming, setIncoming] = useState<{ id: string; title: string; room: string; total: number; by: string } | null>(null);
+  const [incoming, setIncoming] = useState<Incoming | null>(null);
   const [bannerIn, setBannerIn] = useState(false);
   const [assignCount, setAssignCount] = useState(0);
   const [helpOpen, setHelpOpen] = useState(false);
@@ -295,7 +319,20 @@ export function LineStaffPrototype() {
     setTasks((ts) => [{ id, title: s.title, room: s.room, note: s.note, status: "progress", left: s.total, total: s.total, guest: s.guest, roomType: s.roomType, floor: s.floor, stay: s.stay, prefs: s.prefs, source: s.by, created: "Just now", assignedBy: s.by }, ...ts]);
     setAssignCount((n) => n + 1);
     setBannerIn(false);
-    setIncoming({ id, title: s.title, room: s.room, total: s.total, by: s.by });
+    setIncoming({ id, title: s.title, room: s.room, total: s.total, by: s.by, kind: "assigned" });
+  };
+
+  // a new task offered to this staff member: they accept it before they can continue
+  const simulateTaskNotification = () => {
+    const s = TASK_NOTIFICATION;
+    const id = "n" + Date.now();
+    setTasks((ts) => [{
+      id, title: s.title, room: s.room, note: s.note, status: "pending", left: s.total, total: s.total,
+      guest: s.guest, roomType: s.roomType, floor: s.floor, stay: s.stay, prefs: s.prefs, source: "New task",
+      created: s.time, dept: s.dept,
+    }, ...ts]);
+    setBannerIn(false);
+    setIncoming({ id, title: s.title, room: s.room, total: s.total, by: s.dept, kind: "offer" });
   };
 
   useEffect(() => {
@@ -705,6 +742,7 @@ export function LineStaffPrototype() {
 
       <div className="flex flex-wrap items-center justify-center gap-2">
         <button className="rounded-lg bg-brand px-3 py-1.5 text-[12px] font-semibold text-white" onClick={simulateAssigned}>Simulate assigned task</button>
+        <button className="rounded-lg bg-brand px-3 py-1.5 text-[12px] font-semibold text-white" onClick={simulateTaskNotification}>Task notification</button>
         <button
           className="rounded-lg border border-line bg-white px-3 py-1.5 text-[12px] font-medium text-ink-secondary"
           onClick={() => { nav.reset(); setIncoming(null); setAssignCount(0); setTasks(INITIAL); setChat({}); setManual({}); setAiDrafts({}); }}
