@@ -1,12 +1,26 @@
-import { ArrowLeft, MessageSquare, Plus } from "lucide-react";
+import { Search, ArrowLeft, MessageSquare, Plus } from "lucide-react";
 import { NotificationBell } from "./Notifications";
 import type { ReactNode } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "./ui";
 import { DatePicker } from "./DatePicker";
 import { useSelectedDate } from "../dateContext";
-import { GlobalSearch } from "./GlobalSearch";
-import { usePersona } from "../persona";
+
+export function SearchBar({ placeholder = "Search anything..." }: { placeholder?: string }) {
+  return (
+    <div className="relative hidden max-w-[440px] flex-1 md:block">
+      <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-tertiary" />
+      <input
+        readOnly
+        placeholder={placeholder}
+        className="h-9 w-full rounded-control border border-line bg-subtle pl-9 pr-12 text-[13px] text-ink-secondary outline-none placeholder:text-ink-tertiary focus:border-brand"
+      />
+      <kbd className="absolute right-3 top-1/2 -translate-y-1/2 rounded border border-line bg-white px-1.5 py-0.5 text-[10px] font-medium text-ink-tertiary">
+        ⌘K
+      </kbd>
+    </div>
+  );
+}
 
 /** shows which day's data you're viewing (informational only) + a shortcut to start a guest chat; shown on every screen except where told not to. "New Task" only joins it on the Tasks page. */
 function QuickActions({ newTask = false }: { newTask?: boolean }) {
@@ -38,7 +52,8 @@ export function DefaultTopbarActions() {
 export function Topbar({
   title,
   subtitle,
-  showSearch = true,
+  showSearch = false,
+  searchPlaceholder,
   actions,
   backTo,
   hideQuickActions = false,
@@ -47,6 +62,7 @@ export function Topbar({
   title: string;
   subtitle?: string;
   showSearch?: boolean;
+  searchPlaceholder?: string;
   actions?: ReactNode;
   backTo?: string;
   /** hide the date + New Chat shortcut (Pre-Arrival has its own date-driven filter instead) */
@@ -54,7 +70,6 @@ export function Topbar({
   /** also show "New Task" next to New Chat — the Tasks page only */
   newTask?: boolean;
 }) {
-  const { persona } = usePersona();
   return (
     <header className="flex h-16 shrink-0 items-center gap-6 border-b border-line bg-white px-8">
       {backTo && (
@@ -74,11 +89,11 @@ export function Topbar({
           )}
         </div>
       )}
-      {showSearch && persona !== "altprototype" ? (
+      {showSearch && (
         <div className="flex flex-1 justify-center">
-          <GlobalSearch />
+          <SearchBar placeholder={searchPlaceholder} />
         </div>
-      ) : null}
+      )}
       <div className="ml-auto flex shrink-0 items-center gap-3">
         {actions}
         {!hideQuickActions && <QuickActions newTask={newTask} />}
