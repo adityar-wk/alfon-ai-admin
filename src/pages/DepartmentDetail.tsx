@@ -7,6 +7,8 @@ import {
   Check,
   Trash2,
   Lightbulb,
+  ChevronDown,
+  ChevronRight,
 } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { Page, Button, Field, Input, Textarea, Modal, Select, Toggle } from "../components/ui";
@@ -47,6 +49,13 @@ export default function DepartmentDetail() {
   const [descDraft, setDescDraft] = useState("");
   const [sla, setSla] = useState<Record<string, SlaRow>>({});
   const [paths, setPaths] = useState<Record<string, ServicePath>>({});
+  const [openPaths, setOpenPaths] = useState<Set<string>>(new Set());
+  const togglePath = (name: string) =>
+    setOpenPaths((s) => {
+      const next = new Set(s);
+      if (!next.delete(name)) next.add(name);
+      return next;
+    });
 
   useEffect(() => {
     if (!dept) return;
@@ -183,25 +192,41 @@ export default function DepartmentDetail() {
                     const setPath = (next: ServicePath) => setPaths((ps) => ({ ...ps, [sv.name]: next }));
                     return (
                       <Fragment key={sv.name}>
-                        <tr className="border-t border-line/60">
-                          <td className="whitespace-nowrap py-3 pl-4 pr-3 text-[13px] font-medium text-ink">{sv.name}</td>
+                        <tr className="border-t-2 border-line first:border-t-0">
+                          <td className="whitespace-nowrap py-3 pl-4 pr-3 text-[13px] font-semibold text-ink">{sv.name}</td>
                           <td className="py-3 pl-4 pr-3 text-[13px] leading-relaxed text-ink-secondary">
                             {sv.description || <span className="text-ink-tertiary">—</span>}
                           </td>
                           <td className="whitespace-nowrap py-3 pl-4 pr-3 text-[13px] text-ink-secondary">{hoursLabel(row)}</td>
                           <td className="whitespace-nowrap py-3 pl-4 pr-3 text-[13px] text-ink-secondary">{row.response} min</td>
                           <td className="whitespace-nowrap py-3 pl-4 pr-3 text-[13px] text-ink-secondary">{row.resolve} min</td>
-                          <td className="whitespace-nowrap py-3 pl-4 pr-3">
-                            <button
-                              type="button"
-                              onClick={() => setPath({ ...path, enabled: !path.enabled })}
-                              aria-pressed={path.enabled}
-                              aria-label={`${path.enabled ? "Disable" : "Enable"} escalation for ${sv.name}`}
-                              className="inline-flex items-center gap-2"
-                            >
-                              <Toggle checked={path.enabled} />
-                              <span className="text-[12px] font-medium text-ink-secondary">{path.enabled ? "On" : "Off"}</span>
-                            </button>
+                          <td className="py-3 pl-4 pr-3">
+                            <div className="flex items-center gap-3">
+                              <button
+                                type="button"
+                                onClick={() => setPath({ ...path, enabled: !path.enabled })}
+                                aria-pressed={path.enabled}
+                                aria-label={`${path.enabled ? "Disable" : "Enable"} escalation for ${sv.name}`}
+                                className="inline-flex shrink-0 items-center gap-2"
+                              >
+                                <Toggle checked={path.enabled} />
+                                <span className="w-5 text-[12px] font-medium text-ink-secondary">{path.enabled ? "On" : "Off"}</span>
+                              </button>
+                              {path.enabled && (
+                                <button
+                                  type="button"
+                                  onClick={() => togglePath(sv.name)}
+                                  aria-expanded={openPaths.has(sv.name)}
+                                  aria-label={`${openPaths.has(sv.name) ? "Hide" : "Edit"} escalation path for ${sv.name}`}
+                                  className="flex min-w-0 items-center gap-1 rounded-md px-1.5 py-1 text-[12px] text-ink-secondary hover:bg-subtle hover:text-ink"
+                                >
+                                  <span className="max-w-[300px] truncate whitespace-nowrap">
+                                    {path.levels.length ? path.levels.map((l) => l.to).join(" → ") : "No steps"}
+                                  </span>
+                                  <ChevronDown className={`h-3.5 w-3.5 shrink-0 transition-transform ${openPaths.has(sv.name) ? "rotate-180" : ""}`} />
+                                </button>
+                              )}
+                            </div>
                           </td>
                           <td className="whitespace-nowrap py-3 pl-4 pr-4 text-right">
                             <button
@@ -220,35 +245,35 @@ export default function DepartmentDetail() {
                             </button>
                           </td>
                         </tr>
-                        {path.enabled && (
-                          <tr key={`${sv.name}-path`} className="border-t border-line/40 bg-[#FAFAFA]">
-                            <td colSpan={7} className="px-4 py-4">
-                              <div className="text-[12px] font-semibold text-ink">Escalation path · {sv.name}</div>
-                              <p className="mt-0.5 text-[12px] text-ink-secondary">When a task for this service misses its time, it moves up this list.</p>
-                              <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+                        {path.enabled && openPaths.has(sv.name) && (
+                          <tr key={`${sv.name}-path`} className="bg-[#FAFAFA]">
+                            <td colSpan={7} className="border-l-2 border-brand px-4 py-2.5">
+                              <div className="flex flex-wrap items-center gap-x-1.5 gap-y-2">
+                                <span className="mr-1 text-[11px] font-semibold uppercase tracking-wide text-ink-tertiary">Escalates to</span>
                                 {path.levels.map((l, i) => (
-                                  <div key={l.id} className="rounded-xl border border-line bg-white p-3.5">
-                                    <div className="flex items-center gap-2">
-                                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-tint text-[11px] font-semibold text-brand">{i + 1}</span>
-                                      <span className="min-w-0 flex-1 text-[12px] text-ink-secondary">{l.trigger}</span>
+                                  <Fragment key={l.id}>
+                                    {i > 0 && <ChevronRight className="h-3.5 w-3.5 shrink-0 text-ink-tertiary" />}
+                                    <div className="flex items-center gap-1.5 rounded-lg border border-line bg-white py-1 pl-1.5 pr-1" title={l.trigger}>
+                                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-tint text-[10px] font-semibold text-brand">{i + 1}</span>
+                                      <Select
+                                        className="!h-7 !w-[160px] !py-0 !text-[12px]"
+                                        aria-label={`Level ${i + 1} escalation target for ${sv.name}`}
+                                        value={l.to}
+                                        onChange={(e) => setPath({ ...path, levels: path.levels.map((x) => (x.id === l.id ? { ...x, to: e.target.value } : x)) })}
+                                      >
+                                        {targets.map((t) => <option key={t}>{t}</option>)}
+                                      </Select>
                                       <button
                                         onClick={() => setPath({ ...path, levels: path.levels.filter((x) => x.id !== l.id) })}
-                                        className="text-ink-tertiary hover:text-danger"
+                                        className="rounded p-1 text-ink-tertiary hover:bg-red-50 hover:text-danger"
                                         aria-label={`Remove escalation step ${i + 1} for ${sv.name}`}
                                       >
-                                        <Trash2 className="h-4 w-4" />
+                                        <Trash2 className="h-3.5 w-3.5" />
                                       </button>
                                     </div>
-                                    <Select
-                                      className="mt-3 h-9"
-                                      value={l.to}
-                                      onChange={(e) => setPath({ ...path, levels: path.levels.map((x) => (x.id === l.id ? { ...x, to: e.target.value } : x)) })}
-                                    >
-                                      {targets.map((t) => <option key={t}>{t}</option>)}
-                                    </Select>
-                                  </div>
+                                  </Fragment>
                                 ))}
-                                {!path.levels.length && <p className="text-[12px] text-ink-tertiary">No steps on this path.</p>}
+                                {!path.levels.length && <span className="text-[12px] text-ink-tertiary">No steps on this path.</span>}
                               </div>
                             </td>
                           </tr>

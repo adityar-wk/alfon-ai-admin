@@ -166,13 +166,6 @@ function PillarRow({ pillar }) {
   );
 }
 
-const DEPT_ICONS = {
-  "Front Desk": "DoorOpen", "Guest Services": "Users", Concierge: "Car",
-  "Food and Beverage": "UtensilsCrossed", Housekeeping: "Home", Laundry: "Shirt",
-  Engineering: "Wrench", "Room Service": "UtensilsCrossed", Security: "Shield",
-  IT: "Wifi", Operator: "Phone", Reservation: "CalendarCheck",
-};
-
 function PendingTasksTable({ tasks, onSelect }) {
   const pending = tasks.filter((t) => t.status !== "Completed").slice(0, 6);
   return (
@@ -221,9 +214,7 @@ function PendingTasksTable({ tasks, onSelect }) {
                 <div className="text-xs" style={{ color: "#9CA3AF" }}>{t.guest} · Room {t.room}</div>
               </td>
               <td className="px-3 py-3">
-                <span className="flex items-center gap-1.5" style={{ color: "#6B7280" }}>
-                  <Icon name={DEPT_ICONS[t.department] || "Building2"} size={13} color="#9CA3AF" /> {t.department}
-                </span>
+                <span style={{ color: "#6B7280" }}>{t.department}</span>
               </td>
               <td className="px-3 py-3">
                 <span className="flex items-center gap-1.5">
