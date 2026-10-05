@@ -72,7 +72,7 @@ const ENG_PILL: Record<string, string> = {
 function Avatar({ g, size = 36, soft = false }: { g: PreGuest; size?: number; soft?: boolean }) {
   return (
     <span
-      className={`flex shrink-0 items-center justify-center rounded-full font-display font-semibold ${soft ? "bg-brand-tint text-brand" : g.tint}`}
+      className={`flex shrink-0 items-center justify-center rounded-full font-display font-semibold ${soft ? "bg-subtle text-ink-secondary" : g.tint}`}
       style={{ width: size, height: size, fontSize: size > 40 ? 16 : 12 }}
     >
       {g.name.split(" ").map((w) => w[0]).slice(0, 2).join("")}

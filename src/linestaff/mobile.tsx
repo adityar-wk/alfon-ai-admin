@@ -259,7 +259,7 @@ export function TaskCard({
 
 export function StatCard({ label, value, tone = "text-ink", onClick, hint, hintTone = "text-ink-tertiary", calm = false }: { label: string; value: number | string; tone?: string; onClick?: () => void; hint?: string; hintTone?: string; /** lighter weights for manager home */ calm?: boolean }) {
   return (
-    <button onClick={onClick} className={`rounded-2xl border border-line bg-white p-3.5 text-left shadow-card ${onClick ? "active:scale-[0.98]" : "cursor-default"}`}>
+    <button onClick={onClick} className={`h-full rounded-2xl border border-line bg-white p-3.5 text-left shadow-card ${onClick ? "active:scale-[0.98]" : "cursor-default"}`}>
       <div className={`font-display text-[26px] leading-none ${calm ? "font-semibold" : "font-bold"} ${tone}`}>{value}</div>
       <div className={`mt-1.5 text-ink-secondary ${calm ? "text-[11px] font-normal" : "text-[12px] font-medium"}`}>{label}</div>
       {hint && <div className={`mt-0.5 text-[11px] font-medium ${hintTone}`}>{hint}</div>}

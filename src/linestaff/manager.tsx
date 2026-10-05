@@ -434,7 +434,7 @@ export function ManagerPrototype() {
         </div>
       </div>
 
-      <div className="mt-5 grid grid-cols-3 gap-3 px-6">
+      <div className="mt-5 grid auto-rows-fr grid-cols-3 gap-3 px-6">
         <StatCard calm label="Open tasks" value={counts.open} onClick={() => setFilter("All")} />
         <StatCard calm label="SLA at risk" value={counts.risk} onClick={() => setFilter("SLA at risk")} />
         <StatCard calm label="Overdue" value={counts.over} onClick={() => setFilter("SLA breach")} />
@@ -578,8 +578,15 @@ export function ManagerPrototype() {
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-6 pb-6 pt-3 no-scrollbar">
         {roomsFiltered.map((r) => (
           <button key={r.number} onClick={() => setRoomSheet(r.number)} className="block w-full rounded-2xl border border-[#E6E4DF] bg-white px-5 py-4 text-left active:scale-[0.99]">
-            <div className="flex items-center gap-1.5 font-display text-[16px] font-semibold leading-snug text-ink">
-              <DoorOpen className="h-[17px] w-[17px] text-ink-secondary" />{r.number.replace(/^Room\s+/i, "")}
+            <div className="flex items-center justify-between gap-2">
+              <span className="flex items-center gap-1.5 font-display text-[16px] font-semibold leading-snug text-ink">
+                <DoorOpen className="h-[17px] w-[17px] text-ink-secondary" />{r.number.replace(/^Room\s+/i, "")}
+              </span>
+              {(r.status === "Inspected" || r.status === "In Progress" || r.status === "Needs Inspection") && (
+                <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${r.status === "Inspected" ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>
+                  {r.status === "Inspected" ? "Clean" : "Dirty"}
+                </span>
+              )}
             </div>
             <div className="mt-3 flex min-h-[26px] items-center gap-3 text-[13px]">
               <span className={`text-[12px] font-medium ${ROOM_STATUS_TONE[r.status]}`}>{r.status}</span>
@@ -716,6 +723,7 @@ export function ManagerPrototype() {
               key={`pre-${g.name}`}
               name={g.name}
               room="Pre-arrival"
+              tone="bg-subtle text-ink-secondary"
               preview={g.notes}
               unread={sampleUnread(g.name)}
               onOpen={() => nav.push({ name: "guestDetail", id: g.name })}
@@ -1135,7 +1143,7 @@ export function ManagerPrototype() {
               sub={row.stage === "Current" ? room : undefined}
               detail={stay}
               right={right}
-              tone={row.stage === "Current" && row.g.complaint ? "bg-red-50 text-red-600" : undefined}
+              tone={row.stage === "Current" && row.g.complaint ? "bg-red-50 text-red-600" : row.stage === "Upcoming" ? "bg-subtle text-ink-secondary" : undefined}
               onOpen={() => nav.push({ name: "guestProfile", id: row.g.name })}
             />
           );
@@ -1241,6 +1249,7 @@ export function ManagerPrototype() {
             key={`new-${g.name}`}
             name={g.name}
             room="Pre-arrival"
+            tone="bg-subtle text-ink-secondary"
             plain
             preview="Start a conversation"
             onOpen={() => { setNewChatOpen(false); nav.push({ name: "guestProfile", id: g.name }); }}

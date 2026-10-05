@@ -288,20 +288,24 @@ export default function HousekeepingBoard() {
               >
                 <div className="flex items-start justify-between">
                   {(() => { const Icon = STATUS_ICON[r.status]; return <span title={STATUS_LABEL[r.status]} aria-label={STATUS_LABEL[r.status]} role="img" className={`flex h-7 w-7 items-center justify-center rounded-full ${STATUS_ICON_TONE[r.status]}`}><Icon className="h-3.5 w-3.5" /></span>; })()}
-                  <span
-                    title={occupied ? "Occupied" : "Vacant"}
-                    aria-label={occupied ? "Occupied" : "Vacant"}
-                    className="flex h-6 w-6 items-center justify-center text-ink"
-                  >
-                    {occupied ? <User className="h-3.5 w-3.5" /> : <DoorClosed className="h-3.5 w-3.5" />}
+                  <span className="flex items-center gap-1.5">
+                    {(r.status === "inspected" || r.status === "progress" || r.status === "inspection") && (
+                      <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${r.status === "inspected" ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>
+                        {r.status === "inspected" ? "Clean" : "Dirty"}
+                      </span>
+                    )}
+                    <span
+                      title={occupied ? "Occupied" : "Vacant"}
+                      aria-label={occupied ? "Occupied" : "Vacant"}
+                      className="flex h-6 w-6 items-center justify-center text-ink"
+                    >
+                      {occupied ? <User className="h-3.5 w-3.5" /> : <DoorClosed className="h-3.5 w-3.5" />}
+                    </span>
                   </span>
                 </div>
                 <div className={`mt-2 text-[13px] font-bold ${dulled ? "text-ink-tertiary" : "text-ink"}`}>Room {r.no}</div>
                 <div className="truncate text-[11px] text-ink-secondary">{r.type} · Floor {r.floor}</div>
-                <div className={`mt-1.5 flex items-center gap-1.5 text-[12px] font-semibold ${STATUS_TEXT_TONE[r.status]}`}>
-                  <span>{STATUS_LABEL[r.status]}</span>
-                  {r.status === "inspected" && <span className="font-semibold text-emerald-600">Clean</span>}
-                </div>
+                <div className={`mt-1.5 text-[12px] font-semibold ${STATUS_TEXT_TONE[r.status]}`}>{STATUS_LABEL[r.status]}</div>
                 {r.mins != null && (
                   <div className="mt-2">
                     <div className="h-1 overflow-hidden rounded-full bg-subtle">

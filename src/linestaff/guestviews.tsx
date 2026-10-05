@@ -185,7 +185,7 @@ export function GuestProfileScreen({ name, onBack, onMessage, author = "Staff" }
           <>
             <div className={`rounded-2xl bg-white p-4 ${CARD_SHADOW}`}>
               <div className="flex items-center gap-3.5">
-                <Avatar name={profileName} size={56} />
+                <Avatar name={profileName} size={56} tone={profileStage === "Pre-arrival" ? "bg-subtle text-ink-secondary" : undefined} />
                 <div className="min-w-0 leading-tight">
                   <div className="truncate text-[19px] font-bold text-ink">{profileName}</div>
                   <div className="mt-1 text-[13px] text-ink-secondary">{profileInfo.room} · {profileInfo.roomType}</div>
@@ -301,7 +301,7 @@ export function GuestChatScreen({
           <ChevronLeft className="h-5 w-5" />
         </button>
         <button onClick={onProfile} aria-label="View profile" className="flex min-w-0 flex-1 items-center gap-2.5 text-left">
-          <Avatar name={name} size={36} tone={complaint ? "bg-red-50 text-red-600" : undefined} />
+          <Avatar name={name} size={36} tone={complaint ? "bg-red-50 text-red-600" : room === "Pre-arrival" ? "bg-subtle text-ink-secondary" : undefined} />
           <div className="min-w-0 leading-tight">
             <div className="truncate text-[14px] font-semibold text-ink">{name}</div>
             <div className="mt-0.5 text-[12px] font-normal text-ink-tertiary">{room}</div>

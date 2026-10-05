@@ -23,6 +23,7 @@ const INFO: Record<Tab, { title: string; blurb: string; flows: string[]; include
       "Bottom nav: Home, Tasks, Chats, and More",
       "Home: greeting, stat cards (Open tasks / SLA at risk / Overdue / Active Chats / Complaints — same set as the Mid Manager home, with Active Chats in place of Escalations), then the same tasks grouped by status",
       "Assigned by a supervisor or mid manager: a drop-down banner shows the task and its SLA (no Accept needed — it is already yours)",
+      "New task offered to you (Task notification button): a dark banner with the department, task, room and SLA — Accept is the only action, and the task stays pending until you do",
       "Tasks: a dedicated, searchable list with filter chips (All / Unassigned / At Risk / Overdue / Completed — same set as the Mid Manager tasks list)",
       "Each card shows the task name first, the room second and the SLA timer",
       "Open tasks on Home have Accept inside the card; on the Tasks list, tap the card and accept from Task details",

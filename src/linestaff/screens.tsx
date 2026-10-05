@@ -338,8 +338,9 @@ export function LineStaffPrototype() {
   useEffect(() => {
     if (!incoming) return;
     const show = setTimeout(() => setBannerIn(true), 30);
-    const hide = setTimeout(() => setIncoming(null), 7000);
-    return () => { clearTimeout(show); clearTimeout(hide); };
+    // an assigned-task banner fades on its own; an offered task stays until it is accepted
+    const hide = incoming.kind === "assigned" ? setTimeout(() => setIncoming(null), 7000) : undefined;
+    return () => { clearTimeout(show); if (hide) clearTimeout(hide); };
   }, [incoming]);
 
   const openCreate = () => {
@@ -385,7 +386,7 @@ export function LineStaffPrototype() {
           </div>
         </div>
 
-        <div className="mt-5 grid grid-cols-3 gap-3 px-6">
+        <div className="mt-5 grid auto-rows-fr grid-cols-3 gap-3 px-6">
           <StatCard calm label="Open tasks" value={lsOpen.length} onClick={() => nav.go({ name: "tasks" })} />
           <StatCard calm label="SLA at risk" value={lsAtRisk.length} onClick={() => nav.go({ name: "tasks" })} />
           <StatCard calm label="Overdue" value={lsOverdue.length} onClick={() => nav.go({ name: "tasks" })} />
@@ -712,7 +713,31 @@ export function LineStaffPrototype() {
           />
         )}
 
-        {incoming && (
+        {incoming && incoming.kind === "offer" && tasks.some((t) => t.id === incoming.id && t.status === "pending") && (
+          <div className="absolute inset-x-3 top-3 z-50">
+            <div className={`flex items-center gap-3 rounded-[20px] bg-[#1A1A1A] p-3.5 shadow-[0_12px_40px_rgba(0,0,0,0.35)] transition-all duration-300 ${bannerIn ? "translate-y-0 opacity-100" : "-translate-y-6 opacity-0"}`}>
+              <button
+                onClick={() => { openTask(incoming.id); setIncoming(null); }}
+                aria-label="Open new task"
+                className="flex min-w-0 flex-1 items-center gap-3 text-left"
+              >
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] bg-gradient-to-br from-[#E8623A] to-[#D4522D] text-white"><Bell className="h-5 w-5" /></span>
+                <span className="min-w-0 flex-1">
+                  <span className="mb-0.5 block text-[11px] font-bold uppercase tracking-[0.5px] text-brand">New task · {incoming.by}</span>
+                  <span className="block truncate font-display text-[13px] font-bold text-white">{incoming.title}</span>
+                  <span className="mt-px block text-[12px] text-[#9CA3AF]">{incoming.room} · SLA {incoming.total} min</span>
+                </span>
+              </button>
+              <button
+                onClick={() => { accept(incoming.id); setIncoming(null); }}
+                className="shrink-0 rounded-[10px] bg-brand px-3.5 py-1.5 font-display text-[12px] font-bold text-white active:bg-brand-hover"
+              >
+                Accept
+              </button>
+            </div>
+          </div>
+        )}
+        {incoming && incoming.kind === "assigned" && (
           <div className="absolute inset-x-3 top-3 z-50">
             <button
               onClick={() => { openTask(incoming.id); setIncoming(null); }}
