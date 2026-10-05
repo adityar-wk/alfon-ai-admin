@@ -271,16 +271,10 @@ export default function Home() {
   const navigate = useNavigate();
   const { persona, me } = usePersona();
   const hello = greeting(me.name);
-  const [dept, setDept] = useState("all");
-  const [priority, setPriority] = useState("all");
   const [scoreOpen, setScoreOpen] = useState(false);
 
   const open = TASKS.filter((t) => t.status !== "Completed" && t.status !== "Unable to Complete" && t.status !== "Void");
-
-  const depts = Array.from(new Set(open.map((t) => t.dept))).sort();
-  const pending = open
-    .filter((t) => (dept === "all" || t.dept === dept) && (priority === "all" || t.priority === priority))
-    .slice(0, 12);
+  const pending = open.slice(0, 12);
 
   const score = Math.max(0, Math.min(100, Math.round(82 + BASELINE - penalty(TASKS))));
   const band = scoreBand(score);
@@ -452,27 +446,7 @@ export default function Home() {
                 <ListChecks className="h-4 w-4 text-brand" />
                 <h3 className="font-display text-[16px] font-semibold text-ink">Pending Tasks</h3>
               </div>
-              <div className="flex items-center gap-2">
-                <FilterPill
-                  label="All Departments"
-                  value={dept}
-                  onChange={setDept}
-                  options={[{ id: "all", label: "All Departments" }, ...depts.map((d) => ({ id: d, label: d }))]}
-                />
-                <FilterPill
-                  label="All Priority"
-                  value={priority}
-                  onChange={setPriority}
-                  options={[
-                    { id: "all", label: "All Priority" },
-                    { id: "Critical", label: "Critical" },
-                    { id: "High", label: "High" },
-                    { id: "Medium", label: "Medium" },
-                    { id: "Low", label: "Low" },
-                  ]}
-                />
-                <Link to="/tasks" className="ml-1 text-[14px] font-medium text-brand">View all</Link>
-              </div>
+              <Link to="/tasks" className="text-[14px] font-medium text-brand">View all</Link>
             </div>
             <div className="min-h-0 flex-1 overflow-auto">
               <table className="w-full min-w-[760px] text-left text-[14px]">
