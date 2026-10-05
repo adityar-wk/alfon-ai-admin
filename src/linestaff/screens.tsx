@@ -171,7 +171,16 @@ function LsCard({ t, onOpen, onAccept }: { t: Task; onOpen?: () => void; onAccep
       flags={!done && t.escalatedTo ? [{ label: "Escalation", tone: "text-red-600" }] : []}
       meta={done && t.time ? <span className="font-medium text-success">✓ {t.time}</span> : undefined}
       onClick={onOpen}
-      footer={onAccept ? <Button className="w-full" onClick={onAccept}>Accept</Button> : undefined}
+      footer={
+        onAccept ? (
+          <button
+            onClick={onAccept}
+            className="w-full rounded-control border-[1.5px] border-brand/35 bg-brand-tint py-[15px] font-display text-[14px] font-bold text-brand active:bg-[#FDE9E1]"
+          >
+            Accept
+          </button>
+        ) : undefined
+      }
     />
   );
 }
