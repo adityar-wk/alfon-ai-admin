@@ -77,9 +77,9 @@ export function useToast() {
 
 /* ---------- headers ---------- */
 
-export function ScreenHeader({ title, onBack, right }: { title?: string; onBack?: () => void; right?: ReactNode }) {
+export function ScreenHeader({ title, onBack, right, divider = true }: { title?: string; onBack?: () => void; right?: ReactNode; divider?: boolean }) {
   return (
-    <div className={`flex items-center gap-1 border-b border-[#F0F0F0] pb-2 pt-3 pr-4 ${onBack ? "pl-4" : "pl-6"}`}>
+    <div className={`sticky top-0 z-10 flex items-center gap-1 bg-white pb-2 pt-3 pr-4 ${divider ? "border-b border-[#F0F0F0]" : ""} ${onBack ? "pl-4" : "pl-6"}`}>
       {onBack && (
         <button onClick={onBack} aria-label="Back" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-ink active:bg-ink/5">
           <ChevronLeft className="h-6 w-6" />
@@ -291,9 +291,9 @@ const CHAT_STATUS_STYLE: Record<ChatStatus, { bg: string; color: string }> = {
 };
 
 export function ChatRow({
-  name, room, preview, unread = 0, tone, complaint = false, plain = false, status, onOpen, onAvatar,
+  name, room, roomType, preview, unread = 0, tone = "bg-subtle text-ink-secondary", complaint = false, plain = false, status, onOpen, onAvatar,
 }: {
-  name: string; room: string; preview: string; unread?: number; tone?: string; complaint?: boolean; plain?: boolean; status?: ChatStatus; onOpen: () => void; onAvatar?: () => void;
+  name: string; room: string; roomType?: string; preview: string; unread?: number; tone?: string; complaint?: boolean; plain?: boolean; status?: ChatStatus; onOpen: () => void; onAvatar?: () => void;
 }) {
   const body = (
     <>
@@ -301,7 +301,7 @@ export function ChatRow({
         <span className={`block truncate text-[14px] text-ink ${unread > 0 ? "font-bold" : "font-semibold"}`}>{name}</span>
         <span className="mt-0.5 flex items-center gap-1.5 text-[11px] font-normal text-ink-tertiary">
           <span className="flex items-center gap-1">
-            {/^Room\s/i.test(room) ? <><DoorOpen className="h-3.5 w-3.5" />{room.replace(/^Room\s+/i, "")}</> : room}
+            {/^Room\s/i.test(room) ? <><DoorOpen className="h-3.5 w-3.5 shrink-0" /><span className="truncate">{room.replace(/^Room\s+/i, "")}{roomType ? ` · ${roomType}` : ""}</span></> : room}
           </span>
           {status && (
             <span className="rounded-full px-[7px] py-px text-[10px] font-semibold" style={{ background: CHAT_STATUS_STYLE[status].bg, color: CHAT_STATUS_STYLE[status].color }}>{status}</span>
@@ -352,9 +352,9 @@ export function PersonRow({
     <button onClick={onOpen} className="flex w-full items-center gap-3.5 border-b border-[#EEEEF1] py-5 text-left last:border-b-0">
       <Avatar name={name} size={52} tone={tone} />
       <span className="min-w-0 flex-1 leading-tight">
-        <span className="block truncate text-[15px] font-semibold text-ink">{name}</span>
-        {sub && <span className="mt-1 flex items-center gap-1 text-[12px] text-ink-tertiary">{sub}</span>}
-        {detail && <span className="mt-1.5 block truncate text-[13px] text-ink-secondary">{detail}</span>}
+        <span className="block truncate text-[14px] font-semibold text-ink">{name}</span>
+        {sub && <span className="mt-0.5 flex items-center gap-1 text-[11px] font-normal text-ink-tertiary">{sub}</span>}
+        {detail && <span className="mt-0.5 block truncate text-[13px] font-normal text-ink-secondary">{detail}</span>}
       </span>
       {right && <span className="shrink-0 self-start pt-0.5 text-[12px] font-medium">{right}</span>}
     </button>

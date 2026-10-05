@@ -119,7 +119,7 @@ export default function GuestChats() {
   return (
     <>
       <Topbar title="Guest Chats" />
-      <div className="flex min-h-0 flex-1 gap-5 bg-page px-8 pb-8 pt-7">
+      <div className="flex min-h-0 flex-1 gap-5 bg-page px-6 pb-[50px] pt-7">
         {/* ---------------- conversations ---------------- */}
         <div className={`${SIDE_PANEL} transition-[width] duration-200 ${collapsed ? "w-[80px]" : "w-72"}`}>
           {collapsed ? (
@@ -238,7 +238,7 @@ export default function GuestChats() {
         </div>
 
         {/* ---------------- guest information ---------------- */}
-        <div className={`w-[320px] shrink-0 overflow-y-auto p-7 ${CARD}`}>
+        <div className={`w-72 shrink-0 overflow-y-auto p-5 ${CARD}`}>
           <div className="flex items-center justify-between">
             <span className="font-display text-[14px] font-semibold text-ink">Guest Information</span>
             <Link to={`/guests/${guest.id}`} className="text-[13px] font-medium text-brand">View Profile</Link>

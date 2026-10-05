@@ -910,7 +910,7 @@ function ManagerTaskWindow({
 
   return (
     <div className="fixed inset-0 z-50 bg-ink/20" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <aside role="dialog" aria-label="Task details" className="absolute inset-y-0 right-0 flex w-[460px] max-w-full flex-col bg-white shadow-2xl">
+      <aside role="dialog" aria-label="Task details" className="absolute inset-y-0 right-0 flex w-full max-w-md flex-col bg-white shadow-2xl">
         <div className="px-6 pb-3 pt-5">
           <div className="flex items-start justify-between gap-3">
             <h2 className="min-w-0 pr-4 font-display text-[18px] font-bold leading-tight text-ink">{task.title}</h2>

@@ -11,7 +11,6 @@ import {
   ChevronLeft,
   Upload,
   ChevronRight,
-  MessageCircle,
   Plus,
   FileText,
   Pencil,
@@ -82,12 +81,12 @@ function Avatar({ g, size = 36, soft = false }: { g: PreGuest; size?: number; so
 
 function WaCell({ wa }: { wa: boolean }) {
   return wa ? (
-    <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-[14px] font-medium text-green-600">
-      <MessageCircle className="h-4 w-4" /> WhatsApp
+    <span role="img" aria-label="Has WhatsApp" title="Has WhatsApp" className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#F0FDF4] text-[#22C55E]">
+      <Check className="h-4 w-4" strokeWidth={2.5} />
     </span>
   ) : (
-    <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-[14px] text-ink-tertiary">
-      <MessageCircle className="h-4 w-4 opacity-40" /> Not available
+    <span role="img" aria-label="No WhatsApp" title="No WhatsApp" className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#FEF2F2] text-[#EF4444]">
+      <X className="h-4 w-4" strokeWidth={2.5} />
     </span>
   );
 }
@@ -423,11 +422,11 @@ export default function PreArrival() {
               <thead>
                 <tr className="bg-[#F4F4F5] text-[12px] uppercase tracking-wide text-[#6B7280]">
                   <th className="py-3.5 pl-6 font-medium">Guest</th>
-                  <th className="py-3.5 pl-6 font-medium">WhatsApp</th>
                   <th className="py-3.5 pl-6 font-medium">Stay</th>
                   <th className="py-3.5 pl-6 font-medium">Check-in time</th>
                   <th className="py-3.5 pl-6 font-medium">Engagement</th>
                   <th className="py-3.5 pl-6 font-medium">Last Interaction</th>
+                  <th className="py-3.5 pl-6 font-medium">WhatsApp</th>
                   <th className="w-12 py-3.5 pr-6" aria-label="Actions" />
                 </tr>
               </thead>
@@ -448,9 +447,6 @@ export default function PreArrival() {
                           </div>
                         </div>
                       </td>
-                      <td className="py-3.5 pl-6 pr-3">
-                        <WaCell wa={g.wa} />
-                      </td>
                       <td className="whitespace-nowrap py-3.5 pl-6 pr-3 text-[14px] text-ink-secondary">
                         {shortDay(checkinDay(g))} – {shortDay(checkinDay(g) + g.nights)}
                       </td>
@@ -461,6 +457,9 @@ export default function PreArrival() {
                         </span>
                       </td>
                       <td className="whitespace-nowrap py-3.5 pl-6 pr-3 text-[14px] text-ink-secondary">{g.last}</td>
+                      <td className="py-3.5 pl-6 pr-3">
+                        <WaCell wa={g.wa} />
+                      </td>
                       <td className="py-3.5 pr-6 text-right">
                         <MoreHorizontal className="ml-auto h-5 w-5 text-ink-tertiary" aria-label="More actions" />
                       </td>

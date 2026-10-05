@@ -17,7 +17,7 @@ export function ProfileScreen({
 }) {
   return (
     <div className="flex h-full flex-col">
-      {onBack ? <ScreenHeader title="More" onBack={onBack} /> : <div className="border-b border-[#F0F0F0] px-6 pb-3 pt-4 font-display text-[20px] font-bold text-ink">More</div>}
+      {onBack ? <ScreenHeader title="More" onBack={onBack} /> : <div className="sticky top-0 z-10 border-b border-[#F0F0F0] bg-white px-6 pb-3 pt-4 font-display text-[20px] font-bold text-ink">More</div>}
       <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-6 pt-2 no-scrollbar">
         <div className="flex flex-col items-center pb-8 pt-6 text-center">
           <Avatar name={name} size={88} tone="bg-brand text-white" />

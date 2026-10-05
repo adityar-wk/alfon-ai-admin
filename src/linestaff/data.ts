@@ -288,26 +288,32 @@ export const GUEST_PROFILES: Record<string, GuestProfileInfo> = {
 };
 
 export type RoomStatus = "Inspected" | "In Progress" | "Needs Inspection" | "Out of Service" | "Out of Order";
-export type HkRoom = { number: string; floor: number; status: RoomStatus; assignee: string | null; /** cleaning left open for any line staff to pick up (never for inspections) */ open?: boolean };
+export type HkRoom = { number: string; floor: number; roomType: string; status: RoomStatus; assignee: string | null; /** cleaning left open for any line staff to pick up (never for inspections) */ open?: boolean };
 export const ROOMS: HkRoom[] = [
-  { number: "Room 305", floor: 3, status: "In Progress", assignee: "Maria Santos" },
-  { number: "Room 410", floor: 4, status: "Inspected", assignee: null },
-  { number: "Room 501", floor: 5, status: "In Progress", assignee: "Aanya Khan" },
-  { number: "Room 623", floor: 6, status: "Needs Inspection", assignee: null },
-  { number: "Room 704", floor: 7, status: "Needs Inspection", assignee: null },
-  { number: "Room 812", floor: 8, status: "Needs Inspection", assignee: null },
-  { number: "Room 908", floor: 9, status: "In Progress", assignee: "Aanya Khan" },
-  { number: "Room 1103", floor: 11, status: "Out of Service", assignee: null },
-  { number: "Room 1204", floor: 12, status: "In Progress", assignee: "Fatima Khan" },
-  { number: "Room 1501", floor: 15, status: "Out of Service", assignee: null },
-  { number: "Room 2104", floor: 21, status: "Inspected", assignee: null },
-  { number: "Room 227", floor: 2, status: "Inspected", assignee: null },
-  { number: "Room 618", floor: 6, status: "Out of Order", assignee: null },
-  { number: "Room 1010", floor: 10, status: "Out of Order", assignee: null },
-  { number: "Room 1407", floor: 14, status: "Out of Order", assignee: null },
+  { number: "Room 305", floor: 3, roomType: "Standard Twin", status: "In Progress", assignee: "Maria Santos" },
+  { number: "Room 410", floor: 4, roomType: "Deluxe King", status: "Inspected", assignee: null },
+  { number: "Room 501", floor: 5, roomType: "Deluxe King", status: "In Progress", assignee: "Aanya Khan" },
+  { number: "Room 623", floor: 6, roomType: "Deluxe Twin", status: "Needs Inspection", assignee: null },
+  { number: "Room 704", floor: 7, roomType: "Deluxe King", status: "Needs Inspection", assignee: null },
+  { number: "Room 812", floor: 8, roomType: "Deluxe King", status: "Needs Inspection", assignee: null },
+  { number: "Room 908", floor: 9, roomType: "Executive King", status: "In Progress", assignee: "Aanya Khan" },
+  { number: "Room 1103", floor: 11, roomType: "Deluxe King", status: "Out of Service", assignee: null },
+  { number: "Room 1204", floor: 12, roomType: "Executive Suite", status: "In Progress", assignee: "Fatima Khan" },
+  { number: "Room 1501", floor: 15, roomType: "Accessible Suite", status: "Out of Service", assignee: null },
+  { number: "Room 2104", floor: 21, roomType: "Junior Suite", status: "Inspected", assignee: null },
+  { number: "Room 227", floor: 2, roomType: "Standard Twin", status: "Inspected", assignee: null },
+  { number: "Room 618", floor: 6, roomType: "Deluxe Room", status: "Out of Order", assignee: null },
+  { number: "Room 1010", floor: 10, roomType: "Executive Room", status: "Out of Order", assignee: null },
+  { number: "Room 1407", floor: 14, roomType: "Junior Suite", status: "Out of Order", assignee: null },
 ];
 
 export const STATUS_ORDER = ["Available", "Busy", "On Break", "Off work"] as const;
 export const PRESENCE_DOT: Record<Presence, string> = { Available: "bg-green-500", Busy: "bg-blue-500", "On Break": "bg-amber-400", "Off work": "bg-gray-300" };
 
 export const NOW_LABEL = NOW;
+
+/** room type for a room number ("Room 1103"), from the rooms list, then guest profiles, then pre-arrival bookings */
+export const roomTypeOf = (room: string): string | undefined =>
+  ROOMS.find((r) => r.number === room)?.roomType ??
+  Object.values(GUEST_PROFILES).find((p) => p.room === room)?.roomType ??
+  PRE_ARRIVAL_GUESTS.find((g) => g.room === room)?.roomType;

@@ -1,7 +1,7 @@
 import { Button } from "../components/ui";
 import { Logo } from "../components/Logo";
 import { useEffect, useMemo, useState } from "react";
-import { Bell, ChevronRight, Plus, BedDouble, User, Building2, ChevronLeft, ArrowUpRight, ListChecks, MessageCircle, Search, Send, Home as HomeIcon, UserCog } from "lucide-react";
+import { Bell, ChevronRight, Plus, BedDouble, User, Building2, ChevronLeft, ArrowUpRight, LayoutGrid, CheckSquare, MessageSquare, MessageCircle, Search, Send, UserCog } from "lucide-react";
 import { DEPARTMENTS } from "../data/departments";
 import {
   PhoneFrame,
@@ -244,11 +244,11 @@ export function LineStaffPrototype() {
   const taskChipCounts = Object.fromEntries(TASK_FILTERS.map((f) => [f, tasks.filter(taskFilterFn[f]).length])) as Record<(typeof TASK_FILTERS)[number], number>;
 
   const guests = useMemo(() => {
-    const map = new Map<string, { name: string; room: string; title: string; open: boolean }>();
+    const map = new Map<string, { name: string; room: string; roomType: string; title: string; open: boolean }>();
     for (const t of tasks) {
       if (!t.guest || t.guest === "—" || t.guest === "Guest") continue;
       const cur = map.get(t.guest);
-      if (!cur) map.set(t.guest, { name: t.guest, room: t.room, title: t.title, open: t.status !== "completed" });
+      if (!cur) map.set(t.guest, { name: t.guest, room: t.room, roomType: t.roomType !== "—" ? t.roomType : "", title: t.title, open: t.status !== "completed" });
       else if (t.status !== "completed") cur.open = true;
     }
     return Array.from(map.values());
@@ -271,6 +271,7 @@ export function LineStaffPrototype() {
             key={g.name}
             name={g.name}
             room={g.room}
+            roomType={g.roomType}
             plain
             preview="Start a conversation"
             onOpen={() => { setNewChatOpen(false); nav.push({ name: "guestChat", id: g.name }); }}
@@ -282,9 +283,9 @@ export function LineStaffPrototype() {
   const lsNav = (
     <FloatingNav
       items={[
-        { key: "home", label: "Home", icon: HomeIcon },
-        { key: "tasks", label: "Tasks", icon: ListChecks },
-        { key: "guests", label: "Chats", icon: MessageCircle },
+        { key: "home", label: "Home", icon: LayoutGrid },
+        { key: "tasks", label: "Tasks", icon: CheckSquare },
+        { key: "guests", label: "Chats", icon: MessageSquare },
         { key: "profile", label: "More", icon: MoreNavIcon },
       ]}
       active={cur.name === "guests" ? "guests" : cur.name === "profile" ? "profile" : cur.name === "tasks" ? "tasks" : "home"}
@@ -392,7 +393,8 @@ export function LineStaffPrototype() {
   const Tasks = (
     <div className="relative h-full">
       <div className="h-full overflow-y-auto pb-28 no-scrollbar">
-        <div className="flex items-center justify-between border-b border-[#F0F0F0] px-6 pb-3 pt-2">
+        <div className="sticky top-0 z-10 border-b border-[#F0F0F0] bg-white pb-3">
+<div className="flex items-center justify-between px-6 py-2">
           <div className="font-display text-[20px] font-bold text-ink">Tasks</div>
           <div className="flex items-center gap-2">
             <button onClick={() => nav.push({ name: "notifications" })} aria-label="Notifications" className="relative flex h-11 w-11 items-center justify-center rounded-full text-ink active:bg-ink/5">
@@ -408,6 +410,7 @@ export function LineStaffPrototype() {
           <SearchField value={taskQuery} onChange={setTaskQuery} placeholder="Search room, guest or task" />
         </div>
         <div className="mt-3"><Chips flat items={TASK_FILTERS} active={taskFilter} onChange={setTaskFilter} counts={taskChipCounts} /></div>
+</div>
         <div className="mt-3 space-y-3 px-6">
           {tasksFiltered.map((t) => <LsCard key={t.id} t={t} onOpen={() => openTask(t.id)} />)}
           {!tasksFiltered.length && <p className="rounded-2xl bg-white p-6 text-center text-[13px] text-ink-tertiary">No tasks match.</p>}
@@ -420,7 +423,8 @@ export function LineStaffPrototype() {
   const Guests = (
     <div className="relative h-full">
       <div className="h-full overflow-y-auto pb-28 no-scrollbar">
-        <div className="flex items-center justify-between border-b border-[#F0F0F0] px-6 pb-3 pt-2">
+        <div className="sticky top-0 z-10 border-b border-[#F0F0F0] bg-white pb-3">
+<div className="flex items-center justify-between px-6 py-2">
           <div className="font-display text-[20px] font-bold text-ink">Chats</div>
           <div className="flex items-center gap-2">
             <button onClick={() => nav.push({ name: "notifications" })} aria-label="Notifications" className="relative flex h-11 w-11 items-center justify-center rounded-full text-ink active:bg-ink/5">
@@ -440,6 +444,7 @@ export function LineStaffPrototype() {
           <SearchField value={guestQuery} onChange={setGuestQuery} placeholder="Search guest or room" />
         </div>
         <div className="mt-3"><Chips flat items={CHAT_FILTERS} active={guestFilter} onChange={setGuestFilter} /></div>
+</div>
         <div className="mt-1 px-6">
           {guestsFiltered.map((g) => {
             const th = threadOf(g.name);
@@ -450,6 +455,7 @@ export function LineStaffPrototype() {
                 key={g.name}
                 name={g.name}
                 room={g.room}
+                roomType={g.roomType}
                 preview={th.length ? th[th.length - 1].text : "No messages yet"}
                 unread={unread || sampleUnread(g.name)}
                 status={!g.open ? "Resolved" : (unread || sampleUnread(g.name)) > 0 ? "Pending" : "Active"}
@@ -470,6 +476,7 @@ export function LineStaffPrototype() {
     <GuestChatScreen
       name={chatName}
       room={guests.find((g) => g.name === chatName)?.room ?? ""}
+      roomType={guests.find((g) => g.name === chatName)?.roomType}
       thread={threadOf(chatName)}
       manual={!!manual[chatName]}
       onToggle={() => { setManual((m) => ({ ...m, [chatName]: !m[chatName] })); flash(manual[chatName] ? "Handed back to AI" : "AI paused — you're now replying"); }}
@@ -587,20 +594,20 @@ export function LineStaffPrototype() {
         {active.status === "pending" ? (
           <button
             onClick={() => accept(active.id)}
-            className="w-full rounded-[18px] border-[1.5px] border-brand/35 bg-brand-tint py-[15px] font-display text-[14px] font-bold text-brand active:bg-[#FDE9E1]"
+            className="w-full rounded-control border-[1.5px] border-brand/35 bg-brand-tint py-[15px] font-display text-[14px] font-bold text-brand active:bg-[#FDE9E1]"
           >
             Accept
           </button>
         ) : (
           <>
             <Button variant="outline" className="flex-1 !font-bold" disabled={active.status === "completed"} onClick={() => { setHelpKind("escalate"); setHelpNote(""); setHelpOpen(true); }}>Need help</Button>
-            <Button
-              className="flex-[1.3] !font-bold"
+            <button
+              className="flex-[1.3] rounded-control border-[1.5px] border-brand/35 bg-brand-tint py-[15px] font-display text-[14px] font-bold text-brand active:bg-[#FDE9E1] disabled:opacity-40"
               disabled={active.status === "completed"}
               onClick={() => completeTask(active)}
             >
               {active.status === "completed" ? "Completed" : "Mark complete"}
-            </Button>
+            </button>
           </>
         )}
       </div>

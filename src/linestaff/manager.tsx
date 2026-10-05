@@ -2,8 +2,8 @@ import { Button } from "../components/ui";
 import { Logo } from "../components/Logo";
 import { useMemo, useState } from "react";
 import {
-  Bell, Home as HomeIcon, Plus, Users, UserCog, UserPlus, ArrowUpRight, MessageCircle, Send, Filter, ChevronRight, ChevronLeft, Search,
-  ListChecks, ContactRound, BarChart3, AlertTriangle, User, BedDouble, DoorOpen, Building2, FileText, Download, UtensilsCrossed, Languages, Thermometer, AlarmClock, Wine, Phone, Mail, Sparkles, SlidersHorizontal, LogOut,
+  Bell, LayoutDashboard, CheckSquare, MessageSquare, Plus, Users, UserCog, UserPlus, ArrowUpRight, MessageCircle, Send, Filter, ChevronRight, ChevronLeft, Search,
+  UserRound, BarChart3, AlertTriangle, User, BedDouble, DoorOpen, DoorClosed, Building2, FileText, Download, UtensilsCrossed, Languages, Thermometer, AlarmClock, Wine, Phone, Mail, Sparkles, SlidersHorizontal, LogOut,
   CheckCircle2, Loader, AlertCircle, CircleSlash, Wrench, ClipboardCheck,
 } from "lucide-react";
 import { CLEANING_CHECKLIST, INSPECTION_CHECKLIST, TAG_TONE } from "../data/housekeepingChecklists";
@@ -14,7 +14,7 @@ import { NotificationSettingsScreen, SignedOutScreen } from "./profile";
 import { DEPTS, METRICS, COMPLAINT_DETAIL } from "../pages/Analytics";
 import { Donut } from "../components/Donut";
 import { BarChart } from "../components/BarChart";
-import { SEED_TASKS, SEED_REQUESTS, STAFF, GUEST_STAYS, PRE_ARRIVAL_GUESTS, CHECKED_OUT_GUESTS, GUEST_PROFILES, ROOMS, type MTask, type Presence, type Staffer, type HkRoom, type RoomStatus, type EscType } from "./data";
+import { SEED_TASKS, SEED_REQUESTS, STAFF, GUEST_STAYS, PRE_ARRIVAL_GUESTS, CHECKED_OUT_GUESTS, GUEST_PROFILES, ROOMS, roomTypeOf, type MTask, type Presence, type Staffer, type HkRoom, type RoomStatus, type EscType } from "./data";
 import {
   PhoneFrame, ScreenHeader, SectionTitle, TaskCard, StatCard, Avatar, Chips, Segmented, FloatingNav, SelectField, TextField, Label, Sheet,
   useNav, useToast, CARD_SHADOW, TextHeader, SlaCountdown, fmtMins, CompensationSheet, type Priority,
@@ -404,10 +404,10 @@ export function ManagerPrototype() {
         active={key}
         onChange={(k) => nav.go({ name: k })}
         items={[
-          { key: "home", label: "Home", icon: HomeIcon },
-          { key: "tasks", label: "Tasks", icon: ListChecks },
-          { key: "guests", label: "Chats", icon: MessageCircle },
-          { key: "guestsRoster", label: "Guests", icon: ContactRound },
+          { key: "home", label: "Home", icon: LayoutDashboard },
+          { key: "tasks", label: "Tasks", icon: CheckSquare },
+          { key: "guests", label: "Chats", icon: MessageSquare },
+          { key: "guestsRoster", label: "Guests", icon: UserRound },
           { key: "menu", label: "More", icon: MoreNavIcon },
         ]}
       />
@@ -454,7 +454,8 @@ export function ManagerPrototype() {
   /* ---------- tasks ---------- */
   const Tasks = shell("tasks", (
     <>
-      <div className="flex items-center justify-between border-b border-[#F0F0F0] px-6 pb-3 pt-2">
+      <div className="sticky top-0 z-10 border-b border-[#F0F0F0] bg-white pb-3">
+<div className="flex items-center justify-between px-6 py-2">
         <div className="font-display text-[20px] font-bold text-ink">Tasks</div>
         <div className="flex items-center gap-2">
           {bellBtn}
@@ -467,6 +468,7 @@ export function ManagerPrototype() {
         <SearchField value={taskQuery} onChange={setTaskQuery} placeholder="Search room, guest or task" />
       </div>
       <div className="mt-3"><Chips flat items={TASK_FILTERS} active={taskFilter} onChange={setTaskFilter} counts={taskChipCounts} /></div>
+</div>
       <div className="mt-3 space-y-3 px-6">
         {tasksFiltered.map(genericCard)}
         {!tasksFiltered.length && <p className="rounded-2xl bg-white p-6 text-center text-[13px] text-ink-tertiary">No tasks match.</p>}
@@ -500,9 +502,9 @@ export function ManagerPrototype() {
 
   const Team = (
     <div className="flex h-full flex-col">
-      <ScreenHeader onBack={nav.back} title="Team" />
+      <ScreenHeader onBack={nav.back} title="Team" divider={false} />
       {searchRow(teamQuery, setTeamQuery, "Search team member", null)}
-      <div className="mt-3"><Chips flat items={ROLE_FILTERS} active={roleFilter} onChange={setRoleFilter} /></div>
+      <div className="mt-3 border-b border-[#F0F0F0] pb-3"><Chips flat items={ROLE_FILTERS} active={roleFilter} onChange={setRoleFilter} /></div>
       <div className="mt-1 min-h-0 flex-1 overflow-y-auto px-6 pb-6 no-scrollbar">
         {filteredTeam.map((s) => (
           <PersonRow
@@ -571,21 +573,28 @@ export function ManagerPrototype() {
   /* ---------- housekeeping (rooms) ---------- */
   const Housekeeping = (
     <div className="flex h-full flex-col">
-      <ScreenHeader onBack={nav.back} title="Housekeeping" />
+      <ScreenHeader onBack={nav.back} title="Housekeeping" divider={false} />
       <div className="flex px-6"><SearchField value={roomQuery} onChange={setRoomQuery} placeholder="Search room or staff" /></div>
-      <div className="mt-3"><Chips flat items={ROOM_STATUS_FILTERS} active={roomFilter} onChange={setRoomFilter} counts={roomChipCounts} /></div>
+      <div className="mt-3 border-b border-[#F0F0F0] pb-3"><Chips flat items={ROOM_STATUS_FILTERS} active={roomFilter} onChange={setRoomFilter} counts={roomChipCounts} /></div>
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-6 pb-6 pt-3 no-scrollbar">
-        {roomsFiltered.map((r) => (
+        {roomsFiltered.map((r) => {
+          const occupant = guestsSorted.find((g) => g.room === r.number)?.name;
+          return (
           <button key={r.number} onClick={() => setRoomSheet(r.number)} className="block w-full rounded-2xl border border-[#F0F0F0] bg-white px-5 py-4 text-left active:scale-[0.99]">
             <div className="flex items-center justify-between gap-2">
               <span className="flex items-center gap-1.5 font-display text-[16px] font-semibold leading-snug text-ink">
                 <DoorOpen className="h-[17px] w-[17px] text-ink-secondary" />{r.number.replace(/^Room\s+/i, "")}
+                <span className="font-sans text-[12px] font-normal text-ink-secondary">· {r.roomType}</span>
               </span>
               {(r.status === "Inspected" || r.status === "In Progress" || r.status === "Needs Inspection") && (
                 <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${r.status === "Inspected" ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`}>
                   {r.status === "Inspected" ? "Clean" : "Dirty"}
                 </span>
               )}
+            </div>
+            <div className={`mt-1.5 flex items-center gap-1.5 text-[12px] ${occupant ? "text-ink-secondary" : "text-ink-tertiary"}`}>
+              {occupant ? <User className="h-3.5 w-3.5 shrink-0" /> : <DoorClosed className="h-3.5 w-3.5 shrink-0" />}
+              <span className="truncate">{occupant ? `Occupied · ${occupant}` : "Vacant"}</span>
             </div>
             <div className="mt-3 flex min-h-[26px] items-center gap-3 text-[13px]">
               <span className={`text-[12px] font-medium ${ROOM_STATUS_TONE[r.status]}`}>{r.status}</span>
@@ -599,7 +608,8 @@ export function ManagerPrototype() {
               )}
             </div>
           </button>
-        ))}
+          );
+        })}
         {!roomsFiltered.length && <p className="rounded-2xl bg-white p-6 text-center text-[13px] text-ink-tertiary">No rooms match.</p>}
       </div>
     </div>
@@ -683,7 +693,8 @@ export function ManagerPrototype() {
   /* ---------- guest communication ---------- */
   const Guests = shell("guests", (
     <>
-      <div className="flex items-center justify-between border-b border-[#F0F0F0] px-6 pb-3 pt-2">
+      <div className="sticky top-0 z-10 border-b border-[#F0F0F0] bg-white pb-3">
+<div className="flex items-center justify-between px-6 py-2">
         <div className="font-display text-[20px] font-bold text-ink">Chats</div>
         <div className="flex items-center gap-2">
           {bellBtn}
@@ -700,12 +711,14 @@ export function ManagerPrototype() {
         <SearchField value={guestQuery} onChange={setGuestQuery} placeholder="Search guest or room" />
       </div>
       <div className="mt-3"><Chips flat items={GUEST_FILTERS} active={guestFilter} onChange={setGuestFilter} /></div>
+</div>
       <div className="mt-1 px-6">
         {guestsFiltered.map((g) => (
           <ChatRow
             key={g.name}
             name={g.name}
             room={g.room}
+            roomType={roomTypeOf(g.room)}
             preview={g.convo !== "—" ? g.convo : "No messages yet"}
             tone={g.complaint ? "bg-red-50 text-red-600" : undefined}
             complaint={!!g.complaint}
@@ -722,6 +735,7 @@ export function ManagerPrototype() {
               key={`pre-${g.name}`}
               name={g.name}
               room={g.room ? `Room ${g.room}` : "Room TBC"}
+              roomType={g.roomType}
               status="Pre-Arrival"
               tone="bg-subtle text-ink-secondary"
               preview={g.notes}
@@ -738,6 +752,7 @@ export function ManagerPrototype() {
     <GuestChatScreen
       name={guestName}
       room={guestEntry?.room ?? "Pre-arrival"}
+      roomType={guestEntry ? roomTypeOf(guestEntry.room) : preGuest?.roomType}
       complaint={!!guestEntry?.complaint}
       thread={guestThread}
       manual={guestManual}
@@ -853,17 +868,17 @@ export function ManagerPrototype() {
           {task.owner === ME || task.status === "progress" ? (
             <>
               <Button variant="outline" className="flex-1" onClick={() => setSheet({ k: "needHelp", taskId: task.id })}>Assist</Button>
-              <Button
-                className="flex-[1.3]"
+              <button
+                className="flex-[1.3] rounded-control border-[1.5px] border-brand/35 bg-brand-tint py-[15px] font-display text-[14px] font-bold text-brand active:bg-[#FDE9E1] disabled:opacity-40"
                 onClick={() => completeTask(task)}
               >
                 Complete
-              </Button>
+              </button>
             </>
           ) : (
             <button
               onClick={() => { patch(task.id, { owner: ME, status: "progress" }, `${ME} accepted the task`); flash("Task assigned to you"); }}
-              className="w-full rounded-[18px] border-[1.5px] border-brand/35 bg-brand-tint py-[15px] font-display text-[14px] font-bold text-brand active:bg-[#FDE9E1]"
+              className="w-full rounded-control border-[1.5px] border-brand/35 bg-brand-tint py-[15px] font-display text-[14px] font-bold text-brand active:bg-[#FDE9E1]"
             >
               Accept
             </button>
@@ -1124,7 +1139,8 @@ export function ManagerPrototype() {
 
   const GuestsRoster = shell("guestsRoster", (
     <>
-      <div className="flex items-center justify-between border-b border-[#F0F0F0] px-6 pb-3 pt-2">
+      <div className="sticky top-0 z-10 border-b border-[#F0F0F0] bg-white pb-3">
+<div className="flex items-center justify-between px-6 py-2">
         <div className="font-display text-[20px] font-bold text-ink">Guests</div>
         <div className="flex items-center gap-2">{bellBtn}</div>
       </div>
@@ -1132,9 +1148,11 @@ export function ManagerPrototype() {
         <SearchField value={rosterQuery} onChange={setRosterQuery} placeholder="Search guest or room" />
       </div>
       <div className="mt-3"><Chips flat items={ROSTER_STAGE_FILTERS} active={stageFilter} onChange={setStageFilter} /></div>
+</div>
       <div className="mt-1 min-h-0 flex-1 overflow-y-auto px-6 pb-6 no-scrollbar">
         {rosterFiltered.map((row) => {
-          const room = <><DoorOpen className="h-3.5 w-3.5" />{row.g.room.replace(/^Room\s+/i, "")}</>;
+          const roomType = row.stage === "Upcoming" ? row.g.roomType : GUEST_PROFILES[row.g.name]?.roomType;
+          const room = <><DoorOpen className="h-3.5 w-3.5 shrink-0" /><span className="truncate">{row.g.room.replace(/^Room\s+/i, "")}{roomType ? ` · ${roomType}` : ""}</span></>;
           const stay =
             row.stage === "Upcoming"
               ? `${GUEST_PROFILES[row.g.name]?.checkIn.replace(/, \d{4}/, "")} – ${GUEST_PROFILES[row.g.name]?.checkOut.replace(/, \d{4}/, "")}`
@@ -1147,10 +1165,10 @@ export function ManagerPrototype() {
             <PersonRow
               key={row.g.name}
               name={row.g.name}
-              sub={row.stage === "Current" ? room : undefined}
+              sub={room}
               detail={stay}
               right={right}
-              tone={row.stage === "Current" && row.g.complaint ? "bg-red-50 text-red-600" : row.stage === "Upcoming" ? "bg-subtle text-ink-secondary" : undefined}
+              tone={row.stage === "Current" && row.g.complaint ? "bg-red-50 text-red-600" : "bg-subtle text-ink-secondary"}
               onOpen={() => nav.push({ name: "guestProfile", id: row.g.name })}
             />
           );
@@ -1246,6 +1264,7 @@ export function ManagerPrototype() {
             key={g.name}
             name={g.name}
             room={g.room}
+            roomType={roomTypeOf(g.room)}
             plain
             preview="Start a conversation"
             onOpen={() => { setNewChatOpen(false); nav.push({ name: "guestDetail", id: g.name }); }}

@@ -185,7 +185,7 @@ export function GuestProfileScreen({ name, onBack, onMessage, author = "Staff" }
           <>
             <div className={`rounded-2xl bg-white p-4 ${CARD_SHADOW}`}>
               <div className="flex items-center gap-3.5">
-                <Avatar name={profileName} size={56} tone={profileStage === "Pre-arrival" ? "bg-subtle text-ink-secondary" : undefined} />
+                <Avatar name={profileName} size={56} tone="bg-subtle text-ink-secondary" />
                 <div className="min-w-0 leading-tight">
                   <div className="truncate font-display text-[19px] font-bold text-ink">{profileName}</div>
                   <div className="mt-1 text-[13px] text-ink-secondary">{profileInfo.room} · {profileInfo.roomType}</div>
@@ -284,16 +284,15 @@ export function AiDraftCard({ draft, onChange, onApprove }: { draft: string; onC
 
 /** Guest conversation with the ALFON AI / take-over toggle. */
 export function GuestChatScreen({
-  name, room, thread, manual, onToggle, onSend, onBack, onProfile, aiDraft, onDraftChange, onApproveDraft, complaint,
+  name, room, roomType, thread, manual, onToggle, onSend, onBack, onProfile, aiDraft, onDraftChange, onApproveDraft, complaint,
 }: {
   aiDraft?: string; onDraftChange?: (t: string) => void; onApproveDraft?: () => void; complaint?: boolean;
-  name: string; room: string; thread: ChatMsg[]; manual: boolean; onToggle: () => void; onSend: (text: string) => void; onBack: () => void; onProfile: () => void;
+  name: string; room: string; roomType?: string; thread: ChatMsg[]; manual: boolean; onToggle: () => void; onSend: (text: string) => void; onBack: () => void; onProfile: () => void;
 }) {
   const [draft, setDraft] = useState("");
   const endRef = useRef<HTMLDivElement>(null);
   useEffect(() => { endRef.current?.scrollIntoView({ block: "end" }); }, [thread.length, aiDraft !== undefined]);
   const send = () => { if (!manual || !draft.trim()) return; onSend(draft.trim()); setDraft(""); };
-  const sender = (f: ChatMsg["from"]) => (f === "ai" ? "ALFON AI" : f === "me" ? "You" : name.split(" ")[0]);
   return (
     <div className="flex h-full flex-col bg-white">
       <div className="flex shrink-0 items-center gap-3 border-b border-line bg-white px-6 pb-3 pt-4">
@@ -301,10 +300,10 @@ export function GuestChatScreen({
           <ChevronLeft className="h-5 w-5" />
         </button>
         <button onClick={onProfile} aria-label="View profile" className="flex min-w-0 flex-1 items-center gap-2.5 text-left">
-          <Avatar name={name} size={36} tone={complaint ? "bg-red-50 text-red-600" : room === "Pre-arrival" ? "bg-subtle text-ink-secondary" : undefined} />
+          <Avatar name={name} size={36} tone={complaint ? "bg-red-50 text-red-600" : "bg-subtle text-ink-secondary"} />
           <div className="min-w-0 leading-tight">
             <div className="truncate text-[14px] font-semibold text-ink">{name}</div>
-            <div className="mt-0.5 text-[12px] font-normal text-ink-tertiary">{room}</div>
+            <div className="mt-0.5 truncate text-[12px] font-normal text-ink-tertiary">{room}{roomType ? ` · ${roomType}` : ""}</div>
           </div>
         </button>
       </div>
@@ -313,19 +312,29 @@ export function GuestChatScreen({
         {thread.map((m, i) => {
           const mine = m.from !== "guest";
           return (
-            <div key={i} className={`flex flex-col ${mine ? "items-end" : "items-start"}`}>
-              <span className={`mb-1 px-1 text-[10px] font-bold ${m.from === "ai" ? "text-brand" : "text-ink-tertiary"}`}>{sender(m.from)}</span>
+            <div key={i} className={`flex items-end gap-2 ${mine ? "justify-end" : "justify-start"}`}>
+              {!mine && <Avatar name={name} size={28} tone="bg-[#6B7280] text-white" />}
               <div
                 className={`max-w-[78%] px-3.5 py-3 text-[14px] font-normal leading-[1.5] ${
                   m.from === "guest"
-                    ? "rounded-[18px] rounded-tl-md bg-[#F0F0F0] text-ink"
+                    ? "rounded-[18px_18px_18px_4px] bg-[#F0F0F0] text-ink"
                     : m.from === "ai"
-                      ? "rounded-[18px] rounded-tr-md bg-[#FFE9DF] text-ink"
-                      : "rounded-[18px] rounded-tr-md bg-brand text-white"
+                      ? "rounded-[18px_18px_4px_18px] border border-brand/10 bg-gradient-to-br from-[#FFF8F4] to-[#FFF0E8] text-ink"
+                      : "rounded-[18px_18px_4px_18px] bg-brand text-white"
                 }`}
               >
+                {m.from === "ai" && (
+                  <div className="mb-1 flex items-center gap-1 text-[10px] font-bold text-brand">
+                    <Sparkles className="h-2.5 w-2.5" /> Alfon AI
+                  </div>
+                )}
                 {m.text}
               </div>
+              {m.from === "me" && (
+                <span aria-label="You" className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand-tint text-brand">
+                  <User className="h-3.5 w-3.5" />
+                </span>
+              )}
             </div>
           );
         })}

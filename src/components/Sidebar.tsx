@@ -108,8 +108,8 @@ export function Sidebar() {
   return (
     <aside className="flex h-full w-[220px] shrink-0 flex-col border-r border-line bg-white">
       <div className="flex items-center justify-center border-b border-subtle px-4 pb-6 pt-7">
-        <div className="flex h-[42px] w-full items-center justify-center">
-          <Logo className="h-auto w-[188px]" />
+        <div className="flex h-[42px] w-[176px] items-center overflow-hidden">
+          <Logo className="-ml-[1.5px] h-5 w-auto shrink-0 -translate-y-0.5" />
         </div>
       </div>
 
@@ -151,7 +151,7 @@ export function Sidebar() {
         })}
       </nav>
 
-      <div ref={ref} className="relative border-t border-line px-3 py-3">
+      <div ref={ref} className="relative border-t border-line px-2.5 py-2.5">
         {open && (
           <div className="absolute bottom-[calc(100%-4px)] left-3 right-3 z-40 rounded-xl border border-line bg-white p-1.5 shadow-lg">
             <div className="px-2.5 pb-1 pt-1.5 text-[11px] font-semibold uppercase tracking-wide text-ink-tertiary">Switch persona</div>
@@ -189,9 +189,9 @@ export function Sidebar() {
           <div className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-tint font-display text-xs font-semibold text-brand">
             {me.initials}
           </div>
-          <div className="flex-1 leading-tight">
-            <div className="text-[13px] font-semibold text-ink">{me.name}</div>
-            <div className="text-xs text-ink-secondary">{me.role}</div>
+          <div className="min-w-0 flex-1">
+            <div className="truncate text-sm font-semibold text-ink">{me.name}</div>
+            <div className="truncate text-xs text-ink-secondary">{me.role}</div>
           </div>
           {!steppedInto && <ChevronsUpDown className="h-4 w-4 text-ink-tertiary" />}
         </button>

@@ -492,7 +492,7 @@ export default function GuestProfile() {
   return (
     <>
       <Topbar title="Guests" />
-      <div className="flex min-h-0 flex-1 gap-5 bg-page px-8 pb-8 pt-7">
+      <div className="flex min-h-0 flex-1 gap-5 bg-page p-6">
         <GuestList activeId={guest.id} />
 
         <div className="min-h-0 min-w-0 flex-1 overflow-y-auto">
@@ -527,8 +527,8 @@ export default function GuestProfile() {
             </Card>
 
             {/* left: guest profile, anticipated needs, preferences and stay history stacked; right: actions and notes stacked */}
-            <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-5">
-              <div className="flex min-w-0 flex-col gap-4 xl:col-span-3">
+            <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-5">
+              <div className="flex min-w-0 flex-col gap-4 lg:col-span-3">
                 <InsightCard icon={User} label="GUEST PROFILE" color="#2E86AB">{p.summary}</InsightCard>
                 <InsightCard icon={Lightbulb} label="ANTICIPATED NEEDS" color="#B45309">{p.anticipated}</InsightCard>
 
@@ -565,7 +565,7 @@ export default function GuestProfile() {
                 </Card>
               </div>
 
-              <div className="flex min-w-0 flex-col gap-6 xl:col-span-2">
+              <div className="flex min-w-0 flex-col gap-6 lg:col-span-2">
                 <div className="rounded-card border border-line bg-white px-5 py-4 shadow-card">
                   <div className="mb-3 flex items-center gap-1.5">
                     <Bell className="h-3 w-3 text-brand" />

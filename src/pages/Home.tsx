@@ -320,8 +320,8 @@ export default function Home() {
         </div>
 
         <div className="grid grid-cols-1 items-stretch gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
-          <div className="flex flex-col gap-5">
-            <Card className="flex flex-col items-center px-6 py-10">
+          <div className="flex h-full flex-col gap-5">
+            <Card className="flex flex-1 flex-col items-center px-6 py-10">
               <Orb score={score} />
               <div className="mt-5 text-[11px] font-medium uppercase tracking-[0.18em] text-ink-tertiary">Hotel Health Score</div>
 
@@ -405,7 +405,7 @@ export default function Home() {
               </div>
             </Card>
 
-            <Card className="p-6">
+            <Card className="flex-1 p-6">
               <h3 className="text-[16px] font-semibold text-ink">Occupancy Today</h3>
               <dl className="mt-4 space-y-3.5 text-[13px]">
                 {[["Occupancy", "87%"], ["Check-ins Today", "34"], ["Check-outs Today", "28"], ["Total Rooms", "245"]].map(([l, v]) => (
