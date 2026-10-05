@@ -924,7 +924,7 @@ export function ManagerPrototype() {
       <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-4 pt-4 no-scrollbar">
         <SelectField value="Housekeeping" onChange={() => {}} placeholder="Department" options={["Housekeeping"]} disabled />
         <div className="mt-3"><SelectField value={service} onChange={setService} placeholder="Select service" options={services} /></div>
-        <Label>Room</Label>
+        <Label>Room (optional)</Label>
         <TextField value={room} onChange={setRoom} placeholder="e.g. 501" />
         <Label>Guest name (optional)</Label>
         <TextField value={taskGuest} onChange={setTaskGuest} placeholder="e.g. Emma Davis" />
@@ -934,11 +934,12 @@ export function ManagerPrototype() {
       <div className="shrink-0 px-6 pb-6 pt-2">
         <Button
           className="w-full"
-          disabled={!service || !room.trim()}
+          disabled={!service}
           onClick={() => {
             const id = "n" + Date.now();
+            const roomLabel = room.trim() ? `Room ${room.trim().replace(/^room\s*/i, "")}` : "—";
             setTasks((ts) => [{
-              id, room: `Room ${room.trim().replace(/^room\s*/i, "")}`, guest: taskGuest.trim() || "Guest", title: service, note: details || service, priority: "Medium", status: "unassigned", owner: null, support: [],
+              id, room: roomLabel, guest: taskGuest.trim() || "Guest", title: service, note: details || service, priority: "Medium", status: "unassigned", owner: null, support: [],
               slaTotal: DEFAULT_SLA, slaLeft: DEFAULT_SLA, isNew: true, createdAt: "now", pickup: "Not yet picked up", summary: details || service, prefs: [], convo: "Created manually by the department head.",
               timeline: [{ t: "now", text: `Created manually by ${ME}` }], notes: [],
             }, ...ts]);

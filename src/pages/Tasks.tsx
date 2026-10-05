@@ -1465,7 +1465,7 @@ function NewTask({
           <Field label="Guest" required>
             <Input value={guest} onChange={(e) => setGuest(e.target.value)} placeholder="Guest name" />
           </Field>
-          <Field label="Room">
+          <Field label="Room" hint="Optional.">
             <Input value={room} onChange={(e) => setRoom(e.target.value)} placeholder="1608" />
           </Field>
         </div>

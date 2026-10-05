@@ -354,7 +354,7 @@ export function LineStaffPrototype() {
 
   const createTask = () => {
     const id = "n" + Date.now();
-    const r = room.trim() ? `Room ${room.trim().replace(/^room\s*/i, "")}` : dept;
+    const r = room.trim() ? `Room ${room.trim().replace(/^room\s*/i, "")}` : "—";
     setTasks((ts) => [
       {
         id, title: service, room: r, note: details.trim() || service, status: "progress", left: DEFAULT_SLA, total: DEFAULT_SLA,
