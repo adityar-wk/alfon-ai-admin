@@ -9,9 +9,9 @@ export const activeCount = (tasks: MTask[], name: string) =>
 export const atRiskCount = (tasks: MTask[], name: string) =>
   tasks.filter((t) => t.owner === name && t.status !== "completed" && t.slaLeft >= 0 && t.slaLeft / t.slaTotal < 0.35).length;
 export const overdueCount = (tasks: MTask[], name: string) =>
-  tasks.filter((t) => t.owner === name && t.status !== "completed" && t.status !== "unable" && t.slaLeft < 0).length;
+  tasks.filter((t) => t.owner === name && t.status !== "completed" && t.status !== "void" && t.slaLeft < 0).length;
 
-export const isOpen = (t: MTask) => t.status !== "completed" && t.status !== "unable";
+export const isOpen = (t: MTask) => t.status !== "completed" && t.status !== "void";
 export const isAtRisk = (t: MTask) => isOpen(t) && t.slaLeft >= 0 && t.slaLeft / t.slaTotal < 0.35;
 export const isOverdue = (t: MTask) => isOpen(t) && t.slaLeft < 0;
 
@@ -20,14 +20,14 @@ export const STATUS_LABEL: Record<MTask["status"], string> = {
   assigned: "",
   progress: "",
   completed: "Completed",
-  unable: "Unable to complete",
+  void: "Void",
 };
 export const STATUS_TONE: Record<MTask["status"], string> = {
   unassigned: "text-red-600",
   assigned: "text-amber-600",
   progress: "text-blue-600",
   completed: "text-green-600",
-  unable: "text-gray-500",
+  void: "text-gray-500",
 };
 
 export function StatusTag({ s }: { s: MTask["status"] }) {
@@ -52,19 +52,17 @@ export function StaffPicker({
   cta?: string;
   avatars?: boolean;
 }) {
-  const order: Presence[] = ["Available", "Busy", "On Break", "Off work"];
+  const order: Presence[] = ["Available", "Busy"];
   const list = STAFF.filter((s) => (!lineStaffOnly || s.role === "Line Staff") && !exclude.includes(s.name)).sort((a, b) => order.indexOf(a.status) - order.indexOf(b.status));
   return (
     <div className="space-y-2">
       {list.map((s) => {
-        const off = s.status === "Off work";
         const n = activeCount(tasks, s.name);
         return (
           <button
             key={s.name}
-            disabled={off}
             onClick={() => onPick(s)}
-            className={`flex w-full items-center gap-3 rounded-2xl border border-line p-3 text-left ${off ? "opacity-45" : "active:bg-brand-tint/40"}`}
+            className="flex w-full items-center gap-3 rounded-2xl border border-line p-3 text-left active:bg-brand-tint/40"
           >
             {avatars && <Avatar name={s.name} size={40} />}
             <div className="min-w-0 flex-1 leading-tight">
@@ -73,7 +71,7 @@ export function StaffPicker({
                 <span className={`h-2 w-2 rounded-full ${PRESENCE_DOT[s.status]}`} /> {s.status} · {n} active
               </div>
             </div>
-            <span className="text-[12px] font-semibold text-brand">{off ? "Unavailable" : cta}</span>
+            <span className="text-[12px] font-semibold text-brand">{cta}</span>
           </button>
         );
       })}

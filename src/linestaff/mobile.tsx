@@ -1,6 +1,7 @@
 import { Button } from "../components/ui";
 import { deptIcon } from "../data/deptIcons";
 import { useClock, secsFromMinutes, formatClock } from "../data/attention";
+import { TASK_DEPTS } from "../data/tasks";
 import { useEffect, useState, type ReactNode } from "react";
 import { AlertCircle, Search, DoorOpen, Signal, Wifi, BatteryFull, ChevronLeft, ChevronDown, X, Clock } from "lucide-react";
 
@@ -480,6 +481,32 @@ export function TextField({ value, onChange, placeholder, rows }: { value: strin
 
 export function Label({ children }: { children: ReactNode }) {
   return <div className="mb-2 mt-5 px-1 text-[12px] font-semibold text-ink-secondary">{children}</div>;
+}
+
+/** the manual task form, same fields and rules as the web New task dialog */
+export function ManualTaskFields({
+  guest, onGuest, room, onRoom, title, onTitle, dept, onDept, details, onDetails,
+}: {
+  guest: string; onGuest: (v: string) => void;
+  room: string; onRoom: (v: string) => void;
+  title: string; onTitle: (v: string) => void;
+  dept: string; onDept: (v: string) => void;
+  details: string; onDetails: (v: string) => void;
+}) {
+  return (
+    <>
+      <Label>Guest *</Label>
+      <TextField value={guest} onChange={onGuest} placeholder="Guest name" />
+      <Label>Room (optional)</Label>
+      <TextField value={room} onChange={onRoom} placeholder="e.g. 1608" />
+      <Label>What needs to be done? *</Label>
+      <TextField value={title} onChange={onTitle} placeholder="e.g. Extra pillows, AC check, airport pickup" />
+      <Label>Department</Label>
+      <SelectField value={dept} onChange={(v) => v && onDept(v)} placeholder="Select department" options={TASK_DEPTS} />
+      <Label>Details (optional)</Label>
+      <TextField rows={4} value={details} onChange={onDetails} placeholder="Anything the team should know…" />
+    </>
+  );
 }
 
 /* ---------- sheet ---------- */

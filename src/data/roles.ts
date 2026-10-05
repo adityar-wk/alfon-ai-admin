@@ -1,4 +1,4 @@
-import { INITIAL, TINTS, type Status as Avail, type ShiftName } from "./staff";
+import { INITIAL, TINTS, type ShiftName } from "./staff";
 
 export type ModuleKey = "tasks" | "chats" | "profiles" | "prearrival" | "housekeeping" | "analytics" | "reports" | "settings";
 
@@ -116,7 +116,6 @@ export type User = {
   last: string;
   /** working state, shown in the staff table */
   dept: string;
-  avail: Avail;
   shift: ShiftName;
   task: string | null;
   tint: string;
@@ -130,7 +129,6 @@ export const ROLE_DEPT_TO_STAFF: Record<string, string> = {
   "Front Office": "Front Desk", Housekeeping: "Housekeeping", "F&B": "F&B", Engineering: "Engineering",
   "Guest Services": "Guest Services", Management: "Management", System: "IT",
 };
-const AVAIL: Avail[] = ["On Duty", "On Duty", "On Duty", "On Break", "On Duty", "Off Duty"];
 const SHIFTS: ShiftName[] = ["Morning", "Morning", "Afternoon", "Night"];
 
 /** map the real staff (INITIAL) onto the closest role */
@@ -154,7 +152,6 @@ export function seedUsers(): User[] {
     status: "Active" as const,
     last: LAST_SEEN[i % LAST_SEEN.length],
     dept: s.dept,
-    avail: s.status,
     shift: s.shift,
     task: s.task,
     tint: s.tint,
@@ -176,7 +173,6 @@ export function seedUsers(): User[] {
         status: invited ? "Invited" : id % 23 === 0 ? "Deactivated" : "Active",
         last: invited ? "—" : LAST_SEEN[id % LAST_SEEN.length],
         dept: ROLE_DEPT_TO_STAFF[roleDept] ?? "Front Desk",
-        avail: AVAIL[id % AVAIL.length],
         shift: SHIFTS[id % SHIFTS.length],
         task: null,
         tint: TINTS[id % TINTS.length],

@@ -23,6 +23,7 @@ import {
   PersonRow,
   SearchField,
   sampleUnread,
+  ManualTaskFields,
 } from "./mobile";
 import { StaffPicker, ReasonSheet, StatusTag, activeCount, atRiskCount, overdueCount, isOpen, isAtRisk, isOverdue } from "./parts";
 
@@ -30,7 +31,8 @@ type Screen = {
   name: "home" | "tasks" | "team" | "staffDetail" | "housekeeping" | "guests" | "guestDetail" | "guestProfile" | "detail" | "notifications" | "create" | "menu" | "analytics" | "reports" | "guestsRoster" | "notifSettings";
   id?: string;
 };
-type SheetState = { k: "needHelp" | "assign" | "support" | "duty"; taskId: string } | null;
+type SheetState = { k: "needHelp" | "assign" | "support" | "duty" | "void"; taskId: string } | null;
+const VOID_REASONS = ["Task no longer required", "Duplicate", "Wrong info"] as const;
 
 const ME = "Daniel Reyes";
 const ME_INITIALS = ME.split(" ").map((p) => p[0]).join("").slice(0, 2);
@@ -44,7 +46,7 @@ function MoreNavIcon({ className }: { className?: string }) {
     </span>
   );
 }
-const ESC_FILTERS = ["All", "SLA breach", "SLA at risk", "Guest complaint", "Unable to complete", "Staffing issue", "Supervisor escalation", "High priority"] as const;
+const ESC_FILTERS = ["All", "SLA breach", "SLA at risk", "Guest complaint", "Staffing issue", "Supervisor escalation", "High priority"] as const;
 const DEFAULT_SLA = 40;
 type EscFilter = (typeof ESC_FILTERS)[number];
 const ROLE_FILTERS = ["All", "Supervisor", "Line Staff"] as const;
@@ -57,7 +59,7 @@ const ROOM_STATUS_FILTERS = ["All", "In Progress", "Needs Inspection", "Out of S
 type RoomStatusFilter = (typeof ROOM_STATUS_FILTERS)[number];
 const ROOM_STATUSES = ["Inspected", "In Progress", "Needs Inspection", "Out of Service", "Out of Order"] as const;
 /** matches the colour coding used on the web Housekeeping tab */
-const CARD_BADGE: Record<MTask["status"], string> = { unassigned: "Open", assigned: "Pending", progress: "In Progress", completed: "Completed", unable: "Unable" };
+const CARD_BADGE: Record<MTask["status"], string> = { unassigned: "Pending", assigned: "In Progress", progress: "In Progress", completed: "Completed", void: "Void" };
 const ROOM_STATUS_ICON: Record<RoomStatus, React.ComponentType<{ className?: string }>> = {
   Inspected: CheckCircle2,
   "In Progress": Loader,
@@ -169,8 +171,7 @@ const NOTIFS = [
   { label: "Escalation", tone: "text-danger", task: "Guest conversation", sub: "Room 1103 · Escalated by AI", time: "10:14 AM", to: "t6" },
 ];
 
-const escSort = (a: MTask, b: MTask) => a.slaLeft - b.slaLeft;
-const isEsc = (t: MTask) => (isOpen(t) || t.status === "unable" ? !!t.escalated : false);
+const isEsc = (t: MTask) => isOpen(t) && !!t.escalated;
 
 type GuestEntry = {
   name: string;
@@ -222,7 +223,8 @@ export function ManagerPrototype() {
   const [reportDept, setReportDept] = useState("All departments");
   const [editingDraft, setEditingDraft] = useState(false);
   // create task
-  const [service, setService] = useState("");
+  const [taskTitle, setTaskTitle] = useState("");
+  const [taskDept, setTaskDept] = useState("Housekeeping");
   const [room, setRoom] = useState("");
   const [taskGuest, setTaskGuest] = useState("");
   const [details, setDetails] = useState("");
@@ -248,13 +250,12 @@ export function ManagerPrototype() {
     "SLA breach": (t) => isOverdue(t) || (isEsc(t) && t.escType === "SLA breach"),
     "SLA at risk": isAtRisk,
     "Guest complaint": (t) => isEsc(t) && (t.escType === "Guest complaint" || !!t.complaint),
-    "Unable to complete": (t) => isEsc(t) && (t.escType === "Unable to complete" || t.status === "unable"),
     "Staffing issue": (t) => isEsc(t) && t.escType === "Staffing issue",
     "Supervisor escalation": (t) => isEsc(t) && t.escType === "Supervisor escalation",
     "High priority": (t) => isEsc(t) && (t.priority === "High" || t.priority === "Critical"),
   };
   const filtered = useMemo(
-    () => tasks.filter(escTests[filter]).sort(escSort),
+    () => tasks.filter(escTests[filter]),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [tasks, filter],
   );
@@ -272,10 +273,10 @@ export function ManagerPrototype() {
         : [];
     return {
       room: t.room,
-      dept: "Housekeeping",
+      dept: t.dept ?? "Housekeeping",
       note: t.title,
       staff: t.owner,
-      left: t.status === "completed" ? undefined : t.slaLeft,
+      left: isOpen(t) ? t.slaLeft : undefined,
       total: t.slaTotal,
       done: t.status === "completed",
       badge: CARD_BADGE[t.status],
@@ -285,9 +286,7 @@ export function ManagerPrototype() {
   const card = (t: MTask) => <TaskCard key={t.id} {...cardProps(t)} onClick={() => open(t.id)} />;
 
   const stuckAt = (t: MTask) =>
-    t.status === "unassigned" ? "Not picked up — no owner" : t.status === "unable" ? `Blocked — ${t.resolution ?? "unable to complete"}` : `With ${t.owner}`;
-
-  const services = DEPARTMENTS.find((d) => d.name === "Housekeeping")?.services.filter((sv) => sv.active).map((sv) => sv.name) ?? [];
+    t.status === "unassigned" ? "Not picked up — no owner" : `With ${t.owner}`;
 
   /* ---------- all tasks, filterable ---------- */
   const taskFilterFn: Record<TaskFilter, (t: MTask) => boolean> = {
@@ -301,8 +300,7 @@ export function ManagerPrototype() {
     const s = taskQuery.trim().toLowerCase();
     return tasks
       .filter(taskFilterFn[taskFilter])
-      .filter((t) => !s || `${t.room} ${t.guest} ${t.title}`.toLowerCase().includes(s))
-      .sort((a, b) => a.slaLeft - b.slaLeft);
+      .filter((t) => !s || `${t.room} ${t.guest} ${t.title}`.toLowerCase().includes(s));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tasks, taskFilter, taskQuery]);
   const taskChipCounts = Object.fromEntries(TASK_FILTERS.map((f) => [f, tasks.filter(taskFilterFn[f]).length])) as Record<TaskFilter, number>;
@@ -405,7 +403,7 @@ export function ManagerPrototype() {
 
   /* ---------- shell ---------- */
   const openCreate = () => {
-    setService(""); setRoom(""); setTaskGuest(""); setDetails("");
+    setTaskTitle(""); setTaskDept("Housekeeping"); setRoom(""); setTaskGuest(""); setDetails("");
     nav.push({ name: "create" });
   };
   const shell = (key: "home" | "tasks" | "guests" | "guestsRoster" | "menu", body: React.ReactNode) => (
@@ -749,7 +747,7 @@ export function ManagerPrototype() {
             <ChatRow
               key={`pre-${g.name}`}
               name={g.name}
-              room={g.room ? `Room ${g.room}` : "Room TBC"}
+              room={g.room || "Room TBC"}
               roomType={g.roomType}
               status="Pre-Arrival"
               tone="bg-subtle text-ink-secondary"
@@ -793,7 +791,7 @@ export function ManagerPrototype() {
           <ChevronLeft className="h-5 w-5" />
         </button>
         <span className="text-[11px] font-bold uppercase tracking-[0.08em] text-ink-tertiary">Task detail</span>
-        {task.status !== "completed" && <div className="ml-auto"><SlaCountdown left={task.slaLeft} total={task.slaTotal} /></div>}
+        {isOpen(task) && <div className="ml-auto"><SlaCountdown left={task.slaLeft} total={task.slaTotal} /></div>}
       </div>
       <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 pb-6 pt-4 no-scrollbar">
         <div className="flex items-start gap-3">
@@ -813,7 +811,7 @@ export function ManagerPrototype() {
             </button>
           </DetailRow>
           <DetailRow icon={BedDouble} label="Room">{task.room}</DetailRow>
-          <DetailRow icon={Building2} label="Department">Housekeeping</DetailRow>
+          <DetailRow icon={Building2} label="Department">{task.dept ?? "Housekeeping"}</DetailRow>
           <DetailRow icon={UserCog} label="Assigned to">{task.owner ?? <span className="text-red-600">Unassigned</span>}</DetailRow>
           {task.support.length > 0 && <DetailRow icon={UserPlus} label="Support">{task.support.join(", ")}</DetailRow>}
         </div>
@@ -878,7 +876,7 @@ export function ManagerPrototype() {
         <MessageCircle className="h-6 w-6" />
       </button>
 
-      {task.status !== "completed" && (
+      {isOpen(task) && (
         <div className="flex shrink-0 gap-3 px-6 pb-6 pt-3">
           {task.owner === ME || task.status === "progress" ? (
             <>
@@ -891,12 +889,15 @@ export function ManagerPrototype() {
               </button>
             </>
           ) : (
-            <button
-              onClick={() => { patch(task.id, { owner: ME, status: "progress" }, `${ME} accepted the task`); flash("Task assigned to you"); }}
-              className="w-full rounded-control border-[1.5px] border-brand/35 bg-brand-tint py-[15px] font-display text-[14px] font-bold text-brand active:bg-[#FDE9E1]"
-            >
-              Accept
-            </button>
+            <>
+              <Button variant="outline" className="flex-1 !font-bold" onClick={() => setSheet({ k: "void", taskId: task.id })}>Void</Button>
+              <button
+                onClick={() => { patch(task.id, { owner: ME, status: "progress" }, `${ME} accepted the task`); flash("Task assigned to you"); }}
+                className="flex-[1.3] rounded-control border-[1.5px] border-brand/35 bg-brand-tint py-[15px] font-display text-[14px] font-bold text-brand active:bg-[#FDE9E1]"
+              >
+                Accept
+              </button>
+            </>
           )}
         </div>
       )}
@@ -922,25 +923,25 @@ export function ManagerPrototype() {
     <div className="flex h-full flex-col">
       <TextHeader title="Create Manual Task" onBack={nav.back} />
       <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-4 pt-4 no-scrollbar">
-        <SelectField value="Housekeeping" onChange={() => {}} placeholder="Department" options={["Housekeeping"]} disabled />
-        <div className="mt-3"><SelectField value={service} onChange={setService} placeholder="Select service" options={services} /></div>
-        <Label>Room (optional)</Label>
-        <TextField value={room} onChange={setRoom} placeholder="e.g. 501" />
-        <Label>Guest name (optional)</Label>
-        <TextField value={taskGuest} onChange={setTaskGuest} placeholder="e.g. Emma Davis" />
-        <Label>Details</Label>
-        <TextField rows={4} value={details} onChange={setDetails} placeholder="Enter more details" />
+        <ManualTaskFields
+          guest={taskGuest} onGuest={setTaskGuest}
+          room={room} onRoom={setRoom}
+          title={taskTitle} onTitle={setTaskTitle}
+          dept={taskDept} onDept={setTaskDept}
+          details={details} onDetails={setDetails}
+        />
       </div>
       <div className="shrink-0 px-6 pb-6 pt-2">
         <Button
           className="w-full"
-          disabled={!service}
+          disabled={!taskTitle.trim() || !taskGuest.trim()}
           onClick={() => {
             const id = "n" + Date.now();
             const roomLabel = room.trim() ? `Room ${room.trim().replace(/^room\s*/i, "")}` : "—";
+            const title = taskTitle.trim();
             setTasks((ts) => [{
-              id, room: roomLabel, guest: taskGuest.trim() || "Guest", title: service, note: details || service, priority: "Medium", status: "unassigned", owner: null, support: [],
-              slaTotal: DEFAULT_SLA, slaLeft: DEFAULT_SLA, isNew: true, createdAt: "now", pickup: "Not yet picked up", summary: details || service, prefs: [], convo: "Created manually by the department head.",
+              id, room: roomLabel, guest: taskGuest.trim(), title, dept: taskDept, note: details.trim() || title, priority: "Medium", status: "unassigned", owner: null, support: [],
+              slaTotal: DEFAULT_SLA, slaLeft: DEFAULT_SLA, isNew: true, createdAt: "now", pickup: "Not yet picked up", summary: details.trim() || title, prefs: [], convo: "Created manually by the department head.",
               timeline: [{ t: "now", text: `Created manually by ${ME}` }], notes: [],
             }, ...ts]);
             nav.go({ name: "home" });
@@ -1259,6 +1260,10 @@ export function ManagerPrototype() {
       {sheet.k === "duty" && t0 && (
         <ReasonSheet title="Escalation" noteLabel="Reason (optional)" placeholder="Add context for the Duty Manager…" cta="Escalate" tone="bg-red-600" onClose={() => setSheet(null)}
           onSubmit={(_reason, note) => { patch(t0.id, { escType: (t0.escType ?? "Supervisor escalation") as EscType, notes: [{ by: ME, t: "Just now", text: note ? `Escalated to Duty Manager — ${note}` : "Escalated to Duty Manager" }, ...t0.notes] }, `${ME} escalated to Duty Manager`); setSheet(null); flash("Escalated to the Duty Manager"); }} />
+      )}
+      {sheet.k === "void" && t0 && (
+        <ReasonSheet title="Void this task" reasons={VOID_REASONS} noteLabel="Note (optional)" placeholder="Anything the team should know…" cta="Mark as Void" tone="bg-red-600" onClose={() => setSheet(null)}
+          onSubmit={(reason, note) => { patch(t0.id, { status: "void", escalated: false, resolution: reason }, `${ME} marked the task void — ${reason}${note ? ` · ${note}` : ""}`); setSheet(null); flash("Task marked void"); }} />
       )}
     </>
   );

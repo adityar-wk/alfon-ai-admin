@@ -81,7 +81,7 @@ const DEPT_PERF = [
 
 /** Health score = 82 at the starting data; it moves as tasks are resolved or new problems appear. */
 const penalty = (ts: typeof TASKS) => {
-  const open = ts.filter((t) => t.status !== "Completed" && t.status !== "Unable to Complete" && t.status !== "Void");
+  const open = ts.filter((t) => t.status !== "Completed" && t.status !== "Void");
   return (
     open.filter((t) => t.sla.kind === "overdue").length * 2.5 +
     open.filter((t) => t.status === "Escalated").length * 2 +
@@ -269,7 +269,7 @@ export default function Home() {
   const hello = greeting(me.name);
   const [scoreOpen, setScoreOpen] = useState(false);
 
-  const open = TASKS.filter((t) => t.status !== "Completed" && t.status !== "Unable to Complete" && t.status !== "Void");
+  const open = TASKS.filter((t) => t.status !== "Completed" && t.status !== "Void");
   const pending = open.slice(0, 12);
 
   const score = Math.max(0, Math.min(100, Math.round(82 + BASELINE - penalty(TASKS))));
@@ -541,7 +541,7 @@ export default function Home() {
                 {[
                   { n: TASKS.length, label: "Total Tasks", tone: "text-ink" },
                   { n: TASKS.filter((t) => t.status === "Completed").length, label: "Completed", tone: "text-green-500" },
-                  { n: TASKS.filter((t) => t.status !== "Completed" && t.status !== "Void" && t.status !== "Unable to Complete" && t.sla.kind === "overdue").length, label: "Overdue", tone: "text-red-500" },
+                  { n: TASKS.filter((t) => t.status !== "Completed" && t.status !== "Void" && t.sla.kind === "overdue").length, label: "Overdue", tone: "text-red-500" },
                 ].map((s) => (
                   <div key={s.label}>
                     <div className={`font-display text-[28px] font-bold leading-none ${s.tone}`}>{s.n}</div>

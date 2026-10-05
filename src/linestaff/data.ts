@@ -1,13 +1,15 @@
 import type { Priority } from "./mobile";
 
-export type TStatus = "unassigned" | "assigned" | "progress" | "completed" | "unable";
-export type EscType = "SLA breach" | "Guest complaint" | "Unable to complete" | "Staffing issue" | "Supervisor escalation";
+export type TStatus = "unassigned" | "assigned" | "progress" | "completed" | "void";
+export type EscType = "SLA breach" | "Guest complaint" | "Staffing issue" | "Supervisor escalation";
 
 export type MTask = {
   id: string;
   room: string;
   guest: string;
   title: string;
+  /** defaults to Housekeeping, the manager's department */
+  dept?: string;
   note: string;
   priority: Priority;
   status: TStatus;
@@ -36,7 +38,7 @@ export type MTask = {
   compensation?: { type: string; reason: string; by: string }[];
 };
 
-export type Presence = "Available" | "Busy" | "On Break" | "Off work";
+export type Presence = "Available" | "Busy";
 export type Staffer = { name: string; role: "Line Staff" | "Supervisor"; status: Presence; phone: string };
 
 export const STAFF: Staffer[] = [
@@ -44,10 +46,10 @@ export const STAFF: Staffer[] = [
   { name: "Maria Santos", role: "Line Staff", status: "Busy", phone: "+971 50 111 2202" },
   { name: "Lisa Morgan", role: "Line Staff", status: "Available", phone: "+971 50 111 2203" },
   { name: "Fatima Khan", role: "Line Staff", status: "Available", phone: "+971 50 111 2204" },
-  { name: "Ravi Menon", role: "Line Staff", status: "On Break", phone: "+971 50 111 2205" },
-  { name: "Jonas Weber", role: "Line Staff", status: "Off work", phone: "+971 50 111 2206" },
+  { name: "Ravi Menon", role: "Line Staff", status: "Available", phone: "+971 50 111 2205" },
+  { name: "Jonas Weber", role: "Line Staff", status: "Available", phone: "+971 50 111 2206" },
   { name: "Sarah Ali", role: "Supervisor", status: "Available", phone: "+971 50 111 2210" },
-  { name: "Tom Hughes", role: "Supervisor", status: "On Break", phone: "+971 50 111 2211" },
+  { name: "Tom Hughes", role: "Supervisor", status: "Busy", phone: "+971 50 111 2211" },
 ];
 
 const NOW = "10:31 AM";
@@ -128,16 +130,16 @@ const RAW_TASKS: MTask[] = [
     timeline: [{ t: "9:55", text: "Created" }, { t: "10:01", text: "Accepted (late)" }, { t: "10:25", text: "SLA breached" }], notes: [],
   },
   {
-    id: "t11", room: "Room 1501", guest: "David Williams", title: "Accessible bath mat", note: "Wheelchair-accessible bath mat and shower chair requested.", priority: "High", status: "unable",
+    id: "t11", room: "Room 1501", guest: "David Williams", title: "Accessible bath mat", note: "Wheelchair-accessible bath mat and shower chair requested.", priority: "High", status: "progress",
     owner: "Ravi Menon", support: [], slaTotal: 60, slaLeft: 25, createdAt: "9:20 AM", pickup: "Accepted in 2 min · met",
-    escalated: true, escType: "Unable to complete", escBy: "Ravi Menon", escReason: "Item unavailable — the only shower chair is out for repair. Needs a decision or a substitute.",
+    escalated: true, escType: "Supervisor escalation", escBy: "Ravi Menon", escReason: "Item unavailable — the only shower chair is out for repair. Needs a decision or a substitute.",
     summary: "Guest with reduced mobility needs an accessible bath mat and shower chair in the room today.", prefs: ["Accessible room"], convo: "Guest is understanding but needs it before tonight.",
-    timeline: [{ t: "9:20", text: "Created" }, { t: "9:40", text: "Marked unable to complete: item unavailable" }], notes: [], resolution: "Unable — item unavailable",
+    timeline: [{ t: "9:20", text: "Created" }, { t: "9:40", text: "Escalated: item unavailable" }], notes: [],
   },
   {
     id: "t12", room: "Room 2104", guest: "Isabella Rossi", title: "Extra towels", note: "Extra bath towels for four guests.", priority: "High", status: "unassigned",
     owner: null, support: [], slaTotal: 40, slaLeft: 9, createdAt: "10:00 AM", pickup: "Not yet picked up · 31 min",
-    escalated: true, escType: "Staffing issue", escBy: "Sarah Ali", escReason: "No one available on floor 21 — everyone is on a task or break. Unassigned for 30+ minutes.",
+    escalated: true, escType: "Staffing issue", escBy: "Sarah Ali", escReason: "No one available on floor 21 — everyone is on a task. Unassigned for 30+ minutes.",
     summary: "Routine request, but it has been unassigned for half an hour.", prefs: ["Italian speaker"], convo: "—",
     timeline: [{ t: "10:00", text: "Created" }, { t: "10:31", text: "Escalated: no staff available" }], notes: [],
   },
@@ -307,8 +309,8 @@ export const ROOMS: HkRoom[] = [
   { number: "Room 1407", floor: 14, roomType: "Junior Suite", status: "Out of Order", assignee: null },
 ];
 
-export const STATUS_ORDER = ["Available", "Busy", "On Break", "Off work"] as const;
-export const PRESENCE_DOT: Record<Presence, string> = { Available: "bg-green-500", Busy: "bg-blue-500", "On Break": "bg-amber-400", "Off work": "bg-gray-300" };
+export const STATUS_ORDER = ["Available", "Busy"] as const;
+export const PRESENCE_DOT: Record<Presence, string> = { Available: "bg-green-500", Busy: "bg-blue-500" };
 
 export const NOW_LABEL = NOW;
 

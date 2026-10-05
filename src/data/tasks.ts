@@ -1,6 +1,6 @@
 export type Priority = "Critical" | "High" | "Medium" | "Low";
 export type SlaKind = "overdue" | "due" | "left" | "met";
-export type Status = "Escalated" | "In Progress" | "Yet to Assign" | "Completed" | "Unable to Complete" | "Void";
+export type Status = "Escalated" | "In Progress" | "Yet to Assign" | "Completed" | "Void";
 
 export type Task = {
   id: number;
@@ -23,11 +23,14 @@ export type Task = {
   /** extra staff added to help */
   support?: string[];
   escalatedTo?: string;
-  /** reason recorded when a manager closes / overrides / marks unable */
+  /** reason recorded when a manager closes / overrides / voids */
   resolution?: string;
   /** guest compensation given for this task */
   compensation?: { type: string; reason: string; approvedBy: string; time: string }[];
 };
+
+/** departments a task can be routed to when it is created by hand (web and mobile) */
+export const TASK_DEPTS = ["Engineering", "Concierge", "Front Desk", "Room Service", "Housekeeping", "Food & Beverage", "Guest Services"];
 
 const T = (
   id: number, title: string, guest: string, room: string, dept: string, owner: string | null,

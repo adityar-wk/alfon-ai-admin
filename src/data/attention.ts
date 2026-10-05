@@ -13,11 +13,10 @@ export type TaskStatusLabel =
   | "In Progress"
   | "Pending"
   | "Completed"
-  | "Unable to Complete"
   | "Void";
 
 export function taskStatus(t: Pick<Task, "status" | "owner" | "sla">): TaskStatusLabel {
-  if (t.status === "Completed" || t.status === "Unable to Complete" || t.status === "Void") return t.status;
+  if (t.status === "Completed" || t.status === "Void") return t.status;
   if (t.status === "Escalated") return "Escalated";
   const secs = slaSecs(t.sla);
   if (t.sla.kind === "overdue" || (secs !== null && secs < 0)) return "SLA breached";
@@ -37,7 +36,6 @@ export const STATUS_PILL: Record<TaskStatusLabel, string> = {
   "In Progress": "bg-[#FFF9EC] text-[#D97706]",
   Pending: "bg-[#F5F5F5] text-[#6B7280]",
   Completed: "bg-[#F0FDF4] text-[#22C55E]",
-  "Unable to Complete": "bg-[#F5F5F5] text-[#6B7280]",
   Void: "bg-[#F5F5F5] text-[#9CA3AF]",
 };
 

@@ -2,7 +2,7 @@ import { Button } from "../components/ui";
 import { Logo } from "../components/Logo";
 import { useEffect, useMemo, useState } from "react";
 import { Bell, ChevronRight, Plus, BedDouble, User, Building2, ChevronLeft, ArrowUpRight, Clock, AlertTriangle, ClipboardCheck, LayoutGrid, CheckSquare, MessageSquare, MessageCircle, Search, Send, UserCog } from "lucide-react";
-import { DEPARTMENTS } from "../data/departments";
+import { PRE_ARRIVAL_GUESTS } from "./data";
 import { secsFromMinutes, useClock } from "../data/attention";
 import {
   PhoneFrame,
@@ -16,7 +16,6 @@ import {
   FloatingNav,
   Avatar,
   Sheet,
-  SelectField,
   TextField,
   Segmented,
   Label,
@@ -30,6 +29,7 @@ import {
   Chips,
   HomeStat,
   sampleUnread,
+  ManualTaskFields,
 } from "./mobile";
 import { GuestProfileScreen, GuestChatScreen, type ChatMsg } from "./guestviews";
 import { ProfileScreen, NotificationSettingsScreen, SignedOutScreen } from "./profile";
@@ -49,7 +49,7 @@ function MoreNavIcon({ className }: { className?: string }) {
   );
 }
 
-const CHAT_FILTERS = ["All", "Unread", "Open tasks"] as const;
+const CHAT_FILTERS = ["All", "Unread", "Complaints", "Open requests", "Pre-arrival"] as const;
 const TASK_FILTERS = ["All", "Unassigned", "At Risk", "Overdue", "Completed"] as const;
 
 type HelpKind = "escalate" | "escalateDuty" | "reassign";
@@ -231,8 +231,8 @@ export function LineStaffPrototype() {
   const [aiDrafts, setAiDrafts] = useState<Record<string, string>>({});
   const [signedOut, setSignedOut] = useState(false);
   // create manual task
-  const [dept, setDept] = useState("");
-  const [service, setService] = useState("");
+  const [dept, setDept] = useState("Housekeeping");
+  const [taskTitle, setTaskTitle] = useState("");
   const [room, setRoom] = useState("");
   const [guestName, setGuestName] = useState("");
   const [details, setDetails] = useState("");
@@ -253,8 +253,6 @@ export function LineStaffPrototype() {
   const lsAtRisk = tasks.filter((t) => t.status !== "completed" && t.left >= 0 && t.left / t.total < 0.35);
   const lsOverdue = tasks.filter((t) => t.status !== "completed" && t.left < 0);
   const lsComplaints = tasks.filter((t) => t.complaint && t.status !== "completed");
-  const services = DEPARTMENTS.find((d) => d.name === dept)?.services.filter((s) => s.active).map((s) => s.name) ?? [];
-
   const taskFilterFn: Record<(typeof TASK_FILTERS)[number], (t: Task) => boolean> = {
     All: () => true,
     Unassigned: (t) => t.status === "pending",
@@ -270,25 +268,44 @@ export function LineStaffPrototype() {
   const taskChipCounts = Object.fromEntries(TASK_FILTERS.map((f) => [f, tasks.filter(taskFilterFn[f]).length])) as Record<(typeof TASK_FILTERS)[number], number>;
 
   const guests = useMemo(() => {
-    const map = new Map<string, { name: string; room: string; roomType: string; title: string; open: boolean }>();
+    const map = new Map<string, { name: string; room: string; roomType: string; title: string; open: boolean; complaint: boolean }>();
     for (const t of tasks) {
       if (!t.guest || t.guest === "—" || t.guest === "Guest") continue;
       const cur = map.get(t.guest);
-      if (!cur) map.set(t.guest, { name: t.guest, room: t.room, roomType: t.roomType !== "—" ? t.roomType : "", title: t.title, open: t.status !== "completed" });
-      else if (t.status !== "completed") cur.open = true;
+      if (!cur) map.set(t.guest, { name: t.guest, room: t.room, roomType: t.roomType !== "—" ? t.roomType : "", title: t.title, open: t.status !== "completed", complaint: !!t.complaint });
+      else {
+        if (t.status !== "completed") cur.open = true;
+        if (t.complaint) cur.complaint = true;
+      }
     }
     return Array.from(map.values());
   }, [tasks]);
+  const preArrival = (name: string) => PRE_ARRIVAL_GUESTS.find((g) => g.name === name && !guests.some((x) => x.name === name));
   const seedThread = (g: { title: string; room: string }): ChatMsg[] => [
     { from: "guest", text: `Hello, could you help with this? ${g.title} for ${g.room}.` },
     { from: "ai", text: "Thanks for letting us know — I've passed this to housekeeping and they're on it." },
   ];
-  const threadOf = (name: string) => chat[name] ?? seedThread(guests.find((g) => g.name === name) ?? { title: "a request", room: "my room" });
-  const guestsFiltered = guests.filter(
-    (g) =>
-      `${g.name} ${g.room}`.toLowerCase().includes(guestQuery.trim().toLowerCase()) &&
-      (guestFilter === "All" || (guestFilter === "Unread" ? sampleUnread(g.name) > 0 : g.open)),
-  );
+  const threadOf = (name: string) => {
+    if (chat[name]) return chat[name];
+    const pre = preArrival(name);
+    if (pre) return [{ from: "guest" as const, text: pre.notes }, { from: "ai" as const, text: "Thanks for letting us know — I've flagged this to the team." }];
+    return seedThread(guests.find((g) => g.name === name) ?? { title: "a request", room: "my room" });
+  };
+  const guestQ = guestQuery.trim().toLowerCase();
+  const guestsFiltered = guests
+    .filter((g) => {
+      if (guestFilter === "Pre-arrival") return false;
+      if (guestFilter === "Unread" && !sampleUnread(g.name)) return false;
+      if (guestFilter === "Complaints" && !g.complaint) return false;
+      if (guestFilter === "Open requests" && !g.open) return false;
+      return `${g.name} ${g.room}`.toLowerCase().includes(guestQ);
+    })
+    .sort((a, b) => Number(b.complaint) - Number(a.complaint) || Number(b.open) - Number(a.open) || a.name.localeCompare(b.name));
+  const preArrivalFiltered = guestFilter === "All" || guestFilter === "Pre-arrival" || guestFilter === "Unread"
+    ? PRE_ARRIVAL_GUESTS
+        .filter((g) => !guests.some((x) => x.name === g.name) && (!guestQ || g.name.toLowerCase().includes(guestQ)) && (guestFilter !== "Unread" || sampleUnread(g.name) > 0))
+        .slice(0, guestFilter === "Pre-arrival" ? 10 : 3)
+    : [];
   const NewChatSheet = newChatOpen && (
     <Sheet title="New chat" onClose={() => setNewChatOpen(false)}>
       <div className="-mx-1 max-h-[420px] overflow-y-auto">
@@ -348,22 +365,23 @@ export function LineStaffPrototype() {
   }, [incoming]);
 
   const openCreate = () => {
-    setDept(""); setService(""); setRoom(""); setGuestName(""); setDetails("");
+    setDept("Housekeeping"); setTaskTitle(""); setRoom(""); setGuestName(""); setDetails("");
     nav.push({ name: "create" });
   };
 
   const createTask = () => {
     const id = "n" + Date.now();
     const r = room.trim() ? `Room ${room.trim().replace(/^room\s*/i, "")}` : "—";
+    const title = taskTitle.trim();
     setTasks((ts) => [
       {
-        id, title: service, room: r, note: details.trim() || service, status: "progress", left: DEFAULT_SLA, total: DEFAULT_SLA,
-        guest: guestName.trim() || "—", roomType: "—", floor: 0, stay: "—", prefs: [], source: "Created by you", created: "Just now", dept,
+        id, title, room: r, note: details.trim() || title, status: "pending", left: DEFAULT_SLA, total: DEFAULT_SLA,
+        guest: guestName.trim(), roomType: "—", floor: 0, stay: "—", prefs: [], source: "Created by you", created: "Just now", dept,
       },
       ...ts,
     ]);
     nav.go({ name: "home" });
-    flash("Task created and assigned to you");
+    flash("Task created — unassigned");
   };
 
   /* ---------------- screens ---------------- */
@@ -482,14 +500,30 @@ export function LineStaffPrototype() {
                 room={g.room}
                 roomType={g.roomType}
                 preview={th.length ? th[th.length - 1].text : "No messages yet"}
+                tone={g.complaint ? "bg-red-50 text-red-600" : undefined}
+                complaint={g.complaint}
                 unread={unread || sampleUnread(g.name)}
-                status={!g.open ? "Resolved" : (unread || sampleUnread(g.name)) > 0 ? "Pending" : "Active"}
+                status={!g.open ? "Resolved" : g.complaint || (unread || sampleUnread(g.name)) > 0 ? "Pending" : "Active"}
                 onAvatar={() => nav.push({ name: "guestProfile", id: g.name })}
                 onOpen={() => nav.push({ name: "guestChat", id: g.name })}
               />
             );
           })}
-          {!guestsFiltered.length && <p className="rounded-2xl bg-white p-6 text-center text-[13px] text-ink-tertiary">No guests match.</p>}
+          {preArrivalFiltered.map((g) => (
+            <ChatRow
+              key={`pre-${g.name}`}
+              name={g.name}
+              room={g.room || "Room TBC"}
+              roomType={g.roomType}
+              status="Pre-Arrival"
+              tone="bg-subtle text-ink-secondary"
+              preview={g.notes}
+              unread={sampleUnread(g.name)}
+              onAvatar={() => nav.push({ name: "guestProfile", id: g.name })}
+              onOpen={() => nav.push({ name: "guestChat", id: g.name })}
+            />
+          ))}
+          {!guestsFiltered.length && !preArrivalFiltered.length && <p className="rounded-2xl bg-white p-6 text-center text-[13px] text-ink-tertiary">No guests match.</p>}
         </div>
       </div>
       {lsNav}
@@ -500,8 +534,8 @@ export function LineStaffPrototype() {
   const GuestChat = chatName && (
     <GuestChatScreen
       name={chatName}
-      room={guests.find((g) => g.name === chatName)?.room ?? ""}
-      roomType={guests.find((g) => g.name === chatName)?.roomType}
+      room={guests.find((g) => g.name === chatName)?.room ?? preArrival(chatName)?.room ?? ""}
+      roomType={guests.find((g) => g.name === chatName)?.roomType ?? preArrival(chatName)?.roomType}
       thread={threadOf(chatName)}
       manual={!!manual[chatName]}
       onToggle={() => { setManual((m) => ({ ...m, [chatName]: !m[chatName] })); flash(manual[chatName] ? "Handed back to AI" : "AI paused — you're now replying"); }}
@@ -522,7 +556,7 @@ export function LineStaffPrototype() {
 
   const profileName = cur.name === "guestProfile" ? cur.id : undefined;
   const GuestProfile = profileName && (
-    <GuestProfileScreen name={profileName} author="Aanya Khan · Line Staff" onBack={nav.back} onMessage={guests.some((g) => g.name === profileName) ? () => nav.push({ name: "guestChat", id: profileName }) : undefined} />
+    <GuestProfileScreen name={profileName} author="Aanya Khan · Line Staff" onBack={nav.back} onMessage={guests.some((g) => g.name === profileName) || preArrival(profileName) ? () => nav.push({ name: "guestChat", id: profileName }) : undefined} />
   );
 
   const Notifications = (
@@ -680,22 +714,16 @@ export function LineStaffPrototype() {
     <div className="flex h-full flex-col">
       <TextHeader title="Create Manual Task" onBack={nav.back} />
       <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-4 pt-4 no-scrollbar">
-        <div className="space-y-3">
-          <SelectField value={dept} onChange={(v) => { setDept(v); setService(""); }} placeholder="Select department" options={DEPARTMENTS.map((d) => d.name)} />
-          <SelectField value={service} onChange={setService} placeholder="Select service" options={services} disabled={!dept} />
-        </div>
-
-        <Label>Room (optional)</Label>
-        <TextField value={room} onChange={setRoom} placeholder="e.g. 501" />
-
-        <Label>Guest name (optional)</Label>
-        <TextField value={guestName} onChange={setGuestName} placeholder="e.g. Emma Davis" />
-
-        <Label>Details</Label>
-        <TextField rows={5} value={details} onChange={setDetails} placeholder="Enter more details" />
+        <ManualTaskFields
+          guest={guestName} onGuest={setGuestName}
+          room={room} onRoom={setRoom}
+          title={taskTitle} onTitle={setTaskTitle}
+          dept={dept} onDept={setDept}
+          details={details} onDetails={setDetails}
+        />
       </div>
       <div className="shrink-0 px-6 pb-6 pt-2">
-        <Button className="w-full" disabled={!dept || !service} onClick={createTask}>Create Task</Button>
+        <Button className="w-full" disabled={!taskTitle.trim() || !guestName.trim()} onClick={createTask}>Create Task</Button>
       </div>
     </div>
   );

@@ -4,14 +4,11 @@ import {
   Users,
   ArrowUp,
   ArrowDown,
-  Minus,
   Search,
   MessageCircle,
   MessageSquare,
   Plus,
   UserRound,
-  Circle,
-  ShieldCheck,
   Lock,
   Phone,
   CheckCircle2,
@@ -24,14 +21,8 @@ import { Card, Button, Field, Input, Select, Modal, RoomNo, StatCard } from "../
 import { TASKS, assignTask, shortName } from "../data/tasks";
 import { usePersona, canonDept } from "../persona";
 import { ScopePicker } from "../components/ScopePicker";
-import { INITIAL, SHIFT_TIME, TINTS, type Staff, type Status, type ShiftName } from "../data/staff";
+import { INITIAL, SHIFT_TIME, TINTS, type Staff, type ShiftName } from "../data/staff";
 import { DEPARTMENTS } from "../data/departments";
-
-const STATUS_STYLE: Record<Status, string> = {
-  "On Duty": "bg-green-50 text-green-600",
-  "On Break": "bg-amber-50 text-amber-600",
-  "Off Duty": "bg-red-50 text-red-600",
-};
 
 const SKILLS: Record<string, string[]> = {
   Engineering: ["HVAC", "Electrical", "Plumbing", "+2"],
@@ -108,12 +99,6 @@ export function Avatar({ s, size = 36 }: { s: Staff; size?: number }) {
   );
 }
 
-export function StatusPill({ s }: { s: Status }) {
-  return (
-    <span className={`inline-flex rounded-full px-2.5 py-1 text-[12px] font-medium ${STATUS_STYLE[s]}`}>{s}</span>
-  );
-}
-
 /** deterministic per-staff performance numbers, shared by the Team table and the Staff Details drawer */
 function perfOf(s: Staff) {
   const n = Number(s.id.replace(/\D/g, ""));
@@ -162,17 +147,11 @@ export default function Team() {
   const filtered = !!query || dept !== "All Departments";
   const scoped = staff.filter((s) => inScope(s.dept));
   const total = manager ? scoped.length : 63 + (staff.length - INITIAL.length);
-  const onDuty = manager ? scoped.filter((s) => s.status === "On Duty").length : 48;
-  const onBreak = manager ? scoped.filter((s) => s.status === "On Break").length : 10;
-  const off = manager ? scoped.filter((s) => s.status === "Off Duty").length : 5;
-  const pct = (n: number) => `${Math.round((n / Math.max(total, 1)) * 100)}%`;
-
   const STATS = manager
     ? [
         { label: "Total Staff", value: total, foot: scopeDepts.join(" + "), icon: Users },
-        { label: "On Duty", value: onDuty, foot: `${pct(onDuty)} of total`, icon: ShieldCheck },
-        { label: "On Break", value: onBreak, foot: `${pct(onBreak)} of total`, icon: Minus },
-        { label: "Off Duty", value: off, foot: `${pct(off)} of total`, icon: Circle },
+        { label: "Tasks Completed Today", value: scoped.reduce((n, s) => n + perfOf(s).tasksDone, 0), foot: undefined, icon: CheckCircle2 },
+        { label: "Avg Response Time", value: "2m 45s", foot: undefined, icon: MessageCircle },
       ]
     : [
         { label: "Team Members", value: total, foot: undefined, icon: Users },
@@ -194,7 +173,6 @@ export default function Team() {
       name: f.name,
       role: f.role || "Staff",
       dept: f.dept,
-      status: "On Duty",
       task: null,
       shift: f.shift,
       tint: TINTS[n % TINTS.length],
@@ -213,7 +191,7 @@ export default function Team() {
         />
         <main className="flex-1 overflow-y-auto bg-page">
         <div className="px-8 pb-8 pt-7">
-          <div className={`grid grid-cols-2 gap-5 ${manager ? "xl:grid-cols-4" : "sm:grid-cols-3"}`}>
+          <div className="grid grid-cols-2 gap-5 sm:grid-cols-3">
             {STATS.map((s) => (
               <StatCard key={s.label} icon={s.icon} label={s.label} value={s.value} foot={s.foot} />
             ))}
@@ -403,7 +381,6 @@ export function StaffDetails({ s, perms, manager }: { s: Staff; perms: Perms; ma
         <div className="leading-tight">
           <div className="flex items-center gap-2">
             <span className="text-[20px] font-bold text-ink">{s.name}</span>
-            {manager !== false && <StatusPill s={s.status} />}
           </div>
           <div className="mt-1 text-[13px] text-ink-secondary">
             {s.role} • {s.dept}

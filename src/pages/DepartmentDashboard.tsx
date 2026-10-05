@@ -16,7 +16,6 @@ const STATUS_BADGE: Record<string, { background: string; color: string }> = {
   "In Progress": { background: "#FFF9EC", color: "#D97706" },
   Pending: { background: "#F5F5F5", color: "#6B7280" },
   Completed: { background: "#F0FDF4", color: "#22C55E" },
-  "Unable to Complete": { background: "#F5F5F5", color: "#6B7280" },
   Void: { background: "#F5F5F5", color: "#9CA3AF" },
 };
 
@@ -31,7 +30,7 @@ export default function DepartmentDashboard() {
   const hello = `${hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening"}, ${first} 👋`;
 
   const mine = TASKS.filter((t) => inScope(t.dept));
-  const open = mine.filter((t) => t.status !== "Completed" && t.status !== "Unable to Complete" && t.status !== "Void");
+  const open = mine.filter((t) => t.status !== "Completed" && t.status !== "Void");
   const escalated = open.filter((t) => t.status === "Escalated");
   const overdue = open.filter((t) => t.sla.kind === "overdue");
   const atRisk = open.filter((t) => t.sla.kind === "due");
@@ -197,17 +196,17 @@ export default function DepartmentDashboard() {
 
           <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-2">
             <Card className="p-5">
-              <h3 className="text-[16px] font-semibold text-ink">Team availability &amp; workload</h3>
+              <h3 className="text-[16px] font-semibold text-ink">Team workload</h3>
               <div className="mt-3 flex items-center gap-2 text-[12px]">
                 <span className="text-ink-tertiary">{totalPicked} picked up today</span>
               </div>
               <div className="mt-3 overflow-x-auto border-t border-dashed border-line/90 pb-1">
                 <div className="flex h-40 items-end gap-3" style={{ minWidth: team.length * 52 }} role="img" aria-label="Tasks picked up today by team member">
                   {team.map((s) => (
-                    <div key={s.id} title={`${s.name} · ${s.n} picked up · ${s.status}`} className="flex h-full min-w-[40px] flex-1 flex-col items-center justify-end">
+                    <div key={s.id} title={`${s.name} · ${s.n} picked up`} className="flex h-full min-w-[40px] flex-1 flex-col items-center justify-end">
                       <span className="mb-1 text-[11px] font-semibold tabular-nums text-ink">{s.n}</span>
                       <div
-                        className={`w-full rounded-t-[4px] ${s.n === busiest && s.n > 0 ? "bg-brand" : "bg-brand/55"} ${s.status === "On Duty" ? "" : "opacity-60"}`}
+                        className={`w-full rounded-t-[4px] ${s.n === busiest && s.n > 0 ? "bg-brand" : "bg-brand/55"}`}
                         style={{ height: `${Math.max(4, (s.n / maxPicked) * 78)}%` }}
                       />
                     </div>

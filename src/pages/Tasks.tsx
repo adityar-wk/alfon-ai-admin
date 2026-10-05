@@ -30,7 +30,7 @@ import {
 import { Topbar } from "../components/Topbar";
 import { GuestChat, type ChatMsg, type ChatMode } from "../components/GuestChat";
 import { Card, Button, Field, Input, Select, Textarea, RoomNo, StatCard } from "../components/ui";
-import { TASKS, HELP_REQUESTS, AI_DRAFTS, logAudit, pendingHelpFor, resolveHelp, shortName, type Task, type Priority } from "../data/tasks";
+import { TASKS, TASK_DEPTS, HELP_REQUESTS, AI_DRAFTS, logAudit, pendingHelpFor, resolveHelp, shortName, type Task, type Priority } from "../data/tasks";
 import { GUESTS } from "../data/guests";
 import { taskStatus, STATUS_PILL, statusPillClass, COMPLAINT_PILL, slaSecs, formatClock, useClock, type TaskStatusLabel } from "../data/attention";
 import { SlaClock } from "../components/SlaClock";
@@ -55,17 +55,11 @@ const STAFF: Record<string, string[]> = {
   "Food & Beverage": ["Tom H.", "Ali H."],
   "Guest Services": ["Priya N.", "Maria L."],
 };
-const DEPTS = Object.keys(STAFF);
+const DEPTS = TASK_DEPTS;
 
-// shift presence per staff member (default: on duty); workload comes from the live task list
-const PRESENCE: Record<string, "On Duty" | "On Break" | "Off Duty"> = {
-  "Lisa M.": "On Break", "Ali H.": "Off Duty", "Raj P.": "On Break", "Maria L.": "Off Duty", "Anna P.": "On Break",
-};
+// availability comes from the live task list
 function availabilityOf(name: string): { label: string; dot: string; text: string } {
-  const presence = PRESENCE[name] ?? "On Duty";
-  if (presence === "Off Duty") return { label: "Off duty", dot: "bg-gray-300", text: "text-ink-tertiary" };
-  if (presence === "On Break") return { label: "On break", dot: "bg-amber-400", text: "text-amber-600" };
-  const open = TASKS.filter((t) => t.owner === name && !["Completed", "Void", "Unable to Complete"].includes(t.status)).length;
+  const open = TASKS.filter((t) => t.owner === name && !["Completed", "Void"].includes(t.status)).length;
   return open === 0
     ? { label: "Available", dot: "bg-green-500", text: "text-green-600" }
     : { label: "Busy", dot: "bg-blue-500", text: "text-blue-600" };
@@ -91,7 +85,7 @@ const DEPT_ICON: Record<string, React.ComponentType<{ className?: string }>> = {
 
 type View = "action" | "overdue" | "escalated" | "risk" | "complaints" | "unassigned" | "progress" | "completed" | "all";
 const VIEWS: { key: View; label: string; test: (t: Task) => boolean }[] = [
-  { key: "action", label: "Action required", test: (t) => t.status !== "Completed" && t.status !== "Unable to Complete" && t.status !== "Void" },
+  { key: "action", label: "Action required", test: (t) => t.status !== "Completed" && t.status !== "Void" },
   { key: "overdue", label: "Overdue / breached", test: (t) => t.sla.kind === "overdue" && t.status !== "Completed" },
   { key: "escalated", label: "Escalated", test: (t) => t.status === "Escalated" },
   { key: "risk", label: "SLA at risk", test: (t) => t.sla.kind === "overdue" || t.sla.kind === "due" },
@@ -140,7 +134,6 @@ const STATUS_BADGE: Record<string, { background: string; color: string }> = {
   "In Progress": { background: "#FFF9EC", color: "#D97706" },
   Pending: { background: "#F5F5F5", color: "#6B7280" },
   Completed: { background: "#F0FDF4", color: "#22C55E" },
-  "Unable to Complete": { background: "#F5F5F5", color: "#6B7280" },
   Void: { background: "#F5F5F5", color: "#9CA3AF" },
 };
 
@@ -700,9 +693,9 @@ function TaskWindow({
 
 /* ---------- mid-manager task window ---------- */
 
-type Panel = null | "reassign" | "support" | "note" | "escalate" | "unable" | "override";
+type Panel = null | "reassign" | "support" | "note" | "escalate" | "override";
 
-const COMP_TYPES = ["Chocolate Cake — $10", "Fruit Platter — $10", "Date Box — $10", "Non-Alcoholic Sparkling Beverage — $10", "Prosecco — $20", "Champagne — $50", "Resort Credit — $500", "Resort Credit — $1,000"];
+const COMP_TYPES = ["Chocolate Cake — $10", "Fruit Platter — $10", "Date Box — $10", "Non-Alcoholic Sparkling Beverage — $10", "Prosecco — $20", "Champagne — $50", "Resort Credit — $500", "Resort Credit — $1,000", "Other"];
 const APPROVERS = ["Front Office Manager", "Duty Manager", "F&B Manager", "Guest Relations Manager", "Housekeeping Manager", "General Manager"];
 
 const SLA_TARGET: Record<Priority, number> = { Critical: 10, High: 20, Medium: 40, Low: 60 };
@@ -816,6 +809,7 @@ function ManagerTaskWindow({
   const [modal, setModal] = useState<null | "help" | "void">(null);
   const [voidReason, setVoidReason] = useState("");
   const [compType, setCompType] = useState("");
+  const [compOther, setCompOther] = useState("");
   const [compReason, setCompReason] = useState("");
   const [compBy, setCompBy] = useState("");
   const [notesDraft, setNotesDraft] = useState(task.details ?? "");
@@ -826,7 +820,7 @@ function ManagerTaskWindow({
     return () => window.removeEventListener("keydown", h);
   }, [onClose]);
 
-  const closed = task.status === "Completed" || task.status === "Unable to Complete" || task.status === "Void";
+  const closed = task.status === "Completed" || task.status === "Void";
   const help = pendingHelpFor(task.id);
   const guestId = GUESTS.find((g) => g.name === task.guest)?.id;
   const anyHelp = HELP_REQUESTS.find((h) => h.taskId === task.id);
@@ -863,9 +857,7 @@ function ManagerTaskWindow({
       ? { done: true, title: `Task Completed — ${clockText(t0 + 30)}`, sub: task.resolution }
       : task.status === "Void"
         ? { done: true, title: "Task Marked Void", sub: task.resolution }
-        : task.status === "Unable to Complete"
-          ? { done: true, title: "Marked Unable to Complete", sub: task.resolution }
-          : { done: false, title: "Task Completed — Pending" },
+        : { done: false, title: "Task Completed — Pending" },
   ];
 
   const clock24 = (m: number) => {
@@ -1019,6 +1011,12 @@ function ManagerTaskWindow({
                   {COMP_TYPES.map((c) => <option key={c}>{c}</option>)}
                 </Select>
               </div>
+              {compType === "Other" && (
+                <div>
+                  <label className="text-xs font-medium text-ink-secondary">What is the compensation?</label>
+                  <Input className="mt-1" value={compOther} onChange={(e) => setCompOther(e.target.value)} placeholder="e.g. Late check-out, spa voucher" disabled={closed} />
+                </div>
+              )}
               <div>
                 <label className="text-xs font-medium text-ink-secondary">Reason</label>
                 <Textarea className="mt-1" rows={2} value={compReason} onChange={(e) => setCompReason(e.target.value)} disabled={closed} />
@@ -1037,13 +1035,14 @@ function ManagerTaskWindow({
                 </div>
               )}
               <button
-                disabled={closed || !compType || !compReason.trim() || !compBy}
+                disabled={closed || !compType || (compType === "Other" && !compOther.trim()) || !compReason.trim() || !compBy}
                 onClick={() => {
+                  const type = compType === "Other" ? `Other — ${compOther.trim()}` : compType;
                   onApply(
-                    { compensation: [...(task.compensation ?? []), { type: compType, reason: compReason.trim(), approvedBy: compBy, time: "Just now" }] },
-                    "Compensation submitted", `${compType} · approved by ${compBy}`, "Compensation submitted",
+                    { compensation: [...(task.compensation ?? []), { type, reason: compReason.trim(), approvedBy: compBy, time: "Just now" }] },
+                    "Compensation submitted", `${type} · approved by ${compBy}`, "Compensation submitted",
                   );
-                  setCompType(""); setCompReason(""); setCompBy("");
+                  setCompType(""); setCompOther(""); setCompReason(""); setCompBy("");
                 }}
                 className="w-full rounded-lg bg-[#22C55E] py-2.5 font-display text-sm font-semibold text-white transition-all duration-200 hover:-translate-y-px disabled:opacity-60 disabled:hover:translate-y-0"
               >

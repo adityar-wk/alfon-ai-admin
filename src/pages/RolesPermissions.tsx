@@ -26,7 +26,7 @@ import {
 } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { Drawer } from "../components/Drawer";
-import { StaffDetails, AddTaskModal, Avatar, StatusPill, PRESETS, presetFor, levelOf, ALL, type Perms } from "./Team";
+import { StaffDetails, AddTaskModal, Avatar, PRESETS, presetFor, levelOf, ALL, type Perms } from "./Team";
 import { SHIFT_TIME, TINTS, type Staff } from "../data/staff";
 import { assignTask, shortName } from "../data/tasks";
 import { Page, Card, Button, Field, Input, Select, Textarea } from "../components/ui";
@@ -595,7 +595,7 @@ function mkUser(name: string, email: string, roleId: string, roles: Role[], user
   const dept = roles.find((r) => r.id === roleId)?.dept ?? "Front Office";
   return {
     id, name, email, roleId, status: "Invited", last: "—",
-    dept: ROLE_DEPT_TO_STAFF[dept] ?? "Front Desk", avail: "Off Duty", shift: "Morning", task: null, tint: TINTS[id % TINTS.length],
+    dept: ROLE_DEPT_TO_STAFF[dept] ?? "Front Desk", shift: "Morning", task: null, tint: TINTS[id % TINTS.length],
   };
 }
 
@@ -604,7 +604,6 @@ const toStaff = (u: User, roleName: string): Staff => ({
   name: u.name,
   role: roleName,
   dept: u.dept,
-  status: u.avail,
   task: u.task,
   shift: u.shift,
   tint: u.tint,
@@ -626,7 +625,6 @@ function UserManagement({
   const [inviteOpen, setInviteOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [dept, setDept] = useState("all");
-  const [avail, setAvail] = useState("all");
   const [shift, setShift] = useState("all");
   const [acct, setAcct] = useState("all");
   const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -635,14 +633,13 @@ function UserManagement({
 
   const roleOf = (id: string) => roles.find((r) => r.id === id);
   const depts = Array.from(new Set(users.map((u) => u.dept))).sort();
-  const activeFilters = [roleFilter, dept, avail, shift, acct].filter((v) => v !== "all").length;
-  const clear = () => { setRoleFilter("all"); setDept("all"); setAvail("all"); setShift("all"); setAcct("all"); setPage(0); };
+  const activeFilters = [roleFilter, dept, shift, acct].filter((v) => v !== "all").length;
+  const clear = () => { setRoleFilter("all"); setDept("all"); setShift("all"); setAcct("all"); setPage(0); };
 
   const list = users.filter(
     (u) =>
       (roleFilter === "all" || u.roleId === roleFilter) &&
       (dept === "all" || u.dept === dept) &&
-      (avail === "all" || u.avail === avail) &&
       (shift === "all" || u.shift === shift) &&
       (acct === "all" || u.status === acct) &&
       (!q.trim() || `${u.name} ${u.email} ${roleOf(u.roleId)?.name} ${u.dept}`.toLowerCase().includes(q.trim().toLowerCase())),
