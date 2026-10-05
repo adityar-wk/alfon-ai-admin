@@ -215,10 +215,6 @@ export function dueClock(sla: Task["sla"]) {
   return d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
 }
 
-export function initials(name: string) {
-  return name.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase();
-}
-
 export function FilterPill({
   label,
   value,
@@ -489,10 +485,7 @@ export default function Home() {
                         </td>
                         <td className="px-3 py-3">
                           {t.owner ? (
-                            <span className="flex items-center gap-1.5 whitespace-nowrap">
-                              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-tint font-display text-[10px] font-semibold text-brand">{initials(t.owner)}</span>
-                              <span className="text-ink">{t.owner}</span>
-                            </span>
+                            <span className="whitespace-nowrap text-ink">{t.owner}</span>
                           ) : (
                             <span className="font-medium text-brand">Unassigned</span>
                           )}
