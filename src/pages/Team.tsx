@@ -152,7 +152,7 @@ export default function Team() {
     let r = staff.filter(
       (s) =>
         inScope(s.dept) &&
-        (!q || [s.name, s.role, s.dept, s.id].some((v) => v.toLowerCase().includes(q))) &&
+        (!q || [s.name, s.role, s.dept].some((v) => v.toLowerCase().includes(q))) &&
         (dept === "All Departments" || canonDept(s.dept) === canonDept(dept)),
     );
     return r;
@@ -283,10 +283,7 @@ export default function Team() {
                       <td className="py-3.5 pl-6 pr-3">
                         <span className="flex items-center gap-3">
                           <Avatar s={s} />
-                          <span className="leading-tight">
-                            <span className="block text-[13px] font-semibold text-ink">{s.name}</span>
-                            <span className="text-[11px] text-ink-tertiary">{s.id}</span>
-                          </span>
+                          <span className="text-[13px] font-semibold text-ink">{s.name}</span>
                         </span>
                       </td>
                       <td className="text-[14px] text-ink-secondary py-3.5 pl-6 pr-3">{s.role}</td>
@@ -407,8 +404,7 @@ export function StaffDetails({ s, perms, manager }: { s: Staff; perms: Perms; ma
             <span className="text-[20px] font-bold text-ink">{s.name}</span>
             {manager !== false && <StatusPill s={s.status} />}
           </div>
-          <div className="mt-1 text-[13px] text-ink-secondary">{s.id}</div>
-          <div className="text-[13px] text-ink-secondary">
+          <div className="mt-1 text-[13px] text-ink-secondary">
             {s.role} • {s.dept}
           </div>
           {s.phone && (

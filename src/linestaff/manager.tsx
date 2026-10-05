@@ -684,24 +684,23 @@ export function ManagerPrototype() {
   /* ---------- guest communication ---------- */
   const Guests = shell("guests", (
     <>
-      <div className="sticky top-0 z-10 flex items-center justify-between bg-white px-6 py-2">
-        <div className="leading-tight">
-          <div className="text-[20px] font-display font-bold text-ink">Chats</div>
-          <div className="text-[12px] font-normal text-ink-secondary">Conversations assigned to you</div>
+      <div className="flex items-center justify-between px-6 py-2">
+        <div className="text-[20px] font-semibold text-ink">Chats</div>
+        <div className="flex items-center gap-2">
+          {bellBtn}
+          <button
+            onClick={() => setNewChatOpen(true)}
+            aria-label="New chat"
+            className="flex h-11 w-11 items-center justify-center rounded-full bg-brand text-white active:bg-brand-hover"
+          >
+            <Plus className="h-6 w-6" strokeWidth={2.25} />
+          </button>
         </div>
-        {bellBtn}
       </div>
-      <div className="mt-3 flex items-center gap-2 px-6">
+      <div className="mt-3 px-6">
         <SearchField value={guestQuery} onChange={setGuestQuery} placeholder="Search guest or room" />
-        <button
-          onClick={() => setNewChatOpen(true)}
-          aria-label="New chat"
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand text-white active:bg-brand-hover"
-        >
-          <Plus className="h-6 w-6" strokeWidth={2.25} />
-        </button>
       </div>
-      <div className="mt-3"><Chips flat dense items={GUEST_FILTERS} active={guestFilter} onChange={setGuestFilter} /></div>
+      <div className="mt-3"><Chips flat items={GUEST_FILTERS} active={guestFilter} onChange={setGuestFilter} /></div>
       <div className="mt-1 px-6">
         {guestsFiltered.map((g) => (
           <ChatRow
@@ -1122,8 +1121,13 @@ export function ManagerPrototype() {
 
   const GuestsRoster = shell("guestsRoster", (
     <>
-      <div className="px-6 py-2 text-[20px] font-semibold text-ink">Guests</div>
-      {searchRow(rosterQuery, setRosterQuery, "Search guest or room", null)}
+      <div className="flex items-center justify-between px-6 py-2">
+        <div className="text-[20px] font-semibold text-ink">Guests</div>
+        <div className="flex items-center gap-2">{bellBtn}</div>
+      </div>
+      <div className="mt-3 px-6">
+        <SearchField value={rosterQuery} onChange={setRosterQuery} placeholder="Search guest or room" />
+      </div>
       <div className="mt-3"><Chips flat items={ROSTER_STAGE_FILTERS} active={stageFilter} onChange={setStageFilter} /></div>
       <div className="mt-1 min-h-0 flex-1 overflow-y-auto px-6 pb-6 no-scrollbar">
         {rosterFiltered.map((row) => {

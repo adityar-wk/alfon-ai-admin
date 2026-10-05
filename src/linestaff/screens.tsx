@@ -446,19 +446,26 @@ export function LineStaffPrototype() {
   const Guests = (
     <div className="relative h-full">
       <div className="h-full overflow-y-auto pb-28 no-scrollbar">
-        <h1 className="px-6 pb-0.5 pt-4 font-display text-[20px] font-bold text-ink">Chats</h1>
-        <p className="px-6 pb-2 text-[12px] font-normal text-ink-secondary">Conversations assigned to you</p>
-        <div className="flex items-center gap-2 px-6">
-          <SearchField value={guestQuery} onChange={setGuestQuery} placeholder="Search guest or room" />
-          <button
-            onClick={() => setNewChatOpen(true)}
-            aria-label="New chat"
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand text-white active:bg-brand-hover"
-          >
-            <Plus className="h-6 w-6" strokeWidth={2.25} />
-          </button>
+        <div className="flex items-center justify-between px-6 py-2">
+          <div className="text-[20px] font-semibold text-ink">Chats</div>
+          <div className="flex items-center gap-2">
+            <button onClick={() => nav.push({ name: "notifications" })} aria-label="Notifications" className="relative flex h-11 w-11 items-center justify-center rounded-full text-ink active:bg-ink/5">
+              <Bell className="h-[22px] w-[22px] text-ink" />
+              <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-red-500" />
+            </button>
+            <button
+              onClick={() => setNewChatOpen(true)}
+              aria-label="New chat"
+              className="flex h-11 w-11 items-center justify-center rounded-full bg-brand text-white active:bg-brand-hover"
+            >
+              <Plus className="h-6 w-6" strokeWidth={2.25} />
+            </button>
+          </div>
         </div>
-        <div className="mt-3"><Chips flat dense items={CHAT_FILTERS} active={guestFilter} onChange={setGuestFilter} /></div>
+        <div className="mt-3 px-6">
+          <SearchField value={guestQuery} onChange={setGuestQuery} placeholder="Search guest or room" />
+        </div>
+        <div className="mt-3"><Chips flat items={CHAT_FILTERS} active={guestFilter} onChange={setGuestFilter} /></div>
         <div className="mt-1 px-6">
           {guestsFiltered.map((g) => {
             const th = threadOf(g.name);
