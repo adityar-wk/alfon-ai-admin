@@ -43,12 +43,14 @@ export function StaffPicker({
   exclude = [],
   lineStaffOnly = true,
   cta = "Select",
+  avatars = true,
 }: {
   tasks: MTask[];
   onPick: (s: Staffer) => void;
   exclude?: string[];
   lineStaffOnly?: boolean;
   cta?: string;
+  avatars?: boolean;
 }) {
   const order: Presence[] = ["Available", "Busy", "On Break", "Off work"];
   const list = STAFF.filter((s) => (!lineStaffOnly || s.role === "Line Staff") && !exclude.includes(s.name)).sort((a, b) => order.indexOf(a.status) - order.indexOf(b.status));
@@ -64,7 +66,7 @@ export function StaffPicker({
             onClick={() => onPick(s)}
             className={`flex w-full items-center gap-3 rounded-2xl border border-line p-3 text-left ${off ? "opacity-45" : "active:bg-brand-tint/40"}`}
           >
-            <Avatar name={s.name} size={40} />
+            {avatars && <Avatar name={s.name} size={40} />}
             <div className="min-w-0 flex-1 leading-tight">
               <div className="text-[14px] font-semibold text-ink">{s.name}</div>
               <div className="mt-0.5 flex items-center gap-1.5 text-[12px] text-ink-secondary">

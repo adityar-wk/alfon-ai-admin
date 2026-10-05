@@ -315,9 +315,14 @@ export default function HousekeepingBoard() {
                       <span className="flex shrink-0 items-center gap-1 text-[11px] font-medium text-green-600">
                         <Timer className="h-3 w-3" /> {r.mins} mins left
                       </span>
-                      {r.assignedTo && <span className="truncate text-[10px] font-medium text-ink-secondary">{r.assignedTo}</span>}
+                      {(r.status === "progress" || r.status === "inspection") && (
+                        <span className="truncate text-[10px] font-medium text-ink-secondary">{r.assignedTo ?? "Unassigned"}</span>
+                      )}
                     </div>
                   </div>
+                )}
+                {r.mins == null && (r.status === "progress" || r.status === "inspection") && (
+                  <div className="mt-1 truncate text-[10px] font-medium text-ink-secondary">{r.assignedTo ?? "Unassigned"}</div>
                 )}
               </div>
             );
@@ -435,7 +440,14 @@ function EditRoomModal({
 
   return (
     <Modal
-      title={`Room ${room.no}`}
+      title={
+        <span className="flex items-center gap-2">
+          Room {room.no}
+          <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${room.status === "inspected" ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`}>
+            {room.status === "inspected" ? "Clean" : "Dirty"}
+          </span>
+        </span>
+      }
       onClose={onClose}
       footer={
         <>
@@ -494,14 +506,7 @@ function EditRoomModal({
                 >
                   <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${STATUS_ICON_TONE[st]}`}><Icon className="h-4 w-4" /></span>
                   <span className="min-w-0 flex-1">
-                    <span className="flex flex-wrap items-center gap-1.5">
-                      {STATUS_LABEL[st]}
-                      {st === "inspected" && (
-                        <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${room.status === "inspected" ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`}>
-                          {room.status === "inspected" ? "Clean" : "Dirty"}
-                        </span>
-                      )}
-                    </span>
+                    <span>{STATUS_LABEL[st]}</span>
                     {gated && <span className="mt-0.5 flex items-center gap-1 text-[11px] font-normal text-ink-tertiary"><ClipboardCheck className="h-3 w-3" /> Requires checklist</span>}
                   </span>
                 </button>

@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import {
   Bell, LayoutDashboard, CheckSquare, MessageSquare, Plus, Users, UserCog, UserPlus, ArrowUpRight, MessageCircle, Send, Filter, ChevronRight, ChevronLeft, Search,
   UserRound, BarChart3, AlertTriangle, User, BedDouble, DoorOpen, DoorClosed, Building2, FileText, Download, UtensilsCrossed, Languages, Thermometer, AlarmClock, Wine, Phone, Mail, Sparkles, SlidersHorizontal, LogOut,
-  CheckCircle2, Clock, Loader, AlertCircle, CircleSlash, Wrench, ClipboardCheck,
+  CheckCircle2, Clock, Loader, AlertCircle, CircleSlash, Wrench, ClipboardCheck, Timer,
 } from "lucide-react";
 import { CLEANING_CHECKLIST, INSPECTION_CHECKLIST, TAG_TONE } from "../data/housekeepingChecklists";
 import { DEPARTMENTS } from "../data/departments";
@@ -58,13 +58,6 @@ type RoomStatusFilter = (typeof ROOM_STATUS_FILTERS)[number];
 const ROOM_STATUSES = ["Inspected", "In Progress", "Needs Inspection", "Out of Service", "Out of Order"] as const;
 /** matches the colour coding used on the web Housekeeping tab */
 const CARD_BADGE: Record<MTask["status"], string> = { unassigned: "Open", assigned: "Pending", progress: "In Progress", completed: "Completed", unable: "Unable" };
-const ROOM_STATUS_TONE: Record<RoomStatus, string> = {
-  Inspected: "text-success",
-  "In Progress": "text-brand",
-  "Needs Inspection": "text-amber-600",
-  "Out of Service": "text-danger",
-  "Out of Order": "text-ink-tertiary",
-};
 const ROOM_STATUS_ICON: Record<RoomStatus, React.ComponentType<{ className?: string }>> = {
   Inspected: CheckCircle2,
   "In Progress": Loader,
@@ -78,6 +71,20 @@ const ROOM_STATUS_ICON_TONE: Record<RoomStatus, string> = {
   "Needs Inspection": "bg-amber-50 text-amber-600",
   "Out of Service": "bg-red-50 text-danger",
   "Out of Order": "bg-subtle text-ink-tertiary",
+};
+const ROOM_CARD_TEXT: Record<RoomStatus, string> = {
+  Inspected: "text-green-600",
+  "In Progress": "text-blue-600",
+  "Needs Inspection": "text-amber-600",
+  "Out of Service": "text-red-600",
+  "Out of Order": "text-gray-500",
+};
+const ROOM_CARD_BORDER: Record<RoomStatus, string> = {
+  Inspected: "border-line",
+  "In Progress": "border-blue-300",
+  "Needs Inspection": "border-amber-300",
+  "Out of Service": "border-line",
+  "Out of Order": "border-line",
 };
 const TASK_FILTERS = ["All", "Unassigned", "At Risk", "Overdue", "Completed"] as const;
 type TaskFilter = (typeof TASK_FILTERS)[number];
@@ -217,6 +224,7 @@ export function ManagerPrototype() {
   // create task
   const [service, setService] = useState("");
   const [room, setRoom] = useState("");
+  const [taskGuest, setTaskGuest] = useState("");
   const [details, setDetails] = useState("");
 
   const cur = nav.cur;
@@ -397,7 +405,7 @@ export function ManagerPrototype() {
 
   /* ---------- shell ---------- */
   const openCreate = () => {
-    setService(""); setRoom(""); setDetails("");
+    setService(""); setRoom(""); setTaskGuest(""); setDetails("");
     nav.push({ name: "create" });
   };
   const shell = (key: "home" | "tasks" | "guests" | "guestsRoster" | "menu", body: React.ReactNode) => (
@@ -579,35 +587,35 @@ export function ManagerPrototype() {
       <div className="mt-3 border-b border-[#F0F0F0] pb-3"><Chips flat items={ROOM_STATUS_FILTERS} active={roomFilter} onChange={setRoomFilter} counts={roomChipCounts} /></div>
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-6 pb-6 pt-3 no-scrollbar">
         {roomsFiltered.map((r) => {
-          const occupant = guestsSorted.find((g) => g.room === r.number)?.name;
+          const occupied = guestsSorted.some((g) => g.room === r.number);
+          const dulled = r.status === "Out of Order";
           return (
-          <button key={r.number} onClick={() => setRoomSheet(r.number)} className="block w-full rounded-2xl border border-[#F0F0F0] bg-white px-5 py-4 text-left active:scale-[0.99]">
+          <button key={r.number} onClick={() => setRoomSheet(r.number)} className={`block w-full rounded-2xl border p-3 text-left active:scale-[0.99] ${dulled ? "bg-subtle" : "bg-white"} ${ROOM_CARD_BORDER[r.status]}`}>
             <div className="flex items-center justify-between gap-2">
-              <span className="flex items-center gap-1.5 font-display text-[16px] font-semibold leading-snug text-ink">
-                <DoorOpen className="h-[17px] w-[17px] text-ink-secondary" />{r.number.replace(/^Room\s+/i, "")}
-                <span className="font-sans text-[12px] font-normal text-ink-secondary">· {r.roomType}</span>
-              </span>
-              {(r.status === "Inspected" || r.status === "In Progress" || r.status === "Needs Inspection") && (
-                <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${r.status === "Inspected" ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`}>
-                  {r.status === "Inspected" ? "Clean" : "Dirty"}
-                </span>
-              )}
-            </div>
-            <div className={`mt-1.5 flex items-center gap-1.5 text-[12px] ${occupant ? "text-ink-secondary" : "text-ink-tertiary"}`}>
-              {occupant ? <User className="h-3.5 w-3.5 shrink-0" /> : <DoorClosed className="h-3.5 w-3.5 shrink-0" />}
-              <span className="truncate">{occupant ? `Occupied · ${occupant}` : "Vacant"}</span>
-            </div>
-            <div className="mt-3 flex min-h-[26px] items-center gap-3 text-[13px]">
-              <span className={`text-[12px] font-medium ${ROOM_STATUS_TONE[r.status]}`}>{r.status}</span>
-              {r.assignee && (
-                <span className="flex min-w-0 items-center gap-2 text-ink">
-                  <span className="flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full bg-brand-tint font-display text-[9px] font-semibold text-brand">
-                    {r.assignee.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase()}
+              <div className={`min-w-0 truncate text-[13px] font-bold ${dulled ? "text-ink-tertiary" : "text-ink"}`}>{r.number}</div>
+              <span className="flex shrink-0 items-center gap-1.5">
+                {(r.status === "Inspected" || r.status === "In Progress" || r.status === "Needs Inspection") && (
+                  <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${r.status === "Inspected" ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`}>
+                    {r.status === "Inspected" ? "Clean" : "Dirty"}
                   </span>
-                  <span className="truncate">{r.assignee.split(" ")[0]}</span>
+                )}
+                <span title={occupied ? "Occupied" : "Vacant"} aria-label={occupied ? "Occupied" : "Vacant"} className="flex h-6 w-6 items-center justify-center text-ink">
+                  {occupied ? <User className="h-3.5 w-3.5" /> : <DoorClosed className="h-3.5 w-3.5" />}
                 </span>
-              )}
+              </span>
             </div>
+            <div className="truncate text-[11px] text-ink-secondary">{r.roomType} · Floor {r.floor}</div>
+            <div className={`mt-1.5 text-[12px] font-semibold ${ROOM_CARD_TEXT[r.status]}`}>{r.status}</div>
+            {(r.status === "In Progress" || r.status === "Needs Inspection") && (
+              <div className="mt-1 flex items-center justify-between gap-2">
+                <span className="min-w-0 truncate text-[10px] font-medium text-ink-secondary">{r.assignee ?? "Unassigned"}</span>
+                {r.mins != null && (
+                  <span className="ml-auto flex shrink-0 items-center gap-1 text-[11px] font-medium text-green-600">
+                    <Timer className="h-3 w-3" /> {r.mins} mins left
+                  </span>
+                )}
+              </div>
+            )}
           </button>
           );
         })}
@@ -619,18 +627,23 @@ export function ManagerPrototype() {
   const RoomSheet = roomEntry && (
     <Sheet title={roomEntry.number} onClose={() => setRoomSheet(null)}>
       {roomEntry.assignee ? (
-        <div className="mb-4 flex items-center gap-3 rounded-2xl bg-[#F6F6F8] p-3">
-          <Avatar name={roomEntry.assignee} />
-          <div className="leading-tight">
-            <div className="text-[11px] text-ink-tertiary">{roomEntry.status === "In Progress" ? "Cleaning by" : "Inspection assigned to"}</div>
-            <div className="text-[14px] font-semibold text-ink">{roomEntry.assignee}</div>
-          </div>
+        <div className="mb-4 rounded-2xl bg-[#F6F6F8] p-3 leading-tight">
+          <div className="text-[11px] text-ink-tertiary">{roomEntry.status === "In Progress" ? "Cleaning by" : "Inspection assigned to"}</div>
+          <div className="text-[14px] font-semibold text-ink">{roomEntry.assignee}</div>
         </div>
       ) : roomEntry.status === "In Progress" ? (
         <p className={`mb-4 rounded-2xl p-3 text-[13px] ${roomEntry.open ? "bg-amber-50 text-amber-700" : "bg-[#F6F6F8] text-ink-secondary"}`}>
           {roomEntry.open ? "Open task — waiting for a line staff member to pick it up." : "No staff assigned yet."}
         </p>
       ) : null}
+      {(roomEntry.status === "In Progress" || roomEntry.status === "Needs Inspection") && (
+        <div className="mb-4 flex items-center justify-between rounded-2xl border border-line px-4 py-3 text-[13px]">
+          <span className="text-ink-secondary">SLA</span>
+          <span className="flex items-center gap-1.5 font-medium text-ink">
+            <Timer className="h-3.5 w-3.5 text-ink-tertiary" /> {roomEntry.mins != null ? `${roomEntry.mins} mins left` : "—"}
+          </span>
+        </div>
+      )}
       <Label>Status</Label>
       <div className="space-y-2">
         {ROOM_STATUSES.map((v) => {
@@ -682,6 +695,7 @@ export function ManagerPrototype() {
           <Label>{roomEntry.status === "In Progress" ? "Assign cleaner" : "Assign inspector"}</Label>
           <StaffPicker
             tasks={tasks}
+            avatars={false}
             exclude={roomEntry.assignee ? [roomEntry.assignee] : []}
             onPick={(s) => { setRooms((rs) => rs.map((r) => (r.number === roomEntry.number ? { ...r, assignee: s.name, open: false } : r))); flash(`${roomEntry.number} assigned to ${s.name}`); }}
             cta="Assign"
@@ -912,6 +926,8 @@ export function ManagerPrototype() {
         <div className="mt-3"><SelectField value={service} onChange={setService} placeholder="Select service" options={services} /></div>
         <Label>Room</Label>
         <TextField value={room} onChange={setRoom} placeholder="e.g. 501" />
+        <Label>Guest name (optional)</Label>
+        <TextField value={taskGuest} onChange={setTaskGuest} placeholder="e.g. Emma Davis" />
         <Label>Details</Label>
         <TextField rows={4} value={details} onChange={setDetails} placeholder="Enter more details" />
       </div>
@@ -922,7 +938,7 @@ export function ManagerPrototype() {
           onClick={() => {
             const id = "n" + Date.now();
             setTasks((ts) => [{
-              id, room: `Room ${room.trim().replace(/^room\s*/i, "")}`, guest: "Guest", title: service, note: details || service, priority: "Medium", status: "unassigned", owner: null, support: [],
+              id, room: `Room ${room.trim().replace(/^room\s*/i, "")}`, guest: taskGuest.trim() || "Guest", title: service, note: details || service, priority: "Medium", status: "unassigned", owner: null, support: [],
               slaTotal: DEFAULT_SLA, slaLeft: DEFAULT_SLA, isNew: true, createdAt: "now", pickup: "Not yet picked up", summary: details || service, prefs: [], convo: "Created manually by the department head.",
               timeline: [{ t: "now", text: `Created manually by ${ME}` }], notes: [],
             }, ...ts]);
@@ -1378,7 +1394,7 @@ function CleaningChecklistSheet({
   return (
     <Sheet title={`${room.number} — Room Cleaning`} onClose={onClose}>
       <div className="mb-4 flex items-center justify-between rounded-2xl bg-[#F6F6F8] p-3 text-[13px]">
-        <span className="text-ink-secondary">Housekeeper: <span className="font-medium text-ink">{room.assignee ?? "Unassigned"}</span></span>
+        <span className="text-ink-secondary">Housekeeper: <span className="font-medium text-ink">{room.assignee ?? "Unassigned"}</span>{room.mins != null && <> · Timer: <span className="font-medium text-ink">{room.mins} min left</span></>}</span>
         <span className="flex items-center gap-3">
           <span className="text-ink-tertiary">{doneCount} / {CLEANING_CHECKLIST.length}</span>
           <button type="button" onClick={() => setChecked(CLEANING_CHECKLIST.map(() => !allDone))} className="font-semibold text-brand">

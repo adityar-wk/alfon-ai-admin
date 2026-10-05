@@ -234,6 +234,7 @@ export function LineStaffPrototype() {
   const [dept, setDept] = useState("");
   const [service, setService] = useState("");
   const [room, setRoom] = useState("");
+  const [guestName, setGuestName] = useState("");
   const [details, setDetails] = useState("");
 
   const cur = nav.cur;
@@ -347,7 +348,7 @@ export function LineStaffPrototype() {
   }, [incoming]);
 
   const openCreate = () => {
-    setDept(""); setService(""); setRoom(""); setDetails("");
+    setDept(""); setService(""); setRoom(""); setGuestName(""); setDetails("");
     nav.push({ name: "create" });
   };
 
@@ -357,7 +358,7 @@ export function LineStaffPrototype() {
     setTasks((ts) => [
       {
         id, title: service, room: r, note: details.trim() || service, status: "progress", left: DEFAULT_SLA, total: DEFAULT_SLA,
-        guest: "—", roomType: "—", floor: 0, stay: "—", prefs: [], source: "Created by you", created: "Just now", dept,
+        guest: guestName.trim() || "—", roomType: "—", floor: 0, stay: "—", prefs: [], source: "Created by you", created: "Just now", dept,
       },
       ...ts,
     ]);
@@ -686,6 +687,9 @@ export function LineStaffPrototype() {
 
         <Label>Room (optional)</Label>
         <TextField value={room} onChange={setRoom} placeholder="e.g. 501" />
+
+        <Label>Guest name (optional)</Label>
+        <TextField value={guestName} onChange={setGuestName} placeholder="e.g. Emma Davis" />
 
         <Label>Details</Label>
         <TextField rows={5} value={details} onChange={setDetails} placeholder="Enter more details" />

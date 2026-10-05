@@ -293,7 +293,7 @@ export function Modal({
   footer,
   size = "md",
 }: {
-  title: string;
+  title: ReactNode;
   onClose: () => void;
   children: ReactNode;
   footer?: ReactNode;
