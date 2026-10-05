@@ -13,34 +13,33 @@ type Member = {
   first: string;
   last: string;
   email: string;
-  phone: string;
   dept: string;
 };
 
 const DEPTS = ["Unassigned", "Housekeeping", "Front Desk", "Engineering", "Guest Services", "F&B", "Concierge", "Operator"];
 
 const SEED: Member[] = [
-  { id: 1, first: "Sophia", last: "Carter", email: "sophia.carter@alfonhotel.com", phone: "+91 98765 43210", dept: "Unassigned" },
-  { id: 2, first: "David", last: "Ross", email: "david.ross@alfonhotel.com", phone: "+91 98765 11002", dept: "Unassigned" },
-  { id: 3, first: "Priya", last: "Sharma", email: "priya.sharma@alfonhotel.com", phone: "+91 98765 11003", dept: "Unassigned" },
-  { id: 4, first: "James", last: "Chen", email: "james.chen@alfonhotel.com", phone: "+91 98765 11004", dept: "Housekeeping" },
-  { id: 5, first: "Maria", last: "Santos", email: "maria.santos@alfonhotel.com", phone: "+91 98765 11005", dept: "Housekeeping" },
-  { id: 6, first: "Liam", last: "Anderson", email: "liam.anderson@alfonhotel.com", phone: "+91 98765 11006", dept: "Housekeeping" },
-  { id: 7, first: "Rahul", last: "Verma", email: "rahul.verma@alfonhotel.com", phone: "+91 98765 11007", dept: "Operator" },
+  { id: 1, first: "Sophia", last: "Carter", email: "sophia.carter@alfonhotel.com", dept: "Unassigned" },
+  { id: 2, first: "David", last: "Ross", email: "david.ross@alfonhotel.com", dept: "Unassigned" },
+  { id: 3, first: "Priya", last: "Sharma", email: "priya.sharma@alfonhotel.com", dept: "Unassigned" },
+  { id: 4, first: "James", last: "Chen", email: "james.chen@alfonhotel.com", dept: "Housekeeping" },
+  { id: 5, first: "Maria", last: "Santos", email: "maria.santos@alfonhotel.com", dept: "Housekeeping" },
+  { id: 6, first: "Liam", last: "Anderson", email: "liam.anderson@alfonhotel.com", dept: "Housekeeping" },
+  { id: 7, first: "Rahul", last: "Verma", email: "rahul.verma@alfonhotel.com", dept: "Operator" },
 ];
 
 const IMPORTED: Omit<Member, "id">[] = [
-  { first: "Anita", last: "Desai", email: "", phone: "", dept: "Front Desk" },
-  { first: "Carlos", last: "Mendez", email: "", phone: "", dept: "Engineering" },
-  { first: "Fatima", last: "Khan", email: "", phone: "", dept: "Guest Services" },
-  { first: "Tom", last: "Hughes", email: "", phone: "", dept: "F&B" },
-  { first: "Nisha", last: "Rao", email: "", phone: "", dept: "Concierge" },
+  { first: "Anita", last: "Desai", email: "", dept: "Front Desk" },
+  { first: "Carlos", last: "Mendez", email: "", dept: "Engineering" },
+  { first: "Fatima", last: "Khan", email: "", dept: "Guest Services" },
+  { first: "Tom", last: "Hughes", email: "", dept: "F&B" },
+  { first: "Nisha", last: "Rao", email: "", dept: "Concierge" },
 ];
 
 type DrawerState = { mode: "add" } | { mode: "edit"; member: Member } | null;
 
 function downloadTemplate() {
-  const blob = new Blob(["First name,Last name,Email,Phone\n"], { type: "text/csv" });
+  const blob = new Blob(["First name,Last name,Email\n"], { type: "text/csv" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
@@ -61,7 +60,6 @@ function MemberDrawer({
   const [first, setFirst] = useState(member?.first ?? "");
   const [last, setLast] = useState(member?.last ?? "");
   const [email, setEmail] = useState(member?.email ?? "");
-  const [phone, setPhone] = useState(member?.phone ?? "");
   const [dept, setDept] = useState(member?.dept ?? "Unassigned");
   const ready = first.trim() && last.trim();
 
@@ -72,7 +70,7 @@ function MemberDrawer({
       footer={
         <div className="flex justify-end gap-2">
           <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button disabled={!ready} onClick={() => onSave({ first: first.trim(), last: last.trim(), email: email.trim(), phone: phone.trim(), dept })}>
+          <Button disabled={!ready} onClick={() => onSave({ first: first.trim(), last: last.trim(), email: email.trim(), dept })}>
             {member ? "Save" : "Add user"}
           </Button>
         </div>
@@ -82,7 +80,6 @@ function MemberDrawer({
         <Field label="First name" required><Input autoFocus value={first} onChange={(e) => setFirst(e.target.value)} /></Field>
         <Field label="Last name" required><Input value={last} onChange={(e) => setLast(e.target.value)} /></Field>
         <Field label="Email"><Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} /></Field>
-        <Field label="Phone"><Input value={phone} onChange={(e) => setPhone(e.target.value)} /></Field>
         <Field label="Department">
           <Select value={dept} onChange={(e) => setDept(e.target.value)}>
             {DEPTS.map((d) => <option key={d}>{d}</option>)}
@@ -140,7 +137,7 @@ export default function StaffTeamManagement() {
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <h3 className="text-[16px] font-semibold text-ink">Add your team</h3>
-                <p className="mt-1 text-[13px] text-ink-secondary">Upload a CSV or add people one by one. First name, last name, email and phone is all we need.</p>
+                <p className="mt-1 text-[13px] text-ink-secondary">Upload a CSV or add people one by one. First name, last name and email is all we need.</p>
               </div>
               <div className="flex gap-2">
                 <Button variant="outline" onClick={() => setUsersOpen(true)}>
@@ -163,7 +160,7 @@ export default function StaffTeamManagement() {
             >
               <Upload className="h-6 w-6 text-ink-tertiary" />
               <p className="mt-3 text-[14px] font-medium text-ink">Drop your CSV here</p>
-              <p className="mt-1 text-[12px] text-ink-tertiary">Columns: First name, Last name, Email, Phone · up to 10MB</p>
+              <p className="mt-1 text-[12px] text-ink-tertiary">Columns: First name, Last name, Email · up to 10MB</p>
               <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
                 <button
                   type="button"
@@ -224,12 +221,11 @@ export default function StaffTeamManagement() {
             <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search name or email" className="pl-9" />
           </div>
           <div className="overflow-x-auto rounded-xl border border-line">
-            <table className="w-full min-w-[640px] text-left">
+            <table className="w-full min-w-[520px] text-left">
               <thead>
                 <tr className="border-b border-line bg-[#FAFAFA] text-[11px] uppercase tracking-wide text-ink-secondary">
                   <th className="px-4 py-3 font-medium">Name</th>
                   <th className="px-4 py-3 font-medium">Email</th>
-                  <th className="px-4 py-3 font-medium">Phone</th>
                   <th className="px-4 py-3 font-medium">Department</th>
                   <th className="px-4 py-3 font-medium" />
                 </tr>
@@ -239,7 +235,6 @@ export default function StaffTeamManagement() {
                   <tr key={m.id} className={`border-b border-line/70 last:border-0 ${m.fresh ? "bg-brand-tint/30" : ""}`}>
                     <td className="px-4 py-3 text-[14px] font-medium text-ink">{m.first} {m.last}</td>
                     <td className="px-4 py-3 text-[13px] text-ink-secondary">{m.email || "—"}</td>
-                    <td className="px-4 py-3 text-[13px] text-ink-secondary">{m.phone || "—"}</td>
                     <td className="px-4 py-3 text-[13px] text-ink-secondary">{m.dept}</td>
                     <td className="relative px-4 py-3 text-right">
                       <button aria-label={`Actions for ${m.first} ${m.last}`} onClick={() => setMenuFor(menuFor === m.id ? null : m.id)} className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-ink-secondary hover:bg-subtle">
