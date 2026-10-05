@@ -685,8 +685,8 @@ export default function ComponentDesign() {
           <Section id="m-cards" title="Task card, stat card, SLA clock" note="White cards with the soft phone shadow; the live SLA clock sits at the right of each task card.">
             <Phone grey>
               <div className="mb-3 grid grid-cols-3 gap-3"><StatCard label="Open" value={9} /><StatCard label="At risk" value={2} tone="text-amber-600" /><StatCard label="Overdue" value={2} tone="text-red-600" /></div>
-              <TaskCard room="Room 1104" note="Stained bed sheets" staff="Maria Santos" left={-14} total={45} flags={[{ label: "Escalated", tone: "text-red-600" }, { label: "Complaint", tone: "text-cyan-600" }]} />
-              <div className="mt-3"><TaskCard room="Room 2104" note="Extra towels" staff={null} status={{ label: "Unassigned", tone: "text-red-600" }} left={9} total={45} /></div>
+              <TaskCard room="Room 1104" note="Stained bed sheets" staff="Maria Santos" badge="In Progress" left={-14} total={45} flags={[{ label: "Escalated", tone: "text-red-600" }, { label: "Complaint", tone: "text-cyan-600" }]} />
+              <div className="mt-3"><TaskCard room="Room 2104" note="Extra towels" staff={null} badge="Open" left={9} total={45} /></div>
               <div className="mt-3 flex items-center gap-5"><SlaClockChip left={40} total={45} /><SlaClockChip left={12} total={45} /><SlaClockChip left={-8} total={45} /></div>
             </Phone>
           </Section>

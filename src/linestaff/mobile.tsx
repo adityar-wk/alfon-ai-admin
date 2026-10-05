@@ -1,7 +1,8 @@
 import { Button } from "../components/ui";
+import { deptIcon } from "../data/deptIcons";
 import { useClock, secsFromMinutes, formatClock } from "../data/attention";
 import { useEffect, useState, type ReactNode } from "react";
-import { AlertCircle, Search, DoorOpen, User, UserRoundPlus, Signal, Wifi, BatteryFull, ChevronLeft, ChevronRight, ChevronDown, X, Clock, Building2 } from "lucide-react";
+import { AlertCircle, Search, DoorOpen, Signal, Wifi, BatteryFull, ChevronLeft, ChevronDown, X, Clock } from "lucide-react";
 
 /* ============================================================
    Shared mobile kit — used by the Line Staff, Supervisor and
@@ -138,8 +139,7 @@ export function SlaClockChip({ left, total }: { left: number; total: number }) {
   const secs = secsFromMinutes(left);
   const tone = slaTone(secs / 60, total);
   return (
-    <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap text-[14px] font-medium tabular-nums" style={{ color: tone.color }}>
-      <Clock className="h-4 w-4" strokeWidth={2.5} />
+    <span className="inline-flex shrink-0 whitespace-nowrap text-[12px] font-bold tabular-nums" style={{ color: tone.color }}>
       {formatClock(secs)}
     </span>
   );
@@ -174,9 +174,16 @@ export function PriorityPill({ p }: { p: Priority }) {
 /** borderless status / label text shown beside the room */
 export type CardFlag = { label: string; tone: string };
 
+const BADGE_STYLE: Record<string, { bg: string; color: string }> = {
+  Open: { bg: "#EFF6FF", color: "#3B82F6" },
+  "In Progress": { bg: "#FFF7ED", color: "#EA580C" },
+  Pending: { bg: "#FFFBEB", color: "#D97706" },
+  Completed: { bg: "#F0FDF4", color: "#16A34A" },
+};
+
 /**
- * Task card: task name on top; room, status and flags beneath it; assignee bottom left,
- * live SLA clock bottom right.
+ * Task card: department icon on the left; task name with its status badge on top, the room
+ * (and any flags) beneath, then the live SLA timer and assignee. Completed cards are greyed out.
  */
 export function TaskCard({
   room,
@@ -186,7 +193,7 @@ export function TaskCard({
   by,
   left,
   total,
-  status,
+  badge,
   flags = [],
   footer,
   meta,
@@ -194,7 +201,7 @@ export function TaskCard({
   done,
 }: {
   room: string;
-  /** department the task belongs to, shown on its own line under the room */
+  /** department the task belongs to — drives the icon on the left */
   dept?: string;
   note: string;
   /** assignee: a name, or null for "Unassigned"; leave undefined to hide the slot */
@@ -203,57 +210,72 @@ export function TaskCard({
   by?: string;
   left?: number;
   total?: number;
-  status?: CardFlag;
+  /** status pill at the top right: Open, In Progress, Pending, Completed */
+  badge?: string;
   flags?: CardFlag[];
   footer?: ReactNode;
   meta?: ReactNode;
   onClick?: () => void;
   done?: boolean;
 }) {
-  const initials = (n: string) => n.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
+  const DeptIcon = deptIcon(dept ?? "Housekeeping");
+  const pill = badge ? BADGE_STYLE[badge] ?? { bg: "#F5F5F5", color: "#6B7280" } : undefined;
+  const showSla = done || (left !== undefined && total !== undefined);
+  const showWho = staff !== undefined || !!by;
   return (
-    <div className={`relative rounded-[18px] border border-[#F0F0F0] bg-white px-3.5 py-2.5 ${done ? "" : "shadow-card"}`}>
-      <div onClick={onClick} role={onClick ? "button" : undefined} className={onClick ? "cursor-pointer active:scale-[0.99]" : ""}>
-        <div className={`text-[14px] font-semibold leading-snug ${done ? "text-ink-secondary" : "text-ink"}`}>{note}</div>
-        <div className="mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-[12px]">
-          <span className="flex items-center gap-1 text-ink-secondary">
-            {/^Room\s/i.test(room) ? <><DoorOpen className="h-3.5 w-3.5" />{room.replace(/^Room\s+/i, "")}</> : room}
-          </span>
-          {dept && (
-            <span className="flex items-center gap-1 text-ink-tertiary">
-              <Building2 className="h-3 w-3" /> {dept}
-            </span>
-          )}
-          {status && <span className={status.tone}>{status.label}</span>}
-          {flags.map((f) => <span key={f.label} className={f.tone}>{f.label}</span>)}
-        </div>
-        {meta && <div className="mt-1 text-[12px] text-ink-tertiary">{meta}</div>}
-        <div className="mt-1.5 flex min-h-5 items-center justify-between gap-3">
-          {staff !== undefined ? (
-            staff ? (
-              <span className="flex min-w-0 items-center gap-1.5 text-[12px] text-ink">
-                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-tint font-display text-[8px] font-semibold text-brand">{initials(staff)}</span>
-                <span className="truncate">{staff.split(" ")[0]}</span>
-              </span>
+    <div className={`relative rounded-[18px] border border-[#F0F0F0] px-3.5 py-3 ${done ? "bg-[#FAFAFA]" : "bg-white shadow-card"}`}>
+      <div onClick={onClick} role={onClick ? "button" : undefined} className={`flex items-center gap-3 ${onClick ? "cursor-pointer active:scale-[0.99]" : ""}`}>
+        <span className={`flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-full ${done ? "bg-subtle text-ink-tertiary" : "bg-brand-tint text-brand"}`}>
+          <DeptIcon className="h-[18px] w-[18px]" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-start justify-between gap-2">
+            <div className={`text-[14px] font-semibold leading-snug ${done ? "text-ink-secondary" : "text-ink"}`}>{note}</div>
+            {done ? (
+              <span className="mt-[3px] shrink-0 text-[11px] font-bold text-ink-tertiary">Completed</span>
             ) : (
-              <span className="flex items-center gap-1.5 text-[12px] text-ink-tertiary">
-                <span className="flex h-5 w-5 items-center justify-center rounded-full border border-dashed border-gray-300"><UserRoundPlus className="h-3 w-3" /></span>
-                Unassigned
-              </span>
-            )
-          ) : by ? (
-            <span className="flex min-w-0 items-center gap-1.5 text-[12px] text-ink">
-              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-tint font-display text-[8px] font-semibold text-brand">{initials(by)}</span>
-              <span className="truncate">{by}</span>
+              pill && <span className="mt-px shrink-0 rounded-full px-2.5 py-[3px] text-[11px] font-bold" style={{ background: pill.bg, color: pill.color }}>{badge}</span>
+            )}
+          </div>
+          <div className="mt-0.5 flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-[12px]">
+            <span className="flex items-center gap-1 text-ink-tertiary">
+              {/^Room\s/i.test(room) ? <><DoorOpen className="h-3.5 w-3.5" />{room.replace(/^Room\s+/i, "")}</> : room}
             </span>
-          ) : (
-            <span />
+            {flags.map((f) => <span key={f.label} className={f.tone}>{f.label}</span>)}
+          </div>
+          {meta && <div className="mt-1 text-[12px] text-ink-tertiary">{meta}</div>}
+          {(showSla || showWho) && (
+            <div className="mt-1.5 flex flex-wrap items-center gap-x-1.5 text-[12px]">
+              {done ? <span className="font-bold text-ink-tertiary">SLA met</span> : left !== undefined && total !== undefined ? <SlaClockChip left={left} total={total} /> : null}
+              {staff !== undefined ? (
+                staff ? <span className="text-ink-tertiary">· {staff.split(" ")[0]}</span> : <span className="font-semibold text-brand">· Unassigned</span>
+              ) : by ? (
+                <span className="text-ink-tertiary">· {by}</span>
+              ) : null}
+            </div>
           )}
-          {!done && left !== undefined && total !== undefined && <SlaClockChip left={left} total={total} />}
         </div>
       </div>
       {footer && <div className="mt-2.5 border-t border-line pt-2.5">{footer}</div>}
     </div>
+  );
+}
+
+/** the four home cards: icon tile, label, big value and a coloured one-line detail */
+export function HomeStat({
+  icon: Icon, label, value, sub, subTone = "text-brand", onClick,
+}: {
+  icon: React.ComponentType<{ className?: string }>; label: string; value: number | string; sub: string; subTone?: string; onClick?: () => void;
+}) {
+  return (
+    <button onClick={onClick} className={`flex h-full flex-col items-start rounded-[18px] border border-[#F0F0F0] bg-white p-4 text-left shadow-card ${onClick ? "active:scale-[0.98]" : "cursor-default"}`}>
+      <span className="mb-2.5 flex h-8 w-8 items-center justify-center rounded-[10px] bg-brand-tint text-brand">
+        <Icon className="h-[15px] w-[15px]" />
+      </span>
+      <span className="mb-1 text-[12px] font-medium text-ink-secondary">{label}</span>
+      <span className="font-display text-[22px] font-bold leading-none text-ink">{value}</span>
+      <span className={`mt-1 text-[12px] font-semibold ${subTone}`}>{sub}</span>
+    </button>
   );
 }
 

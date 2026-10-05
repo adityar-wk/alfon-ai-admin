@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import {
   Bell, LayoutDashboard, CheckSquare, MessageSquare, Plus, Users, UserCog, UserPlus, ArrowUpRight, MessageCircle, Send, Filter, ChevronRight, ChevronLeft, Search,
   UserRound, BarChart3, AlertTriangle, User, BedDouble, DoorOpen, DoorClosed, Building2, FileText, Download, UtensilsCrossed, Languages, Thermometer, AlarmClock, Wine, Phone, Mail, Sparkles, SlidersHorizontal, LogOut,
-  CheckCircle2, Loader, AlertCircle, CircleSlash, Wrench, ClipboardCheck,
+  CheckCircle2, Clock, Loader, AlertCircle, CircleSlash, Wrench, ClipboardCheck,
 } from "lucide-react";
 import { CLEANING_CHECKLIST, INSPECTION_CHECKLIST, TAG_TONE } from "../data/housekeepingChecklists";
 import { DEPARTMENTS } from "../data/departments";
@@ -16,7 +16,7 @@ import { Donut } from "../components/Donut";
 import { BarChart } from "../components/BarChart";
 import { SEED_TASKS, SEED_REQUESTS, STAFF, GUEST_STAYS, PRE_ARRIVAL_GUESTS, CHECKED_OUT_GUESTS, GUEST_PROFILES, ROOMS, roomTypeOf, type MTask, type Presence, type Staffer, type HkRoom, type RoomStatus, type EscType } from "./data";
 import {
-  PhoneFrame, ScreenHeader, SectionTitle, TaskCard, StatCard, Avatar, Chips, Segmented, FloatingNav, SelectField, TextField, Label, Sheet,
+  PhoneFrame, ScreenHeader, SectionTitle, TaskCard, StatCard, HomeStat, Avatar, Chips, Segmented, FloatingNav, SelectField, TextField, Label, Sheet,
   useNav, useToast, CARD_SHADOW, TextHeader, SlaCountdown, fmtMins, CompensationSheet, type Priority,
   ChatRow,
   NotifRow,
@@ -24,7 +24,7 @@ import {
   SearchField,
   sampleUnread,
 } from "./mobile";
-import { StaffPicker, ReasonSheet, StatusTag, STATUS_LABEL, STATUS_TONE, activeCount, atRiskCount, overdueCount, isOpen, isAtRisk, isOverdue } from "./parts";
+import { StaffPicker, ReasonSheet, StatusTag, activeCount, atRiskCount, overdueCount, isOpen, isAtRisk, isOverdue } from "./parts";
 
 type Screen = {
   name: "home" | "tasks" | "team" | "staffDetail" | "housekeeping" | "guests" | "guestDetail" | "guestProfile" | "detail" | "notifications" | "create" | "menu" | "analytics" | "reports" | "guestsRoster" | "notifSettings";
@@ -57,6 +57,7 @@ const ROOM_STATUS_FILTERS = ["All", "In Progress", "Needs Inspection", "Out of S
 type RoomStatusFilter = (typeof ROOM_STATUS_FILTERS)[number];
 const ROOM_STATUSES = ["Inspected", "In Progress", "Needs Inspection", "Out of Service", "Out of Order"] as const;
 /** matches the colour coding used on the web Housekeeping tab */
+const CARD_BADGE: Record<MTask["status"], string> = { unassigned: "Open", assigned: "Pending", progress: "In Progress", completed: "Completed", unable: "Unable" };
 const ROOM_STATUS_TONE: Record<RoomStatus, string> = {
   Inspected: "text-success",
   "In Progress": "text-brand",
@@ -224,6 +225,7 @@ export function ManagerPrototype() {
     setTasks((ts) => ts.map((t) => (t.id === id ? { ...t, ...p, timeline: log ? [...t.timeline, { t: "now", text: log }] : t.timeline } : t)));
 
   const escalated = tasks.filter(isEsc);
+  const inProgressCount = tasks.filter((t) => t.status === "progress").length;
   const counts = {
     open: tasks.filter(isOpen).length,
     risk: tasks.filter(isAtRisk).length,
@@ -268,7 +270,7 @@ export function ManagerPrototype() {
       left: t.status === "completed" ? undefined : t.slaLeft,
       total: t.slaTotal,
       done: t.status === "completed",
-      status: escalated || t.status === "completed" || !STATUS_LABEL[t.status] ? undefined : { label: STATUS_LABEL[t.status], tone: STATUS_TONE[t.status] },
+      badge: CARD_BADGE[t.status],
       flags,
     };
   };
@@ -330,6 +332,7 @@ export function ManagerPrototype() {
       ),
     [guestMap],
   );
+  const unreadChats = guestsSorted.filter((g) => sampleUnread(g.name) > 0).length;
   const guestsFiltered = useMemo(() => {
     const q = guestQuery.trim().toLowerCase();
     return guestsSorted.filter((g) => {
@@ -433,13 +436,11 @@ export function ManagerPrototype() {
         </div>
       </div>
 
-      <div className="mt-5 grid auto-rows-fr grid-cols-3 gap-3 px-6">
-        <StatCard calm label="Open tasks" value={counts.open} onClick={() => setFilter("All")} />
-        <StatCard calm label="SLA at risk" value={counts.risk} onClick={() => setFilter("SLA at risk")} />
-        <StatCard calm label="Overdue" value={counts.over} onClick={() => setFilter("SLA breach")} />
-        <StatCard calm label="Escalations" value={counts.esc} onClick={() => setFilter("All")} />
-        <StatCard calm label="Complaints" value={counts.complaints} onClick={() => setFilter("Guest complaint")} />
-        <StatCard calm label="Unassigned critical" value={counts.critical} onClick={() => { const t = tasks.find((x) => x.status === "unassigned" && (x.priority === "High" || x.priority === "Critical")); if (t) open(t.id); }} />
+      <div className="mt-5 grid grid-cols-2 gap-3 px-6">
+        <HomeStat icon={CheckSquare} label="Open Tasks" value={counts.open} sub={`${inProgressCount} in progress`} onClick={() => setFilter("All")} />
+        <HomeStat icon={MessageSquare} label="Guest Chats" value={guestsSorted.length} sub={`${unreadChats} unread`} onClick={() => nav.go({ name: "guests" })} />
+        <HomeStat icon={Clock} label="Avg. Response" value="2m 45s" sub="↓ 18%" subTone="text-[#22C55E]" onClick={() => nav.push({ name: "analytics" })} />
+        <HomeStat icon={AlertTriangle} label="Complaints" value={counts.complaints} sub={counts.complaints ? "Needs attention" : "All clear"} subTone={counts.complaints ? "text-[#EF4444]" : "text-[#22C55E]"} onClick={() => setFilter("Guest complaint")} />
       </div>
 
       <div className="mt-7"><SectionTitle tone="bg-red-500">Tasks</SectionTitle></div>

@@ -1,8 +1,9 @@
 import { Button } from "../components/ui";
 import { Logo } from "../components/Logo";
 import { useEffect, useMemo, useState } from "react";
-import { Bell, ChevronRight, Plus, BedDouble, User, Building2, ChevronLeft, ArrowUpRight, LayoutGrid, CheckSquare, MessageSquare, MessageCircle, Search, Send, UserCog } from "lucide-react";
+import { Bell, ChevronRight, Plus, BedDouble, User, Building2, ChevronLeft, ArrowUpRight, Clock, AlertTriangle, ClipboardCheck, LayoutGrid, CheckSquare, MessageSquare, MessageCircle, Search, Send, UserCog } from "lucide-react";
 import { DEPARTMENTS } from "../data/departments";
+import { secsFromMinutes, useClock } from "../data/attention";
 import {
   PhoneFrame,
   ScreenHeader,
@@ -27,13 +28,13 @@ import {
   NotifRow,
   SearchField,
   Chips,
-  StatCard,
+  HomeStat,
   sampleUnread,
 } from "./mobile";
 import { GuestProfileScreen, GuestChatScreen, type ChatMsg } from "./guestviews";
 import { ProfileScreen, NotificationSettingsScreen, SignedOutScreen } from "./profile";
 
-type Screen = { name: "home" | "tasks" | "notifications" | "taskDetail" | "create" | "guests" | "guestChat" | "guestProfile" | "profile" | "notifSettings"; id?: string };
+type Screen = { name: "home" | "tasks" | "notifications" | "taskDetail" | "create" | "guests" | "guestChat" | "guestProfile" | "profile" | "notifSettings" | "analytics"; id?: string };
 
 const LS_ME = "Aanya Khan";
 const LS_ME_INITIALS = LS_ME.split(" ").map((p) => p[0]).join("").slice(0, 2);
@@ -156,6 +157,20 @@ const NOTIFS = [
 
 const DEFAULT_SLA = 40;
 
+/** Compact live SLA on the task notification, matching the prototype banner: mm:ss, +mm:ss once overdue. */
+function NotifSla({ left, total }: { left: number; total: number }) {
+  useClock();
+  const remaining = secsFromMinutes(left);
+  const totalSeconds = Math.max(total, 0) * 60;
+  const overdue = remaining <= 0;
+  const pct = totalSeconds > 0 ? Math.max(0, Math.min(100, (remaining / totalSeconds) * 100)) : 0;
+  const color = overdue || pct <= 25 ? "#EF4444" : pct <= 50 ? "#F59E0B" : "#22C55E";
+  const abs = Math.abs(remaining);
+  const mm = Math.floor(abs / 60).toString().padStart(2, "0");
+  const ss = (abs % 60).toString().padStart(2, "0");
+  return <span className="text-[11px] font-bold tabular-nums" style={{ color }}>{overdue ? `+${mm}:${ss}` : `${mm}:${ss}`}</span>;
+}
+
 /** Line Staff task card: the shared TaskCard, with an Accept action when a task is waiting */
 function LsCard({ t, onOpen, onAccept }: { t: Task; onOpen?: () => void; onAccept?: () => void }) {
   const done = t.status === "completed";
@@ -164,12 +179,12 @@ function LsCard({ t, onOpen, onAccept }: { t: Task; onOpen?: () => void; onAccep
       room={t.room}
       dept={t.dept ?? "Housekeeping"}
       note={t.title}
-      by={!done && t.assignedBy ? t.assignedBy.split(" · ")[1] : undefined}
+      staff={t.status === "pending" ? null : LS_ME}
       left={done ? undefined : t.left}
       total={t.total}
       done={done}
+      badge={done ? "Completed" : t.status === "pending" ? "Pending" : "In Progress"}
       flags={!done && t.escalatedTo ? [{ label: "Escalation", tone: "text-red-600" }] : []}
-      meta={done && t.time ? <span className="font-medium text-success">✓ {t.time}</span> : undefined}
       onClick={onOpen}
       footer={
         onAccept ? (
@@ -222,6 +237,7 @@ export function LineStaffPrototype() {
   const [details, setDetails] = useState("");
 
   const cur = nav.cur;
+  const offered = incoming ? tasks.find((t) => t.id === incoming.id && t.status === "pending") : undefined;
   const setStatus = (id: string, status: Status, time?: string) => setTasks((ts) => ts.map((t) => (t.id === id ? { ...t, status, time } : t)));
   const openTask = (id: string) => nav.push({ name: "taskDetail", id });
   const accept = (id: string) => { setStatus(id, "progress"); flash("Task accepted"); };
@@ -370,12 +386,11 @@ export function LineStaffPrototype() {
           </div>
         </div>
 
-        <div className="mt-5 grid auto-rows-fr grid-cols-3 gap-3 px-6">
-          <StatCard calm label="Open tasks" value={lsOpen.length} onClick={() => nav.go({ name: "tasks" })} />
-          <StatCard calm label="SLA at risk" value={lsAtRisk.length} onClick={() => nav.go({ name: "tasks" })} />
-          <StatCard calm label="Overdue" value={lsOverdue.length} onClick={() => nav.go({ name: "tasks" })} />
-          <StatCard calm label="Active Chats" value={guests.length} onClick={() => nav.go({ name: "guests" })} />
-          <StatCard calm label="Complaints" value={lsComplaints.length} onClick={() => nav.go({ name: "tasks" })} />
+        <div className="mt-5 grid grid-cols-2 gap-3 px-6">
+          <HomeStat icon={CheckSquare} label="Open Tasks" value={lsOpen.length} sub={`${inProgress.length} in progress`} onClick={() => nav.go({ name: "tasks" })} />
+          <HomeStat icon={MessageSquare} label="Guest Chats" value={guests.length} sub={`${guests.filter((g) => sampleUnread(g.name) > 0).length} unread`} onClick={() => nav.go({ name: "guests" })} />
+          <HomeStat icon={Clock} label="Avg. Response" value="2m 45s" sub="↓ 18%" subTone="text-[#22C55E]" onClick={() => nav.push({ name: "analytics" })} />
+          <HomeStat icon={AlertTriangle} label="Complaints" value={lsComplaints.length} sub={lsComplaints.length ? "Needs attention" : "All clear"} subTone={lsComplaints.length ? "text-[#EF4444]" : "text-[#22C55E]"} onClick={() => nav.go({ name: "tasks" })} />
         </div>
 
         <div className="mt-6"><SectionTitle dot={false} small action={<span className="text-[12px] text-ink-tertiary">{inProgress.length}</span>}>Active tasks</SectionTitle></div>
@@ -695,7 +710,21 @@ export function LineStaffPrototype() {
   );
   const NotifSettings = <NotificationSettingsScreen persona="line" onBack={nav.back} />;
 
-  const VIEWS: Record<Screen["name"], React.ReactNode> = { home: Home, tasks: Tasks, notifications: Notifications, taskDetail: TaskDetail, create: Create, guests: Guests, guestChat: GuestChat, guestProfile: GuestProfile, profile: Profile, notifSettings: NotifSettings };
+  const Analytics = (
+    <div className="flex h-full flex-col">
+      <ScreenHeader title="Analytics" onBack={nav.back} />
+      <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-6 pt-3 no-scrollbar">
+        <div className="grid grid-cols-2 gap-3">
+          <HomeStat icon={Clock} label="Avg. Response" value="2m 45s" sub="↓ 18%" subTone="text-[#22C55E]" />
+          <HomeStat icon={CheckSquare} label="Completed" value={completed.length} sub="today" subTone="text-[#22C55E]" />
+          <HomeStat icon={ClipboardCheck} label="SLA on time" value={`${Math.round((100 * (tasks.length - lsOverdue.length)) / Math.max(tasks.length, 1))}%`} sub="of your tasks" subTone="text-ink-tertiary" />
+          <HomeStat icon={AlertTriangle} label="Overdue" value={lsOverdue.length} sub={lsOverdue.length ? "Needs attention" : "All clear"} subTone={lsOverdue.length ? "text-[#EF4444]" : "text-[#22C55E]"} />
+        </div>
+      </div>
+    </div>
+  );
+
+  const VIEWS: Record<Screen["name"], React.ReactNode> = { home: Home, tasks: Tasks, notifications: Notifications, taskDetail: TaskDetail, create: Create, guests: Guests, guestChat: GuestChat, guestProfile: GuestProfile, profile: Profile, notifSettings: NotifSettings, analytics: Analytics };
 
   return (
     <div className="flex flex-col items-center gap-4">
@@ -716,7 +745,7 @@ export function LineStaffPrototype() {
           />
         )}
 
-        {incoming && tasks.some((t) => t.id === incoming.id && t.status === "pending") && (
+        {incoming && offered && (
           <div className="absolute inset-x-3 top-3 z-50">
             <div className={`flex items-center gap-3 rounded-[20px] bg-[#1A1A1A] p-3.5 shadow-[0_12px_40px_rgba(0,0,0,0.35)] transition-all duration-300 ${bannerIn ? "translate-y-0 opacity-100" : "-translate-y-6 opacity-0"}`}>
               <button
@@ -728,7 +757,7 @@ export function LineStaffPrototype() {
                 <span className="min-w-0 flex-1">
                   <span className="mb-0.5 block text-[11px] font-bold uppercase tracking-[0.5px] text-brand">New task · {incoming.dept}</span>
                   <span className="block truncate font-display text-[13px] font-bold text-white">{incoming.title}</span>
-                  <span className="mt-px block text-[12px] text-[#9CA3AF]">{incoming.room} · SLA {incoming.total} min</span>
+                  <span className="mt-px block text-[12px] text-[#9CA3AF]">{incoming.room} · <NotifSla left={offered.left} total={offered.total} /></span>
                 </span>
               </button>
               <button
