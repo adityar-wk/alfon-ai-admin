@@ -372,7 +372,7 @@ export default function DepartmentDetail() {
       {toast && (
         <div className="pointer-events-none fixed inset-x-0 bottom-6 z-50 flex justify-center">
           <span className="flex items-center gap-2 rounded-full bg-ink px-4 py-2 text-[13px] font-medium text-white shadow-lg">
-            <CheckCircle2 className="h-4 w-4 text-emerald-400" /> {toast}
+            <CheckCircle2 className="h-4 w-4 text-green-400" /> {toast}
           </span>
         </div>
       )}

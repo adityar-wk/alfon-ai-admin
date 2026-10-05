@@ -11,18 +11,10 @@
   body {
     @apply bg-page text-ink font-sans antialiased;
   }
-  h1,
-  h2,
-  h3 {
-    text-wrap: balance;
-  }
-  ::selection {
-    background: theme("colors.brand.tint");
-    color: theme("colors.brand.hover");
-  }
   * {
     scrollbar-width: thin;
     scrollbar-color: #e5e5e5 transparent;
+    transition: background-color 200ms ease, border-color 200ms ease, color 200ms ease;
   }
   ::-webkit-scrollbar {
     width: 8px;
@@ -161,8 +153,8 @@
       0 2px 5px rgba(0, 0, 0, 0.05);
   }
   .health-orb__ground-shadow {
-    width: 150px;
-    height: 20px;
+    width: 130px;
+    height: 18px;
     margin-top: -6px;
     border-radius: 50%;
     background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0) 75%);

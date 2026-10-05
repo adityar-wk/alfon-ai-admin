@@ -47,7 +47,7 @@ type Icon = React.ComponentType<{ className?: string }>;
 const DEPT_ICON: Record<string, { icon: Icon; tone: string }> = {
   "Front Office": { icon: UserIcon, tone: "bg-orange-50 text-orange-500" },
   "Guest Services": { icon: Headset, tone: "bg-violet-50 text-violet-500" },
-  Housekeeping: { icon: BedDouble, tone: "bg-emerald-50 text-emerald-500" },
+  Housekeeping: { icon: BedDouble, tone: "bg-green-50 text-green-500" },
   "F&B": { icon: UtensilsCrossed, tone: "bg-amber-50 text-amber-500" },
   Engineering: { icon: Wrench, tone: "bg-blue-50 text-blue-500" },
   Management: { icon: Crown, tone: "bg-amber-50 text-amber-500" },
@@ -566,7 +566,7 @@ function RoleMembers({
                 <div className="truncate text-[13px] font-medium text-ink">{u.name}</div>
                 <div className="truncate text-[11px] text-ink-tertiary">{u.email}</div>
               </div>
-              <span className={`shrink-0 text-[12px] ${u.status === "Active" ? "text-emerald-600" : u.status === "Invited" ? "text-amber-600" : "text-ink-tertiary"}`}>{u.status}</span>
+              <span className={`shrink-0 text-[12px] ${u.status === "Active" ? "text-green-600" : u.status === "Invited" ? "text-amber-600" : "text-ink-tertiary"}`}>{u.status}</span>
               <button
                 onClick={() => onRemove(u.id)}
                 aria-label={`Remove ${u.name}`}
@@ -748,7 +748,7 @@ function UserManagement({
                       {(() => {
                         const v = TREND[u.id % TREND.length];
                         return v > 0
-                          ? <span className="text-emerald-600">↑ +{v}%</span>
+                          ? <span className="text-green-600">↑ +{v}%</span>
                           : v < 0
                             ? <span className="text-brand">↓ {v}%</span>
                             : <span className="text-ink-secondary">→ 0%</span>;

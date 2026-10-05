@@ -120,7 +120,7 @@ export function Button({
   ...rest
 }: {
   variant?: "primary" | "outline" | "ghost" | "brand-outline";
-  /** custom fill for a coloured primary action, e.g. "bg-emerald-600" */
+  /** custom fill for a coloured primary action, e.g. "bg-green-600" */
   tone?: string;
   children: ReactNode;
   className?: string;

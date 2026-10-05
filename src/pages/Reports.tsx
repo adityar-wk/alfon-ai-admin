@@ -388,7 +388,7 @@ function ReportTable({ r }: { r: Report }) {
               {row.map((c, j) => (
                 <td key={j} className=" py-3.5 pl-6 pr-3">
                   {r.cols[j] === "Status" ? (
-                    <span className={`inline-flex rounded-full px-2.5 py-0.5 text-[12px] font-medium ${c === "Completed" ? "bg-emerald-50 text-emerald-700" : c === "In progress" ? "bg-blue-50 text-blue-700" : "bg-amber-50 text-amber-700"}`}>{c}</span>
+                    <span className={`inline-flex rounded-full px-2.5 py-0.5 text-[12px] font-medium ${c === "Completed" ? "bg-green-50 text-green-700" : c === "In progress" ? "bg-blue-50 text-blue-700" : "bg-amber-50 text-amber-700"}`}>{c}</span>
                   ) : c}
                 </td>
               ))}

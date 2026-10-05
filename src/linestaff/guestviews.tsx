@@ -57,7 +57,7 @@ export function GuestProfileScreen({ name, onBack, onMessage, author = "Staff" }
   const profileName = name;
   const profileInfo = GUEST_PROFILES[profileName];
   const profileStage = PRE_ARRIVAL_GUESTS.some((g) => g.name === profileName) ? "Pre-arrival" : CHECKED_OUT_GUESTS.some((g) => g.name === profileName) ? "Checked out" : "In-house";
-  const profileTone = profileStage === "Pre-arrival" ? "text-sky-600" : profileStage === "Checked out" ? "text-slate-500" : "text-emerald-600";
+  const profileTone = profileStage === "Pre-arrival" ? "text-blue-600" : profileStage === "Checked out" ? "text-gray-500" : "text-green-600";
   const preEntry = PRE_ARRIVAL_GUESTS.find((g) => g.name === profileName);
   const nav = { back: onBack };
 
@@ -158,14 +158,14 @@ export function GuestProfileScreen({ name, onBack, onMessage, author = "Staff" }
   return (
     <div className="relative flex h-full flex-col">
       <div className="flex shrink-0 items-center justify-between px-6 pb-2 pt-4">
-        <button onClick={nav.back} aria-label="Back" className="flex h-10 w-10 items-center justify-center rounded-full border border-[#E6E4DF] bg-white text-ink">
+        <button onClick={nav.back} aria-label="Back" className="flex h-10 w-10 items-center justify-center rounded-full border border-[#F0F0F0] bg-white text-ink">
           <ChevronLeft className="h-5 w-5" />
         </button>
         <div className="flex items-center gap-2">
           {editing ? (
             <button onClick={save} aria-label="Save changes" className="flex h-9 items-center rounded-full bg-brand px-4 text-[13px] font-semibold text-white">Save</button>
           ) : (
-            <button onClick={startEdit} aria-label="Edit profile" className="flex h-9 items-center gap-1.5 rounded-full border border-[#E6E4DF] bg-white px-3.5 text-[13px] font-semibold text-ink">
+            <button onClick={startEdit} aria-label="Edit profile" className="flex h-9 items-center gap-1.5 rounded-full border border-[#F0F0F0] bg-white px-3.5 text-[13px] font-semibold text-ink">
               <Pencil className="h-3.5 w-3.5" /> Edit
             </button>
           )}
@@ -297,7 +297,7 @@ export function GuestChatScreen({
   return (
     <div className="flex h-full flex-col bg-white">
       <div className="flex shrink-0 items-center gap-3 border-b border-line bg-white px-6 pb-3 pt-4">
-        <button onClick={onBack} aria-label="Back" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#E6E4DF] bg-white text-ink">
+        <button onClick={onBack} aria-label="Back" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#F0F0F0] bg-white text-ink">
           <ChevronLeft className="h-5 w-5" />
         </button>
         <button onClick={onProfile} aria-label="View profile" className="flex min-w-0 flex-1 items-center gap-2.5 text-left">

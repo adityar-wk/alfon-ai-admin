@@ -39,8 +39,8 @@ import { PRE_GUESTS, mk, type PreGuest, type Ready, type ReqStatus } from "../da
 /* ---------- small pieces ---------- */
 
 const READY_STYLE: Record<Ready, string> = {
-  Ready: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-  "Awaiting Guest": "bg-slate-100 text-slate-600 ring-slate-200",
+  Ready: "bg-green-50 text-green-700 ring-green-200",
+  "Awaiting Guest": "bg-gray-100 text-gray-600 ring-gray-200",
   "Action Required": "bg-amber-50 text-amber-700 ring-amber-200",
   "Not Contacted": "bg-gray-100 text-gray-600 ring-gray-200",
 };
@@ -63,10 +63,10 @@ const ENG_LABEL: Record<string, string> = {
 
 /** text colour only, no chip */
 const ENG_PILL: Record<string, string> = {
-  "Not Contacted": "text-slate-500",
-  "Awaiting Response": "text-sky-600",
-  Engaged: "text-emerald-600",
-  Responded: "text-emerald-600",
+  "Not Contacted": "text-ink-secondary",
+  "Awaiting Response": "text-blue-700",
+  Engaged: "text-green-600",
+  Responded: "text-green-600",
 };
 
 function Avatar({ g, size = 36, soft = false }: { g: PreGuest; size?: number; soft?: boolean }) {
@@ -82,11 +82,11 @@ function Avatar({ g, size = 36, soft = false }: { g: PreGuest; size?: number; so
 
 function WaCell({ wa }: { wa: boolean }) {
   return wa ? (
-    <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-[13px] font-medium text-emerald-600">
+    <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-[14px] font-medium text-green-600">
       <MessageCircle className="h-4 w-4" /> WhatsApp
     </span>
   ) : (
-    <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-[13px] text-ink-tertiary">
+    <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-[14px] text-ink-tertiary">
       <MessageCircle className="h-4 w-4 opacity-40" /> Not available
     </span>
   );
@@ -98,7 +98,7 @@ function TagChips({ g }: { g: PreGuest }) {
       {g.tags.map((t) => (
         <span
           key={t}
-          className="rounded bg-slate-100 px-1.5 py-0.5 text-[11px] font-semibold text-slate-600"
+          className="rounded bg-gray-100 px-1.5 py-0.5 text-[11px] font-semibold text-gray-600"
         >
           {t}
         </span>
@@ -291,11 +291,11 @@ export default function PreArrival() {
                 e.target.value = "";
               }}
             />
-            <Button variant="brand-outline" onClick={() => fileRef.current?.click()}>
-              <Upload className="h-4 w-4" /> Upload Arrival Report
-            </Button>
-            <Button disabled={!unsent.length} onClick={() => setConfirmSend(true)} className="disabled:opacity-40">
+            <Button variant="brand-outline" disabled={!unsent.length} onClick={() => setConfirmSend(true)} className="disabled:opacity-40">
               <Send className="h-4 w-4" /> Send All Pre-Arrival Messages
+            </Button>
+            <Button onClick={() => fileRef.current?.click()}>
+              <Upload className="h-4 w-4" /> Upload Arrival Report
             </Button>
           </div>
         }
@@ -318,7 +318,7 @@ export default function PreArrival() {
             label="Pre-Arrival Sent"
             value={kpiSent}
             sub={`${openRate}% open rate`}
-            subTone="text-emerald-600"
+            subTone="text-green-600"
             onClick={() => { setDateOn(false); setTab("all"); }}
           />
           <Kpi
@@ -326,7 +326,7 @@ export default function PreArrival() {
             label="Preferences Collected"
             value={kpiPrefsCollected}
             sub={`${responseRate}% response rate`}
-            subTone="text-emerald-600"
+            subTone="text-green-600"
             onClick={() => { setDateOn(false); setTab("ready"); }}
           />
         </div>
@@ -699,9 +699,9 @@ function DateStrip({
 /* ---------- drawer ---------- */
 
 const REQ_STYLE: Record<ReqStatus, string> = {
-  Confirmed: "bg-emerald-50 text-emerald-700",
+  Confirmed: "bg-green-50 text-green-700",
   "Awaiting Hotel Confirmation": "bg-amber-50 text-amber-700",
-  Captured: "bg-slate-100 text-slate-600",
+  Captured: "bg-gray-100 text-gray-600",
   None: "bg-gray-100 text-gray-500",
 };
 
@@ -860,8 +860,8 @@ function MiniBtn({ children, onClick, primary, disabled }: { children: React.Rea
 
 function BulkModal({ onClose, onSend, onReview }: { onClose: () => void; onSend: () => void; onReview: () => void }) {
   const rowsData = [
-    { n: 12, label: "eligible to receive WhatsApp message", tone: "bg-emerald-500", sub: "WhatsApp available · consent confirmed" },
-    { n: 3, label: "already contacted", tone: "bg-slate-400", sub: "Will not be messaged again" },
+    { n: 12, label: "eligible to receive WhatsApp message", tone: "bg-green-500", sub: "WhatsApp available · consent confirmed" },
+    { n: 3, label: "already contacted", tone: "bg-gray-400", sub: "Will not be messaged again" },
     { n: 2, label: "missing valid consent", tone: "bg-amber-400", sub: "Excluded until consent is captured" },
     { n: 1, label: "WhatsApp unavailable", tone: "bg-gray-300", sub: "Contact by email or phone" },
   ];
@@ -894,7 +894,7 @@ function BulkModal({ onClose, onSend, onReview }: { onClose: () => void; onSend:
       </div>
 
       <div className="mt-5 flex items-start gap-2 rounded-lg bg-subtle px-3 py-2.5 text-[12px] text-ink-secondary">
-        <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
+        <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
         <span>
           ALFON checks WhatsApp availability and messaging consent for every guest. Messages are only sent to
           eligible guests — you can review each guest first.

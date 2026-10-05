@@ -107,8 +107,10 @@ export function Sidebar() {
 
   return (
     <aside className="flex h-full w-[220px] shrink-0 flex-col border-r border-line bg-white">
-      <div className="flex items-center justify-center border-b border-subtle px-4 pb-8 pt-9">
-        <Logo className="h-5 w-auto" />
+      <div className="flex items-center justify-center border-b border-subtle px-4 pb-6 pt-7">
+        <div className="flex h-[42px] w-full items-center justify-center">
+          <Logo className="h-auto w-[188px]" />
+        </div>
       </div>
 
       <nav className="flex-1 space-y-1 overflow-y-auto px-4 no-scrollbar">

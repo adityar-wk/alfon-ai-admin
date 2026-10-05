@@ -55,7 +55,7 @@ export const INSPECTION_CHECKLIST: InspectionItem[] = [
 ];
 
 export const TAG_TONE: Record<InspectionItem["tag"], string> = {
-  Cleanliness: "bg-sky-50 text-sky-700",
-  Sustainability: "bg-emerald-50 text-emerald-700",
+  Cleanliness: "bg-blue-50 text-blue-700",
+  Sustainability: "bg-green-50 text-green-700",
   Service: "bg-orange-50 text-orange-700",
 };

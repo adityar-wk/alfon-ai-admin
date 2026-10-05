@@ -88,7 +88,7 @@ const STATUS_ICON: Record<RoomStatus, React.ComponentType<{ className?: string }
 };
 
 const STATUS_ICON_TONE: Record<RoomStatus, string> = {
-  inspected: "bg-emerald-50 text-emerald-600",
+  inspected: "bg-green-50 text-green-600",
   progress: "bg-blue-50 text-blue-600",
   inspection: "bg-amber-50 text-amber-600",
   oos: "bg-red-50 text-red-600",
@@ -96,7 +96,7 @@ const STATUS_ICON_TONE: Record<RoomStatus, string> = {
 };
 
 const STATUS_TEXT_TONE: Record<RoomStatus, string> = {
-  inspected: "text-emerald-600",
+  inspected: "text-green-600",
   progress: "text-blue-600",
   inspection: "text-amber-600",
   oos: "text-red-600",
@@ -290,7 +290,7 @@ export default function HousekeepingBoard() {
                   {(() => { const Icon = STATUS_ICON[r.status]; return <span title={STATUS_LABEL[r.status]} aria-label={STATUS_LABEL[r.status]} role="img" className={`flex h-7 w-7 items-center justify-center rounded-full ${STATUS_ICON_TONE[r.status]}`}><Icon className="h-3.5 w-3.5" /></span>; })()}
                   <span className="flex items-center gap-1.5">
                     {(r.status === "inspected" || r.status === "progress" || r.status === "inspection") && (
-                      <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${r.status === "inspected" ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>
+                      <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${r.status === "inspected" ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`}>
                         {r.status === "inspected" ? "Clean" : "Dirty"}
                       </span>
                     )}
@@ -309,10 +309,10 @@ export default function HousekeepingBoard() {
                 {r.mins != null && (
                   <div className="mt-2">
                     <div className="h-1 overflow-hidden rounded-full bg-subtle">
-                      <div className="h-full rounded-full bg-emerald-500" style={{ width: `${progressPct}%` }} />
+                      <div className="h-full rounded-full bg-green-500" style={{ width: `${progressPct}%` }} />
                     </div>
                     <div className="mt-1 flex items-center justify-between gap-2">
-                      <span className="flex shrink-0 items-center gap-1 text-[11px] font-medium text-emerald-600">
+                      <span className="flex shrink-0 items-center gap-1 text-[11px] font-medium text-green-600">
                         <Timer className="h-3 w-3" /> {r.mins} mins left
                       </span>
                       {r.assignedTo && <span className="truncate text-[10px] font-medium text-ink-secondary">{r.assignedTo}</span>}
@@ -497,7 +497,7 @@ function EditRoomModal({
                     <span className="flex flex-wrap items-center gap-1.5">
                       {STATUS_LABEL[st]}
                       {st === "inspected" && (
-                        <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${room.status === "inspected" ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>
+                        <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${room.status === "inspected" ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`}>
                           {room.status === "inspected" ? "Clean" : "Dirty"}
                         </span>
                       )}
@@ -586,7 +586,7 @@ function CleaningChecklistModal({
           <label
             key={item}
             className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3.5 text-[13px] transition-colors ${
-              checked[i] ? "border-emerald-200 bg-emerald-50/50" : "border-line hover:bg-subtle/50"
+              checked[i] ? "border-green-200 bg-green-50/50" : "border-line hover:bg-subtle/50"
             }`}
           >
             <input type="checkbox" className="mt-0.5 h-4 w-4 shrink-0 accent-brand" checked={checked[i]} onChange={() => toggle(i)} />
@@ -667,7 +667,7 @@ function InspectionChecklistModal({
                 <label
                   key={it.n}
                   className={`flex cursor-pointer items-start gap-2.5 rounded-xl border p-3 text-[13px] transition-colors ${
-                    checked[it.n - 1] ? "border-emerald-200 bg-emerald-50/40" : "border-line hover:bg-subtle/50"
+                    checked[it.n - 1] ? "border-green-200 bg-green-50/40" : "border-line hover:bg-subtle/50"
                   }`}
                 >
                   <input type="checkbox" className="mt-0.5 h-4 w-4 shrink-0 accent-brand" checked={checked[it.n - 1]} onChange={() => toggle(it.n - 1)} />

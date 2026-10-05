@@ -308,6 +308,6 @@ export const ROOMS: HkRoom[] = [
 ];
 
 export const STATUS_ORDER = ["Available", "Busy", "On Break", "Off work"] as const;
-export const PRESENCE_DOT: Record<Presence, string> = { Available: "bg-emerald-500", Busy: "bg-blue-500", "On Break": "bg-amber-400", "Off work": "bg-gray-300" };
+export const PRESENCE_DOT: Record<Presence, string> = { Available: "bg-green-500", Busy: "bg-blue-500", "On Break": "bg-amber-400", "Off work": "bg-gray-300" };
 
 export const NOW_LABEL = NOW;

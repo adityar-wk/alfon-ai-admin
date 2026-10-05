@@ -144,13 +144,13 @@ export default function AddHotel() {
                 <Card className="p-6">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-start gap-3">
-                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600"><MessageSquare className="h-5 w-5" /></span>
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-green-50 text-green-600"><MessageSquare className="h-5 w-5" /></span>
                       <div>
                         <h3 className="text-[15px] font-semibold text-ink">Connect WhatsApp</h3>
                         <p className="text-[13px] text-ink-secondary">Link the hotel's WhatsApp number to send and receive guest messages.</p>
                       </div>
                     </div>
-                    <span className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold ${waConnected ? "bg-emerald-50 text-emerald-600" : "bg-subtle text-ink-tertiary"}`}>{waConnected ? "Connected" : "Not Connected"}</span>
+                    <span className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold ${waConnected ? "bg-green-50 text-green-600" : "bg-subtle text-ink-tertiary"}`}>{waConnected ? "Connected" : "Not Connected"}</span>
                   </div>
                   <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-[1fr_260px]">
                     <div className="space-y-3">
@@ -164,7 +164,7 @@ export default function AddHotel() {
                       </div>
 
                       {waConnected ? (
-                        <span className="inline-flex items-center gap-1.5 text-[13px] font-medium text-emerald-600"><Check className="h-4 w-4" /> Number verified and connected</span>
+                        <span className="inline-flex items-center gap-1.5 text-[13px] font-medium text-green-600"><Check className="h-4 w-4" /> Number verified and connected</span>
                       ) : otpSent ? (
                         <div className="flex flex-wrap items-end gap-2">
                           <div className="w-40">
@@ -182,9 +182,9 @@ export default function AddHotel() {
                         </Button>
                       )}
                     </div>
-                    <div className="rounded-xl bg-emerald-50/60 p-3.5 text-[12px] text-emerald-800">
+                    <div className="rounded-xl bg-green-50/60 p-3.5 text-[12px] text-green-800">
                       <div className="mb-1.5 font-semibold">What happens next?</div>
-                      <ul className="space-y-1.5 text-emerald-700">
+                      <ul className="space-y-1.5 text-green-700">
                         <li>We'll text a one-time code to verify the number.</li>
                         <li>ALFON will send and receive guest messages through this number.</li>
                         <li>Only this hotel can use this WhatsApp number.</li>
@@ -196,13 +196,13 @@ export default function AddHotel() {
                 <Card className="p-6">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-start gap-3">
-                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-sky-50 text-sky-600"><Server className="h-5 w-5" /></span>
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600"><Server className="h-5 w-5" /></span>
                       <div>
                         <h3 className="text-[15px] font-semibold text-ink">Connect PMS</h3>
                         <p className="text-[13px] text-ink-secondary">Link the hotel's booking system to read reservation information.</p>
                       </div>
                     </div>
-                    <span className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold ${pmsConnected ? "bg-emerald-50 text-emerald-600" : "bg-subtle text-ink-tertiary"}`}>{pmsConnected ? "Connected" : "Not Connected"}</span>
+                    <span className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold ${pmsConnected ? "bg-green-50 text-green-600" : "bg-subtle text-ink-tertiary"}`}>{pmsConnected ? "Connected" : "Not Connected"}</span>
                   </div>
                   <div className="mt-4 max-w-md space-y-3">
                     <Field label="PMS Provider" required>
@@ -219,7 +219,7 @@ export default function AddHotel() {
                         <Input type="password" value={pms.mewsToken} onChange={(e) => setPms((x) => ({ ...x, mewsToken: e.target.value }))} placeholder="Enter your Mews access token" />
                       </Field>
                     )}
-                    <div className="flex items-start gap-2 rounded-lg bg-sky-50 px-3 py-2.5 text-[12px] text-sky-700">
+                    <div className="flex items-start gap-2 rounded-lg bg-blue-50 px-3 py-2.5 text-[12px] text-blue-700">
                       <Lightbulb className="mt-0.5 h-4 w-4 shrink-0" />
                       ALFON only reads reservation information such as bookings, check-in/check-out dates, guest details and room status, and only if the hotel has a PMS.
                     </div>
@@ -256,11 +256,11 @@ export default function AddHotel() {
                   </div>
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div>
-                      <div className="flex items-center justify-between text-[13px] font-semibold text-ink">WhatsApp <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${waConnected ? "bg-emerald-50 text-emerald-600" : "bg-subtle text-ink-tertiary"}`}>{waConnected ? "Configured" : "Not set up"}</span></div>
+                      <div className="flex items-center justify-between text-[13px] font-semibold text-ink">WhatsApp <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${waConnected ? "bg-green-50 text-green-600" : "bg-subtle text-ink-tertiary"}`}>{waConnected ? "Configured" : "Not set up"}</span></div>
                       {waConnected && <div className="mt-1 text-[12px] text-ink-secondary">{wa.code} {wa.number}</div>}
                     </div>
                     <div>
-                      <div className="flex items-center justify-between text-[13px] font-semibold text-ink">PMS <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${pmsConnected ? "bg-emerald-50 text-emerald-600" : "bg-subtle text-ink-tertiary"}`}>{pmsConnected ? "Configured" : "Not set up"}</span></div>
+                      <div className="flex items-center justify-between text-[13px] font-semibold text-ink">PMS <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${pmsConnected ? "bg-green-50 text-green-600" : "bg-subtle text-ink-tertiary"}`}>{pmsConnected ? "Configured" : "Not set up"}</span></div>
                       {pmsConnected && <div className="mt-1 text-[12px] text-ink-secondary">{pms.provider}</div>}
                     </div>
                   </div>

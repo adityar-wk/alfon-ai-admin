@@ -11,14 +11,14 @@ import { AlertCircle, Search, DoorOpen, User, UserRoundPlus, Signal, Wifi, Batte
 export type Priority = "Low" | "Medium" | "High" | "Critical";
 
 export const PRIORITY_STYLE: Record<Priority, { dot: string; pill: string }> = {
-  Low: { dot: "bg-slate-400", pill: "bg-slate-100 text-slate-600" },
+  Low: { dot: "bg-gray-400", pill: "bg-gray-100 text-gray-600" },
   Medium: { dot: "bg-amber-500", pill: "bg-amber-50 text-amber-700" },
   High: { dot: "bg-orange-500", pill: "bg-orange-50 text-orange-700" },
   Critical: { dot: "bg-red-500", pill: "bg-red-50 text-red-700" },
 };
 
 /** every phone card shares one flat style: hairline border, no elevation */
-export const CARD_SHADOW = "border border-[#E6E4DF]";
+export const CARD_SHADOW = "border border-[#F0F0F0]";
 
 /* ---------- phone ---------- */
 
@@ -79,7 +79,7 @@ export function useToast() {
 
 export function ScreenHeader({ title, onBack, right }: { title?: string; onBack?: () => void; right?: ReactNode }) {
   return (
-    <div className={`flex items-center gap-1 pb-1 pt-3 pr-4 ${onBack ? "pl-4" : "pl-6"}`}>
+    <div className={`flex items-center gap-1 border-b border-[#F0F0F0] pb-2 pt-3 pr-4 ${onBack ? "pl-4" : "pl-6"}`}>
       {onBack && (
         <button onClick={onBack} aria-label="Back" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-ink active:bg-ink/5">
           <ChevronLeft className="h-6 w-6" />
@@ -127,9 +127,9 @@ export const fmtMins = (m: number) => {
 
 export function slaTone(left: number, total: number) {
   // breached / last two minutes: danger red; at risk: brand orange; otherwise on time: success green
-  if (left <= 2) return { color: "#DC2626", label: left < 0 ? "over" : "left", text: "text-danger" };
-  if (left / total < 0.35) return { color: "#E8623A", label: "left", text: "text-brand" };
-  return { color: "#16A34A", label: "left", text: "text-success" };
+  if (left <= 2) return { color: "#EF4444", label: left < 0 ? "over" : "left", text: "text-danger" };
+  if (left / total < 0.35) return { color: "#F59E0B", label: "left", text: "text-warning" };
+  return { color: "#22C55E", label: "left", text: "text-success" };
 }
 
 /** live SLA clock for task cards: counts down, turns red and counts up once breached */
@@ -212,7 +212,7 @@ export function TaskCard({
 }) {
   const initials = (n: string) => n.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
   return (
-    <div className={`relative rounded-2xl border border-[#E6E4DF] bg-white px-3.5 py-2.5 ${done ? "" : "shadow-card"}`}>
+    <div className={`relative rounded-[18px] border border-[#F0F0F0] bg-white px-3.5 py-2.5 ${done ? "" : "shadow-card"}`}>
       <div onClick={onClick} role={onClick ? "button" : undefined} className={onClick ? "cursor-pointer active:scale-[0.99]" : ""}>
         <div className={`text-[14px] font-semibold leading-snug ${done ? "text-ink-secondary" : "text-ink"}`}>{note}</div>
         <div className="mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-[12px]">
@@ -259,7 +259,7 @@ export function TaskCard({
 
 export function StatCard({ label, value, tone = "text-ink", onClick, hint, hintTone = "text-ink-tertiary", calm = false }: { label: string; value: number | string; tone?: string; onClick?: () => void; hint?: string; hintTone?: string; /** lighter weights for manager home */ calm?: boolean }) {
   return (
-    <button onClick={onClick} className={`h-full rounded-2xl border border-line bg-white p-3.5 text-left shadow-card ${onClick ? "active:scale-[0.98]" : "cursor-default"}`}>
+    <button onClick={onClick} className={`flex h-full flex-col items-start justify-start rounded-2xl border border-line bg-white p-3.5 text-left shadow-card ${calm ? "min-h-[95px]" : ""} ${onClick ? "active:scale-[0.98]" : "cursor-default"}`}>
       <div className={`font-display text-[26px] leading-none ${calm ? "font-semibold" : "font-bold"} ${tone}`}>{value}</div>
       <div className={`mt-1.5 text-ink-secondary ${calm ? "text-[11px] font-normal" : "text-[12px] font-medium"}`}>{label}</div>
       {hint && <div className={`mt-0.5 text-[11px] font-medium ${hintTone}`}>{hint}</div>}
@@ -282,17 +282,30 @@ const CHAT_TIMES = ["19:45", "19:12", "18:30", "17:05", "15:48", "Yesterday", "M
 export const sampleUnread = (name: string) => [2, 0, 1, 0, 0, 3][name.split("").reduce((a, c) => a + c.charCodeAt(0), 0) % 6];
 export const chatTime = (name: string) => CHAT_TIMES[name.split("").reduce((a, c) => a + c.charCodeAt(0), 0) % CHAT_TIMES.length];
 
+export type ChatStatus = "Active" | "Pending" | "Pre-Arrival" | "Resolved";
+const CHAT_STATUS_STYLE: Record<ChatStatus, { bg: string; color: string }> = {
+  Active: { bg: "#FFF4F0", color: "#E8623A" },
+  Pending: { bg: "#FFFBEB", color: "#D97706" },
+  "Pre-Arrival": { bg: "#EFF6FF", color: "#2563EB" },
+  Resolved: { bg: "#F5F5F5", color: "#9CA3AF" },
+};
+
 export function ChatRow({
-  name, room, preview, unread = 0, tone, complaint = false, plain = false, onOpen, onAvatar,
+  name, room, preview, unread = 0, tone, complaint = false, plain = false, status, onOpen, onAvatar,
 }: {
-  name: string; room: string; preview: string; unread?: number; tone?: string; complaint?: boolean; plain?: boolean; onOpen: () => void; onAvatar?: () => void;
+  name: string; room: string; preview: string; unread?: number; tone?: string; complaint?: boolean; plain?: boolean; status?: ChatStatus; onOpen: () => void; onAvatar?: () => void;
 }) {
   const body = (
     <>
       <span className="min-w-0 flex-1 leading-tight">
         <span className={`block truncate text-[14px] text-ink ${unread > 0 ? "font-bold" : "font-semibold"}`}>{name}</span>
-        <span className="mt-0.5 flex items-center gap-1 text-[11px] font-normal text-ink-tertiary">
-          {/^Room\s/i.test(room) ? <><DoorOpen className="h-3.5 w-3.5" />{room.replace(/^Room\s+/i, "")}</> : room}
+        <span className="mt-0.5 flex items-center gap-1.5 text-[11px] font-normal text-ink-tertiary">
+          <span className="flex items-center gap-1">
+            {/^Room\s/i.test(room) ? <><DoorOpen className="h-3.5 w-3.5" />{room.replace(/^Room\s+/i, "")}</> : room}
+          </span>
+          {status && (
+            <span className="rounded-full px-[7px] py-px text-[10px] font-semibold" style={{ background: CHAT_STATUS_STYLE[status].bg, color: CHAT_STATUS_STYLE[status].color }}>{status}</span>
+          )}
         </span>
         <span className={`mt-0.5 block truncate text-[13px] ${unread > 0 ? "font-medium text-ink" : "font-normal text-ink-secondary"}`}>{preview}</span>
       </span>
@@ -382,14 +395,14 @@ export function NotifRow({ label, tone, time, task, sub, unread, onOpen }: { lab
 
 /* ---------- controls ---------- */
 
-export function Chips<T extends string>({ items, active, onChange, counts, flat: _flat = false, dense = false, calm = false }: { items: readonly T[]; active: T; onChange: (v: T) => void; counts?: Partial<Record<T, number>>; flat?: boolean; dense?: boolean; /** selected medium / unselected regular — manager home */ calm?: boolean }) {
+export function Chips<T extends string>({ items, active, onChange, counts, flat: _flat = false, calm = false }: { items: readonly T[]; active: T; onChange: (v: T) => void; counts?: Partial<Record<T, number>>; flat?: boolean; /** selected medium / unselected regular — manager home */ calm?: boolean }) {
   return (
     <div className="no-scrollbar -mx-0 flex gap-2 overflow-x-auto px-6 pb-1">
       {items.map((c) => (
         <button
           key={c}
           onClick={() => onChange(c)}
-          className={`shrink-0 rounded-full ${calm ? (active === c ? "font-medium" : "font-normal") : "font-semibold"} ${dense ? "px-3.5 py-1.5 text-[12px]" : "px-3.5 py-2 text-[13px]"} ${active === c ? "bg-brand text-white" : "bg-subtle text-ink-secondary"}`}
+          className={`shrink-0 rounded-full ${calm ? (active === c ? "font-medium" : "font-normal") : "font-semibold"} px-3.5 py-1.5 text-[12px] ${active === c ? "bg-brand text-white" : "bg-subtle text-ink-secondary"}`}
         >
           {c}
           {counts?.[c] !== undefined && <span className={`ml-1.5 ${active === c ? "text-white/80" : "text-ink-tertiary"}`}>{counts[c]}</span>}
@@ -401,7 +414,7 @@ export function Chips<T extends string>({ items, active, onChange, counts, flat:
 
 export function Segmented<T extends string>({ items, active, onChange, colors }: { items: readonly T[]; active: T; onChange: (v: T) => void; colors?: Partial<Record<T, string>> }) {
   return (
-    <div className="flex rounded-2xl border border-[#E6E4DF] bg-white p-1">
+    <div className="flex rounded-2xl border border-[#F0F0F0] bg-white p-1">
       {items.map((c) => (
         <button
           key={c}
@@ -499,7 +512,7 @@ export function FloatingNav<K extends string>({
               } ${on ? "text-brand" : "text-ink-tertiary"}`}
             >
               <it.icon className="h-[22px] w-[22px]" />
-              {showLabels && on && <span className="text-[12px] font-semibold leading-none">{it.label}</span>}
+              {showLabels && <span className="text-[10px] font-semibold leading-none">{it.label}</span>}
               {on && <span aria-hidden className="mt-0.5 h-1 w-1 rounded-full bg-brand" />}
               {!!it.badge && !on && (
                 <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white">{it.badge}</span>

@@ -80,17 +80,17 @@ export function GuestChat({
                 }`}
               >
                 {m.text}
-                <div className="mt-1.5 flex items-center justify-end gap-1 text-[11px] text-ink-tertiary">
+                <div className="mt-1.5 flex items-center justify-end gap-1 text-[10px] text-ink-tertiary">
                   {m.time}
                   {mine && <CheckCheck className="h-3.5 w-3.5 text-brand" />}
                 </div>
               </div>
               {m.from === "ai" && (
-                <div className="mt-1.5 flex items-center gap-1 pr-1 text-[11px] text-ink-tertiary">
+                <div className="mt-1.5 flex items-center gap-1 pr-1 text-[10px] text-ink-tertiary">
                   <Sparkles className="h-3 w-3 text-brand" /> Alfon AI
                 </div>
               )}
-              {m.from === "staff" && <div className="mt-1.5 pr-1 text-[11px] text-ink-tertiary">You</div>}
+              {m.from === "staff" && <div className="mt-1.5 pr-1 text-[10px] text-ink-tertiary">You</div>}
             </div>
           );
         })}

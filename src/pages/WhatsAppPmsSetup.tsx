@@ -9,8 +9,8 @@ const WA = "#25D366";
 
 function ConnectedPill() {
   return (
-    <span className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-[12px] font-medium text-emerald-600">
-      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> Connected
+    <span className="inline-flex items-center gap-2 rounded-full bg-green-50 px-3 py-1 text-[12px] font-medium text-green-600">
+      <span className="h-1.5 w-1.5 rounded-full bg-green-500" /> Connected
     </span>
   );
 }
@@ -65,14 +65,14 @@ export default function WhatsAppPmsSetup() {
         <div className="grid max-w-5xl grid-cols-1 items-start gap-5 lg:grid-cols-2">
           <ConnectionCard
             icon={<MessageCircle className="h-5 w-5" style={{ color: WA }} />}
-            iconBg="bg-emerald-50"
+            iconBg="bg-green-50"
             title="WhatsApp Business Integration"
             subtitle="Layana Resort & Spa"
           >
             <Row label="Connected Number">+91 98765 43210</Row>
             <Row label="Hotel Display Name">Layana Resort &amp; Spa</Row>
             <Row label="Status">
-              <span className="text-emerald-600">Active</span>
+              <span className="text-green-600">Active</span>
             </Row>
           </ConnectionCard>
 
@@ -85,7 +85,7 @@ export default function WhatsAppPmsSetup() {
             <Row label="Provider">Opera Cloud</Row>
             <Row label="Last Synced">2 minutes ago</Row>
             <Row label="Status">
-              <span className="text-emerald-600">Active</span>
+              <span className="text-green-600">Active</span>
             </Row>
           </ConnectionCard>
         </div>

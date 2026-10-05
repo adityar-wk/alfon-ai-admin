@@ -136,7 +136,7 @@ export default function DepartmentDashboard() {
                       const badge = STATUS_BADGE[status] ?? { background: "#F5F5F5", color: "#6B7280" };
                       const secs = slaSecs(t.sla);
                       const overdue = secs !== null && (secs < 0 || t.sla.kind === "overdue");
-                      const slaColor = overdue ? "text-red-600" : t.sla.kind === "due" ? "text-amber-600" : "text-emerald-600";
+                      const slaColor = overdue ? "text-red-600" : t.sla.kind === "due" ? "text-amber-600" : "text-green-600";
                       return (
                         <tr
                           key={t.id}
@@ -167,7 +167,7 @@ export default function DepartmentDashboard() {
                           </td>
                           <td className="truncate px-4 py-3">
                             {t.status === "Completed" || t.sla.kind === "met" ? (
-                              <span className="inline-flex items-center gap-1 text-[12px] font-medium text-emerald-600"><CheckCircle2 className="h-3.5 w-3.5" /> SLA met</span>
+                              <span className="inline-flex items-center gap-1 text-[12px] font-medium text-green-600"><CheckCircle2 className="h-3.5 w-3.5" /> SLA met</span>
                             ) : secs === null ? (
                               <span className="text-[12px] text-ink-tertiary">{t.sla.text}</span>
                             ) : (

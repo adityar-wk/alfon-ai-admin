@@ -8,10 +8,9 @@ import {
   Smile,
   Heart,
   Users,
-  ArrowDown,
-  ArrowUp,
   ArrowRight,
   Minus,
+  TrendingDown,
   HeartPulse,
   Activity,
   Home as HomeIcon,
@@ -141,7 +140,7 @@ function OnboardingProgressCard() {
           const current = s.id === currentStep.id && !allDone;
           return (
             <span key={s.id} className={`flex items-center gap-1.5 text-[12px] ${current ? "font-semibold text-brand" : done ? "text-ink-secondary" : "text-ink-tertiary"}`}>
-              {done ? <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-500" /> : <Circle className="h-3.5 w-3.5 shrink-0" />}
+              {done ? <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-green-500" /> : <Circle className="h-3.5 w-3.5 shrink-0" />}
               {s.title}
             </span>
           );
@@ -186,8 +185,8 @@ function AnalyticsChart() {
 }
 
 function Trend({ t }: { t: "up" | "down" | "flat" }) {
-  if (t === "up") return <ArrowUp className="h-3.5 w-3.5 text-emerald-500" />;
-  if (t === "down") return <ArrowDown className="h-3.5 w-3.5 text-brand" />;
+  if (t === "up") return <TrendingUp className="h-3.5 w-3.5 text-[#22C55E]" />;
+  if (t === "down") return <TrendingDown className="h-3.5 w-3.5 text-[#EF4444]" />;
   return <Minus className="h-3.5 w-3.5 text-ink-tertiary" />;
 }
 
@@ -324,7 +323,7 @@ export default function Home() {
           <div className="flex flex-col gap-5">
             <Card className="flex flex-col items-center px-6 py-10">
               <Orb score={score} />
-              <div className="mt-5 text-[11px] font-semibold uppercase tracking-[0.2em] text-ink-tertiary">Hotel Health Score</div>
+              <div className="mt-5 text-[11px] font-medium uppercase tracking-[0.18em] text-ink-tertiary">Hotel Health Score</div>
 
               <div className="mt-6 w-full max-w-[460px]">
                 <div className="flex items-center justify-between text-[13px] font-semibold text-ink">
@@ -365,11 +364,11 @@ export default function Home() {
 
               <div className="mt-8 grid w-full grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-5">
                 {PILLARS.map((p) => (
-                  <div key={p.label} className="rounded-xl border border-line bg-white p-4">
-                    <span className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg border border-brand/25 bg-white text-brand">
-                      <p.icon className="h-[18px] w-[18px]" />
+                  <div key={p.label} className="rounded-card border border-line bg-white p-4 shadow-card">
+                    <span className="mb-3 flex h-7 w-7 items-center justify-center rounded-lg border border-brand/25 bg-white text-brand">
+                      <p.icon className="h-3.5 w-3.5" />
                     </span>
-                    <div className="text-[13px] text-ink-secondary">{p.label}</div>
+                    <div className="text-xs text-ink-secondary">{p.label}</div>
                     <div className="mt-0.5 flex items-end justify-between gap-2">
                       <div>
                         <div className="whitespace-nowrap font-display text-[20px] font-bold leading-tight text-ink">{p.value}</div>
@@ -440,7 +439,7 @@ export default function Home() {
             </div>
             <div className="mt-6 flex flex-wrap gap-x-8 gap-y-2 border-t border-line pt-4 text-[13px] text-ink-secondary">
               {["Recalculates automatically every midnight", "Benchmarks against your previous day's performance", "Surfaces the exact pillar pulling your score down"].map((t) => (
-                <span key={t} className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-500" />{t}</span>
+                <span key={t} className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500" />{t}</span>
               ))}
             </div>
           </Card>
@@ -574,7 +573,7 @@ export default function Home() {
               <div className="mt-3 grid grid-cols-3 text-center">
                 {[
                   { n: TASKS.length, label: "Total Tasks", tone: "text-ink" },
-                  { n: TASKS.filter((t) => t.status === "Completed").length, label: "Completed", tone: "text-emerald-500" },
+                  { n: TASKS.filter((t) => t.status === "Completed").length, label: "Completed", tone: "text-green-500" },
                   { n: TASKS.filter((t) => t.status !== "Completed" && t.status !== "Void" && t.status !== "Unable to Complete" && t.sla.kind === "overdue").length, label: "Overdue", tone: "text-red-500" },
                 ].map((s) => (
                   <div key={s.label}>

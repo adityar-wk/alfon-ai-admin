@@ -69,13 +69,13 @@ export default function HotelDetail() {
               <div className="rounded-xl border border-line p-3.5">
                 <div className="flex items-center justify-between">
                   <span className="flex items-center gap-2 text-[13px] font-semibold text-ink"><MessageSquare className="h-4 w-4 text-ink-tertiary" /> WhatsApp</span>
-                  <span className={`text-[12px] font-medium ${hotel.whatsapp === "Connected" ? "text-emerald-600" : hotel.whatsapp === "Pending" ? "text-amber-600" : "text-red-500"}`}>{hotel.whatsapp}</span>
+                  <span className={`text-[12px] font-medium ${hotel.whatsapp === "Connected" ? "text-green-600" : hotel.whatsapp === "Pending" ? "text-amber-600" : "text-red-500"}`}>{hotel.whatsapp}</span>
                 </div>
               </div>
               <div className="rounded-xl border border-line p-3.5">
                 <div className="flex items-center justify-between">
                   <span className="flex items-center gap-2 text-[13px] font-semibold text-ink"><Server className="h-4 w-4 text-ink-tertiary" /> PMS{hotel.pmsProvider ? ` · ${hotel.pmsProvider}` : ""}</span>
-                  <span className={`text-[12px] font-medium ${hotel.pms === "Connected" ? "text-emerald-600" : hotel.pms === "Pending" ? "text-amber-600" : "text-red-500"}`}>{hotel.pms}</span>
+                  <span className={`text-[12px] font-medium ${hotel.pms === "Connected" ? "text-green-600" : hotel.pms === "Pending" ? "text-amber-600" : "text-red-500"}`}>{hotel.pms}</span>
                 </div>
                 <div className="mt-2 text-[12px] text-ink-tertiary">Last good sync: {hotel.lastSync}</div>
                 {hotel.pms === "Disconnected" && (

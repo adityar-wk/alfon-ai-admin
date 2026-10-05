@@ -578,7 +578,7 @@ function Delta({ v, badWhenUp = false }: { v: number; badWhenUp?: boolean }) {
   const bad = badWhenUp ? up : false;
   const good = badWhenUp ? !up : false;
   return (
-    <span className={`inline-flex items-center gap-0.5 ${bad ? "font-medium text-rose-500" : good ? "font-medium text-emerald-600" : "text-ink-secondary"}`}>
+    <span className={`inline-flex items-center gap-0.5 ${bad ? "font-medium text-brand" : good ? "font-medium text-[#22C55E]" : "text-ink-secondary"}`}>
       {up ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
       {Math.abs(v)}%
     </span>

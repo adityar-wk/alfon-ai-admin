@@ -114,7 +114,7 @@ export function GuestLandingGlassPrototype() {
             ) : step === "otp" ? (
               verified ? (
                 <div className="flex flex-col items-center gap-4 py-6 text-center">
-                  <span className="animate-pop-in flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50/70 text-emerald-600 backdrop-blur-sm">
+                  <span className="animate-pop-in flex h-16 w-16 items-center justify-center rounded-full bg-green-50/70 text-green-600 backdrop-blur-sm">
                     <ShieldCheck className="h-8 w-8" />
                   </span>
                   <div>

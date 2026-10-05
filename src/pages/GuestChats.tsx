@@ -18,7 +18,7 @@ const CARD = "rounded-card border border-line/60 bg-white shadow-card";
 
 const chip = (status: string) =>
   status === "Checked Out"
-    ? { text: "Resolved", cls: "bg-emerald-50 text-emerald-600" }
+    ? { text: "Resolved", cls: "bg-[#F0FDF4] text-[#22C55E]" }
     : status === "Arriving"
       ? { text: "Pre-Arrival", cls: "bg-blue-50 text-blue-600" }
       : null;

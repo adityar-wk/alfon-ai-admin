@@ -14,6 +14,7 @@ import {
   ShieldCheck,
   Lock,
   Phone,
+  CheckCircle2,
 } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { Breadcrumb } from "../components/Breadcrumb";
@@ -27,7 +28,7 @@ import { INITIAL, SHIFT_TIME, TINTS, type Staff, type Status, type ShiftName } f
 import { DEPARTMENTS } from "../data/departments";
 
 const STATUS_STYLE: Record<Status, string> = {
-  "On Duty": "bg-emerald-50 text-emerald-600",
+  "On Duty": "bg-green-50 text-green-600",
   "On Break": "bg-amber-50 text-amber-600",
   "Off Duty": "bg-red-50 text-red-600",
 };
@@ -123,9 +124,9 @@ function perfOf(s: Staff) {
 }
 
 function TrendCell({ pct }: { pct: number }) {
-  if (pct > 0) return <span className="inline-flex items-center gap-1 text-[13px] font-medium text-emerald-600"><ArrowUp className="h-3.5 w-3.5" /> +{pct}%</span>;
-  if (pct < 0) return <span className="inline-flex items-center gap-1 text-[13px] font-medium text-red-600"><ArrowDown className="h-3.5 w-3.5" /> {pct}%</span>;
-  return <span className="inline-flex items-center gap-1 text-[13px] font-medium text-ink-tertiary"><Minus className="h-3.5 w-3.5" /> 0%</span>;
+  if (pct > 0) return <span className="whitespace-nowrap text-[14px] font-medium text-[#22C55E]">↑ +{pct}%</span>;
+  if (pct < 0) return <span className="whitespace-nowrap text-[14px] font-medium text-brand">↓ {pct}%</span>;
+  return <span className="whitespace-nowrap text-[14px] font-medium text-ink-tertiary">→ 0%</span>;
 }
 
 export default function Team() {
@@ -174,9 +175,9 @@ export default function Team() {
         { label: "Off Duty", value: off, foot: `${pct(off)} of total`, icon: Circle },
       ]
     : [
-        { label: "Total Staff", value: total, foot: `Across ${new Set(staff.map((x) => x.dept)).size} departments`, icon: Users },
-        { label: "Avg Response Time", value: "2m 45s", foot: "18% faster than last week", icon: MessageCircle },
-        { label: "SLA On-time Rate", value: `${Math.round((1 - TASKS.filter((t) => t.sla.kind === "overdue").length / Math.max(TASKS.length, 1)) * 100)}%`, foot: "Tasks within their SLA", icon: ShieldCheck },
+        { label: "Team Members", value: total, foot: undefined, icon: Users },
+        { label: "Tasks Completed Today", value: staff.reduce((n, s) => n + perfOf(s).tasksDone, 0), foot: undefined, icon: CheckCircle2 },
+        { label: "Avg Response Time", value: "2m 45s", foot: undefined, icon: MessageCircle },
       ];
 
   const toggle = (id: string) =>
@@ -283,7 +284,7 @@ export default function Team() {
                       <td className="py-3.5 pl-6 pr-3">
                         <span className="flex items-center gap-3">
                           <Avatar s={s} />
-                          <span className="text-[13px] font-semibold text-ink">{s.name}</span>
+                          <span className="text-[14px] font-medium text-ink">{s.name}</span>
                         </span>
                       </td>
                       <td className="text-[14px] text-ink-secondary py-3.5 pl-6 pr-3">{s.role}</td>

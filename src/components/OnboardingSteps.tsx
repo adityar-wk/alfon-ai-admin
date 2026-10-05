@@ -18,7 +18,7 @@ function StepCard({ s, status }: { s: OnboardingStep; status: StepStatus }) {
       <div className="flex items-start justify-between">
         <span
           className={`flex h-10 w-10 items-center justify-center rounded-xl ${
-            status === "done" ? "bg-emerald-50 text-emerald-600" : current ? "bg-brand-tint text-brand" : "bg-subtle text-ink-secondary"
+            status === "done" ? "bg-green-50 text-green-600" : current ? "bg-brand-tint text-brand" : "bg-subtle text-ink-secondary"
           }`}
         >
           {status === "done" ? <Check className="h-5 w-5" /> : <Icon className="h-5 w-5" />}
@@ -32,13 +32,13 @@ function StepCard({ s, status }: { s: OnboardingStep; status: StepStatus }) {
       <div className="mt-5">
         <div className="h-1 overflow-hidden rounded-full bg-subtle">
           <div
-            className={`h-full rounded-full ${status === "done" ? "bg-emerald-500" : "bg-brand"}`}
+            className={`h-full rounded-full ${status === "done" ? "bg-green-500" : "bg-brand"}`}
             style={{ width: `${progress}%` }}
           />
         </div>
         <div className="mt-2 flex items-center justify-between text-[12px]">
           {status !== "todo" && (
-            <span className={status === "done" ? "font-medium text-emerald-600" : "font-medium text-brand"}>
+            <span className={status === "done" ? "font-medium text-green-600" : "font-medium text-brand"}>
               {status === "done" ? "Completed" : "In progress"}
             </span>
           )}

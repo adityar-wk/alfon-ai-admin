@@ -7,10 +7,10 @@ import { HOTELS, REGIONS, type Hotel, type ConnStatus } from "../../data/hotels"
 
 const TABS = ["All", "Active", "Inactive", "New"] as const;
 
-const STATUS_TONE: Record<Hotel["status"], string> = { Active: "text-emerald-600", Inactive: "text-red-600", New: "text-sky-600" };
+const STATUS_TONE: Record<Hotel["status"], string> = { Active: "text-green-600", Inactive: "text-red-600", New: "text-blue-600" };
 
 function ConnIcon({ status }: { status: ConnStatus }) {
-  if (status === "Connected") return <Check className="h-4 w-4 text-emerald-600" aria-label="Connected" />;
+  if (status === "Connected") return <Check className="h-4 w-4 text-green-600" aria-label="Connected" />;
   if (status === "Disconnected") return <X className="h-4 w-4 text-red-500" aria-label="Disconnected" />;
   return <Clock className="h-4 w-4 text-amber-500" aria-label="Pending" />;
 }
@@ -162,7 +162,7 @@ export default function HotelsList() {
                       ) : (
                         <div className="w-24">
                           <div className="text-[13px] font-semibold text-ink">{h.healthScore}%</div>
-                          <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-subtle"><div className="h-full rounded-full bg-emerald-500" style={{ width: `${h.healthScore}%` }} /></div>
+                          <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-subtle"><div className="h-full rounded-full bg-green-500" style={{ width: `${h.healthScore}%` }} /></div>
                         </div>
                       )}
                     </td>
@@ -188,7 +188,7 @@ export default function HotelsList() {
       {toast && (
         <div className="pointer-events-none fixed inset-x-0 bottom-6 z-50 flex justify-center">
           <span className="flex items-center gap-2 rounded-full bg-ink px-4 py-2 text-[13px] font-medium text-white shadow-lg">
-            <CheckCircle2 className="h-4 w-4 text-emerald-400" /> {toast}
+            <CheckCircle2 className="h-4 w-4 text-green-400" /> {toast}
           </span>
         </div>
       )}

@@ -72,7 +72,7 @@ const ROOM_STATUS_ICON: Record<RoomStatus, React.ComponentType<{ className?: str
   "Out of Order": Wrench,
 };
 const ROOM_STATUS_ICON_TONE: Record<RoomStatus, string> = {
-  Inspected: "bg-emerald-50 text-success",
+  Inspected: "bg-green-50 text-success",
   "In Progress": "bg-brand-tint text-brand",
   "Needs Inspection": "bg-amber-50 text-amber-600",
   "Out of Service": "bg-red-50 text-danger",
@@ -157,7 +157,7 @@ const NOTIFS = [
   { label: "Complaint", tone: "text-amber-600", task: "Guest complaint", sub: "Michael Johnson · Negative sentiment", time: "10:15 AM", to: "t6" },
   { label: "SLA breach", tone: "text-brand", task: "Extra pillows", sub: "Room 908 · Breached twice today", time: "10:25 AM", to: "t10" },
   { label: "Help request", tone: "text-success", task: "Aanya Khan is overloaded", sub: "2 tasks, 1 overdue", time: "10:28 AM", to: "team" },
-  { label: "Unassigned", tone: "text-sky-600", task: "Extra towels", sub: "Room 2104 · High priority", time: "10:31 AM", to: "t12" },
+  { label: "Unassigned", tone: "text-blue-600", task: "Extra towels", sub: "Room 2104 · High priority", time: "10:31 AM", to: "t12" },
   { label: "Escalation", tone: "text-danger", task: "Guest conversation", sub: "Room 1103 · Escalated by AI", time: "10:14 AM", to: "t6" },
 ];
 
@@ -401,7 +401,6 @@ export function ManagerPrototype() {
     <div className="relative h-full">
       <div className="h-full overflow-y-auto pb-24 no-scrollbar">{body}</div>
       <FloatingNav
-        showLabels={false}
         active={key}
         onChange={(k) => nav.go({ name: k })}
         items={[
@@ -429,7 +428,7 @@ export function ManagerPrototype() {
           {bellBtn}
         </div>
         <div className="mt-3 min-w-0">
-          <div className="truncate font-display text-[18px] font-bold leading-tight text-ink">Good morning,{ME.split(" ")[0]} 👋</div>
+          <div className="truncate font-display text-[18px] font-bold leading-tight text-ink">Good morning, {ME.split(" ")[0]} 👋</div>
           <p className="mt-0.5 text-[12px] font-normal text-ink-secondary">Here's what's happening today</p>
         </div>
       </div>
@@ -455,7 +454,7 @@ export function ManagerPrototype() {
   /* ---------- tasks ---------- */
   const Tasks = shell("tasks", (
     <>
-      <div className="flex items-center justify-between px-6 py-2">
+      <div className="flex items-center justify-between border-b border-[#F0F0F0] px-6 pb-3 pt-2">
         <div className="font-display text-[20px] font-bold text-ink">Tasks</div>
         <div className="flex items-center gap-2">
           {bellBtn}
@@ -577,13 +576,13 @@ export function ManagerPrototype() {
       <div className="mt-3"><Chips flat items={ROOM_STATUS_FILTERS} active={roomFilter} onChange={setRoomFilter} counts={roomChipCounts} /></div>
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-6 pb-6 pt-3 no-scrollbar">
         {roomsFiltered.map((r) => (
-          <button key={r.number} onClick={() => setRoomSheet(r.number)} className="block w-full rounded-2xl border border-[#E6E4DF] bg-white px-5 py-4 text-left active:scale-[0.99]">
+          <button key={r.number} onClick={() => setRoomSheet(r.number)} className="block w-full rounded-2xl border border-[#F0F0F0] bg-white px-5 py-4 text-left active:scale-[0.99]">
             <div className="flex items-center justify-between gap-2">
               <span className="flex items-center gap-1.5 font-display text-[16px] font-semibold leading-snug text-ink">
                 <DoorOpen className="h-[17px] w-[17px] text-ink-secondary" />{r.number.replace(/^Room\s+/i, "")}
               </span>
               {(r.status === "Inspected" || r.status === "In Progress" || r.status === "Needs Inspection") && (
-                <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${r.status === "Inspected" ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>
+                <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${r.status === "Inspected" ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`}>
                   {r.status === "Inspected" ? "Clean" : "Dirty"}
                 </span>
               )}
@@ -642,7 +641,7 @@ export function ManagerPrototype() {
                 <span className="flex flex-wrap items-center gap-1.5 text-[14px] font-medium text-ink">
                   {v}
                   {v === "Inspected" && (
-                    <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${roomEntry.status === "Inspected" ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>
+                    <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${roomEntry.status === "Inspected" ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`}>
                       {roomEntry.status === "Inspected" ? "Clean" : "Dirty"}
                     </span>
                   )}
@@ -684,7 +683,7 @@ export function ManagerPrototype() {
   /* ---------- guest communication ---------- */
   const Guests = shell("guests", (
     <>
-      <div className="flex items-center justify-between px-6 py-2">
+      <div className="flex items-center justify-between border-b border-[#F0F0F0] px-6 pb-3 pt-2">
         <div className="font-display text-[20px] font-bold text-ink">Chats</div>
         <div className="flex items-center gap-2">
           {bellBtn}
@@ -711,6 +710,7 @@ export function ManagerPrototype() {
             tone={g.complaint ? "bg-red-50 text-red-600" : undefined}
             complaint={!!g.complaint}
             unread={sampleUnread(g.name)}
+            status={g.complaint || sampleUnread(g.name) > 0 ? "Pending" : "Active"}
             onOpen={() => nav.push({ name: "guestDetail", id: g.name })}
           />
         ))}
@@ -721,7 +721,8 @@ export function ManagerPrototype() {
             <ChatRow
               key={`pre-${g.name}`}
               name={g.name}
-              room="Pre-arrival"
+              room={g.room ? `Room ${g.room}` : "Room TBC"}
+              status="Pre-Arrival"
               tone="bg-subtle text-ink-secondary"
               preview={g.notes}
               unread={sampleUnread(g.name)}
@@ -1027,7 +1028,7 @@ export function ManagerPrototype() {
           </div>
           <div className="mt-4 space-y-2.5">
             {([
-              ["Promoters", HK_SATISFACTION.promoters, "bg-emerald-500"],
+              ["Promoters", HK_SATISFACTION.promoters, "bg-green-500"],
               ["Neutral", HK_SATISFACTION.neutral, "bg-amber-400"],
               ["Detractors", HK_SATISFACTION.detractors, "bg-red-400"],
             ] as const).map(([label, pct, bar]) => (
@@ -1123,7 +1124,7 @@ export function ManagerPrototype() {
 
   const GuestsRoster = shell("guestsRoster", (
     <>
-      <div className="flex items-center justify-between px-6 py-2">
+      <div className="flex items-center justify-between border-b border-[#F0F0F0] px-6 pb-3 pt-2">
         <div className="font-display text-[20px] font-bold text-ink">Guests</div>
         <div className="flex items-center gap-2">{bellBtn}</div>
       </div>
@@ -1141,7 +1142,7 @@ export function ManagerPrototype() {
                 ? `${row.g.checkIn} – ${row.g.checkOut}`
                 : undefined;
           const right =
-            row.stage === "Current" ? <span className="text-success">In-house</span> : row.stage === "Upcoming" ? <span className="text-sky-600">Pre-arrival</span> : <span className="text-ink-tertiary">Checked out</span>;
+            row.stage === "Current" ? <span className="text-success">In-house</span> : row.stage === "Upcoming" ? <span className="text-blue-600">Pre-arrival</span> : <span className="text-ink-tertiary">Checked out</span>;
           return (
             <PersonRow
               key={row.g.name}
@@ -1369,7 +1370,7 @@ function CleaningChecklistSheet({
         {CLEANING_CHECKLIST.map((item, i) => (
           <label
             key={item}
-            className={`flex cursor-pointer items-start gap-3 rounded-2xl border p-3.5 text-[13px] ${checked[i] ? "border-emerald-200 bg-emerald-50/50" : "border-line bg-white"}`}
+            className={`flex cursor-pointer items-start gap-3 rounded-2xl border p-3.5 text-[13px] ${checked[i] ? "border-green-200 bg-green-50/50" : "border-line bg-white"}`}
           >
             <input type="checkbox" className="mt-0.5 h-4 w-4 shrink-0 accent-brand" checked={checked[i]} onChange={() => toggle(i)} />
             <span className={checked[i] ? "text-ink" : "text-ink-secondary"}>{item}</span>
@@ -1427,7 +1428,7 @@ function InspectionChecklistSheet({
               {INSPECTION_CHECKLIST.filter((it) => it.section === sec).map((it) => (
                 <label
                   key={it.n}
-                  className={`flex cursor-pointer items-start gap-2.5 rounded-2xl border p-3 text-[13px] ${checked[it.n - 1] ? "border-emerald-200 bg-emerald-50/50" : "border-line bg-white"}`}
+                  className={`flex cursor-pointer items-start gap-2.5 rounded-2xl border p-3 text-[13px] ${checked[it.n - 1] ? "border-green-200 bg-green-50/50" : "border-line bg-white"}`}
                 >
                   <input type="checkbox" className="mt-0.5 h-4 w-4 shrink-0 accent-brand" checked={checked[it.n - 1]} onChange={() => toggle(it.n - 1)} />
                   <span className="min-w-0 flex-1">

@@ -13,7 +13,7 @@ const PRIORITY_META: Record<Priority, { desc: string; dot: string; text: string;
   Urgent: { desc: "Safety or guest-blocking issues", dot: "bg-red-500", text: "text-red-600", card: "border-red-100 bg-red-50/40" },
   High: { desc: "Time-sensitive guest requests", dot: "bg-orange-500", text: "text-orange-600", card: "border-orange-100 bg-orange-50/40" },
   Medium: { desc: "Standard service requests", dot: "bg-amber-500", text: "text-amber-600", card: "border-amber-100 bg-amber-50/40" },
-  Low: { desc: "Routine, non-urgent tasks", dot: "bg-emerald-500", text: "text-emerald-600", card: "border-emerald-100 bg-emerald-50/40" },
+  Low: { desc: "Routine, non-urgent tasks", dot: "bg-green-500", text: "text-green-600", card: "border-green-100 bg-green-50/40" },
 };
 const PRIORITIES = Object.keys(PRIORITY_META) as Priority[];
 
@@ -304,7 +304,7 @@ export default function SlaSetup() {
       {toast && (
         <div className="pointer-events-none fixed inset-x-0 bottom-6 z-50 flex justify-center">
           <span className="flex items-center gap-2 rounded-full bg-ink px-4 py-2 text-[13px] font-medium text-white shadow-lg">
-            <CheckCircle2 className="h-4 w-4 text-emerald-400" /> {toast}
+            <CheckCircle2 className="h-4 w-4 text-green-400" /> {toast}
           </span>
         </div>
       )}

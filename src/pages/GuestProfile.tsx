@@ -510,7 +510,7 @@ export default function GuestProfile() {
                     </Link>
                   </div>
                   <div className="mb-1 flex flex-wrap items-center gap-2">
-                    <h1 className="font-display text-[25px] font-bold text-ink">{guest.name}</h1>
+                    <h1 className="font-display text-[24px] font-bold text-ink">{guest.name}</h1>
                     <Badge tone={guest.status === "In House" ? "success" : guest.status === "Arriving" ? "warning" : "neutral"}>{STATUS_LABEL[guest.status]}</Badge>
                   </div>
                   <div className="mb-4 flex flex-wrap items-center gap-x-2 text-[14px] text-ink-secondary">

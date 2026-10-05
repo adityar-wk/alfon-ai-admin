@@ -4,7 +4,7 @@ import { ChevronRight, LogOut, SlidersHorizontal } from "lucide-react";
 import { Avatar, ScreenHeader, CARD_SHADOW } from "./mobile";
 
 const Toggle = ({ on, onChange, label }: { on: boolean; onChange: () => void; label: string }) => (
-  <button onClick={onChange} aria-pressed={on} aria-label={label} className={`flex h-6 w-11 shrink-0 items-center rounded-full p-0.5 transition-colors ${on ? "bg-emerald-500" : "bg-[#C8C8C8]"}`}>
+  <button onClick={onChange} aria-pressed={on} aria-label={label} className={`flex h-6 w-11 shrink-0 items-center rounded-full p-0.5 transition-colors ${on ? "bg-green-500" : "bg-[#C8C8C8]"}`}>
     <span className={`h-5 w-5 rounded-full bg-white shadow transition-transform ${on ? "translate-x-5" : ""}`} />
   </button>
 );
@@ -17,7 +17,7 @@ export function ProfileScreen({
 }) {
   return (
     <div className="flex h-full flex-col">
-      {onBack ? <ScreenHeader title="More" onBack={onBack} /> : <div className="px-6 pb-1 pt-4 font-display text-[20px] font-bold text-ink">More</div>}
+      {onBack ? <ScreenHeader title="More" onBack={onBack} /> : <div className="border-b border-[#F0F0F0] px-6 pb-3 pt-4 font-display text-[20px] font-bold text-ink">More</div>}
       <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-6 pt-2 no-scrollbar">
         <div className="flex flex-col items-center pb-8 pt-6 text-center">
           <Avatar name={name} size={88} tone="bg-brand text-white" />

@@ -83,34 +83,23 @@ type Task = {
   assignedBy?: string;
 };
 
-const ASSIGNED_SAMPLES = [
-  { title: "Duvet & pillow set replacement", room: "Room 907", note: "Replace the duvet and add a hypoallergenic pillow set.", total: 30, by: "Sarah Ali · Supervisor", guest: "Marco Bianchi", roomType: "Deluxe King", floor: 9, stay: "Arriving today · 3 nights", prefs: ["Hypoallergenic bedding"] },
-  { title: "Minibar restock", room: "Room 1410", note: "Restock the minibar before the guest returns from dinner.", total: 45, by: "Daniel Reyes · Mid Manager", guest: "Olivia Turner", roomType: "Deluxe Room", floor: 14, stay: "In house · 2 nights", prefs: ["Sparkling water"] },
-  { title: "Turndown service", room: "Room 1206", note: "Evening turndown with extra water bottles.", total: 25, by: "Sarah Ali · Supervisor", guest: "James Whitfield", roomType: "Executive Room", floor: 12, stay: "In house · 3 nights", prefs: ["Late turndown"] },
+/** New tasks offered to the staff member: each arrives as a notification and stays pending until they accept it. */
+const NEW_TASKS = [
+  {
+    title: "Private Transfer — Emma Davis", room: "Room 1608", note: "Guest is ready for a private transfer. Confirm the pickup and escort them to the car.",
+    total: 30, dept: "Concierge", guest: "Emma Davis", time: "09:57", roomType: "Deluxe King", floor: 16, stay: "In house · 3 nights", prefs: ["Airport transfer"],
+  },
+  { title: "Duvet & pillow set replacement", room: "Room 907", note: "Replace the duvet and add a hypoallergenic pillow set.", total: 30, dept: "Housekeeping", guest: "Marco Bianchi", time: "Just now", roomType: "Deluxe King", floor: 9, stay: "Arriving today · 3 nights", prefs: ["Hypoallergenic bedding"] },
+  { title: "Minibar restock", room: "Room 1410", note: "Restock the minibar before the guest returns from dinner.", total: 45, dept: "Housekeeping", guest: "Olivia Turner", time: "Just now", roomType: "Deluxe Room", floor: 14, stay: "In house · 2 nights", prefs: ["Sparkling water"] },
+  { title: "Turndown service", room: "Room 1206", note: "Evening turndown with extra water bottles.", total: 25, dept: "Housekeeping", guest: "James Whitfield", time: "Just now", roomType: "Executive Room", floor: 12, stay: "In house · 3 nights", prefs: ["Late turndown"] },
 ];
-
-/** A new task the staff member has not accepted yet — Open, then Accept, then continue. */
-const TASK_NOTIFICATION = {
-  title: "Private Transfer — Emma Davis",
-  room: "Room 1608",
-  note: "Guest is ready for a private transfer. Confirm the pickup and escort them to the car.",
-  total: 30,
-  dept: "Concierge",
-  guest: "Emma Davis",
-  time: "09:57",
-  roomType: "Deluxe King",
-  floor: 16,
-  stay: "In house · 3 nights",
-  prefs: ["Airport transfer"],
-};
 
 type Incoming = {
   id: string;
   title: string;
   room: string;
   total: number;
-  by: string;
-  kind: "assigned" | "offer";
+  dept: string;
 };
 
 const INITIAL: Task[] = [
@@ -161,8 +150,8 @@ const INITIAL: Task[] = [
 const NOTIFS = [
   { label: "Completed", tone: "text-success", task: "Full towel change & linens", sub: "Room 501", time: "10:31 AM", id: "t1" },
   { label: "SLA breach", tone: "text-brand", task: "Extra pillows", sub: "Room 908 · Overdue by 8 mins", time: "10:28 AM", id: "t10" },
-  { label: "New task", tone: "text-sky-600", task: "Baby cot setup", sub: "Room 704", time: "10:26 AM", id: "t7" },
-  { label: "New task", tone: "text-sky-600", task: "Rollaway bed & pillows", sub: "Room 812", time: "10:22 AM", id: "t3" },
+  { label: "New task", tone: "text-blue-600", task: "Baby cot setup", sub: "Room 704", time: "10:26 AM", id: "t7" },
+  { label: "New task", tone: "text-blue-600", task: "Rollaway bed & pillows", sub: "Room 812", time: "10:22 AM", id: "t3" },
 ];
 
 const DEFAULT_SLA = 40;
@@ -203,7 +192,7 @@ export function LineStaffPrototype() {
   const [tasks, setTasks] = useState<Task[]>(INITIAL);
   const [incoming, setIncoming] = useState<Incoming | null>(null);
   const [bannerIn, setBannerIn] = useState(false);
-  const [assignCount, setAssignCount] = useState(0);
+  const [simCount, setSimCount] = useState(0);
   const [helpOpen, setHelpOpen] = useState(false);
   const [helpKind, setHelpKind] = useState<HelpKind>("escalate");
   const [helpNote, setHelpNote] = useState("");
@@ -292,7 +281,6 @@ export function LineStaffPrototype() {
   );
   const lsNav = (
     <FloatingNav
-      showLabels={false}
       items={[
         { key: "home", label: "Home", icon: HomeIcon },
         { key: "tasks", label: "Tasks", icon: ListChecks },
@@ -312,35 +300,24 @@ export function LineStaffPrototype() {
     nav.push({ name: "guestChat", id: t.guest });
   };
 
-  // a task pushed to this staff member by a supervisor / mid manager: already assigned, so it lands in progress
-  const simulateAssigned = () => {
-    const s = ASSIGNED_SAMPLES[assignCount % ASSIGNED_SAMPLES.length];
-    const id = "n" + Date.now();
-    setTasks((ts) => [{ id, title: s.title, room: s.room, note: s.note, status: "progress", left: s.total, total: s.total, guest: s.guest, roomType: s.roomType, floor: s.floor, stay: s.stay, prefs: s.prefs, source: s.by, created: "Just now", assignedBy: s.by }, ...ts]);
-    setAssignCount((n) => n + 1);
-    setBannerIn(false);
-    setIncoming({ id, title: s.title, room: s.room, total: s.total, by: s.by, kind: "assigned" });
-  };
-
-  // a new task offered to this staff member: they accept it before they can continue
+  // a new task offered to this staff member: the notification stays until they accept it
   const simulateTaskNotification = () => {
-    const s = TASK_NOTIFICATION;
+    const s = NEW_TASKS[simCount % NEW_TASKS.length];
     const id = "n" + Date.now();
     setTasks((ts) => [{
       id, title: s.title, room: s.room, note: s.note, status: "pending", left: s.total, total: s.total,
       guest: s.guest, roomType: s.roomType, floor: s.floor, stay: s.stay, prefs: s.prefs, source: "New task",
       created: s.time, dept: s.dept,
     }, ...ts]);
+    setSimCount((n) => n + 1);
     setBannerIn(false);
-    setIncoming({ id, title: s.title, room: s.room, total: s.total, by: s.dept, kind: "offer" });
+    setIncoming({ id, title: s.title, room: s.room, total: s.total, dept: s.dept });
   };
 
   useEffect(() => {
     if (!incoming) return;
     const show = setTimeout(() => setBannerIn(true), 30);
-    // an assigned-task banner fades on its own; an offered task stays until it is accepted
-    const hide = incoming.kind === "assigned" ? setTimeout(() => setIncoming(null), 7000) : undefined;
-    return () => { clearTimeout(show); if (hide) clearTimeout(hide); };
+    return () => clearTimeout(show);
   }, [incoming]);
 
   const openCreate = () => {
@@ -378,7 +355,7 @@ export function LineStaffPrototype() {
             </div>
           </div>
           <div className="mt-3 min-w-0">
-            <div className="truncate font-display text-[18px] font-bold leading-tight text-ink">Good morning,{LS_ME.split(" ")[0]} 👋</div>
+            <div className="truncate font-display text-[18px] font-bold leading-tight text-ink">Good morning, {LS_ME.split(" ")[0]} 👋</div>
             <p className="mt-0.5 text-[12px] font-normal text-ink-secondary">Here's what's happening today</p>
           </div>
         </div>
@@ -415,7 +392,7 @@ export function LineStaffPrototype() {
   const Tasks = (
     <div className="relative h-full">
       <div className="h-full overflow-y-auto pb-28 no-scrollbar">
-        <div className="flex items-center justify-between px-6 py-2">
+        <div className="flex items-center justify-between border-b border-[#F0F0F0] px-6 pb-3 pt-2">
           <div className="font-display text-[20px] font-bold text-ink">Tasks</div>
           <div className="flex items-center gap-2">
             <button onClick={() => nav.push({ name: "notifications" })} aria-label="Notifications" className="relative flex h-11 w-11 items-center justify-center rounded-full text-ink active:bg-ink/5">
@@ -443,7 +420,7 @@ export function LineStaffPrototype() {
   const Guests = (
     <div className="relative h-full">
       <div className="h-full overflow-y-auto pb-28 no-scrollbar">
-        <div className="flex items-center justify-between px-6 py-2">
+        <div className="flex items-center justify-between border-b border-[#F0F0F0] px-6 pb-3 pt-2">
           <div className="font-display text-[20px] font-bold text-ink">Chats</div>
           <div className="flex items-center gap-2">
             <button onClick={() => nav.push({ name: "notifications" })} aria-label="Notifications" className="relative flex h-11 w-11 items-center justify-center rounded-full text-ink active:bg-ink/5">
@@ -475,6 +452,7 @@ export function LineStaffPrototype() {
                 room={g.room}
                 preview={th.length ? th[th.length - 1].text : "No messages yet"}
                 unread={unread || sampleUnread(g.name)}
+                status={!g.open ? "Resolved" : (unread || sampleUnread(g.name)) > 0 ? "Pending" : "Active"}
                 onAvatar={() => nav.push({ name: "guestProfile", id: g.name })}
                 onOpen={() => nav.push({ name: "guestChat", id: g.name })}
               />
@@ -722,7 +700,7 @@ export function LineStaffPrototype() {
           />
         )}
 
-        {incoming && incoming.kind === "offer" && tasks.some((t) => t.id === incoming.id && t.status === "pending") && (
+        {incoming && tasks.some((t) => t.id === incoming.id && t.status === "pending") && (
           <div className="absolute inset-x-3 top-3 z-50">
             <div className={`flex items-center gap-3 rounded-[20px] bg-[#1A1A1A] p-3.5 shadow-[0_12px_40px_rgba(0,0,0,0.35)] transition-all duration-300 ${bannerIn ? "translate-y-0 opacity-100" : "-translate-y-6 opacity-0"}`}>
               <button
@@ -732,7 +710,7 @@ export function LineStaffPrototype() {
               >
                 <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] bg-gradient-to-br from-[#E8623A] to-[#D4522D] text-white"><Bell className="h-5 w-5" /></span>
                 <span className="min-w-0 flex-1">
-                  <span className="mb-0.5 block text-[11px] font-bold uppercase tracking-[0.5px] text-brand">New task · {incoming.by}</span>
+                  <span className="mb-0.5 block text-[11px] font-bold uppercase tracking-[0.5px] text-brand">New task · {incoming.dept}</span>
                   <span className="block truncate font-display text-[13px] font-bold text-white">{incoming.title}</span>
                   <span className="mt-px block text-[12px] text-[#9CA3AF]">{incoming.room} · SLA {incoming.total} min</span>
                 </span>
@@ -746,40 +724,14 @@ export function LineStaffPrototype() {
             </div>
           </div>
         )}
-        {incoming && incoming.kind === "assigned" && (
-          <div className="absolute inset-x-3 top-3 z-50">
-            <button
-              onClick={() => { openTask(incoming.id); setIncoming(null); }}
-              aria-label="New task assigned"
-              className={`block w-full rounded-2xl bg-white p-3.5 text-left shadow-[0_10px_30px_rgba(0,0,0,0.25)] ring-1 ring-black/5 transition-all duration-300 ${bannerIn ? "translate-y-0 opacity-100" : "-translate-y-6 opacity-0"}`}
-            >
-              <div className="flex items-center gap-3">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-tint text-brand"><Bell className="h-[18px] w-[18px]" /></span>
-                <div className="min-w-0 flex-1 leading-tight">
-                  <div className="text-[13px] font-semibold text-ink">New task assigned to you</div>
-                  <div className="text-[11px] text-ink-tertiary">by {incoming.by}</div>
-                </div>
-                <span className="shrink-0 text-[11px] text-ink-tertiary">now</span>
-              </div>
-              <div className="mt-2.5 rounded-xl bg-[#F6F6F8] px-3 py-2.5">
-                <div className="truncate text-[14px] font-semibold text-ink">{incoming.title}</div>
-                <div className="mt-0.5 flex items-center justify-between text-[12px] text-ink-secondary">
-                  <span>{incoming.room}</span>
-                  <span className="font-semibold text-brand">SLA {incoming.total} min</span>
-                </div>
-              </div>
-            </button>
-          </div>
-        )}
         {toast}
       </PhoneFrame>
 
       <div className="flex flex-wrap items-center justify-center gap-2">
-        <button className="rounded-lg bg-brand px-3 py-1.5 text-[12px] font-semibold text-white" onClick={simulateAssigned}>Simulate assigned task</button>
         <button className="rounded-lg bg-brand px-3 py-1.5 text-[12px] font-semibold text-white" onClick={simulateTaskNotification}>Task notification</button>
         <button
           className="rounded-lg border border-line bg-white px-3 py-1.5 text-[12px] font-medium text-ink-secondary"
-          onClick={() => { nav.reset(); setIncoming(null); setAssignCount(0); setTasks(INITIAL); setChat({}); setManual({}); setAiDrafts({}); }}
+          onClick={() => { nav.reset(); setIncoming(null); setSimCount(0); setTasks(INITIAL); setChat({}); setManual({}); setAiDrafts({}); }}
         >
           Reset
         </button>

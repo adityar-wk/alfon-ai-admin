@@ -73,7 +73,7 @@ export default function KnowledgeBaseSetup() {
                 <div key={it.id} className="flex items-center justify-between gap-3 rounded-lg bg-[#FAFAFA] px-4 py-3">
                   <div className="flex min-w-0 items-center gap-2 text-[14px] text-ink">
                     {it.status === "Completed" ? (
-                      <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
+                      <CheckCircle2 className="h-4 w-4 shrink-0 text-green-500" />
                     ) : (
                       <Clock className="h-4 w-4 shrink-0 text-amber-500" />
                     )}
@@ -81,7 +81,7 @@ export default function KnowledgeBaseSetup() {
                     <span className="shrink-0 text-[12px] text-ink-secondary">— {it.date}</span>
                   </div>
                   <div className="flex shrink-0 items-center gap-2">
-                    <span className={`text-[13px] font-medium ${it.status === "Completed" ? "text-emerald-500" : "text-ink-tertiary"}`}>{it.status}</span>
+                    <span className={`text-[13px] font-medium ${it.status === "Completed" ? "text-green-500" : "text-ink-tertiary"}`}>{it.status}</span>
                     <button
                       onClick={() => remove(it.id)}
                       aria-label={`Remove ${it.name}`}

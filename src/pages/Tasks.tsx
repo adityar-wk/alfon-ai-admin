@@ -24,6 +24,8 @@ import {
   Timer,
   UserRound,
   CheckCircle2,
+  DollarSign,
+  Loader,
 } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { GuestChat, type ChatMsg, type ChatMode } from "../components/GuestChat";
@@ -65,7 +67,7 @@ function availabilityOf(name: string): { label: string; dot: string; text: strin
   if (presence === "On Break") return { label: "On break", dot: "bg-amber-400", text: "text-amber-600" };
   const open = TASKS.filter((t) => t.owner === name && !["Completed", "Void", "Unable to Complete"].includes(t.status)).length;
   return open === 0
-    ? { label: "Available", dot: "bg-emerald-500", text: "text-emerald-600" }
+    ? { label: "Available", dot: "bg-green-500", text: "text-green-600" }
     : { label: "Busy", dot: "bg-blue-500", text: "text-blue-600" };
 }
 const AvailabilityTag = ({ name }: { name: string }) => {
@@ -156,12 +158,12 @@ const SlaText = ({ sla }: { sla: Task["sla"] }) => <SlaClock sla={sla} />;
 /** compact SLA readout for the tasks table, matching the Alt Prototype's SlaCountdownCompact */
 function SlaCompact({ t }: { t: Task }) {
   if (t.status === "Completed" || t.sla.kind === "met") {
-    return <span className="inline-flex items-center gap-1 text-[12px] font-medium text-emerald-600"><CheckCircle2 className="h-3.5 w-3.5" /> SLA met</span>;
+    return <span className="inline-flex items-center gap-1 text-[12px] font-medium text-[#22C55E]"><CheckCircle2 className="h-3.5 w-3.5" /> SLA met</span>;
   }
   const secs = slaSecs(t.sla);
   if (secs === null) return <span className="text-[12px] text-ink-tertiary">{t.sla.text}</span>;
   const overdue = secs < 0 || t.sla.kind === "overdue";
-  const color = overdue ? "text-red-600" : t.sla.kind === "due" ? "text-amber-600" : "text-emerald-600";
+  const color = overdue ? "text-[#EF4444]" : t.sla.kind === "due" ? "text-[#F59E0B]" : "text-[#22C55E]";
   return (
     <span className={`inline-flex items-center gap-1 font-display text-[12px] font-semibold ${color}`}>
       <Timer className="h-3 w-3" />
@@ -192,7 +194,7 @@ const BOARD_COLS: { key: string; label: string; dot: string; test: (t: Task) => 
   { key: "unassigned", label: "Unassigned", dot: "bg-gray-300", test: (t) => t.status === "Yet to Assign" && !t.owner },
   { key: "progress", label: "In Progress", dot: "bg-brand", test: (t) => t.status === "In Progress" || (t.status === "Yet to Assign" && !!t.owner) },
   { key: "escalated", label: "Escalated", dot: "bg-red-500", test: (t) => t.status === "Escalated" },
-  { key: "completed", label: "Completed", dot: "bg-emerald-500", test: (t) => t.status === "Completed" },
+  { key: "completed", label: "Completed", dot: "bg-green-500", test: (t) => t.status === "Completed" },
 ];
 
 const cap = (t: Task) => (t.tag === "Complaint" ? "Complaint" : null);
@@ -476,16 +478,16 @@ export default function Tasks() {
                         <span className="font-mono text-[10px] font-semibold text-ink-tertiary">#{String(t.id).padStart(3, "0")}</span>
                       </td>
                       <td className="min-w-0 px-4 py-3">
-                        <div className={`flex min-w-0 items-center gap-1.5 text-[13px] font-medium text-ink ${completed ? "line-through" : ""}`}>
+                        <div className={`flex min-w-0 items-center gap-1.5 text-[14px] font-medium text-ink ${completed ? "line-through" : ""}`}>
                           <span className="truncate">{t.title}</span>
                           {!!t.compensation?.length && <CompensationBadge />}
                           {cap(t) && <TableComplaintPill />}
                         </div>
                       </td>
-                      <td className="truncate px-4 py-3 text-[13px] text-ink-secondary">{t.guest}</td>
-                      <td className="truncate px-4 py-3 text-[13px] text-ink-secondary">{String(t.room).replace(/^Room\s+/i, "")}</td>
-                      <td className="truncate px-4 py-3 text-[13px] text-ink-secondary">{t.dept}</td>
-                      <td className="truncate px-4 py-3 text-[13px]">
+                      <td className="truncate px-4 py-3 text-[14px] text-ink-secondary">{t.guest}</td>
+                      <td className="truncate px-4 py-3 text-[14px] text-ink-secondary">{String(t.room).replace(/^Room\s+/i, "")}</td>
+                      <td className="truncate px-4 py-3 text-[14px] text-ink-secondary">{t.dept}</td>
+                      <td className="truncate px-4 py-3 text-[14px]">
                         {t.owner ? <span className="truncate text-ink">{t.owner}</span> : <span className="font-medium text-brand">Unassigned</span>}
                       </td>
                       <td className="truncate px-4 py-3"><SlaCompact t={t} /></td>
@@ -698,10 +700,10 @@ function TaskWindow({
 
 /* ---------- mid-manager task window ---------- */
 
-type Panel = null | "reassign" | "support" | "note" | "escalate" | "unable" | "override" | "compensation";
+type Panel = null | "reassign" | "support" | "note" | "escalate" | "unable" | "override";
 
-const COMP_TYPES = ["Chocolate Cake — $10", "Fruit Platter — $10", "Date Box — $10", "Non-Alcoholic Sparkling Beverage — $10", "Prosecco — $20", "Champagne — $50", "Resort Credit — $500", "Resort Credit — $1,000", "Other"];
-const APPROVERS = ["Sophia Carter (General Manager)", "Duty Manager", "Daniel Reyes (Housekeeping Manager)"];
+const COMP_TYPES = ["Chocolate Cake — $10", "Fruit Platter — $10", "Date Box — $10", "Non-Alcoholic Sparkling Beverage — $10", "Prosecco — $20", "Champagne — $50", "Resort Credit — $500", "Resort Credit — $1,000"];
+const APPROVERS = ["Front Office Manager", "Duty Manager", "F&B Manager", "Guest Relations Manager", "Housekeeping Manager", "General Manager"];
 
 const SLA_TARGET: Record<Priority, number> = { Critical: 10, High: 20, Medium: 40, Low: 60 };
 const slaMinutes = (text: string) => {
@@ -719,8 +721,8 @@ function SlaTimer({ task }: { task: Task }) {
   const total = Math.max(target, Math.ceil(Math.abs(start) / 60)) * 60;
   const over = !met && secs < 0;
   const frac = met ? 1 : over ? 1 : Math.max(0.03, Math.min(1, secs / total));
-  const tone = met ? "text-emerald-600" : over ? "text-red-600" : frac < 0.25 ? "text-brand" : "text-emerald-600";
-  const bar = met ? "bg-emerald-500" : over ? "bg-red-500" : frac < 0.25 ? "bg-brand" : "bg-emerald-500";
+  const tone = met ? "text-[#22C55E]" : over ? "text-[#EF4444]" : frac < 0.25 ? "text-brand" : "text-[#22C55E]";
+  const bar = met ? "bg-green-500" : over ? "bg-red-500" : frac < 0.25 ? "bg-brand" : "bg-green-500";
   const abs = Math.abs(secs);
   const clock = `${String(Math.floor(abs / 60)).padStart(2, "0")}:${String(abs % 60).padStart(2, "0")}`;
   return (
@@ -729,7 +731,7 @@ function SlaTimer({ task }: { task: Task }) {
         {met ? "SLA met" : `SLA Target: ${target} minutes`}
       </div>
       {met ? (
-        <div className="mt-1.5 flex items-center gap-1.5 font-display text-[18px] font-bold text-emerald-600">
+        <div className="mt-1.5 flex items-center gap-1.5 font-display text-[18px] font-bold text-[#22C55E]">
           <CheckCircle2 className="h-[18px] w-[18px]" /> SLA met
         </div>
       ) : (
@@ -747,6 +749,47 @@ const clockText = (mins: number) => {
   const h = Math.floor(m / 60);
   return `${String(h % 12 === 0 ? 12 : h % 12).padStart(2, "0")}:${String(m % 60).padStart(2, "0")} ${h < 12 ? "AM" : "PM"}`;
 };
+
+const DUTY_MANAGER = { initials: "FD", name: "Franck Delen", role: "Duty Manager" };
+
+/** complaint tasks: the health-score impact, and the duty manager Alfon AI notifies on its own */
+function ComplaintImpact({ task }: { task: Task }) {
+  const [notified, setNotified] = useState(false);
+  useEffect(() => {
+    setNotified(false);
+    const id = setTimeout(() => setNotified(true), 700);
+    return () => clearTimeout(id);
+  }, [task.id]);
+  return (
+    <div className="border-t border-line pt-5">
+      <div className="mb-3 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-ink-tertiary">
+        <AlertTriangle className="h-[13px] w-[13px] text-[#DC2626]" /> Guest Complaint Impact
+      </div>
+      <div className="mb-3 rounded-lg bg-[#FEF2F2] px-3 py-3 text-sm text-[#991B1B]">
+        Alfon AI detected this as a guest complaint / service failure for <span className="font-semibold">{task.guest}</span>. It counts against the{" "}
+        <span className="font-semibold">Guest Pulse</span> and <span className="font-semibold">Recovery Rate</span> pillars of the Hotel Health Score and will lower the Guest Satisfaction score until resolved.
+      </div>
+      <div className="flex items-center justify-between rounded-lg bg-subtle px-3 py-2.5">
+        <div className="flex items-center gap-2 text-sm">
+          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-brand font-display text-[10px] font-semibold text-white">{DUTY_MANAGER.initials}</span>
+          <div>
+            <div className="font-medium text-ink">{DUTY_MANAGER.name}</div>
+            <div className="text-xs text-ink-secondary">{DUTY_MANAGER.role}</div>
+          </div>
+        </div>
+        {notified ? (
+          <span className="flex items-center gap-1 text-xs font-semibold text-[#22C55E]">
+            <CheckCircle2 className="h-3.5 w-3.5" /> Auto-notified by Alfon AI
+          </span>
+        ) : (
+          <span className="flex items-center gap-1 text-xs font-medium text-ink-tertiary">
+            <Loader className="h-3 w-3 animate-pulse" /> Notifying duty manager...
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
 
 function ManagerTaskWindow({
   task, onClose, onApply, gm = false,
@@ -770,12 +813,11 @@ function ManagerTaskWindow({
   const [assignSel, setAssignSel] = useState<string[]>([]);
   const [assignQuery, setAssignQuery] = useState("");
   const [text, setText] = useState("");
-  const [modal, setModal] = useState<null | "help" | "void" | "compensation">(null);
+  const [modal, setModal] = useState<null | "help" | "void">(null);
   const [voidReason, setVoidReason] = useState("");
   const [compType, setCompType] = useState("");
   const [compReason, setCompReason] = useState("");
   const [compBy, setCompBy] = useState("");
-  const [compOther, setCompOther] = useState("");
   const [notesDraft, setNotesDraft] = useState(task.details ?? "");
 
   useEffect(() => {
@@ -824,6 +866,21 @@ function ManagerTaskWindow({
         : task.status === "Unable to Complete"
           ? { done: true, title: "Marked Unable to Complete", sub: task.resolution }
           : { done: false, title: "Task Completed — Pending" },
+  ];
+
+  const clock24 = (m: number) => {
+    const x = ((m % 1440) + 1440) % 1440;
+    return `Today ${String(Math.floor(x / 60)).padStart(2, "0")}:${String(x % 60).padStart(2, "0")}`;
+  };
+  const slaTarget = SLA_TARGET[task.priority];
+  const editHistory: { label: string; time: string; by?: string; create?: boolean }[] = [
+    { label: `Created by ${task.owner ?? "System"} (${task.owner ? "Staff" : "System"})`, time: clock24(t0 - 30), create: true },
+    ...(task.tag === "Complaint" || task.status === "Escalated"
+      ? [
+          { label: `Completion time set: ${slaTarget + 12} min`, time: clock24(t0 - 20) },
+          { label: `Completion time changed: ${slaTarget + 12} min → ${slaTarget} min`, time: clock24(t0 + 5), by: "James C. (Supervisor)" },
+        ]
+      : []),
   ];
 
   const roleOf = (name: string) => (name === mgr.name || name === shortName(mgr.name) ? mgr.role : "Line Staff");
@@ -884,6 +941,8 @@ function ManagerTaskWindow({
             <SlaTimer key={task.id + task.sla.text} task={task} />
           </div>
 
+          {task.tag === "Complaint" && <ComplaintImpact task={task} />}
+
           <div className="border-t border-line pt-5">
             <div className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-ink-tertiary">Task Timeline</div>
             <ol>
@@ -936,16 +995,13 @@ function ManagerTaskWindow({
             )}
           </div>
 
-          {task.tag === "Complaint" && (
+          {(task.tag === "Complaint" || task.status === "Escalated") && (
           <div className="border-t border-line pt-5">
-            <div className="mb-2 flex items-center justify-between">
-              <div className="text-[11px] font-semibold uppercase tracking-wide text-ink-tertiary">Compensation</div>
-              <button onClick={() => { setCompType(""); setCompReason(""); setCompBy(""); setModal("compensation"); }} className="text-[12px] font-semibold text-brand">
-                {task.compensation?.length ? "Add another" : "Add compensation"}
-              </button>
+            <div className="mb-3 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-ink-tertiary">
+              <DollarSign className="h-[13px] w-[13px] text-[#22C55E]" /> Guest Compensation
             </div>
-            {task.compensation?.length ? (
-              <div className="space-y-2">
+            {!!task.compensation?.length && (
+              <div className="mb-3 space-y-2">
                 {task.compensation.map((c, i) => (
                   <div key={i} className="rounded-lg bg-subtle px-3 py-2.5">
                     <div className="text-[14px] font-medium text-ink">{c.type}</div>
@@ -954,9 +1010,46 @@ function ManagerTaskWindow({
                   </div>
                 ))}
               </div>
-            ) : (
-              <p className="text-[13px] text-ink-tertiary">No compensation given.</p>
             )}
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs font-medium text-ink-secondary">Compensation Type</label>
+                <Select className="mt-1" value={compType} onChange={(e) => setCompType(e.target.value)} disabled={closed}>
+                  <option value="">Select compensation...</option>
+                  {COMP_TYPES.map((c) => <option key={c}>{c}</option>)}
+                </Select>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-ink-secondary">Reason</label>
+                <Textarea className="mt-1" rows={2} value={compReason} onChange={(e) => setCompReason(e.target.value)} disabled={closed} />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-ink-secondary">Approved By</label>
+                <Select className="mt-1" value={compBy} onChange={(e) => setCompBy(e.target.value)} disabled={closed}>
+                  <option value="">Select designation...</option>
+                  {APPROVERS.map((c) => <option key={c}>{c}</option>)}
+                </Select>
+              </div>
+              {!!task.compensation?.length && (
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-ink-secondary">Status</span>
+                  <span className="inline-flex rounded-full px-2.5 py-1 text-xs font-medium" style={{ background: "#F0FDF4", color: "#22C55E" }}>Completed</span>
+                </div>
+              )}
+              <button
+                disabled={closed || !compType || !compReason.trim() || !compBy}
+                onClick={() => {
+                  onApply(
+                    { compensation: [...(task.compensation ?? []), { type: compType, reason: compReason.trim(), approvedBy: compBy, time: "Just now" }] },
+                    "Compensation submitted", `${compType} · approved by ${compBy}`, "Compensation submitted",
+                  );
+                  setCompType(""); setCompReason(""); setCompBy("");
+                }}
+                className="w-full rounded-lg bg-[#22C55E] py-2.5 font-display text-sm font-semibold text-white transition-all duration-200 hover:-translate-y-px disabled:opacity-60 disabled:hover:translate-y-0"
+              >
+                {task.compensation?.length && !compType && !compReason.trim() && !compBy ? "Compensation Logged" : "Submit Compensation"}
+              </button>
+            </div>
           </div>
           )}
 
@@ -985,6 +1078,21 @@ function ManagerTaskWindow({
             ) : (
               <div className="rounded-lg bg-subtle px-3 py-2.5 text-[14px] leading-relaxed text-ink">{description}</div>
             )}
+          </div>
+
+          <div className="border-t border-line pt-5">
+            <div className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-ink-tertiary">Edit History</div>
+            <div className="space-y-3">
+              {editHistory.map((e, i) => (
+                <div key={i} className="flex items-start gap-2.5">
+                  <span className={`mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full ${e.create ? "bg-brand" : "bg-[#D1D5DB]"}`} />
+                  <div>
+                    <div className="text-sm text-ink">{e.label}</div>
+                    <div className="text-xs text-ink-secondary">{e.time}{e.by ? ` · ${e.by}` : ""}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -1035,7 +1143,7 @@ function ManagerTaskWindow({
             disabled={closed}
             className="w-full rounded-lg border border-line bg-white px-3 py-2.5 text-[13px] font-semibold text-ink-tertiary hover:bg-subtle disabled:opacity-40"
           >
-            Void
+            Void Task
           </button>
         </div>
       </aside>
@@ -1219,55 +1327,6 @@ function ManagerTaskWindow({
                   ))}
                 </div>
                 <button onClick={() => setModal(null)} className="mt-4 w-full text-center text-[13px] font-medium text-ink-secondary">Cancel</button>
-              </>
-            ) : modal === "compensation" ? (
-              <>
-                <h3 className="text-[17px] font-bold text-ink">Guest compensation</h3>
-                <p className="mt-1 text-[13px] text-ink-secondary">{task.guest} · Room {task.room}</p>
-                <div className="mt-4 space-y-3">
-                  <div>
-                    <div className="mb-1 text-[12px] text-ink-secondary">Compensation type</div>
-                    <Select value={compType} onChange={(e) => setCompType(e.target.value)}>
-                      <option value="">Select compensation</option>
-                      {COMP_TYPES.map((c) => <option key={c}>{c}</option>)}
-                    </Select>
-                  </div>
-                  {compType === "Other" && (
-                    <div>
-                      <div className="mb-1 text-[12px] text-ink-secondary">What is the compensation?</div>
-                      <Input value={compOther} onChange={(e) => setCompOther(e.target.value)} placeholder="e.g. Late check-out, spa voucher" />
-                    </div>
-                  )}
-                  <div>
-                    <div className="mb-1 text-[12px] text-ink-secondary">Reason</div>
-                    <Textarea rows={3} value={compReason} onChange={(e) => setCompReason(e.target.value)} placeholder="Why is this compensation being given?" />
-                  </div>
-                  <div>
-                    <div className="mb-1 text-[12px] text-ink-secondary">Approved by</div>
-                    <Select value={compBy} onChange={(e) => setCompBy(e.target.value)}>
-                      <option value="">Select approver</option>
-                      {APPROVERS.map((c) => <option key={c}>{c}</option>)}
-                    </Select>
-                  </div>
-                </div>
-                <div className="mt-5 flex gap-2">
-                  <button onClick={() => setModal(null)} className="flex-1 rounded-control border border-line py-2.5 text-[13px] font-semibold text-ink-secondary hover:bg-subtle">Cancel</button>
-                  <button
-                    disabled={!compType || (compType === "Other" && !compOther.trim()) || !compReason.trim() || !compBy}
-                    onClick={() => {
-                      const compLabel = compType === "Other" ? `Other — ${compOther.trim()}` : compType;
-                      onApply(
-                        { compensation: [...(task.compensation ?? []), { type: compLabel, reason: compReason.trim(), approvedBy: compBy, time: "Just now" }] },
-                        "Compensation submitted", `${compLabel} · approved by ${compBy}`, "Compensation submitted",
-                      );
-                      setCompType(""); setCompReason(""); setCompBy(""); setCompOther("");
-                      setModal(null);
-                    }}
-                    className="flex-1 rounded-lg bg-brand py-2.5 text-[13px] font-semibold text-white hover:bg-brand-hover disabled:opacity-40"
-                  >
-                    Submit compensation
-                  </button>
-                </div>
               </>
             ) : (
               <>

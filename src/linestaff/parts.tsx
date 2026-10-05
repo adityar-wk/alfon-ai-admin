@@ -25,9 +25,9 @@ export const STATUS_LABEL: Record<MTask["status"], string> = {
 export const STATUS_TONE: Record<MTask["status"], string> = {
   unassigned: "text-red-600",
   assigned: "text-amber-600",
-  progress: "text-sky-600",
-  completed: "text-emerald-600",
-  unable: "text-slate-500",
+  progress: "text-blue-600",
+  completed: "text-green-600",
+  unable: "text-gray-500",
 };
 
 export function StatusTag({ s }: { s: MTask["status"] }) {
@@ -132,7 +132,7 @@ export function ContactSheet({ name, phone, onClose, onDone }: { name: string; p
         <div><div className="text-[15px] font-semibold text-ink">{name}</div><div className="text-[13px] text-ink-secondary">{phone}</div></div>
       </div>
       <div className="mt-4 grid grid-cols-2 gap-3">
-        <Button tone="bg-emerald-600" onClick={() => onDone(`Calling ${name}…`)}><Phone className="h-4 w-4" /> Call</Button>
+        <Button tone="bg-green-600" onClick={() => onDone(`Calling ${name}…`)}><Phone className="h-4 w-4" /> Call</Button>
         <Button variant="outline" onClick={() => onDone(`Message sent to ${name}`)}><MessageSquare className="h-4 w-4" /> Message</Button>
       </div>
     </Sheet>
