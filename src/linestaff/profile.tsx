@@ -17,7 +17,7 @@ export function ProfileScreen({
 }) {
   return (
     <div className="flex h-full flex-col">
-      {onBack ? <ScreenHeader title="More" onBack={onBack} /> : <div className="px-6 pb-1 pt-4 text-[20px] font-semibold text-ink">More</div>}
+      {onBack ? <ScreenHeader title="More" onBack={onBack} /> : <div className="px-6 pb-1 pt-4 font-display text-[20px] font-bold text-ink">More</div>}
       <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-6 pt-2 no-scrollbar">
         <div className="flex flex-col items-center pb-8 pt-6 text-center">
           <Avatar name={name} size={88} tone="bg-brand text-white" />
@@ -76,7 +76,7 @@ export function SignedOutScreen({ onSignIn }: { onSignIn: () => void }) {
   return (
     <div className="flex h-full flex-col items-center justify-center px-8 text-center">
       <span className="flex h-16 w-16 items-center justify-center rounded-full bg-brand-tint text-brand"><SlidersHorizontal className="h-7 w-7" /></span>
-      <h2 className="mt-5 text-[20px] font-bold text-ink">You&apos;re signed out</h2>
+      <h2 className="mt-5 font-display text-[20px] font-bold text-ink">You&apos;re signed out</h2>
       <p className="mt-1.5 text-[13px] text-ink-secondary">Sign in again to see your tasks and guest messages.</p>
       <Button className="mt-6 w-full" onClick={onSignIn}>Sign in</Button>
     </div>

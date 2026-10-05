@@ -86,7 +86,7 @@ export function ScreenHeader({ title, onBack, right }: { title?: string; onBack?
         </button>
       )}
       <div className="min-w-0 flex-1 leading-tight">
-        {title && <h1 className="text-[20px] font-semibold text-ink">{title}</h1>}
+        {title && <h1 className="font-display text-[20px] font-bold text-ink">{title}</h1>}
       </div>
       {right}
     </div>
@@ -100,7 +100,7 @@ export function TextHeader({ title, onBack }: { title: string; onBack: () => voi
       <button onClick={onBack} className="flex items-center gap-1.5 py-2 text-[15px] font-medium text-ink">
         <ChevronLeft className="h-5 w-5" /> Back
       </button>
-      <h1 className="mt-1 text-center text-[17px] font-semibold text-ink">{title}</h1>
+      <h1 className="mt-1 text-center font-display text-[17px] font-bold text-ink">{title}</h1>
     </div>
   );
 }
@@ -110,7 +110,7 @@ export function SectionTitle({ children, action, tone = "bg-ink/70", dot = false
     <div className="flex items-center justify-between px-6">
       <div className="flex items-center gap-2.5">
         {dot && <span className={`h-2 w-2 rounded-full ${tone}`} />}
-        <h2 className={`${small ? "text-[15px]" : "text-[19px]"} font-semibold text-ink`}>{children}</h2>
+        <h2 className={`${small ? "text-[15px]" : "text-[19px]"} font-display font-bold text-ink`}>{children}</h2>
       </div>
       {action}
     </div>
@@ -138,7 +138,7 @@ export function SlaClockChip({ left, total }: { left: number; total: number }) {
   const secs = secsFromMinutes(left);
   const tone = slaTone(secs / 60, total);
   return (
-    <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap font-display text-[14px] font-medium tabular-nums" style={{ color: tone.color }}>
+    <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap text-[14px] font-medium tabular-nums" style={{ color: tone.color }}>
       <Clock className="h-4 w-4" strokeWidth={2.5} />
       {formatClock(secs)}
     </span>
@@ -157,7 +157,7 @@ export function SlaCountdown({ left, total }: { left: number; total: number }) {
   const mm = Math.floor(abs / 60);
   const ss = abs % 60;
   return (
-    <div className="flex items-center gap-1.5 text-[17px] font-semibold tabular-nums" style={{ color: tone.color, fontFamily: '"Poppins", "Sora", "Inter", sans-serif' }}>
+    <div className="flex items-center gap-1.5 text-[17px] font-semibold tabular-nums" style={{ color: tone.color }}>
       <Clock className="h-4 w-4" />
       {over ? "-" : ""}{mm}:{String(ss).padStart(2, "0")}
       {over && <span className="text-[10px] font-bold uppercase tracking-wide">breached</span>}
@@ -214,7 +214,7 @@ export function TaskCard({
   return (
     <div className={`relative rounded-2xl border border-[#E6E4DF] bg-white px-3.5 py-2.5 ${done ? "" : "shadow-card"}`}>
       <div onClick={onClick} role={onClick ? "button" : undefined} className={onClick ? "cursor-pointer active:scale-[0.99]" : ""}>
-        <div className={`font-display text-[14px] font-medium leading-snug ${done ? "text-ink-secondary" : "text-ink"}`}>{note}</div>
+        <div className={`text-[14px] font-semibold leading-snug ${done ? "text-ink-secondary" : "text-ink"}`}>{note}</div>
         <div className="mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-[12px]">
           <span className="flex items-center gap-1 text-ink-secondary">
             {/^Room\s/i.test(room) ? <><DoorOpen className="h-3.5 w-3.5" />{room.replace(/^Room\s+/i, "")}</> : room}
@@ -456,7 +456,7 @@ export function Sheet({ title, onClose, children }: { title: string; onClose: ()
       <div className="absolute inset-x-0 bottom-0 max-h-[86%] overflow-y-auto rounded-t-[28px] bg-white p-6 pb-7 shadow-2xl no-scrollbar">
         <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-[#DADADA]" />
         <div className="flex items-center justify-between">
-          <h3 className="text-[22px] font-semibold text-ink">{title}</h3>
+          <h3 className="font-display text-[22px] font-bold text-ink">{title}</h3>
           <button onClick={onClose} aria-label="Close" className="flex h-8 w-8 items-center justify-center rounded-full bg-[#F1F1F3] text-ink-secondary"><X className="h-4 w-4" /></button>
         </div>
         <div className="mt-3">{children}</div>

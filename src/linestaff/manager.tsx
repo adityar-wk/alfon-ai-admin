@@ -429,7 +429,7 @@ export function ManagerPrototype() {
           {bellBtn}
         </div>
         <div className="mt-3 min-w-0">
-          <div className="truncate text-[18px] font-semibold leading-tight text-ink">Good morning, {ME.split(" ")[0]} 👋</div>
+          <div className="truncate font-display text-[18px] font-bold leading-tight text-ink">Good morning,{ME.split(" ")[0]} 👋</div>
           <p className="mt-0.5 text-[12px] font-normal text-ink-secondary">Here's what's happening today</p>
         </div>
       </div>
@@ -456,7 +456,7 @@ export function ManagerPrototype() {
   const Tasks = shell("tasks", (
     <>
       <div className="flex items-center justify-between px-6 py-2">
-        <div className="text-[20px] font-semibold text-ink">Tasks</div>
+        <div className="font-display text-[20px] font-bold text-ink">Tasks</div>
         <div className="flex items-center gap-2">
           {bellBtn}
           <button onClick={openCreate} aria-label="Create task" className="flex h-11 w-11 items-center justify-center rounded-full bg-brand text-white active:bg-brand-hover">
@@ -526,7 +526,7 @@ export function ManagerPrototype() {
         <div className="flex items-center gap-3">
           <Avatar name={staffEntry.name} size={56} tone={staffEntry.role === "Supervisor" ? "bg-violet-50 text-violet-600" : undefined} />
           <div className="leading-tight">
-            <div className="text-[17px] font-bold text-ink">{staffEntry.name}</div>
+            <div className="font-display text-[17px] font-bold text-ink">{staffEntry.name}</div>
             <div className="mt-0.5 text-[12px] text-ink-secondary">{staffEntry.role}</div>
           </div>
         </div>
@@ -542,7 +542,7 @@ export function ManagerPrototype() {
               ].map(([l, v]) => (
                 <div key={l} className={`rounded-2xl bg-white p-3 ${CARD_SHADOW}`}>
                   <div className="text-[11px] text-ink-secondary">{l}</div>
-                  <div className="mt-1 text-[16px] font-bold text-ink">{v}</div>
+                  <div className="mt-1 font-display text-[16px] font-bold text-ink">{v}</div>
                 </div>
               ))}
             </div>
@@ -685,7 +685,7 @@ export function ManagerPrototype() {
   const Guests = shell("guests", (
     <>
       <div className="flex items-center justify-between px-6 py-2">
-        <div className="text-[20px] font-semibold text-ink">Chats</div>
+        <div className="font-display text-[20px] font-bold text-ink">Chats</div>
         <div className="flex items-center gap-2">
           {bellBtn}
           <button
@@ -849,21 +849,23 @@ export function ManagerPrototype() {
 
       {task.status !== "completed" && (
         <div className="flex shrink-0 gap-3 px-6 pb-6 pt-3">
-          <Button variant="outline" className="flex-1" onClick={() => setSheet({ k: "needHelp", taskId: task.id })}>Assist</Button>
           {task.owner === ME || task.status === "progress" ? (
-            <Button
-              className="flex-[1.3]"
-              onClick={() => completeTask(task)}
-            >
-              Complete
-            </Button>
+            <>
+              <Button variant="outline" className="flex-1" onClick={() => setSheet({ k: "needHelp", taskId: task.id })}>Assist</Button>
+              <Button
+                className="flex-[1.3]"
+                onClick={() => completeTask(task)}
+              >
+                Complete
+              </Button>
+            </>
           ) : (
-            <Button
-              className="flex-[1.3]"
+            <button
               onClick={() => { patch(task.id, { owner: ME, status: "progress" }, `${ME} accepted the task`); flash("Task assigned to you"); }}
+              className="w-full rounded-[18px] border-[1.5px] border-brand/35 bg-brand-tint py-[15px] font-display text-[14px] font-bold text-brand active:bg-[#FDE9E1]"
             >
               Accept
-            </Button>
+            </button>
           )}
         </div>
       )}
@@ -970,7 +972,7 @@ export function ManagerPrototype() {
             <div className="relative">
               <Donut size={150} thickness={24} segments={HK_DEPT.items.map(([l, v], i) => ({ label: l, value: v, color: HK_DONUT_COLORS[i] }))} />
               <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-[18px] font-bold text-ink">{HK_DEPT.tasks.toLocaleString()}</span>
+                <span className="font-display text-[18px] font-bold text-ink">{HK_DEPT.tasks.toLocaleString()}</span>
                 <span className="text-[10px] text-ink-tertiary">tasks</span>
               </div>
             </div>
@@ -1122,7 +1124,7 @@ export function ManagerPrototype() {
   const GuestsRoster = shell("guestsRoster", (
     <>
       <div className="flex items-center justify-between px-6 py-2">
-        <div className="text-[20px] font-semibold text-ink">Guests</div>
+        <div className="font-display text-[20px] font-bold text-ink">Guests</div>
         <div className="flex items-center gap-2">{bellBtn}</div>
       </div>
       <div className="mt-3 px-6">

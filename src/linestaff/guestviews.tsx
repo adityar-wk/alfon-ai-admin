@@ -174,7 +174,7 @@ export function GuestProfileScreen({ name, onBack, onMessage, author = "Staff" }
       <div className="min-h-0 flex-1 space-y-3.5 overflow-y-auto px-6 pb-24 pt-1 no-scrollbar">
         {!profileInfo && (
           <>
-            <h1 className="text-[22px] font-bold text-ink">{profileName}</h1>
+            <h1 className="font-display text-[22px] font-bold text-ink">{profileName}</h1>
             <p className={`-mt-2 text-[13px] font-medium ${profileTone}`}>{profileStage}</p>
             <p className="rounded-2xl bg-white p-6 text-center text-[13px] text-ink-tertiary">No profile details available.</p>
             {extraCard}
@@ -187,7 +187,7 @@ export function GuestProfileScreen({ name, onBack, onMessage, author = "Staff" }
               <div className="flex items-center gap-3.5">
                 <Avatar name={profileName} size={56} tone={profileStage === "Pre-arrival" ? "bg-subtle text-ink-secondary" : undefined} />
                 <div className="min-w-0 leading-tight">
-                  <div className="truncate text-[19px] font-bold text-ink">{profileName}</div>
+                  <div className="truncate font-display text-[19px] font-bold text-ink">{profileName}</div>
                   <div className="mt-1 text-[13px] text-ink-secondary">{profileInfo.room} · {profileInfo.roomType}</div>
                   <div className="mt-0.5 text-[12px] text-ink-tertiary">{profileInfo.country} · <span className={`font-medium ${profileTone}`}>{profileStage}</span></div>
                 </div>
