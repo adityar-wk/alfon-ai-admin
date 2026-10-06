@@ -1,7 +1,7 @@
 import { Button } from "../components/ui";
 import { Logo } from "../components/Logo";
 import { useEffect, useMemo, useState } from "react";
-import { Bell, ChevronRight, Plus, BedDouble, User, Building2, ChevronLeft, ArrowUpRight, Clock, AlertTriangle, ClipboardCheck, LayoutGrid, CheckSquare, MessageSquare, MessageCircle, Search, Send, UserCog } from "lucide-react";
+import { Bell, ChevronRight, Plus, BedDouble, User, Building2, ChevronLeft, ArrowUpRight, Clock, AlertTriangle, ClipboardCheck, LayoutGrid, CheckSquare, MessageSquare, Search, Send, UserCog } from "lucide-react";
 import { PRE_ARRIVAL_GUESTS } from "./data";
 import { secsFromMinutes, useClock } from "../data/attention";
 import {
@@ -31,7 +31,7 @@ import {
   sampleUnread,
   ManualTaskFields,
 } from "./mobile";
-import { GuestProfileScreen, GuestChatScreen, type ChatMsg } from "./guestviews";
+import { GuestProfileScreen, GuestChatScreen, MessageGuestButton, type ChatMsg } from "./guestviews";
 import { ProfileScreen, NotificationSettingsScreen, SignedOutScreen } from "./profile";
 
 type Screen = { name: "home" | "tasks" | "notifications" | "taskDetail" | "create" | "guests" | "guestChat" | "guestProfile" | "profile" | "notifSettings" | "analytics"; id?: string };
@@ -376,7 +376,7 @@ export function LineStaffPrototype() {
     setTasks((ts) => [
       {
         id, title, room: r, note: details.trim() || title, status: "pending", left: DEFAULT_SLA, total: DEFAULT_SLA,
-        guest: guestName.trim(), roomType: "—", floor: 0, stay: "—", prefs: [], source: "Created by you", created: "Just now", dept,
+        guest: guestName.trim() || "—", roomType: "—", floor: 0, stay: "—", prefs: [], source: "Created by you", created: "Just now", dept,
       },
       ...ts,
     ]);
@@ -531,6 +531,8 @@ export function LineStaffPrototype() {
   );
 
   const chatName = cur.name === "guestChat" ? cur.id : undefined;
+  const chatTasks = chatName ? tasks.filter((t) => t.guest === chatName && t.status !== "completed") : [];
+  const chatTask = chatTasks.find((t) => t.status === "progress") ?? chatTasks[0];
   const GuestChat = chatName && (
     <GuestChatScreen
       name={chatName}
@@ -542,6 +544,16 @@ export function LineStaffPrototype() {
       onSend={(text) => setChat((c) => ({ ...c, [chatName]: [...threadOf(chatName), { from: "me", text }] }))}
       onBack={nav.back}
       onProfile={() => nav.push({ name: "guestProfile", id: chatName })}
+      task={chatTask && {
+        id: chatTask.id, title: chatTask.title, left: chatTask.left, total: chatTask.total,
+        action: chatTask.status === "pending" ? "Accept" : "Complete",
+        onAction: () => {
+          if (chatTask.status === "pending") return accept(chatTask.id);
+          setStatus(chatTask.id, "completed", "Done just now");
+          setAiDrafts((d) => ({ ...d, [chatName]: `Hi ${chatName.split(" ")[0]}, we've taken care of your request (${chatTask.title.split(" — ")[0].toLowerCase()}) for ${chatTask.room}. Please let us know if there's anything else we can do — we hope you're enjoying your stay.` }));
+          flash("Task complete — review the reply to your guest");
+        },
+      }}
       aiDraft={aiDrafts[chatName]}
       onDraftChange={(text) => setAiDrafts((d) => ({ ...d, [chatName]: text }))}
       onApproveDraft={() => {
@@ -639,15 +651,7 @@ export function LineStaffPrototype() {
         )}
       </div>
 
-      {active.guest !== "—" && (
-        <button
-          onClick={() => nav.push({ name: "guestChat", id: active.guest })}
-          aria-label="Go to guest chat"
-          className="absolute bottom-24 right-5 z-10 flex h-14 w-14 items-center justify-center rounded-full bg-brand text-white shadow-[0_6px_18px_rgba(232,98,58,0.4)]"
-        >
-          <MessageCircle className="h-6 w-6" />
-        </button>
-      )}
+      {active.guest !== "—" && <MessageGuestButton raised onClick={() => nav.push({ name: "guestChat", id: active.guest })} />}
 
       <div className="flex shrink-0 gap-3 px-6 pb-6 pt-3">
         {active.status === "pending" ? (
@@ -723,7 +727,7 @@ export function LineStaffPrototype() {
         />
       </div>
       <div className="shrink-0 px-6 pb-6 pt-2">
-        <Button className="w-full" disabled={!taskTitle.trim() || !guestName.trim()} onClick={createTask}>Create Task</Button>
+        <Button className="w-full" disabled={!taskTitle.trim()} onClick={createTask}>Create Task</Button>
       </div>
     </div>
   );

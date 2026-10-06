@@ -2,13 +2,14 @@ import { Button } from "../components/ui";
 import { Logo } from "../components/Logo";
 import { useMemo, useState } from "react";
 import {
-  Bell, LayoutDashboard, CheckSquare, MessageSquare, Plus, Users, UserCog, UserPlus, ArrowUpRight, MessageCircle, Send, Filter, ChevronRight, ChevronLeft, Search,
+  Bell, LayoutDashboard, CheckSquare, MessageSquare, Plus, Users, UserCog, UserPlus, ArrowUpRight, Send, Filter, ChevronRight, ChevronLeft, Search,
   UserRound, BarChart3, AlertTriangle, User, BedDouble, DoorOpen, DoorClosed, Building2, FileText, Download, UtensilsCrossed, Languages, Thermometer, AlarmClock, Wine, Phone, Mail, Sparkles, SlidersHorizontal, LogOut,
   CheckCircle2, Clock, Loader, AlertCircle, CircleSlash, Wrench, ClipboardCheck, Timer,
 } from "lucide-react";
 import { CLEANING_CHECKLIST, INSPECTION_CHECKLIST, TAG_TONE } from "../data/housekeepingChecklists";
 import { DEPARTMENTS } from "../data/departments";
-import { DetailRow, ProfileSection, GuestProfileScreen, GuestChatScreen } from "./guestviews";
+import { useClock } from "../data/attention";
+import { DetailRow, ProfileSection, GuestProfileScreen, GuestChatScreen, MessageGuestButton } from "./guestviews";
 import { pastel } from "../data/pastel";
 import { NotificationSettingsScreen, SignedOutScreen } from "./profile";
 import { DEPTS, METRICS, COMPLAINT_DETAIL } from "../pages/Analytics";
@@ -17,7 +18,7 @@ import { BarChart } from "../components/BarChart";
 import { SEED_TASKS, SEED_REQUESTS, STAFF, GUEST_STAYS, PRE_ARRIVAL_GUESTS, CHECKED_OUT_GUESTS, GUEST_PROFILES, ROOMS, roomTypeOf, type MTask, type Presence, type Staffer, type HkRoom, type RoomStatus, type EscType } from "./data";
 import {
   PhoneFrame, ScreenHeader, SectionTitle, TaskCard, StatCard, HomeStat, Avatar, Chips, Segmented, FloatingNav, SelectField, TextField, Label, Sheet,
-  useNav, useToast, CARD_SHADOW, TextHeader, SlaCountdown, fmtMins, CompensationSheet, type Priority,
+  useNav, useToast, CARD_SHADOW, TextHeader, SlaCountdown, fmtMins, CompensationSheet, slaTone, type Priority,
   ChatRow,
   NotifRow,
   PersonRow,
@@ -81,13 +82,56 @@ const ROOM_CARD_TEXT: Record<RoomStatus, string> = {
   "Out of Service": "text-red-600",
   "Out of Order": "text-gray-500",
 };
-const ROOM_CARD_BORDER: Record<RoomStatus, string> = {
-  Inspected: "border-line",
-  "In Progress": "border-blue-300",
-  "Needs Inspection": "border-amber-300",
-  "Out of Service": "border-line",
-  "Out of Order": "border-line",
+const ROOM_SLA_MINS: Partial<Record<RoomStatus, number>> = { "In Progress": 30, "Needs Inspection": 15 };
+const roomDue = (s: RoomStatus) => {
+  const m = ROOM_SLA_MINS[s];
+  return m ? Date.now() + m * 60_000 : undefined;
 };
+const seedRooms = () => ROOMS.map((r) => ({ ...r, due: r.mins != null ? Date.now() + r.mins * 60_000 : undefined }));
+
+function RoomTimer({ room }: { room: HkRoom }) {
+  useClock();
+  if (room.due == null) return null;
+  const secs = Math.round((room.due - Date.now()) / 1000);
+  const tone = slaTone(secs / 60, ROOM_SLA_MINS[room.status] ?? 30);
+  const abs = Math.abs(secs);
+  return (
+    <span className={`flex shrink-0 items-center gap-1 font-medium tabular-nums ${tone.text}`}>
+      <Timer className="h-3 w-3" /> {secs < 0 ? "-" : ""}{String(Math.floor(abs / 60)).padStart(2, "0")}:{String(abs % 60).padStart(2, "0")}
+    </span>
+  );
+}
+
+/** The same housekeeper / SLA block on the room sheet and both checklists. */
+function RoomSummary({ room, progress }: { room: HkRoom; progress?: { done: number; total: number } }) {
+  const role = room.status === "Needs Inspection" ? "Inspector" : "Housekeeper";
+  const who = room.assignee ?? (room.open ? "Open task" : "Unassigned");
+  const pct = progress ? Math.round((progress.done / Math.max(progress.total, 1)) * 100) : 0;
+  const row = "flex items-center justify-between gap-3 py-3 text-[13px]";
+  return (
+    <div className="rounded-2xl bg-[#F6F6F8] px-4">
+      <div className={row}>
+        <span className="text-ink-secondary">{role}</span>
+        <span className={`truncate font-semibold ${room.open && !room.assignee ? "text-amber-700" : "text-ink"}`}>{who}</span>
+      </div>
+      <div className={`${row} border-t border-[#E8E8EC]`}>
+        <span className="text-ink-secondary">SLA</span>
+        {room.due != null ? <RoomTimer room={room} /> : <span className="font-medium text-ink">—</span>}
+      </div>
+      {progress && (
+        <div className="border-t border-[#E8E8EC] py-3">
+          <div className="flex items-center justify-between text-[13px]">
+            <span className="text-ink-secondary">Progress</span>
+            <span className="font-semibold text-ink">{progress.done} / {progress.total}</span>
+          </div>
+          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white">
+            <div className="h-full rounded-full bg-brand transition-all" style={{ width: `${pct}%` }} />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 const TASK_FILTERS = ["All", "Unassigned", "At Risk", "Overdue", "Completed"] as const;
 type TaskFilter = (typeof TASK_FILTERS)[number];
 const STAFF_TABS = ["Overview", "Schedule", "Performance"] as const;
@@ -206,7 +250,7 @@ export function ManagerPrototype() {
   const [rosterFilterOpen, setRosterFilterOpen] = useState(false);
   const [staffTab, setStaffTab] = useState<StaffTab>("Overview");
   const [compOpen, setCompOpen] = useState(false);
-  const [rooms, setRooms] = useState<HkRoom[]>(ROOMS);
+  const [rooms, setRooms] = useState<HkRoom[]>(seedRooms);
   const [roomFilter, setRoomFilter] = useState<RoomStatusFilter>("All");
   const [roomQuery, setRoomQuery] = useState("");
   const [roomSheet, setRoomSheet] = useState<string | null>(null);
@@ -310,6 +354,7 @@ export function ManagerPrototype() {
   const guestMap = useMemo(() => {
     const map = new Map<string, GuestEntry>();
     for (const t of tasks) {
+      if (!t.guest || t.guest === "—") continue;
       const stay = GUEST_STAYS[t.guest];
       const cur = map.get(t.guest) ?? {
         name: t.guest, room: t.room, complaint: false, prefs: [], convo: "—", summary: "", summaryIsComplaint: false, items: [],
@@ -588,7 +633,7 @@ export function ManagerPrototype() {
           const occupied = guestsSorted.some((g) => g.room === r.number);
           const dulled = r.status === "Out of Order";
           return (
-          <button key={r.number} onClick={() => setRoomSheet(r.number)} className={`block w-full rounded-2xl border p-3 text-left active:scale-[0.99] ${dulled ? "bg-subtle" : "bg-white"} ${ROOM_CARD_BORDER[r.status]}`}>
+          <button key={r.number} onClick={() => setRoomSheet(r.number)} className={`block w-full rounded-2xl border p-3 text-left active:scale-[0.99] border-line ${dulled ? "bg-subtle" : "bg-white"}`}>
             <div className="flex items-center justify-between gap-2">
               <div className={`min-w-0 truncate text-[13px] font-bold ${dulled ? "text-ink-tertiary" : "text-ink"}`}>{r.number}</div>
               <span className="flex shrink-0 items-center gap-1.5">
@@ -607,11 +652,7 @@ export function ManagerPrototype() {
             {(r.status === "In Progress" || r.status === "Needs Inspection") && (
               <div className="mt-1 flex items-center justify-between gap-2">
                 <span className="min-w-0 truncate text-[10px] font-medium text-ink-secondary">{r.assignee ?? "Unassigned"}</span>
-                {r.mins != null && (
-                  <span className="ml-auto flex shrink-0 items-center gap-1 text-[11px] font-medium text-green-600">
-                    <Timer className="h-3 w-3" /> {r.mins} mins left
-                  </span>
-                )}
+                <span className="ml-auto text-[11px]"><RoomTimer room={r} /></span>
               </div>
             )}
           </button>
@@ -624,23 +665,8 @@ export function ManagerPrototype() {
 
   const RoomSheet = roomEntry && (
     <Sheet title={roomEntry.number} onClose={() => setRoomSheet(null)}>
-      {roomEntry.assignee ? (
-        <div className="mb-4 rounded-2xl bg-[#F6F6F8] p-3 leading-tight">
-          <div className="text-[11px] text-ink-tertiary">{roomEntry.status === "In Progress" ? "Cleaning by" : "Inspection assigned to"}</div>
-          <div className="text-[14px] font-semibold text-ink">{roomEntry.assignee}</div>
-        </div>
-      ) : roomEntry.status === "In Progress" ? (
-        <p className={`mb-4 rounded-2xl p-3 text-[13px] ${roomEntry.open ? "bg-amber-50 text-amber-700" : "bg-[#F6F6F8] text-ink-secondary"}`}>
-          {roomEntry.open ? "Open task — waiting for a line staff member to pick it up." : "No staff assigned yet."}
-        </p>
-      ) : null}
       {(roomEntry.status === "In Progress" || roomEntry.status === "Needs Inspection") && (
-        <div className="mb-4 flex items-center justify-between rounded-2xl border border-line px-4 py-3 text-[13px]">
-          <span className="text-ink-secondary">SLA</span>
-          <span className="flex items-center gap-1.5 font-medium text-ink">
-            <Timer className="h-3.5 w-3.5 text-ink-tertiary" /> {roomEntry.mins != null ? `${roomEntry.mins} mins left` : "—"}
-          </span>
-        </div>
+        <div className="mb-4"><RoomSummary room={roomEntry} /></div>
       )}
       <Label>Status</Label>
       <div className="space-y-2">
@@ -653,7 +679,7 @@ export function ManagerPrototype() {
               key={v}
               onClick={() => {
                 if (gated) return setRoomChecklist({ number: roomEntry.number, kind: roomEntry.status === "In Progress" ? "cleaning" : "inspection" });
-                setRooms((rs) => rs.map((r) => (r.number === roomEntry.number ? { ...r, status: v, assignee: v === r.status ? r.assignee : null, open: v === r.status ? r.open : false } : r)));
+                setRooms((rs) => rs.map((r) => (r.number === roomEntry.number ? v === r.status ? r : { ...r, status: v, assignee: null, open: false, due: roomDue(v) } : r)));
                 flash(`${roomEntry.number} marked ${v}`);
               }}
               className={`flex w-full items-center gap-3 rounded-2xl border p-3 text-left ${on ? "border-brand bg-brand-tint/40" : "border-line bg-white"}`}
@@ -682,9 +708,12 @@ export function ManagerPrototype() {
           <div className="mt-5" />
           {roomEntry.status === "In Progress" && !roomEntry.open && (
             <>
-              <Button variant="outline" className="w-full" onClick={() => { setRooms((rs) => rs.map((r) => (r.number === roomEntry.number ? { ...r, open: true } : r))); flash(`${roomEntry.number} is now open for line staff to pick up`); }}>
-                Make it an open task — anyone can pick it up
-              </Button>
+              <button
+                onClick={() => { setRooms((rs) => rs.map((r) => (r.number === roomEntry.number ? { ...r, open: true } : r))); flash(`${roomEntry.number} is now open for line staff to pick up`); }}
+                className="w-full rounded-control border-[1.5px] border-brand/35 bg-brand-tint py-[15px] font-display text-[14px] font-bold text-brand active:bg-[#FDE9E1]"
+              >
+                Make open task
+              </button>
               <div className="my-4 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wide text-ink-tertiary">
                 <span className="h-px flex-1 bg-line" /> or assign to someone <span className="h-px flex-1 bg-line" />
               </div>
@@ -761,6 +790,8 @@ export function ManagerPrototype() {
     </>
   ));
 
+  const chatTasks = guestName ? tasks.filter((t) => t.guest === guestName && isOpen(t)) : [];
+  const chatTask = chatTasks.find((t) => t.owner === ME || t.status === "progress") ?? chatTasks[0];
   const GuestDetail = guestName && (guestEntry || preGuest) && (
     <GuestChatScreen
       name={guestName}
@@ -773,6 +804,19 @@ export function ManagerPrototype() {
       onSend={(text) => setChat((c) => ({ ...c, [guestName]: [...guestThread, { from: "me", text }] }))}
       onBack={nav.back}
       onProfile={() => nav.push({ name: "guestProfile", id: guestName })}
+      task={chatTask && {
+        id: chatTask.id, title: chatTask.title, left: chatTask.slaLeft, total: chatTask.slaTotal,
+        action: chatTask.owner === ME || chatTask.status === "progress" ? "Complete" : "Accept",
+        onAction: () => {
+          if (chatTask.owner !== ME && chatTask.status !== "progress") {
+            patch(chatTask.id, { owner: ME, status: "progress" }, `${ME} accepted the task`);
+            return flash("Task assigned to you");
+          }
+          patch(chatTask.id, { status: "completed", escalated: false }, `${ME} marked complete`);
+          setAiDrafts((d) => ({ ...d, [guestName]: `Hi ${guestName.split(" ")[0]}, we've taken care of your request (${chatTask.title.toLowerCase()}) for ${chatTask.room}. Please let us know if there's anything else we can do — we hope you're enjoying your stay.` }));
+          flash("Task complete — review the reply to your guest");
+        },
+      }}
       aiDraft={aiDrafts[guestName]}
       onDraftChange={(text) => setAiDrafts((d) => ({ ...d, [guestName]: text }))}
       onApproveDraft={approveDraft}
@@ -805,11 +849,13 @@ export function ManagerPrototype() {
         </div>
 
         <div className="divide-y divide-line rounded-2xl border border-line bg-white px-4">
-          <DetailRow icon={User} label="Guest">
-            <button onClick={() => nav.push({ name: "guestProfile", id: task.guest })} className="flex items-center gap-1 text-left font-medium text-brand">
-              {task.guest} <ChevronRight className="h-4 w-4" />
-            </button>
-          </DetailRow>
+          {task.guest !== "—" && (
+            <DetailRow icon={User} label="Guest">
+              <button onClick={() => nav.push({ name: "guestProfile", id: task.guest })} className="flex items-center gap-1 text-left font-medium text-brand">
+                {task.guest} <ChevronRight className="h-4 w-4" />
+              </button>
+            </DetailRow>
+          )}
           <DetailRow icon={BedDouble} label="Room">{task.room}</DetailRow>
           <DetailRow icon={Building2} label="Department">{task.dept ?? "Housekeeping"}</DetailRow>
           <DetailRow icon={UserCog} label="Assigned to">{task.owner ?? <span className="text-red-600">Unassigned</span>}</DetailRow>
@@ -868,13 +914,7 @@ export function ManagerPrototype() {
         </div>
       </div>
 
-      <button
-        onClick={() => nav.push({ name: "guestDetail", id: task.guest })}
-        aria-label="Message guest"
-        className="absolute bottom-24 right-5 z-10 flex h-14 w-14 items-center justify-center rounded-full bg-brand text-white shadow-[0_6px_18px_rgba(232,98,58,0.4)]"
-      >
-        <MessageCircle className="h-6 w-6" />
-      </button>
+      {task.guest !== "—" && <MessageGuestButton raised onClick={() => nav.push({ name: "guestDetail", id: task.guest })} />}
 
       {isOpen(task) && (
         <div className="flex shrink-0 gap-3 px-6 pb-6 pt-3">
@@ -934,13 +974,13 @@ export function ManagerPrototype() {
       <div className="shrink-0 px-6 pb-6 pt-2">
         <Button
           className="w-full"
-          disabled={!taskTitle.trim() || !taskGuest.trim()}
+          disabled={!taskTitle.trim()}
           onClick={() => {
             const id = "n" + Date.now();
             const roomLabel = room.trim() ? `Room ${room.trim().replace(/^room\s*/i, "")}` : "—";
             const title = taskTitle.trim();
             setTasks((ts) => [{
-              id, room: roomLabel, guest: taskGuest.trim(), title, dept: taskDept, note: details.trim() || title, priority: "Medium", status: "unassigned", owner: null, support: [],
+              id, room: roomLabel, guest: taskGuest.trim() || "—", title, dept: taskDept, note: details.trim() || title, priority: "Medium", status: "unassigned", owner: null, support: [],
               slaTotal: DEFAULT_SLA, slaLeft: DEFAULT_SLA, isNew: true, createdAt: "now", pickup: "Not yet picked up", summary: details.trim() || title, prefs: [], convo: "Created manually by the department head.",
               timeline: [{ t: "now", text: `Created manually by ${ME}` }], notes: [],
             }, ...ts]);
@@ -1330,7 +1370,7 @@ export function ManagerPrototype() {
             room={checklistRoom}
             onClose={() => setRoomChecklist(null)}
             onSubmit={() => {
-              setRooms((rs) => rs.map((r) => (r.number === checklistRoom.number ? { ...r, status: "Needs Inspection", assignee: null, open: false } : r)));
+              setRooms((rs) => rs.map((r) => (r.number === checklistRoom.number ? { ...r, status: "Needs Inspection", assignee: null, open: false, due: roomDue("Needs Inspection") } : r)));
               flash(`${checklistRoom.number} submitted for inspection`);
               setRoomChecklist(null);
             }}
@@ -1341,12 +1381,12 @@ export function ManagerPrototype() {
             room={checklistRoom}
             onClose={() => setRoomChecklist(null)}
             onApprove={() => {
-              setRooms((rs) => rs.map((r) => (r.number === checklistRoom.number ? { ...r, status: "Inspected", assignee: null, open: false } : r)));
+              setRooms((rs) => rs.map((r) => (r.number === checklistRoom.number ? { ...r, status: "Inspected", assignee: null, open: false, due: undefined } : r)));
               flash(`${checklistRoom.number} approved and cleared`);
               setRoomChecklist(null);
             }}
             onFlag={() => {
-              setRooms((rs) => rs.map((r) => (r.number === checklistRoom.number ? { ...r, status: "In Progress" } : r)));
+              setRooms((rs) => rs.map((r) => (r.number === checklistRoom.number ? { ...r, status: "In Progress", due: roomDue("In Progress") } : r)));
               flash(`${checklistRoom.number} flagged for re-cleaning`);
               setRoomChecklist(null);
             }}
@@ -1370,7 +1410,7 @@ export function ManagerPrototype() {
         <button
           className="rounded-lg border border-line bg-white px-3 py-1.5 text-[12px] font-medium text-ink-secondary"
           onClick={() => {
-            nav.reset(); setTasks(SEED_TASKS); setRooms(ROOMS); setSheet(null); setNeedHelpReason(""); setChat({}); setManual({});
+            nav.reset(); setTasks(SEED_TASKS); setRooms(seedRooms()); setSheet(null); setNeedHelpReason(""); setChat({}); setManual({});
             setFilter("All"); setRoleFilter("All"); setGuestFilter("All"); setGuestQuery("");
             setTaskFilter("All"); setTaskQuery(""); setStageFilter("All"); setRosterQuery(""); setTeamQuery(""); setStaffTab("Overview"); setRoomFilter("All"); setRoomQuery(""); setRoomSheet(null); setRoomChecklist(null);
           }}
@@ -1399,16 +1439,9 @@ function CleaningChecklistSheet({
 
   return (
     <Sheet title={`${room.number} — Room Cleaning`} onClose={onClose}>
-      <div className="mb-4 flex items-center justify-between rounded-2xl bg-[#F6F6F8] p-3 text-[13px]">
-        <span className="text-ink-secondary">Housekeeper: <span className="font-medium text-ink">{room.assignee ?? "Unassigned"}</span>{room.mins != null && <> · Timer: <span className="font-medium text-ink">{room.mins} min left</span></>}</span>
-        <span className="flex items-center gap-3">
-          <span className="text-ink-tertiary">{doneCount} / {CLEANING_CHECKLIST.length}</span>
-          <button type="button" onClick={() => setChecked(CLEANING_CHECKLIST.map(() => !allDone))} className="font-semibold text-brand">
-            {allDone ? "Clear all" : "Select all"}
-          </button>
-        </span>
-      </div>
-      <div className="space-y-2">
+      <RoomSummary room={room} progress={{ done: doneCount, total: CLEANING_CHECKLIST.length }} />
+      <SelectAllRow checked={allDone} onChange={() => setChecked(CLEANING_CHECKLIST.map(() => !allDone))} />
+      <div className="mt-4 space-y-2">
         {CLEANING_CHECKLIST.map((item, i) => (
           <label
             key={item}
@@ -1427,6 +1460,15 @@ function CleaningChecklistSheet({
   );
 }
 
+function SelectAllRow({ checked, onChange }: { checked: boolean; onChange: () => void }) {
+  return (
+    <label className="mt-3 flex cursor-pointer items-center gap-3 rounded-2xl border border-line bg-white p-3.5 text-[13px] font-semibold text-ink">
+      <input type="checkbox" className="h-4 w-4 shrink-0 accent-brand" checked={checked} onChange={onChange} />
+      Select all
+    </label>
+  );
+}
+
 function InspectionChecklistSheet({
   room,
   onClose,
@@ -1441,26 +1483,13 @@ function InspectionChecklistSheet({
   const [checked, setChecked] = useState<boolean[]>(() => INSPECTION_CHECKLIST.map(() => false));
   const doneCount = checked.filter(Boolean).length;
   const allDone = doneCount === INSPECTION_CHECKLIST.length;
-  const pct = Math.round((doneCount / INSPECTION_CHECKLIST.length) * 100);
   const toggle = (i: number) => setChecked((c) => c.map((v, idx) => (idx === i ? !v : v)));
   const sections = Array.from(new Set(INSPECTION_CHECKLIST.map((it) => it.section)));
 
   return (
     <Sheet title={`${room.number} — LQA Inspection`} onClose={onClose}>
-      <div className="rounded-2xl bg-[#F6F6F8] p-3">
-        <div className="text-[11px] font-semibold uppercase tracking-wide text-ink-tertiary">Leading Quality Assurance Standard</div>
-        <div className="mt-1 text-[13px] text-ink-secondary">Housekeeper: <span className="font-medium text-ink">{room.assignee ?? "Unassigned"}</span></div>
-        <div className="mt-2 flex items-center justify-between gap-2 text-[12px] text-ink-tertiary">
-          <span>{doneCount} / {INSPECTION_CHECKLIST.length} verified</span>
-          <button type="button" onClick={() => setChecked(INSPECTION_CHECKLIST.map(() => !allDone))} className="font-semibold text-brand">
-            {allDone ? "Clear all" : "Select all"}
-          </button>
-          <span className="font-semibold text-ink">{pct}%</span>
-        </div>
-        <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white">
-          <div className="h-full rounded-full bg-brand transition-all" style={{ width: `${pct}%` }} />
-        </div>
-      </div>
+      <RoomSummary room={room} progress={{ done: doneCount, total: INSPECTION_CHECKLIST.length }} />
+      <SelectAllRow checked={allDone} onChange={() => setChecked(INSPECTION_CHECKLIST.map(() => !allDone))} />
 
       <div className="mt-4 space-y-5">
         {sections.map((sec) => (

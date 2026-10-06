@@ -290,7 +290,7 @@ export const GUEST_PROFILES: Record<string, GuestProfileInfo> = {
 };
 
 export type RoomStatus = "Inspected" | "In Progress" | "Needs Inspection" | "Out of Service" | "Out of Order";
-export type HkRoom = { number: string; floor: number; roomType: string; status: RoomStatus; assignee: string | null; /** minutes left on the cleaning or inspection SLA */ mins?: number; /** cleaning left open for any line staff to pick up (never for inspections) */ open?: boolean };
+export type HkRoom = { number: string; floor: number; roomType: string; status: RoomStatus; assignee: string | null; /** minutes left on the cleaning or inspection SLA */ mins?: number; /** epoch ms when the current SLA runs out */ due?: number; /** cleaning left open for any line staff to pick up (never for inspections) */ open?: boolean };
 export const ROOMS: HkRoom[] = [
   { number: "Room 305", floor: 3, roomType: "Standard Twin", status: "In Progress", assignee: "Maria Santos", mins: 18 },
   { number: "Room 410", floor: 4, roomType: "Deluxe King", status: "Inspected", assignee: null },

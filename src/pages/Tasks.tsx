@@ -956,7 +956,7 @@ function ManagerTaskWindow({
           </div>
 
           <div className="space-y-2 border-t border-line pt-4 text-[14px]">
-            <div className="flex items-center justify-between"><span className="text-ink-secondary">Guest</span><Link to={guestId ? `/guest-chats?guest=${guestId}` : `/guest-chats?name=${encodeURIComponent(task.guest)}&room=${task.room}`} className="font-medium text-brand hover:underline">{task.guest}</Link></div>
+            <div className="flex items-center justify-between"><span className="text-ink-secondary">Guest</span>{task.guest === "—" ? <span className="font-medium text-ink">—</span> : <Link to={guestId ? `/guest-chats?guest=${guestId}` : `/guest-chats?name=${encodeURIComponent(task.guest)}&room=${task.room}`} className="font-medium text-brand hover:underline">{task.guest}</Link>}</div>
             <div className="flex items-center justify-between"><span className="text-ink-secondary">Room</span><span className="font-medium text-ink">{task.room}</span></div>
             <div className="flex items-center justify-between"><span className="text-ink-secondary">Department</span><span className="font-medium text-ink">{task.dept}</span></div>
             <div>
@@ -1429,13 +1429,13 @@ function NewTask({
   const [dept, setDept] = useState(deptOptions[0]);
   const [details, setDetails] = useState("");
 
-  const valid = title.trim() && guest.trim();
+  const valid = title.trim();
 
   const submit = () => {
     if (!valid) return;
     onCreate({
       title: title.trim(),
-      guest: guest.trim(),
+      guest: guest.trim() || "—",
       room: room.trim() || "—",
       dept,
       owner: null,
@@ -1461,7 +1461,7 @@ function NewTask({
 
       <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 py-5">
         <div className="grid grid-cols-[1fr_120px] gap-3">
-          <Field label="Guest" required>
+          <Field label="Guest" hint="Optional.">
             <Input value={guest} onChange={(e) => setGuest(e.target.value)} placeholder="Guest name" />
           </Field>
           <Field label="Room" hint="Optional.">

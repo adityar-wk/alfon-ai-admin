@@ -146,7 +146,7 @@ export function SlaClockChip({ left, total }: { left: number; total: number }) {
   );
 }
 
-export function SlaCountdown({ left, total }: { left: number; total: number }) {
+export function SlaCountdown({ left, total, compact }: { left: number; total: number; compact?: boolean }) {
   const [secs, setSecs] = useState(() => Math.round(left * 60));
   useEffect(() => {
     const id = setInterval(() => setSecs((s) => s - 1), 1000);
@@ -157,6 +157,13 @@ export function SlaCountdown({ left, total }: { left: number; total: number }) {
   const abs = Math.abs(secs);
   const mm = Math.floor(abs / 60);
   const ss = abs % 60;
+  if (compact) {
+    return (
+      <span className="shrink-0 text-[13px] font-semibold tabular-nums" style={{ color: tone.color }}>
+        {over ? "-" : ""}{String(mm).padStart(2, "0")}:{String(ss).padStart(2, "0")}
+      </span>
+    );
+  }
   return (
     <div className="flex items-center gap-1.5 text-[17px] font-semibold tabular-nums" style={{ color: tone.color }}>
       <Clock className="h-4 w-4" />
@@ -495,7 +502,7 @@ export function ManualTaskFields({
 }) {
   return (
     <>
-      <Label>Guest *</Label>
+      <Label>Guest (optional)</Label>
       <TextField value={guest} onChange={onGuest} placeholder="Guest name" />
       <Label>Room (optional)</Label>
       <TextField value={room} onChange={onRoom} placeholder="e.g. 1608" />
