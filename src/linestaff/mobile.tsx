@@ -22,6 +22,9 @@ export const PRIORITY_STYLE: Record<Priority, { dot: string; pill: string }> = {
 /** every phone card shares one flat style: hairline border, no elevation */
 export const CARD_SHADOW = "border border-[#F0F0F0]";
 
+/** plain 44px circle for back, bell, settings, and an inactive filter */
+export const ICON_BTN = "flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-ink active:bg-ink/5";
+
 /* ---------- phone ---------- */
 
 export function PhoneFrame({ children, white = false }: { children: ReactNode; white?: boolean }) {
@@ -83,7 +86,7 @@ export function ScreenHeader({ title, onBack, right, divider = true }: { title?:
   return (
     <div className={`sticky top-0 z-10 flex items-center gap-1 bg-white pb-2 pt-3 pr-4 ${divider ? "border-b border-[#F0F0F0]" : ""} ${onBack ? "pl-4" : "pl-6"}`}>
       {onBack && (
-        <button onClick={onBack} aria-label="Back" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-ink active:bg-ink/5">
+        <button onClick={onBack} aria-label="Back" className={ICON_BTN}>
           <ChevronLeft className="h-6 w-6" />
         </button>
       )}
@@ -425,14 +428,14 @@ export function NotifRow({ label, tone, time, task, sub, unread, onOpen }: { lab
 
 /* ---------- controls ---------- */
 
-export function Chips<T extends string>({ items, active, onChange, counts, flat: _flat = false, calm = false }: { items: readonly T[]; active: T; onChange: (v: T) => void; counts?: Partial<Record<T, number>>; flat?: boolean; /** selected medium / unselected regular — manager home */ calm?: boolean }) {
+export function Chips<T extends string>({ items, active, onChange, counts, flat: _flat = false }: { items: readonly T[]; active: T; onChange: (v: T) => void; counts?: Partial<Record<T, number>>; flat?: boolean }) {
   return (
     <div className="no-scrollbar -mx-0 flex gap-2 overflow-x-auto px-6 pb-1">
       {items.map((c) => (
         <button
           key={c}
           onClick={() => onChange(c)}
-          className={`shrink-0 rounded-full ${calm ? (active === c ? "font-medium" : "font-normal") : "font-semibold"} px-3.5 py-1.5 text-[12px] ${active === c ? "bg-brand text-white" : "bg-subtle text-ink-secondary"}`}
+          className={`shrink-0 rounded-full px-3.5 py-1.5 text-[12px] font-semibold ${active === c ? "bg-brand text-white" : "bg-subtle text-ink-secondary"}`}
         >
           {c}
           {counts?.[c] !== undefined && <span className={`ml-1.5 ${active === c ? "text-white/80" : "text-ink-tertiary"}`}>{counts[c]}</span>}

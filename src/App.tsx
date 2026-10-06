@@ -28,6 +28,7 @@ import HotelsList from "./pages/admin/HotelsList";
 import AddHotel from "./pages/admin/AddHotel";
 import HotelDetail from "./pages/admin/HotelDetail";
 import SuperAdminSettings from "./pages/admin/SuperAdminSettings";
+import SuperAdminMobile from "./pages/admin/SuperAdminMobile";
 import DeptTemplates from "./pages/admin/DeptTemplates";
 import DeptTemplateDetail from "./pages/admin/DeptTemplateDetail";
 
@@ -70,6 +71,7 @@ export const router = createBrowserRouter([
       { path: "/admin/department-templates", element: <DeptTemplates /> },
       { path: "/admin/department-templates/:slug", element: <DeptTemplateDetail /> },
       { path: "/admin/settings", element: <SuperAdminSettings /> },
+      { path: "/admin/mobile", element: <SuperAdminMobile /> },
       { path: "*", element: <Navigate to="/onboarding" replace /> },
     ],
   },

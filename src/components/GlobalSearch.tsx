@@ -18,7 +18,7 @@ const MID_PAGES: [string, string][] = [
   ["Home", "/department"], ["Tasks", "/tasks"], ["Guest Chats", "/guest-chats"], ["Guests", "/guests"], ["Housekeeping", "/housekeeping"],
   ["Team", "/team"], ["Analytics", "/analytics"], ["Reports", "/reports"],
 ];
-const ADMIN_PAGES: [string, string][] = [["Hotels", "/admin/hotels"], ["Department Templates", "/admin/department-templates"], ["Settings", "/admin/settings"]];
+const ADMIN_PAGES: [string, string][] = [["Hotels", "/admin/hotels"], ["Department Templates", "/admin/department-templates"], ["Settings", "/admin/settings"], ["Mobile App", "/admin/mobile"]];
 
 const GROUP_ORDER: Group[] = ["Pages", "Tasks", "Guests", "Team", "Hotels"];
 

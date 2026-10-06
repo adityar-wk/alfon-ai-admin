@@ -1,7 +1,7 @@
 import { Button } from "../components/ui";
 import { useEffect, useRef, useState } from "react";
 import { Sparkles, Pencil, Plus, X, ChevronLeft, User, BedDouble, UtensilsCrossed, Languages, Thermometer, AlarmClock, Wine, Phone, Mail, MessageSquare, ArrowUp, ClipboardList } from "lucide-react";
-import { Avatar, CARD_SHADOW, SlaCountdown } from "./mobile";
+import { Avatar, CARD_SHADOW, ICON_BTN, SlaCountdown } from "./mobile";
 import { GUEST_PROFILES, PRE_ARRIVAL_GUESTS, CHECKED_OUT_GUESTS } from "./data";
 
 export const DetailRow = ({ icon: Icon, label, children }: { icon: React.ComponentType<{ className?: string }>; label: string; children: React.ReactNode }) => (
@@ -193,8 +193,8 @@ export function GuestProfileScreen({ name, onBack, onMessage, author = "Staff" }
   return (
     <div className="relative flex h-full flex-col">
       <div className="flex shrink-0 items-center justify-between px-6 pb-2 pt-4">
-        <button onClick={nav.back} aria-label="Back" className="flex h-10 w-10 items-center justify-center rounded-full border border-[#F0F0F0] bg-white text-ink">
-          <ChevronLeft className="h-5 w-5" />
+        <button onClick={nav.back} aria-label="Back" className={ICON_BTN}>
+          <ChevronLeft className="h-6 w-6" />
         </button>
         <button onClick={startEdit} aria-label="Edit profile" className="flex h-9 items-center gap-1.5 rounded-full border border-[#F0F0F0] bg-white px-3.5 text-[13px] font-semibold text-ink">
           <Pencil className="h-3.5 w-3.5" /> Edit
@@ -334,8 +334,8 @@ export function GuestChatScreen({
   return (
     <div className="flex h-full flex-col bg-white">
       <div className={`flex shrink-0 items-center gap-3 bg-white px-6 pb-3 pt-4 ${task ? "" : "border-b border-line"}`}>
-        <button onClick={onBack} aria-label="Back" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#F0F0F0] bg-white text-ink">
-          <ChevronLeft className="h-5 w-5" />
+        <button onClick={onBack} aria-label="Back" className={ICON_BTN}>
+          <ChevronLeft className="h-6 w-6" />
         </button>
         <button onClick={onProfile} aria-label="View profile" className="flex min-w-0 flex-1 items-center gap-2.5 text-left">
           <Avatar name={name} size={36} tone={avatarTone} />

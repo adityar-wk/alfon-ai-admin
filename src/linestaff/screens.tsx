@@ -22,6 +22,7 @@ import {
   useNav,
   useToast,
   CARD_SHADOW,
+  ICON_BTN,
   type Priority,
   ChatRow,
   NotifRow,
@@ -393,7 +394,7 @@ export function LineStaffPrototype() {
           <div className="flex items-center justify-between gap-3">
             <Logo />
             <div className="flex shrink-0 items-center gap-2">
-              <button onClick={() => nav.push({ name: "notifications" })} aria-label="Notifications" className="relative flex h-11 w-11 items-center justify-center rounded-full text-ink active:bg-ink/5">
+              <button onClick={() => nav.push({ name: "notifications" })} aria-label="Notifications" className={`relative ${ICON_BTN}`}>
                 <Bell className="h-[22px] w-[22px] text-ink" />
                 <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-red-500" />
               </button>
@@ -440,7 +441,7 @@ export function LineStaffPrototype() {
 <div className="flex items-center justify-between px-6 py-2">
           <div className="font-display text-[20px] font-bold text-ink">Tasks</div>
           <div className="flex items-center gap-2">
-            <button onClick={() => nav.push({ name: "notifications" })} aria-label="Notifications" className="relative flex h-11 w-11 items-center justify-center rounded-full text-ink active:bg-ink/5">
+            <button onClick={() => nav.push({ name: "notifications" })} aria-label="Notifications" className={`relative ${ICON_BTN}`}>
               <Bell className="h-[22px] w-[22px] text-ink" />
               <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-red-500" />
             </button>
@@ -470,7 +471,7 @@ export function LineStaffPrototype() {
 <div className="flex items-center justify-between px-6 py-2">
           <div className="font-display text-[20px] font-bold text-ink">Chats</div>
           <div className="flex items-center gap-2">
-            <button onClick={() => nav.push({ name: "notifications" })} aria-label="Notifications" className="relative flex h-11 w-11 items-center justify-center rounded-full text-ink active:bg-ink/5">
+            <button onClick={() => nav.push({ name: "notifications" })} aria-label="Notifications" className={`relative ${ICON_BTN}`}>
               <Bell className="h-[22px] w-[22px] text-ink" />
               <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-red-500" />
             </button>
@@ -585,8 +586,8 @@ export function LineStaffPrototype() {
   const TaskDetail = (
     <div className="relative flex h-full flex-col">
       <div className="flex shrink-0 items-center gap-3 border-b border-line px-6 pb-3 pt-4">
-        <button onClick={nav.back} aria-label="Back" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-ink shadow-sm">
-          <ChevronLeft className="h-5 w-5" />
+        <button onClick={nav.back} aria-label="Back" className={ICON_BTN}>
+          <ChevronLeft className="h-6 w-6" />
         </button>
         <span className="text-[11px] font-bold uppercase tracking-[0.08em] text-ink-tertiary">Task detail</span>
         {active.status !== "completed" && <div className="ml-auto"><SlaCountdown left={active.left} total={active.total} /></div>}

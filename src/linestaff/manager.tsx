@@ -18,7 +18,7 @@ import { BarChart } from "../components/BarChart";
 import { SEED_TASKS, SEED_REQUESTS, STAFF, GUEST_STAYS, PRE_ARRIVAL_GUESTS, CHECKED_OUT_GUESTS, GUEST_PROFILES, ROOMS, roomTypeOf, type MTask, type Presence, type Staffer, type HkRoom, type RoomStatus, type EscType } from "./data";
 import {
   PhoneFrame, ScreenHeader, SectionTitle, TaskCard, StatCard, HomeStat, Avatar, Chips, Segmented, FloatingNav, SelectField, TextField, Label, Sheet,
-  useNav, useToast, CARD_SHADOW, TextHeader, SlaCountdown, fmtMins, CompensationSheet, slaTone, type Priority,
+  useNav, useToast, CARD_SHADOW, ICON_BTN, TextHeader, SlaCountdown, fmtMins, CompensationSheet, slaTone, type Priority,
   ChatRow,
   NotifRow,
   PersonRow,
@@ -469,7 +469,7 @@ export function ManagerPrototype() {
   );
 
   const bellBtn = (
-    <button onClick={() => nav.push({ name: "notifications" })} aria-label="Notifications" className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-ink active:bg-ink/5">
+    <button onClick={() => nav.push({ name: "notifications" })} aria-label="Notifications" className={`relative ${ICON_BTN}`}>
       <Bell className="h-[22px] w-[22px]" /><span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-red-500" />
     </button>
   );
@@ -495,7 +495,7 @@ export function ManagerPrototype() {
       </div>
 
       <div className="mt-7"><SectionTitle tone="bg-red-500">Tasks</SectionTitle></div>
-      <div className="mt-3"><Chips calm flat items={ESC_FILTERS} active={filter} onChange={setFilter} counts={chipCounts} /></div>
+      <div className="mt-3"><Chips flat items={ESC_FILTERS} active={filter} onChange={setFilter} counts={chipCounts} /></div>
       <div className="mt-3 space-y-3 px-6">
         {filtered.map(card)}
         {!filtered.length && <p className="rounded-2xl bg-white p-6 text-center text-[13px] text-ink-tertiary">No tasks in this view.</p>}
@@ -539,7 +539,7 @@ export function ManagerPrototype() {
     <button
       onClick={onClick}
       aria-label="Filter"
-      className={`relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${active ? "bg-brand text-white" : "bg-white text-ink shadow-sm"}`}
+      className={`relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${active ? "bg-brand text-white" : "text-ink active:bg-ink/5"}`}
     >
       <Filter className="h-[18px] w-[18px]" />
       {active > 0 && <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white">{active}</span>}
@@ -831,8 +831,8 @@ export function ManagerPrototype() {
   const Detail = task ? (
     <div className="relative flex h-full flex-col">
       <div className="flex shrink-0 items-center gap-3 border-b border-line px-6 pb-3 pt-4">
-        <button onClick={nav.back} aria-label="Back" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-ink shadow-sm">
-          <ChevronLeft className="h-5 w-5" />
+        <button onClick={nav.back} aria-label="Back" className={ICON_BTN}>
+          <ChevronLeft className="h-6 w-6" />
         </button>
         <span className="text-[11px] font-bold uppercase tracking-[0.08em] text-ink-tertiary">Task detail</span>
         {isOpen(task) && <div className="ml-auto"><SlaCountdown left={task.slaLeft} total={task.slaTotal} /></div>}
@@ -949,7 +949,7 @@ export function ManagerPrototype() {
       <ScreenHeader
         title="Notifications"
         onBack={nav.back}
-        right={<button onClick={() => nav.push({ name: "notifSettings" })} aria-label="Notification settings" className="flex h-11 w-11 items-center justify-center rounded-full text-ink active:bg-ink/5"><SlidersHorizontal className="h-[18px] w-[18px]" /></button>}
+        right={<button onClick={() => nav.push({ name: "notifSettings" })} aria-label="Notification settings" className={ICON_BTN}><SlidersHorizontal className="h-[18px] w-[18px]" /></button>}
       />
       <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-6 pt-2 no-scrollbar">
         {NOTIFS.map((n, i) => (

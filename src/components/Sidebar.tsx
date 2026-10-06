@@ -67,6 +67,7 @@ const SUPERADMIN_NAV: Item[] = [
   { label: "Hotels", to: "/admin/hotels", icon: HotelIcon, match: "/admin/hotels" },
   { label: "Department Templates", to: "/admin/department-templates", icon: LayoutTemplate, match: "/admin/department-templates" },
   { label: "Settings", to: "/admin/settings", icon: Settings },
+  { label: "Mobile App", to: "/admin/mobile", icon: Smartphone },
 ];
 
 /** Alt Prototype's own app: just the one reference page */

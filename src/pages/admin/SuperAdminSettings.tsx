@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Bell, LogOut } from "lucide-react";
 import { Topbar } from "../../components/Topbar";
-import { Page, Card } from "../../components/ui";
+import { Page, Card, Button, Modal } from "../../components/ui";
 import { usePersona } from "../../persona";
 
 const CONF_MIN = 50;
@@ -18,7 +18,10 @@ export default function SuperAdminSettings() {
   const [enabled, setEnabled] = useState<string[]>(["health", "pms", "onboarding"]);
   const toggle = (k: string) => setEnabled((e) => (e.includes(k) ? e.filter((x) => x !== k) : [...e, k]));
   const [confidence, setConfidence] = useState(82);
-  const confPct = ((confidence - CONF_MIN) / (CONF_MAX - CONF_MIN)) * 100;
+  const [draft, setDraft] = useState(82);
+  const [ask, setAsk] = useState(false);
+  const confPct = ((draft - CONF_MIN) / (CONF_MAX - CONF_MIN)) * 100;
+  const propose = (n: number) => { setDraft(n); setAsk(n !== confidence); };
 
   return (
     <>
@@ -40,18 +43,21 @@ export default function SuperAdminSettings() {
 
           <Card className="p-6">
             <h3 className="text-[15px] font-semibold text-ink">AI Controls</h3>
-            <p className="mt-1 text-[13px] text-ink-secondary">The confidence threshold that decides when the AI answers a guest itself versus handing off to a person.</p>
+            <p className="mt-1 text-[13px] text-ink-secondary">The confidence threshold that decides when the AI answers a guest itself versus handing off to a person. A change is saved only after you confirm it.</p>
             <div className="mt-5 flex items-center gap-5">
               <input
                 type="range"
                 min={CONF_MIN}
                 max={CONF_MAX}
-                value={confidence}
-                onChange={(e) => setConfidence(Number(e.target.value))}
+                value={draft}
+                onChange={(e) => setDraft(Number(e.target.value))}
+                onPointerUp={(e) => propose(Number(e.currentTarget.value))}
+                onKeyUp={(e) => propose(Number(e.currentTarget.value))}
                 className="range-fancy flex-1 cursor-pointer"
                 style={{ background: `linear-gradient(to right, #E8623A ${confPct}%, #F0F0F0 ${confPct}%)` }}
+                aria-label="AI confidence"
               />
-              <span className="w-16 shrink-0 text-right text-[26px] font-bold text-brand">{confidence}%</span>
+              <span className="w-16 shrink-0 text-right text-[26px] font-bold text-brand">{draft}%</span>
             </div>
           </Card>
 
@@ -87,6 +93,20 @@ export default function SuperAdminSettings() {
           </Card>
         </div>
       </Page>
+      {ask && (
+        <Modal
+          title="Change AI confidence?"
+          onClose={() => { setDraft(confidence); setAsk(false); }}
+          footer={
+            <>
+              <Button variant="outline" onClick={() => { setDraft(confidence); setAsk(false); }}>Cancel</Button>
+              <Button onClick={() => { setConfidence(draft); setAsk(false); }}>Confirm</Button>
+            </>
+          }
+        >
+          This changes when the AI answers a guest itself, across every hotel. The threshold moves from {confidence}% to {draft}%.
+        </Modal>
+      )}
     </>
   );
 }
