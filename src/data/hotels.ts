@@ -27,6 +27,8 @@ export type Hotel = {
   lastSync: string;
   onboarded: string;
   languages: string[];
+  /** private Super Admin notes for this hotel */
+  notes?: { text: string; at: string }[];
   city?: string;
   country?: string;
   description?: string;

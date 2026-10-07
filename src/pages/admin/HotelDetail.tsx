@@ -1,11 +1,15 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, Navigate } from "react-router-dom";
 import {
-  Building2, MessageSquare, Server, HeartPulse, Activity, Home as HomeIcon, Users2, Zap, Power, Pencil, AlertTriangle, Languages,
+  Building2, MessageSquare, Server, HeartPulse, Activity, Home as HomeIcon, Users2, Zap, Power, Pencil, AlertTriangle,
 } from "lucide-react";
 import { Topbar } from "../../components/Topbar";
-import { Page, Card, Button, Badge } from "../../components/ui";
+import { Page, Card, Button, Badge, Textarea } from "../../components/ui";
 import { HOTELS } from "../../data/hotels";
+
+type Note = { text: string; at: string };
+/** Kept for the session so a note is still there after leaving the hotel and coming back. */
+const sessionNotes: Record<number, Note[]> = {};
 
 const SCORE_PILLARS = [
   { title: "Guest Pulse", weight: 30, icon: HeartPulse },
@@ -18,8 +22,20 @@ const SCORE_PILLARS = [
 export default function HotelDetail() {
   const { id } = useParams();
   const [active, setActive] = useState(true);
+  const [notes, setNotes] = useState<Record<number, Note[]>>(() => ({ ...sessionNotes }));
+  const [draft, setDraft] = useState("");
   const hotel = HOTELS.find((h) => String(h.id) === id);
+  useEffect(() => { setDraft(""); }, [id]);
   if (!hotel) return <Navigate to="/admin/hotels" replace />;
+  const hotelNotes = notes[hotel.id] ?? [];
+  const addNote = () => {
+    const text = draft.trim();
+    if (!text) return;
+    const next = [...hotelNotes, { text, at: "Just now" }];
+    sessionNotes[hotel.id] = next;
+    setNotes((current) => ({ ...current, [hotel.id]: next }));
+    setDraft("");
+  };
 
   return (
     <>
@@ -88,15 +104,22 @@ export default function HotelDetail() {
           </div>
 
           <div className="mt-6 border-t border-line pt-6">
-            <h3 className="text-[15px] font-semibold text-ink">Languages Spoken</h3>
-            <p className="mt-1 text-[13px] text-ink-secondary">Languages the AI concierge and on-site team can support guests in.</p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {hotel.languages.map((l) => (
-                <span key={l} className="flex items-center gap-1.5 rounded-full bg-brand-tint px-3 py-1.5 text-[12px] font-medium text-brand">
-                  <Languages className="h-3.5 w-3.5" /> {l}
-                </span>
-              ))}
-            </div>
+            <h3 className="text-[15px] font-semibold text-ink">Notes</h3>
+            <p className="mt-1 text-[13px] text-ink-secondary">Private notes for this hotel.</p>
+            {hotelNotes.length ? (
+              <div className="mt-3 space-y-2">
+                {hotelNotes.map((n, i) => (
+                  <div key={`${n.at}-${i}`} className="rounded-xl bg-[#F6F6F8] p-3">
+                    <p className="whitespace-pre-wrap text-[13px] leading-relaxed text-ink">{n.text}</p>
+                    <p className="mt-1 text-[11px] text-ink-tertiary">{n.at}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="mt-3 text-[13px] text-ink-tertiary">No notes yet.</p>
+            )}
+            <Textarea className="mt-3" rows={3} value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="Add a note about this hotel" />
+            <Button className="mt-3 disabled:opacity-40" disabled={!draft.trim()} onClick={addNote}>Save note</Button>
           </div>
         </Card>
       </Page>

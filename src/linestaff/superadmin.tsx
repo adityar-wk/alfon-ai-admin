@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from "react";
 import {
   Bell, Building2, LayoutTemplate, Settings, AlertTriangle, CheckCircle2, Activity,
-  MessageSquare, Server, Languages, LogOut, Power, Check, Clock, X, Pencil, Send,
+  MessageSquare, Server, LogOut, Power, Check, Clock, X, Send,
 } from "lucide-react";
 import { Button } from "../components/ui";
 import { Logo } from "../components/Logo";
@@ -135,10 +135,6 @@ export function SuperAdminPrototype({ onReset }: { onReset?: () => void }) {
     flash(message);
   };
 
-  const disableHotel = (h: Hotel) => {
-    patchHotel(h.id, { ...h, status: "Inactive", disabled: true, healthNote: "Disabled. The hotel is switched off." }, `${h.name} disabled`);
-  };
-
   const activateHotel = (h: Hotel) => {
     const next = settle({ ...h, disabled: false, status: "Inactive" });
     patchHotel(h.id, next, next.status === "Active" ? `${h.name} is active again` : `${h.name} enabled`);
@@ -260,8 +256,8 @@ export function SuperAdminPrototype({ onReset }: { onReset?: () => void }) {
           <div className="min-w-0">
             <h2 className="font-display text-[18px] font-bold leading-tight text-ink">{hotel.name}</h2>
             <div className={`mt-1 text-[12px] font-bold ${statusTone(hotel)}`}>{statusLabel(hotel)}</div>
-            <p className="mt-1 text-[12px] text-ink-secondary">{hotel.location} · {hotel.rooms || "—"} rooms · {hotel.propertyType}</p>
-            <p className="mt-0.5 text-[12px] text-ink-tertiary">{hotel.currency} · {hotel.timeZone}</p>
+            <p className="mt-1 text-[12px] text-ink-secondary">{hotel.location} Â· {hotel.rooms || "â€”"} rooms Â· {hotel.propertyType}</p>
+            <p className="mt-0.5 text-[12px] text-ink-tertiary">{hotel.currency} Â· {hotel.timeZone}</p>
             {hotel.adminEmail && <p className="mt-0.5 text-[12px] text-ink-tertiary">{hotel.adminEmail}</p>}
           </div>
         </div>
@@ -271,14 +267,14 @@ export function SuperAdminPrototype({ onReset }: { onReset?: () => void }) {
         <div className={`rounded-2xl bg-white p-4 ${CARD_SHADOW}`}>
           <div className="flex items-center justify-between">
             <div className="text-[13px] font-semibold text-ink">Health score</div>
-            <div className="font-display text-[22px] font-bold text-ink">{hotel.healthScore === null ? "—" : `${hotel.healthScore}%`}</div>
+            <div className="font-display text-[22px] font-bold text-ink">{hotel.healthScore === null ? "â€”" : `${hotel.healthScore}%`}</div>
           </div>
           <p className="mt-1 text-[12px] text-ink-secondary">{hotel.healthNote}</p>
         </div>
         <div className={`divide-y divide-[#E8E8EC] rounded-2xl bg-white px-4 ${CARD_SHADOW}`}>
           {(["whatsapp", "pms"] as const).map((which) => {
             const mark = connMark(hotel, which);
-            const label = which === "whatsapp" ? "WhatsApp" : `PMS${which === "pms" && hotel.pms === "Connected" && hotel.pmsProvider ? ` · ${hotel.pmsProvider}` : ""}`;
+            const label = which === "whatsapp" ? "WhatsApp" : `PMS${which === "pms" && hotel.pms === "Connected" && hotel.pmsProvider ? ` Â· ${hotel.pmsProvider}` : ""}`;
             const canConnect = !hotel.disabled && mark !== "tick";
             return (
               <div key={which} className="flex items-center justify-between gap-3 py-3 text-[13px]">
@@ -304,32 +300,18 @@ export function SuperAdminPrototype({ onReset }: { onReset?: () => void }) {
             <span className="font-medium text-ink">{hotel.lastSync}</span>
           </div>
         </div>
-        <div>
-          <div className="mb-2 text-[12px] font-semibold text-ink-secondary">Languages</div>
-          <div className="flex flex-wrap gap-2">
-            {hotel.languages.map((l) => (
-              <span key={l} className="inline-flex items-center gap-1.5 rounded-full bg-brand-tint px-3 py-1.5 text-[12px] font-semibold text-brand">
-                <Languages className="h-3.5 w-3.5" /> {l}
-              </span>
-            ))}
-          </div>
-        </div>
-        <Button variant="outline" className="w-full !font-bold" onClick={() => nav.push({ name: "edit", id: hotel.id })}>
-          <Pencil className="h-4 w-4" /> Edit hotel data
-        </Button>
+        <HotelNotes
+          notes={hotel.notes ?? []}
+          onAdd={(text) => patchHotel(hotel.id, { ...hotel, notes: [...(hotel.notes ?? []), { text, at: "Just now" }] }, "Note saved")}
+        />
         {readyToSend && (
           <div className={`rounded-2xl bg-white p-4 ${CARD_SHADOW}`}>
             <p className="text-[12px] leading-snug text-ink-secondary">Both connections are ready. Confirming sends the setup link to the hotel admin and makes this hotel active.</p>
             <Button className="mt-3 w-full disabled:opacity-40" disabled={!hotel.adminEmail?.trim()} onClick={() => sendLink(hotel)}>
               <Send className="h-4 w-4" /> Confirm and send link
             </Button>
-            {!hotel.adminEmail?.trim() && <p className="mt-2 text-[12px] text-ink-tertiary">Add an admin email in Edit hotel data first.</p>}
+            {!hotel.adminEmail?.trim() && <p className="mt-2 text-[12px] text-ink-tertiary">An admin email is needed before the link can be sent.</p>}
           </div>
-        )}
-        {hotel.status === "Active" && (
-          <Button variant="outline" className="w-full !font-bold" onClick={() => disableHotel(hotel)}>
-            <Power className="h-4 w-4" /> Disable hotel
-          </Button>
         )}
         {hotel.disabled && (
           <Button className="w-full" onClick={() => activateHotel(hotel)}>
@@ -531,7 +513,7 @@ export function SuperAdminPrototype({ onReset }: { onReset?: () => void }) {
       </button>
       <p className="text-center text-[12px] text-ink-tertiary">
         Current screen: <span className="font-medium text-ink-secondary">{cur.name}</span>
-        {(cur.name === "hotel" || cur.name === "edit") && hotel ? ` · ${hotel.name}` : ""}
+        {(cur.name === "hotel" || cur.name === "edit") && hotel ? ` Â· ${hotel.name}` : ""}
       </p>
     </div>
   );
@@ -594,6 +576,36 @@ function detailsFrom(h: Hotel, d: Draft): Hotel {
     status: started ? "Pending" : h.status,
     healthNote: started ? "Setup started. Connect WhatsApp and PMS, then send the link." : h.healthNote,
   };
+}
+
+function HotelNotes({ notes, onAdd }: { notes: { text: string; at: string }[]; onAdd: (text: string) => void }) {
+  const [draft, setDraft] = useState("");
+  const save = () => {
+    const text = draft.trim();
+    if (!text) return;
+    onAdd(text);
+    setDraft("");
+  };
+  return (
+    <div className={`rounded-2xl bg-white p-4 ${CARD_SHADOW}`}>
+      <div className="text-[11px] font-semibold text-ink-secondary">Notes</div>
+      {notes.length ? (
+        <div className="mt-3 space-y-2">
+          {notes.map((n, i) => (
+            <div key={`${n.at}-${i}`} className="rounded-xl bg-[#F6F6F8] p-3">
+              <p className="whitespace-pre-wrap text-[13px] leading-snug text-ink">{n.text}</p>
+              <p className="mt-1 text-[11px] text-ink-tertiary">{n.at}</p>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="mt-2 text-[13px] text-ink-tertiary">No notes yet.</p>
+      )}
+      <Label>Add a note</Label>
+      <TextField rows={3} value={draft} onChange={setDraft} placeholder="Anything to remember about this hotel" />
+      <Button className="mt-3 w-full disabled:opacity-40" disabled={!draft.trim()} onClick={save}>Save note</Button>
+    </div>
+  );
 }
 
 function HotelEditor({ hotel, onBack, onSave }: { hotel: Hotel; onBack: () => void; onSave: (next: Hotel) => void }) {

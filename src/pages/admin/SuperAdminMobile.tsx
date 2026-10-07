@@ -38,7 +38,7 @@ export default function SuperAdminMobile() {
               <div className="rounded-card border border-line bg-white p-5">
                 <h3 className="text-[14px] font-semibold text-ink">Also included</h3>
                 <ul className="mt-3 space-y-2">
-                  {["Filters are All, Active, Inactive, Pending, and New. A disabled hotel is grey and reads Disabled", "Confirm and send link makes a finished setup active. Edit hotel data reopens the onboarding fields", "AI confidence asks for confirmation before it changes"].map((f) => (
+                  {["Filters are All, Active, Inactive, Pending, and New. A disabled hotel is grey and reads Disabled", "Confirm and send link makes a finished setup active", "AI confidence asks for confirmation before it changes"].map((f) => (
                     <li key={f} className="flex items-start gap-2 text-[12px] text-ink-secondary"><Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-green-500" />{f}</li>
                   ))}
                 </ul>
