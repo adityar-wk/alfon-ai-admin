@@ -83,6 +83,7 @@ type Task = {
   escalatedTo?: "Supervisor" | "Mid Manager" | "Duty Manager";
   complaint?: boolean;
   assignedBy?: string;
+  timeline: { t: string; text: string }[];
 };
 
 /** New tasks offered to the staff member: each arrives as a notification and stays pending until they accept it. */
@@ -109,43 +110,52 @@ const INITIAL: Task[] = [
     id: "t20", title: "Dirty bathroom complaint", room: "Room 1108", note: "Guest complained the bathroom was not cleaned properly.",
     status: "progress", left: 24, total: 40, guest: "Olivia Turner", roomType: "Deluxe Room", floor: 11, stay: "In house · 2 nights", prefs: ["Quiet room"],
     source: "Guest chat", created: "10:05 AM", complaint: true,
+    timeline: [{ t: "10:05", text: "Request created from guest chat" }, { t: "10:08", text: "Aanya Khan accepted the task" }],
   },
   {
     id: "t1", title: "Full towel change & hypoallergenic linens", room: "Room 501", note: "Guest requested a full towel change and hypoallergenic linens before check-in.",
     status: "progress", left: 18, total: 45, guest: "Emma Davis", roomType: "Deluxe King", floor: 5, stay: "Arriving today · 7 nights", prefs: ["Hypoallergenic bedding", "Firm pillow", "Quiet room"],
     source: "Guest chat", created: "9:48 AM", staffNote: "Use the green-tagged linen set from storage. Tell the front desk if anything is missing.",
+    timeline: [{ t: "9:48", text: "Request created from guest chat" }, { t: "9:51", text: "Assigned to Aanya Khan" }, { t: "9:54", text: "Aanya Khan accepted the task" }],
   },
   {
     id: "t10", title: "Extra pillows", room: "Room 908", note: "Two extra pillows requested. Guest is waiting in the room.",
     status: "progress", left: -8, total: 30, guest: "Ananya Kapoor", roomType: "Executive King", floor: 9, stay: "In house · 4 nights", prefs: ["Extra pillows"], escalatedTo: "Mid Manager",
     source: "Guest chat", created: "9:55 AM",
+    timeline: [{ t: "9:55", text: "Request created from guest chat" }, { t: "9:58", text: "Aanya Khan accepted the task" }, { t: "10:15", text: "SLA breached" }, { t: "10:18", text: "Escalated to the Mid Manager" }],
   },
   {
     id: "t2", title: "Carpet vacuum & spot clean", room: "Room 623", note: "Carpet vacuum and spot clean requested by the guest.",
     status: "pending", left: 52, total: 60, guest: "Liam Anderson", roomType: "Deluxe Twin", floor: 6, stay: "In house · 3 nights", prefs: ["Non-smoking"],
     source: "Guest chat", created: "10:22 AM", staffNote: "Small stain near the window. Guest is out until 2 PM.",
+    timeline: [{ t: "10:22", text: "Request created from guest chat" }],
   },
   {
     id: "t3", title: "Rollaway bed & extra pillows", room: "Room 812", note: "Extra pillows and a rollaway bed for an arriving family of four.",
     status: "pending", left: 26, total: 40, guest: "Patel family", roomType: "Family Suite", floor: 8, stay: "Arriving 12:30 PM · 2 nights", prefs: ["High floor", "Extra pillows"],
     source: "PMS pre-arrival", created: "10:29 AM",
+    timeline: [{ t: "10:29", text: "Created from PMS pre-arrival note" }],
   },
   {
     id: "t7", title: "Baby cot setup", room: "Room 704", note: "Baby cot to be set up before the guest returns.",
     status: "pending", left: 12, total: 30, guest: "Sarah Chen", roomType: "Deluxe King", floor: 7, stay: "In house · 2 nights", prefs: ["Baby cot", "Quiet room"],
     source: "Guest chat", created: "10:26 AM",
+    timeline: [{ t: "10:26", text: "Created from guest chat" }],
   },
   {
     id: "t8", title: "Fresh linen change", room: "Room 410", note: "Fresh linen change requested by the guest.", status: "completed", left: 12, total: 45, time: "Done at 8:10 AM",
     guest: "Ethan Ross", roomType: "Deluxe King", floor: 4, stay: "In house", prefs: [], source: "Guest chat", created: "7:50 AM",
+    timeline: [{ t: "7:50", text: "Created" }, { t: "8:02", text: "Aanya Khan accepted the task" }, { t: "8:10", text: "Completed" }],
   },
   {
     id: "t9", title: "Towels replenished", room: "Room 227", note: "Bath towels replenished and amenities restocked.", status: "completed", left: 20, total: 45, time: "Done at 8:45 AM",
     guest: "Grace Kim", roomType: "Standard Twin", floor: 2, stay: "In house", prefs: [], source: "Staff", created: "8:20 AM",
+    timeline: [{ t: "8:20", text: "Created" }, { t: "8:30", text: "Aanya Khan accepted the task" }, { t: "8:45", text: "Completed" }],
   },
   {
     id: "t11", title: "Turndown service", room: "Room 118", note: "Turndown service completed with extra water bottles.", status: "completed", left: 30, total: 60, time: "Done at 9:05 AM",
     guest: "Noah Martinez", roomType: "Deluxe King", floor: 1, stay: "In house", prefs: [], source: "Staff", created: "8:50 AM",
+    timeline: [{ t: "8:50", text: "Created" }, { t: "8:58", text: "Aanya Khan accepted the task" }, { t: "9:05", text: "Completed" }],
   },
 ];
 
@@ -240,9 +250,12 @@ export function LineStaffPrototype() {
 
   const cur = nav.cur;
   const offered = incoming ? tasks.find((t) => t.id === incoming.id && t.status === "pending") : undefined;
-  const setStatus = (id: string, status: Status, time?: string) => setTasks((ts) => ts.map((t) => (t.id === id ? { ...t, status, time } : t)));
+  const withEvent = (t: Task, text: string, extra: Partial<Task> = {}): Task => ({ ...t, ...extra, timeline: [...t.timeline, { t: "now", text }] });
   const openTask = (id: string) => nav.push({ name: "taskDetail", id });
-  const accept = (id: string) => { setStatus(id, "progress"); flash("Task accepted"); };
+  const accept = (id: string) => {
+    setTasks((ts) => ts.map((t) => (t.id === id ? withEvent(t, `${LS_ME} accepted the task`, { status: "progress" }) : t)));
+    flash("Task accepted");
+  };
 
   const pending = tasks.filter((t) => t.status === "pending");
   const inProgress = tasks.filter((t) => t.status === "progress");
@@ -338,7 +351,7 @@ export function LineStaffPrototype() {
   );
 
   const completeTask = (t: Task) => {
-    setStatus(t.id, "completed", "Done just now");
+    setTasks((ts) => ts.map((x) => (x.id === t.id ? withEvent(x, "Completed", { status: "completed", time: "Done just now" }) : x)));
     if (!t.guest || t.guest === "—" || t.guest === "Guest") { flash(`${t.room} marked complete`); nav.back(); return; }
     setAiDrafts((d) => ({ ...d, [t.guest]: `Hi ${t.guest.split(" ")[0]}, we've taken care of your request (${t.title.toLowerCase()}) for ${t.room}. Please let us know if there's anything else we can do — we hope you're enjoying your stay.` }));
     flash("Task complete — review the reply to your guest");
@@ -352,7 +365,7 @@ export function LineStaffPrototype() {
     setTasks((ts) => [{
       id, title: s.title, room: s.room, note: s.note, status: "pending", left: s.total, total: s.total,
       guest: s.guest, roomType: s.roomType, floor: s.floor, stay: s.stay, prefs: s.prefs, source: "New task",
-      created: s.time, dept: s.dept,
+      created: s.time, dept: s.dept, timeline: [{ t: "now", text: "Request created" }],
     }, ...ts]);
     setSimCount((n) => n + 1);
     setBannerIn(false);
@@ -380,6 +393,7 @@ export function LineStaffPrototype() {
       {
         id, title, room: r, note: details.trim() || title, status: "pending", left: DEFAULT_SLA, total: DEFAULT_SLA,
         guest: guestName.trim() || "—", roomType: "—", floor: 0, stay: "—", prefs: [], source: "Created by you", created: "Just now", dept,
+        timeline: [{ t: "now", text: `Created manually by ${LS_ME}` }],
       },
       ...ts,
     ]);
@@ -552,7 +566,7 @@ export function LineStaffPrototype() {
         action: chatTask.status === "pending" ? "Accept" : "Complete",
         onAction: () => {
           if (chatTask.status === "pending") return accept(chatTask.id);
-          setStatus(chatTask.id, "completed", "Done just now");
+          setTasks((ts) => ts.map((x) => (x.id === chatTask.id ? withEvent(x, "Completed", { status: "completed", time: "Done just now" }) : x)));
           setAiDrafts((d) => ({ ...d, [chatName]: `Hi ${chatName.split(" ")[0]}, we've taken care of your request (${chatTask.title.split(" — ")[0].toLowerCase()}) for ${chatTask.room}. Please let us know if there's anything else we can do — we hope you're enjoying your stay.` }));
           flash("Task complete — review the reply to your guest");
         },
@@ -652,6 +666,19 @@ export function LineStaffPrototype() {
           )}
         </div>
         )}
+
+        <div className={`rounded-2xl bg-white p-4 ${CARD_SHADOW}`}>
+          <div className="text-[11px] font-semibold text-ink-secondary">Timeline</div>
+          <ol className="relative mt-3 space-y-3 border-l border-line pl-4">
+            {active.timeline.map((e, i) => (
+              <li key={i} className="relative text-[13px]">
+                <span className="absolute -left-[21px] top-1.5 h-2 w-2 rounded-full bg-brand" />
+                <span className="mr-2 text-[12px] text-ink-tertiary">{e.t}</span>
+                <span className="text-ink">{e.text}</span>
+              </li>
+            ))}
+          </ol>
+        </div>
       </div>
 
       {active.guest !== "—" && <MessageGuestButton raised onClick={() => nav.push({ name: "guestChat", id: active.guest })} />}
@@ -683,7 +710,7 @@ export function LineStaffPrototype() {
   const helpSubmit = () => {
     const target = helpKind === "escalate" ? "Supervisor" : helpKind === "escalateDuty" ? "Duty Manager" : null;
     const msg = target ? `Escalated to the ${target}` : "Reassignment request sent to your supervisor";
-    if (target) setTasks((ts) => ts.map((t) => (t.id === active.id ? { ...t, escalatedTo: target } : t)));
+    setTasks((ts) => ts.map((t) => (t.id === active.id ? withEvent(t, msg, target ? { escalatedTo: target } : {}) : t)));
     flash(msg);
     setHelpOpen(false);
     setHelpNote("");

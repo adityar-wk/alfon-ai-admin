@@ -28,7 +28,7 @@ const INFO: Record<Tab, { title: string; blurb: string; flows: string[]; include
       "Tasks: a dedicated, searchable list with filter chips (All / Unassigned / At Risk / Overdue / Completed — same set as the Mid Manager tasks list)",
       "Each card shows the task name first, the room second and the SLA timer",
       "Open tasks on Home have Accept inside the card; on the Tasks list, tap the card and accept from Task details",
-      "Tap a card → Task details (task, room, guest and assignee details; tap the guest to open their profile, or jump straight to the guest chat)",
+      "Tap a card → Task details (task, room, guest and assignee details, and a timeline; tap the guest to open their profile, or jump straight to the guest chat)",
       "Task details → Need help (escalate to your supervisor or the Duty Manager, or reassign) or Mark complete",
       "Bell → Notifications",
       "Tasks page: + button (top right, after the bell) → Create Manual Task, same form as web (room is required, guest is optional, what needs to be done, department, optional details); the task is created unassigned",
