@@ -32,7 +32,7 @@ export default function HotelDetail() {
               <div>
                 <div className="flex items-center gap-2">
                   <h2 className="font-display text-[22px] font-bold text-ink">{hotel.name}</h2>
-                  <Badge tone={hotel.status === "Active" ? "success" : hotel.status === "New" ? "info" : "neutral"}>{hotel.status}</Badge>
+                  <Badge tone={hotel.status === "Active" ? "success" : hotel.status === "New" ? "info" : hotel.status === "Pending" ? "warning" : "neutral"}>{hotel.disabled ? "Disabled" : hotel.status}</Badge>
                 </div>
                 <div className="mt-1 text-[13px] text-ink-secondary">{hotel.location} · {hotel.rooms} Rooms · {hotel.propertyType}</div>
                 <div className="mt-1 text-[12px] text-ink-tertiary">{hotel.currency} · {hotel.timeZone} · Onboarded {hotel.onboarded}</div>

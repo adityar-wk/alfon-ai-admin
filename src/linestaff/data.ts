@@ -289,7 +289,7 @@ export const GUEST_PROFILES: Record<string, GuestProfileInfo> = {
   "Omar Haddad": gp("Room 1012", "Deluxe King", "United Arab Emirates", "🇦🇪", "Sep 19, 2026", "Sep 21, 2026", 2, "Omar stayed for a short business trip and preferred Arabic-language communication.", ["High floor, king bed", "Halal only", "Arabic, English", "Cool (21°C)", "6:00 AM", "Standard inventory"], "+971 50 555 0166", "omar.haddad@email.com"),
 };
 
-export type RoomStatus = "Inspected" | "In Progress" | "Needs Inspection" | "Out of Service" | "Out of Order";
+export type RoomStatus = "Inspected" | "Dirty" | "In Progress" | "Clean" | "Needs Inspection" | "Out of Service" | "Out of Order";
 export type HkRoom = { number: string; floor: number; roomType: string; status: RoomStatus; assignee: string | null; /** minutes left on the cleaning or inspection SLA */ mins?: number; /** epoch ms when the current SLA runs out */ due?: number; /** cleaning left open for any line staff to pick up (never for inspections) */ open?: boolean };
 export const ROOMS: HkRoom[] = [
   { number: "Room 305", floor: 3, roomType: "Standard Twin", status: "In Progress", assignee: "Maria Santos", mins: 18 },
@@ -302,8 +302,8 @@ export const ROOMS: HkRoom[] = [
   { number: "Room 1103", floor: 11, roomType: "Deluxe King", status: "Out of Service", assignee: null },
   { number: "Room 1204", floor: 12, roomType: "Executive Suite", status: "In Progress", assignee: "Fatima Khan", mins: 12 },
   { number: "Room 1501", floor: 15, roomType: "Accessible Suite", status: "Out of Service", assignee: null },
-  { number: "Room 2104", floor: 21, roomType: "Junior Suite", status: "Inspected", assignee: null },
-  { number: "Room 227", floor: 2, roomType: "Standard Twin", status: "Inspected", assignee: null },
+  { number: "Room 2104", floor: 21, roomType: "Junior Suite", status: "Clean", assignee: "Maria Santos" },
+  { number: "Room 227", floor: 2, roomType: "Standard Twin", status: "Dirty", assignee: null },
   { number: "Room 618", floor: 6, roomType: "Deluxe Room", status: "Out of Order", assignee: null },
   { number: "Room 1010", floor: 10, roomType: "Executive Room", status: "Out of Order", assignee: null },
   { number: "Room 1407", floor: 14, roomType: "Junior Suite", status: "Out of Order", assignee: null },

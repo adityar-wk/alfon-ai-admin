@@ -31,8 +31,10 @@ import SuperAdminSettings from "./pages/admin/SuperAdminSettings";
 import SuperAdminMobile from "./pages/admin/SuperAdminMobile";
 import DeptTemplates from "./pages/admin/DeptTemplates";
 import DeptTemplateDetail from "./pages/admin/DeptTemplateDetail";
+import Login from "./pages/Login";
 
 export const router = createBrowserRouter([
+  { path: "/login", element: <Login /> },
   {
     element: <AppLayout />,
     children: [

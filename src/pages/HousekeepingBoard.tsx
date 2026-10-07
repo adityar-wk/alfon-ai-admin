@@ -13,13 +13,15 @@ import {
   User,
   DoorClosed,
   ClipboardCheck,
+  CircleDashed,
+  Sparkles,
 } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { Button, Card, Field, Select, Input, Modal } from "../components/ui";
 import { getDepartment } from "../data/departments";
 import { CLEANING_CHECKLIST, INSPECTION_CHECKLIST, TAG_TONE } from "../data/housekeepingChecklists";
 
-type RoomStatus = "inspected" | "progress" | "inspection" | "oos" | "ooo";
+type RoomStatus = "inspected" | "dirty" | "progress" | "clean" | "inspection" | "oos" | "ooo";
 
 type Room = {
   no: number;
@@ -46,9 +48,9 @@ const GUESTS = [
 ];
 
 const PLAN: Record<number, [RoomStatus, number?][]> = {
-  10: [["inspected"], ["ooo"], ["inspected"], ["oos"], ["inspected"]],
+  10: [["inspected"], ["ooo"], ["inspected"], ["oos"], ["dirty"]],
   11: [["inspection", 14], ["progress", 17], ["inspected"], ["oos"], ["inspected"]],
-  12: [["inspected"], ["ooo"], ["progress", 23], ["progress", 24], ["inspected"]],
+  12: [["clean"], ["ooo"], ["progress", 23], ["progress", 24], ["inspected"]],
   13: [["inspected"], ["inspected"], ["oos"], ["progress", 29], ["inspected"]],
   14: [["progress", 12], ["inspected"], ["inspected"], ["inspection", 10], ["inspected"]],
   15: [["inspected"], ["progress", 8], ["inspected"], ["inspected"], ["inspection", 22]],
@@ -65,7 +67,7 @@ const SEED_ROOMS: Room[] = Object.entries(PLAN).flatMap(([floor, rooms]) =>
       guest: (status === "oos" && i % 2 === 0) || no % 3 === 0 ? undefined : GUESTS[no % GUESTS.length],
       status,
       mins,
-      assignedTo: status === "progress" ? "Maria Santos" : undefined,
+      assignedTo: status === "progress" || status === "clean" ? "Maria Santos" : undefined,
     };
   }),
 );
@@ -73,7 +75,9 @@ const SEED_ROOMS: Room[] = Object.entries(PLAN).flatMap(([floor, rooms]) =>
 // plain, uncoloured labels: rooms are not colour-coded
 const STATUS_LABEL: Record<RoomStatus, string> = {
   inspected: "Inspected",
+  dirty: "Dirty",
   progress: "In Progress",
+  clean: "Clean",
   inspection: "Needs Inspection",
   oos: "Out of Service",
   ooo: "Out of Order",
@@ -81,7 +85,9 @@ const STATUS_LABEL: Record<RoomStatus, string> = {
 
 const STATUS_ICON: Record<RoomStatus, React.ComponentType<{ className?: string }>> = {
   inspected: CheckCircle2,
+  dirty: CircleDashed,
   progress: Loader,
+  clean: Sparkles,
   inspection: AlertCircle,
   oos: CircleSlash,
   ooo: Wrench,
@@ -89,7 +95,9 @@ const STATUS_ICON: Record<RoomStatus, React.ComponentType<{ className?: string }
 
 const STATUS_ICON_TONE: Record<RoomStatus, string> = {
   inspected: "bg-green-50 text-green-600",
+  dirty: "bg-amber-50 text-amber-700",
   progress: "bg-blue-50 text-blue-600",
+  clean: "bg-emerald-50 text-emerald-600",
   inspection: "bg-amber-50 text-amber-600",
   oos: "bg-red-50 text-red-600",
   ooo: "bg-gray-100 text-gray-500",
@@ -97,16 +105,20 @@ const STATUS_ICON_TONE: Record<RoomStatus, string> = {
 
 const STATUS_TEXT_TONE: Record<RoomStatus, string> = {
   inspected: "text-green-600",
+  dirty: "text-amber-700",
   progress: "text-blue-600",
+  clean: "text-emerald-600",
   inspection: "text-amber-600",
   oos: "text-red-600",
   ooo: "text-gray-500",
 };
 
-/** only the two statuses awaiting action (In Progress, Needs Inspection) get a highlighted border */
+/** In Progress and Needs Inspection are the statuses with an open task */
 const STATUS_BORDER: Record<RoomStatus, string> = {
   inspected: "border-line",
+  dirty: "border-line",
   progress: "border-blue-300",
+  clean: "border-line",
   inspection: "border-amber-300",
   oos: "border-line",
   ooo: "border-line",
@@ -115,7 +127,7 @@ const STATUS_BORDER: Record<RoomStatus, string> = {
 const PAGE_SIZE = 50;
 
 const OPEN_TASK = "__open__";
-const STATUS_OPTIONS: RoomStatus[] = ["inspected", "progress", "inspection", "oos", "ooo"];
+const STATUS_OPTIONS: RoomStatus[] = ["inspected", "dirty", "progress", "clean", "inspection", "oos", "ooo"];
 const STAFF = getDepartment("housekeeping")?.members.map((m) => m.name) ?? [];
 const FLOORS = [10, 11, 12, 13, 14, 15, 16];
 
@@ -125,7 +137,7 @@ export default function HousekeepingBoard() {
   const [occ, setOcc] = useState<"all" | "occupied" | "vacant">("all");
   const [statuses, setStatuses] = useState<RoomStatus[]>([]);
   const [filterOpen, setFilterOpen] = useState(false);
-  const [assignFor, setAssignFor] = useState<Room | null>(null);
+  const [assignNo, setAssignNo] = useState<number | null>(null);
   const [checklistFor, setChecklistFor] = useState<{ room: Room; kind: "cleaning" | "inspection" } | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [page, setPage] = useState(1);
@@ -150,9 +162,12 @@ export default function HousekeepingBoard() {
   const paged = visible.slice((pageSafe - 1) * PAGE_SIZE, pageSafe * PAGE_SIZE);
 
   const count = (st: RoomStatus) => rooms.filter((r) => r.status === st).length;
+  const assignFor = assignNo == null ? null : rooms.find((r) => r.no === assignNo) ?? null;
   const HEAD: { status: RoomStatus; icon: React.ComponentType<{ className?: string }> }[] = [
     { status: "inspected", icon: CheckCircle2 },
+    { status: "dirty", icon: CircleDashed },
     { status: "progress", icon: Loader },
+    { status: "clean", icon: Sparkles },
     { status: "inspection", icon: AlertCircle },
     { status: "oos", icon: CircleSlash },
     { status: "ooo", icon: Wrench },
@@ -171,14 +186,14 @@ export default function HousekeepingBoard() {
           ? {
               ...r,
               status,
-              assignedTo: staff && staff !== OPEN_TASK ? staff : undefined,
+              assignedTo: status === "dirty" || status === "inspected" || status === "oos" || status === "ooo" ? undefined : status === "clean" ? r.assignedTo : staff && staff !== OPEN_TASK ? staff : undefined,
               open: status === "progress" && staff === OPEN_TASK,
               mins: status === "progress" || status === "inspection" ? r.mins ?? 20 : undefined,
             }
           : r,
       ),
     );
-    setAssignFor(null);
+    setAssignNo(null);
     flash(
       status === "progress" && staff === OPEN_TASK
         ? `Room ${no} → ${STATUS_LABEL[status]}, open for line staff to pick up`
@@ -193,7 +208,7 @@ export default function HousekeepingBoard() {
       <Topbar title="Housekeeping" />
       <main className="flex-1 overflow-y-auto bg-page">
         <div className="px-8 pb-8 pt-7">
-        <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-5">
+        <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 xl:grid-cols-7">
           {HEAD.map((h) => (
             <button
               key={h.status}
@@ -280,8 +295,8 @@ export default function HousekeepingBoard() {
                 role="button"
                 tabIndex={0}
                 aria-label={`Open room ${r.no}`}
-                onClick={() => setAssignFor(r)}
-                onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && setAssignFor(r)}
+                onClick={() => setAssignNo(r.no)}
+                onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && setAssignNo(r.no)}
                 className={`flex cursor-pointer flex-col rounded-2xl border p-3 ${
                   dulled ? "bg-subtle" : "bg-white"
                 } ${STATUS_BORDER[r.status]}`}
@@ -289,11 +304,6 @@ export default function HousekeepingBoard() {
                 <div className="flex items-start justify-between">
                   {(() => { const Icon = STATUS_ICON[r.status]; return <span title={STATUS_LABEL[r.status]} aria-label={STATUS_LABEL[r.status]} role="img" className={`flex h-7 w-7 items-center justify-center rounded-full ${STATUS_ICON_TONE[r.status]}`}><Icon className="h-3.5 w-3.5" /></span>; })()}
                   <span className="flex items-center gap-1.5">
-                    {(r.status === "inspected" || r.status === "progress" || r.status === "inspection") && (
-                      <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${r.status === "inspected" ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`}>
-                        {r.status === "inspected" ? "Clean" : "Dirty"}
-                      </span>
-                    )}
                     <span
                       title={occupied ? "Occupied" : "Vacant"}
                       aria-label={occupied ? "Occupied" : "Vacant"}
@@ -315,13 +325,13 @@ export default function HousekeepingBoard() {
                       <span className="flex shrink-0 items-center gap-1 text-[11px] font-medium text-green-600">
                         <Timer className="h-3 w-3" /> {r.mins} mins left
                       </span>
-                      {(r.status === "progress" || r.status === "inspection") && (
+                      {(r.status === "progress" || r.status === "inspection" || r.status === "clean") && (
                         <span className="truncate text-[10px] font-medium text-ink-secondary">{r.assignedTo ?? "Unassigned"}</span>
                       )}
                     </div>
                   </div>
                 )}
-                {r.mins == null && (r.status === "progress" || r.status === "inspection") && (
+                {r.mins == null && (r.status === "progress" || r.status === "inspection" || r.status === "clean") && (
                   <div className="mt-1 truncate text-[10px] font-medium text-ink-secondary">{r.assignedTo ?? "Unassigned"}</div>
                 )}
               </div>
@@ -375,9 +385,9 @@ export default function HousekeepingBoard() {
       {assignFor && (
         <EditRoomModal
           room={assignFor}
-          onClose={() => setAssignFor(null)}
+          onClose={() => setAssignNo(null)}
           onSave={saveRoom}
-          onRequestChecklist={(kind) => { setChecklistFor({ room: assignFor, kind }); setAssignFor(null); }}
+          onRequestChecklist={(kind) => { setChecklistFor({ room: assignFor, kind }); setAssignNo(null); }}
         />
       )}
 
@@ -394,7 +404,7 @@ export default function HousekeepingBoard() {
           room={checklistFor.room}
           onClose={() => setChecklistFor(null)}
           onApprove={() => { saveRoom(checklistFor.room.no, "inspected", null, ""); setChecklistFor(null); }}
-          onFlag={() => { saveRoom(checklistFor.room.no, "progress", checklistFor.room.assignedTo ?? null, "Flagged for re-cleaning after inspection"); setChecklistFor(null); }}
+          onFlag={() => { saveRoom(checklistFor.room.no, "dirty", null, "Flagged for re-cleaning after inspection"); setChecklistFor(null); }}
         />
       )}
 
@@ -423,31 +433,32 @@ function EditRoomModal({
   const [status, setStatus] = useState<RoomStatus>(room.status);
   const initialStaff = (st: RoomStatus) => (st !== room.status ? "" : st === "progress" && room.open ? OPEN_TASK : room.assignedTo ?? "");
   const [staff, setStaff] = useState(room.status === "inspection" || room.status === "progress" ? initialStaff(room.status) : "");
+  useEffect(() => {
+    setStatus(room.status);
+    if (room.status === "dirty") setStaff("");
+  }, [room.status]);
   const [note, setNote] = useState("");
   const occupied = !!room.guest;
   const cleaner = status === "progress" && room.status === "progress" ? room.assignedTo : undefined;
-  const canAssign = status === "inspection" || (status === "progress" && !cleaner);
+  const canAssign = status === "dirty" || status === "inspection" || (status === "progress" && !cleaner);
+  const pickStaff = (value: string) => {
+    setStaff(value);
+    if (room.status === "dirty") setStatus(value ? "progress" : "dirty");
+  };
   const pickStatus = (s: RoomStatus) => {
-    if (room.status === "progress" && s === "inspection") return onRequestChecklist("cleaning");
+    if ((room.status === "clean" || room.status === "progress") && s === "inspection") return onRequestChecklist("cleaning");
     if (room.status === "inspection" && s === "inspected") return onRequestChecklist("inspection");
     setStatus(s);
     setStaff(initialStaff(s));
   };
 
   const unchanged = status === room.status;
-  const showAssignment = unchanged && (room.status === "progress" || room.status === "inspection");
+  const showAssignment = unchanged && (room.status === "progress" || room.status === "clean" || room.status === "inspection");
   const sectionLabel = "mb-2 text-[11px] font-semibold uppercase tracking-wide text-ink-tertiary";
 
   return (
     <Modal
-      title={
-        <span className="flex items-center gap-2">
-          Room {room.no}
-          <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${room.status === "inspected" ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`}>
-            {room.status === "inspected" ? "Clean" : "Dirty"}
-          </span>
-        </span>
-      }
+      title={`Room ${room.no}`}
       onClose={onClose}
       footer={
         <>
@@ -471,7 +482,7 @@ function EditRoomModal({
 
         {showAssignment && (
           <div>
-            <div className={sectionLabel}>{room.status === "progress" ? "Cleaning" : "Inspection"}</div>
+            <div className={sectionLabel}>{room.status === "inspection" ? "Inspection" : "Cleaning"}</div>
             <div className="divide-y divide-line rounded-xl border border-line">
               <div className="flex items-center justify-between px-4 py-3 text-[13px]">
                 <span className="text-ink-secondary">Assigned to</span>
@@ -495,7 +506,7 @@ function EditRoomModal({
             {STATUS_OPTIONS.map((st) => {
               const active = st === status;
               const Icon = STATUS_ICON[st];
-              const gated = (room.status === "progress" && st === "inspection") || (room.status === "inspection" && st === "inspected");
+              const gated = ((room.status === "clean" || room.status === "progress") && st === "inspection") || (room.status === "inspection" && st === "inspected");
               return (
                 <button
                   key={st}
@@ -516,15 +527,18 @@ function EditRoomModal({
         </div>
 
         {status === "progress" && cleaner && (
-          <p className="text-[12px] text-ink-secondary">Cleaning in progress. Change the status to Needs Inspection to assign someone to inspect it.</p>
+          <p className="text-[12px] text-ink-secondary">Cleaning in progress. Set the status to Clean when the room is finished.</p>
+        )}
+        {status === "clean" && (
+          <p className="text-[12px] text-ink-secondary">Flagged clean. Close the cleaning task to move this room to Needs Inspection.</p>
         )}
 
         {canAssign && (
           <div>
-            <div className={sectionLabel}>{status === "progress" ? "Assign cleaner" : "Assign inspector"}</div>
-            <Select value={staff} onChange={(e) => setStaff(e.target.value)}>
+            <div className={sectionLabel}>{status === "inspection" ? "Assign inspector" : "Assign cleaner"}</div>
+            <Select value={staff} onChange={(e) => pickStaff(e.target.value)}>
               <option value="">Unassigned</option>
-              {status === "progress" && <option value={OPEN_TASK}>Open task — anyone can pick it up</option>}
+              {status !== "inspection" && <option value={OPEN_TASK}>Open task — anyone can pick it up</option>}
               {STAFF.map((st) => (
                 <option key={st}>{st}</option>
               ))}

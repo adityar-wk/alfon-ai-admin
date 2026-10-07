@@ -1429,14 +1429,14 @@ function NewTask({
   const [dept, setDept] = useState(deptOptions[0]);
   const [details, setDetails] = useState("");
 
-  const valid = title.trim();
+  const valid = title.trim() && room.trim();
 
   const submit = () => {
     if (!valid) return;
     onCreate({
       title: title.trim(),
       guest: guest.trim() || "—",
-      room: room.trim() || "—",
+      room: room.trim(),
       dept,
       owner: null,
       priority: "Medium",
@@ -1464,8 +1464,8 @@ function NewTask({
           <Field label="Guest" hint="Optional.">
             <Input value={guest} onChange={(e) => setGuest(e.target.value)} placeholder="Guest name" />
           </Field>
-          <Field label="Room" hint="Optional.">
-            <Input value={room} onChange={(e) => setRoom(e.target.value)} placeholder="1608" />
+          <Field label="Room" required>
+            <Input value={room} onChange={(e) => setRoom(e.target.value)} placeholder="1608" required />
           </Field>
         </div>
 

@@ -480,12 +480,12 @@ export function SelectField({ value, onChange, placeholder, options, disabled }:
   );
 }
 
-export function TextField({ value, onChange, placeholder, rows }: { value: string; onChange: (v: string) => void; placeholder: string; rows?: number }) {
+export function TextField({ value, onChange, placeholder, rows, type = "text" }: { value: string; onChange: (v: string) => void; placeholder: string; rows?: number; type?: string }) {
   const cls = "w-full rounded-2xl border border-line bg-white px-4 text-[15px] outline-none placeholder:text-ink-tertiary focus:border-brand";
   return rows ? (
     <textarea rows={rows} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className={`${cls} py-3.5`} />
   ) : (
-    <input value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className={`${cls} h-14`} />
+    <input type={type} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className={`${cls} h-14`} />
   );
 }
 
@@ -507,7 +507,7 @@ export function ManualTaskFields({
     <>
       <Label>Guest (optional)</Label>
       <TextField value={guest} onChange={onGuest} placeholder="Guest name" />
-      <Label>Room (optional)</Label>
+      <Label>Room *</Label>
       <TextField value={room} onChange={onRoom} placeholder="e.g. 1608" />
       <Label>What needs to be done? *</Label>
       <TextField value={title} onChange={onTitle} placeholder="e.g. Extra pillows, AC check, airport pickup" />

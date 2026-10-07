@@ -5,9 +5,9 @@ import { Topbar } from "../../components/Topbar";
 import { Page, Card, Button, Select, StatCard } from "../../components/ui";
 import { HOTELS, REGIONS, type Hotel, type ConnStatus } from "../../data/hotels";
 
-const TABS = ["All", "Active", "Inactive", "New"] as const;
+const TABS = ["All", "Active", "Inactive", "Pending", "New"] as const;
 
-const STATUS_TONE: Record<Hotel["status"], string> = { Active: "text-green-600", Inactive: "text-red-600", New: "text-blue-600" };
+const STATUS_TONE: Record<Hotel["status"], string> = { Active: "text-green-600", Inactive: "text-red-600", Pending: "text-amber-600", New: "text-blue-600" };
 
 function ConnIcon({ status }: { status: ConnStatus }) {
   if (status === "Connected") return <Check className="h-4 w-4 text-green-600" aria-label="Connected" />;
@@ -115,7 +115,7 @@ export default function HotelsList() {
 
         <Card table className="mt-4 overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[1080px] table-fixed text-left">
+            <table className="w-full min-w-[960px] table-fixed text-left">
               <colgroup>
                 <col />
                 <col className="w-[110px]" />
@@ -123,8 +123,7 @@ export default function HotelsList() {
                 <col className="w-[110px]" />
                 <col className="w-[130px]" />
                 <col className="w-[130px]" />
-                <col className="w-[130px]" />
-                <col className="w-[110px]" />
+                <col className="w-[150px]" />
                 <col className="w-[56px]" />
               </colgroup>
               <thead>
@@ -136,13 +135,12 @@ export default function HotelsList() {
                   <th className="py-3.5 pl-6 font-medium">Last Sync</th>
                   <th className="py-3.5 pl-6 font-medium">Health Score</th>
                   <th className="py-3.5 pl-6 font-medium">Onboarding Date</th>
-                  <th className="py-3.5 pl-6 font-medium">Departments</th>
                   <th className="py-3.5 pr-6" />
                 </tr>
               </thead>
               <tbody>
                 {rows.map((h) => (
-                  <tr key={h.id} onClick={() => navigate(`/admin/hotels/${h.id}`)} className="cursor-pointer border-b border-line/50 last:border-0 hover:bg-subtle/60">
+                  <tr key={h.id} onClick={() => navigate(`/admin/hotels/${h.id}`)} className={`cursor-pointer border-b border-line/50 last:border-0 hover:bg-subtle/60 ${h.disabled ? "bg-[#F6F6F7] text-ink-tertiary" : ""}`}>
                     <td className="py-3.5 pl-6 pr-3">
                       <div className="flex items-center gap-3">
                         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-tint text-brand"><Building2 className="h-4 w-4" /></span>
@@ -152,7 +150,7 @@ export default function HotelsList() {
                         </div>
                       </div>
                     </td>
-                    <td className="py-3.5 pl-6 pr-3"><span className={`text-[13px] font-medium ${STATUS_TONE[h.status]}`}>{h.status}</span></td>
+                    <td className="py-3.5 pl-6 pr-3"><span className={`text-[13px] font-medium ${h.disabled ? "text-ink-tertiary" : STATUS_TONE[h.status]}`}>{h.disabled ? "Disabled" : h.status}</span></td>
                     <td className="py-3.5 pl-6 pr-3"><ConnIcon status={h.whatsapp} /></td>
                     <td className="py-3.5 pl-6 pr-3"><ConnIcon status={h.pms} /></td>
                     <td className="py-3.5 pl-6 pr-3 text-[13px] text-ink-secondary">{h.lastSync}</td>
@@ -167,7 +165,6 @@ export default function HotelsList() {
                       )}
                     </td>
                     <td className="py-3.5 pl-6 pr-3 text-[13px] text-ink-secondary">{h.onboarded}</td>
-                    <td className="py-3.5 pl-6 pr-3 text-[13px] text-ink-secondary">{h.departments}</td>
                     <td className="py-3.5 pr-6 text-right">
                       <button aria-label={`Actions for ${h.name}`} className="rounded-md p-1 text-ink-tertiary hover:bg-subtle hover:text-ink">
                         <MoreHorizontal className="h-4 w-4" />
@@ -175,7 +172,7 @@ export default function HotelsList() {
                     </td>
                   </tr>
                 ))}
-                {!rows.length && <tr><td colSpan={9} className="py-10 text-center text-[13px] text-ink-tertiary">No hotels match.</td></tr>}
+                {!rows.length && <tr><td colSpan={8} className="py-10 text-center text-[13px] text-ink-tertiary">No hotels match.</td></tr>}
               </tbody>
             </table>
           </div>

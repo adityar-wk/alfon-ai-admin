@@ -1,18 +1,20 @@
-import { useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Check, X } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { LineStaffPrototype } from "../linestaff/screens";
 import { ManagerPrototype } from "../linestaff/manager";
 import { GuestLandingPrototype } from "../linestaff/guestLanding";
 import { GuestLandingGlassPrototype } from "../linestaff/guestLandingGlass";
+import { StaffLoginPrototype } from "../linestaff/staffLogin";
 
-type Tab = "line" | "manager" | "landing" | "landing-glass";
+type Tab = "line" | "manager" | "landing" | "landing-glass" | "signin";
 
 const TABS: { key: Tab; label: string }[] = [
   { key: "line", label: "Line Staff" },
   { key: "manager", label: "Mid Manager" },
   { key: "landing", label: "Landing Page" },
   { key: "landing-glass", label: "Landing Page (Glass)" },
+  { key: "signin", label: "Sign in" },
 ];
 
 const INFO: Record<Tab, { title: string; blurb: string; flows: string[]; included: string[]; excluded: string[] }> = {
@@ -29,7 +31,7 @@ const INFO: Record<Tab, { title: string; blurb: string; flows: string[]; include
       "Tap a card → Task details (task, room, guest and assignee details; tap the guest to open their profile, or jump straight to the guest chat)",
       "Task details → Need help (escalate to your supervisor or the Duty Manager, or reassign) or Mark complete",
       "Bell → Notifications",
-      "Tasks page: + button (top right, after the bell) → Create Manual Task, same form as web (optional guest and room, what needs to be done, department, optional details); the task is created unassigned",
+      "Tasks page: + button (top right, after the bell) → Create Manual Task, same form as web (room is required, guest is optional, what needs to be done, department, optional details); the task is created unassigned",
       "Chats: filter chips All / Unread / Complaints / Open requests / Pre-arrival (same set as the Mid Manager) — tap a chat to reply (take over from ALFON AI), tap the avatar for the guest profile",
       "Guest profile: edit preferences and add notes. More (bottom nav): name, role, notification settings, sign out",
     ],
@@ -45,7 +47,7 @@ const INFO: Record<Tab, { title: string; blurb: string; flows: string[]; include
       "Escalated Task: reason, previous actions, SLA history, related requests, notes",
       "Task detail: Void (with a reason) next to Accept; Assist to reassign, add support or escalate to the Duty Manager",
       "Escalation review: send back with instruction, take ownership, route to another department, escalate to the Duty Manager",
-      "+ button → Create Manual Task, same form as web (optional guest and room, what needs to be done, department, optional details)",
+      "+ button → Create Manual Task, same form as web (room is required, guest is optional, what needs to be done, department, optional details)",
       "Team: staff workload and overloaded flags, unassigned tasks",
       "Complaint: sentiment / risk, take over the chat (pause AI, reply, hand back)",
     ],
@@ -65,6 +67,16 @@ const INFO: Record<Tab, { title: string; blurb: string; flows: string[]; include
     included: ["Works without an app install", "Consent and number verification captured before any messaging starts"],
     excluded: ["Any hotel-staff functionality — this is guest-facing only"],
   },
+  signin: {
+    title: "Sign in",
+    blurb: "Phone sign-in with email or phone number and a password.",
+    flows: [
+      "Email or phone number and password",
+      "Keep me signed in, or send a reset link",
+    ],
+    included: ["Hotel photo behind the sign-in card"],
+    excluded: ["One-time code and biometric sign-in"],
+  },
   "landing-glass": {
     title: "Guest Verification Landing — Glass",
     blurb: "A glassmorphic take on the same guest verification screen — a frosted, translucent card floating over the full photo background instead of a solid white sheet.",
@@ -79,7 +91,10 @@ const INFO: Record<Tab, { title: string; blurb: string; flows: string[]; include
 };
 
 export default function LineStaff() {
-  const [tab, setTab] = useState<Tab>("line");
+  const [params, setParams] = useSearchParams();
+  const raw = params.get("tab");
+  const tab: Tab = TABS.some((t) => t.key === raw) ? (raw as Tab) : "line";
+  const setTab = (next: Tab) => setParams(next === "line" ? {} : { tab: next }, { replace: true });
   const info = INFO[tab];
 
   return (
@@ -105,6 +120,7 @@ export default function LineStaff() {
             {tab === "manager" && <ManagerPrototype />}
             {tab === "landing" && <GuestLandingPrototype />}
             {tab === "landing-glass" && <GuestLandingGlassPrototype />}
+            {tab === "signin" && <StaffLoginPrototype />}
 
             <div className="space-y-5">
               <div className="rounded-card border border-line bg-white p-5">

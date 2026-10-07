@@ -371,9 +371,11 @@ export function LineStaffPrototype() {
   };
 
   const createTask = () => {
-    const id = "n" + Date.now();
-    const r = room.trim() ? `Room ${room.trim().replace(/^room\s*/i, "")}` : "—";
     const title = taskTitle.trim();
+    const roomNo = room.trim().replace(/^room\s*/i, "");
+    if (!title || !roomNo) return;
+    const id = "n" + Date.now();
+    const r = `Room ${roomNo}`;
     setTasks((ts) => [
       {
         id, title, room: r, note: details.trim() || title, status: "pending", left: DEFAULT_SLA, total: DEFAULT_SLA,
@@ -728,7 +730,7 @@ export function LineStaffPrototype() {
         />
       </div>
       <div className="shrink-0 px-6 pb-6 pt-2">
-        <Button className="w-full" disabled={!taskTitle.trim()} onClick={createTask}>Create Task</Button>
+        <Button className="w-full" disabled={!taskTitle.trim() || !room.trim()} onClick={createTask}>Create Task</Button>
       </div>
     </div>
   );

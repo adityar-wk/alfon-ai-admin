@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Navigate, useParams, useSearchParams } from "react-router-dom";
 import {
   Plus,
@@ -7,17 +7,15 @@ import {
   Check,
   Trash2,
   Lightbulb,
-  ChevronDown,
-  ChevronRight,
+  ArrowDown,
 } from "lucide-react";
 import { Topbar } from "../components/Topbar";
-import { Page, Button, Field, Input, Textarea, Modal, Select, Toggle } from "../components/ui";
+import { Page, Button, Field, Input, Textarea, Modal, Select } from "../components/ui";
 import { getDepartment, type DeptMember, type DeptService } from "../data/departments";
 import { deptIcon } from "../data/deptIcons";
 
 type SlaRow = { hours247: boolean; hoursStart: string; hoursEnd: string; response: string; resolve: string };
 type Level = { id: number; trigger: string; to: string };
-type ServicePath = { enabled: boolean; levels: Level[] };
 type ModalState = { mode: "add" } | { mode: "edit"; service: DeptService } | null;
 
 const blankSla = (): SlaRow => ({ hours247: true, hoursStart: "09:00", hoursEnd: "18:00", response: "20", resolve: "90" });
@@ -28,7 +26,7 @@ const SEED_LEVELS: Level[] = [
   { id: 2, trigger: "+15 min after Level 1", to: "Department Head" },
   { id: 3, trigger: "+30 min after Level 2", to: "General Manager" },
 ];
-const freshPath = (): ServicePath => ({ enabled: true, levels: SEED_LEVELS.map((l) => ({ ...l })) });
+const freshLevels = (): Level[] => SEED_LEVELS.map((l) => ({ ...l }));
 
 export default function DepartmentDetail() {
   const { slug = "" } = useParams();
@@ -48,14 +46,7 @@ export default function DepartmentDetail() {
   const [editingDesc, setEditingDesc] = useState(false);
   const [descDraft, setDescDraft] = useState("");
   const [sla, setSla] = useState<Record<string, SlaRow>>({});
-  const [paths, setPaths] = useState<Record<string, ServicePath>>({});
-  const [openPaths, setOpenPaths] = useState<Set<string>>(new Set());
-  const togglePath = (name: string) =>
-    setOpenPaths((s) => {
-      const next = new Set(s);
-      if (!next.delete(name)) next.add(name);
-      return next;
-    });
+  const [levels, setLevels] = useState<Level[]>(freshLevels);
 
   useEffect(() => {
     if (!dept) return;
@@ -63,7 +54,7 @@ export default function DepartmentDetail() {
     setServices(dept.services);
     setDescription(dept.description);
     setSla(Object.fromEntries(dept.services.map((s) => [s.name, blankSla()])));
-    setPaths(Object.fromEntries(dept.services.map((s) => [s.name, freshPath()])));
+    setLevels(freshLevels());
   }, [dept]);
 
   useEffect(() => {
@@ -82,8 +73,6 @@ export default function DepartmentDetail() {
   const Icon = deptIcon(dept.name);
 
   const targets = Array.from(new Set([...members.map((m) => m.role).filter((r) => r !== "Line Staff"), "Duty Manager", "General Manager"]));
-  const pathOf = (name: string) => paths[name] ?? freshPath();
-  const setPath = (name: string, next: ServicePath) => setPaths((ps) => ({ ...ps, [name]: next }));
 
   const saveService = (s: DeptService, row: SlaRow, editingName?: string) => {
     if (editingName) {
@@ -94,18 +83,10 @@ export default function DepartmentDetail() {
         next[s.name] = row;
         return next;
       });
-      setPaths((ps) => {
-        const next = { ...ps };
-        const prev = next[editingName] ?? freshPath();
-        if (editingName !== s.name) delete next[editingName];
-        next[s.name] = prev;
-        return next;
-      });
       setToast(`"${s.name}" updated`);
     } else {
       setServices((ss) => [...ss, s]);
       setSla((rows) => ({ ...rows, [s.name]: row }));
-      setPaths((ps) => ({ ...ps, [s.name]: freshPath() }));
       setToast(`"${s.name}" added`);
     }
     setModal(null);
@@ -116,11 +97,6 @@ export default function DepartmentDetail() {
     setServices((ss) => ss.filter((x) => x.name !== deleteTarget.name));
     setSla((rows) => {
       const next = { ...rows };
-      delete next[deleteTarget.name];
-      return next;
-    });
-    setPaths((ps) => {
-      const next = { ...ps };
       delete next[deleteTarget.name];
       return next;
     });
@@ -160,39 +136,32 @@ export default function DepartmentDetail() {
             </button>
           </div>
 
-          <div className="mt-8">
-            <div className="flex items-baseline justify-between">
-              <h3 className="text-[16px] font-semibold text-ink">Services</h3>
-              <button onClick={() => setModal({ mode: "add" })} className="flex items-center gap-1.5 text-[13px] font-medium text-brand">
-                <Plus className="h-4 w-4" /> Add Service
-              </button>
-            </div>
-            <div className="mt-2 flex gap-2.5 rounded-card border border-amber-100 bg-amber-50/60 p-3.5">
-              <Lightbulb className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
-              <p className="text-[12px] text-ink-secondary">Each service has its own escalation path. Turn it off to keep a missed task with the assignee.</p>
-            </div>
+          <div className="mt-8 grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_300px]">
+            <div className="min-w-0">
+              <div className="flex items-baseline justify-between">
+                <h3 className="text-[16px] font-semibold text-ink">Services</h3>
+                <button onClick={() => setModal({ mode: "add" })} className="flex items-center gap-1.5 text-[13px] font-medium text-brand">
+                  <Plus className="h-4 w-4" /> Add Service
+                </button>
+              </div>
 
-            <div className="mt-3 overflow-x-auto rounded-xl border border-line">
-              <table className="w-full min-w-[860px] text-left">
-                <thead>
-                  <tr className="bg-[#F4F4F5] text-[11px] uppercase tracking-wide text-ink-secondary">
-                    <th className="py-3 pl-4 pr-3 font-medium">Service</th>
-                    <th className="py-3 pl-4 pr-3 font-medium">Description</th>
-                    <th className="py-3 pl-4 pr-3 font-medium">Service time</th>
-                    <th className="py-3 pl-4 pr-3 font-medium">Response</th>
-                    <th className="py-3 pl-4 pr-3 font-medium">Resolution</th>
-                    <th className="py-3 pl-4 pr-3 font-medium">Escalation</th>
-                    <th className="py-3 pl-4 pr-4" aria-label="Actions" />
-                  </tr>
-                </thead>
-                <tbody>
-                  {services.map((sv) => {
-                    const row = sla[sv.name] ?? blankSla();
-                    const path = paths[sv.name] ?? freshPath();
-                    const setPath = (next: ServicePath) => setPaths((ps) => ({ ...ps, [sv.name]: next }));
-                    return (
-                      <Fragment key={sv.name}>
-                        <tr className="border-t-2 border-line first:border-t-0">
+              <div className="mt-3 overflow-x-auto rounded-xl border border-line">
+                <table className="w-full min-w-[640px] text-left">
+                  <thead>
+                    <tr className="bg-[#F4F4F5] text-[11px] uppercase tracking-wide text-ink-secondary">
+                      <th className="py-3 pl-4 pr-3 font-medium">Service</th>
+                      <th className="py-3 pl-4 pr-3 font-medium">Description</th>
+                      <th className="py-3 pl-4 pr-3 font-medium">Service time</th>
+                      <th className="py-3 pl-4 pr-3 font-medium">Response</th>
+                      <th className="py-3 pl-4 pr-3 font-medium">Resolution</th>
+                      <th className="py-3 pl-4 pr-4" aria-label="Actions" />
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {services.map((sv) => {
+                      const row = sla[sv.name] ?? blankSla();
+                      return (
+                        <tr key={sv.name} className="border-t border-line">
                           <td className="whitespace-nowrap py-3 pl-4 pr-3 text-[13px] font-semibold text-ink">{sv.name}</td>
                           <td className="py-3 pl-4 pr-3 text-[13px] leading-relaxed text-ink-secondary">
                             {sv.description || <span className="text-ink-tertiary">—</span>}
@@ -200,34 +169,6 @@ export default function DepartmentDetail() {
                           <td className="whitespace-nowrap py-3 pl-4 pr-3 text-[13px] text-ink-secondary">{hoursLabel(row)}</td>
                           <td className="whitespace-nowrap py-3 pl-4 pr-3 text-[13px] text-ink-secondary">{row.response} min</td>
                           <td className="whitespace-nowrap py-3 pl-4 pr-3 text-[13px] text-ink-secondary">{row.resolve} min</td>
-                          <td className="py-3 pl-4 pr-3">
-                            <div className="flex items-center gap-3">
-                              <button
-                                type="button"
-                                onClick={() => setPath({ ...path, enabled: !path.enabled })}
-                                aria-pressed={path.enabled}
-                                aria-label={`${path.enabled ? "Disable" : "Enable"} escalation for ${sv.name}`}
-                                className="inline-flex shrink-0 items-center gap-2"
-                              >
-                                <Toggle checked={path.enabled} />
-                                <span className="w-5 text-[12px] font-medium text-ink-secondary">{path.enabled ? "On" : "Off"}</span>
-                              </button>
-                              {path.enabled && (
-                                <button
-                                  type="button"
-                                  onClick={() => togglePath(sv.name)}
-                                  aria-expanded={openPaths.has(sv.name)}
-                                  aria-label={`${openPaths.has(sv.name) ? "Hide" : "Edit"} escalation path for ${sv.name}`}
-                                  className="flex min-w-0 items-center gap-1 rounded-md px-1.5 py-1 text-[12px] text-ink-secondary hover:bg-subtle hover:text-ink"
-                                >
-                                  <span className="max-w-[300px] truncate whitespace-nowrap">
-                                    {path.levels.length ? path.levels.map((l) => l.to).join(" → ") : "No steps"}
-                                  </span>
-                                  <ChevronDown className={`h-3.5 w-3.5 shrink-0 transition-transform ${openPaths.has(sv.name) ? "rotate-180" : ""}`} />
-                                </button>
-                              )}
-                            </div>
-                          </td>
                           <td className="whitespace-nowrap py-3 pl-4 pr-4 text-right">
                             <button
                               onClick={() => setModal({ mode: "edit", service: sv })}
@@ -245,48 +186,57 @@ export default function DepartmentDetail() {
                             </button>
                           </td>
                         </tr>
-                        {path.enabled && openPaths.has(sv.name) && (
-                          <tr key={`${sv.name}-path`} className="bg-[#FAFAFA]">
-                            <td colSpan={7} className="border-l-2 border-brand px-4 py-2.5">
-                              <div className="flex flex-wrap items-center gap-x-1.5 gap-y-2">
-                                <span className="mr-1 text-[11px] font-semibold uppercase tracking-wide text-ink-tertiary">Escalates to</span>
-                                {path.levels.map((l, i) => (
-                                  <Fragment key={l.id}>
-                                    {i > 0 && <ChevronRight className="h-3.5 w-3.5 shrink-0 text-ink-tertiary" />}
-                                    <div className="flex items-center gap-1.5 rounded-lg border border-line bg-white py-1 pl-1.5 pr-1" title={l.trigger}>
-                                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-tint text-[10px] font-semibold text-brand">{i + 1}</span>
-                                      <Select
-                                        className="!h-7 !w-[160px] !py-0 !text-[12px]"
-                                        aria-label={`Level ${i + 1} escalation target for ${sv.name}`}
-                                        value={l.to}
-                                        onChange={(e) => setPath({ ...path, levels: path.levels.map((x) => (x.id === l.id ? { ...x, to: e.target.value } : x)) })}
-                                      >
-                                        {targets.map((t) => <option key={t}>{t}</option>)}
-                                      </Select>
-                                      <button
-                                        onClick={() => setPath({ ...path, levels: path.levels.filter((x) => x.id !== l.id) })}
-                                        className="rounded p-1 text-ink-tertiary hover:bg-red-50 hover:text-danger"
-                                        aria-label={`Remove escalation step ${i + 1} for ${sv.name}`}
-                                      >
-                                        <Trash2 className="h-3.5 w-3.5" />
-                                      </button>
-                                    </div>
-                                  </Fragment>
-                                ))}
-                                {!path.levels.length && <span className="text-[12px] text-ink-tertiary">No steps on this path.</span>}
-                              </div>
-                            </td>
-                          </tr>
-                        )}
-                      </Fragment>
-                    );
-                  })}
-                  {!services.length && (
-                    <tr><td colSpan={7} className="py-8 text-center text-[13px] text-ink-tertiary">No services yet — add the first one.</td></tr>
-                  )}
-                </tbody>
+                      );
+                    })}
+                    {!services.length && (
+                      <tr><td colSpan={6} className="py-8 text-center text-[13px] text-ink-tertiary">No services yet — add the first one.</td></tr>
+                    )}
+                  </tbody>
                 </table>
               </div>
+            </div>
+
+            <div className="lg:border-l lg:border-line lg:pl-8">
+              <h3 className="text-[16px] font-semibold text-ink">Escalation path</h3>
+              <p className="mt-1 text-[12px] text-ink-secondary">When a task in {dept.name} misses its time, it moves up this list. Every service uses this path.</p>
+              <div className="mt-4">
+                {levels.map((l, i) => (
+                  <div key={l.id}>
+                    <div className="rounded-xl border border-line p-3.5">
+                      <div className="flex items-center gap-2">
+                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-tint text-[11px] font-semibold text-brand">{i + 1}</span>
+                        <span className="min-w-0 flex-1 text-[12px] text-ink-secondary">{l.trigger}</span>
+                        <button
+                          onClick={() => setLevels((ls) => ls.filter((x) => x.id !== l.id))}
+                          className="text-ink-tertiary hover:text-danger"
+                          aria-label={`Remove escalation step ${i + 1}`}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                      <Select
+                        className="mt-3 h-9"
+                        aria-label={`Level ${i + 1} escalation target`}
+                        value={l.to}
+                        onChange={(e) => setLevels((ls) => ls.map((x) => (x.id === l.id ? { ...x, to: e.target.value } : x)))}
+                      >
+                        {targets.map((t) => <option key={t}>{t}</option>)}
+                      </Select>
+                    </div>
+                    {i < levels.length - 1 && (
+                      <div className="flex justify-center py-2 text-ink-tertiary">
+                        <ArrowDown className="h-4 w-4" />
+                      </div>
+                    )}
+                  </div>
+                ))}
+                {!levels.length && <p className="text-[13px] text-ink-tertiary">No steps on this path.</p>}
+              </div>
+              <div className="mt-4 flex gap-2.5 rounded-card border border-amber-100 bg-amber-50/60 p-3.5">
+                <Lightbulb className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
+                <p className="text-[12px] text-ink-secondary">This path is the default for every service in the department.</p>
+              </div>
+            </div>
           </div>
 
           <div className="mt-8 flex justify-end border-t border-line pt-6">

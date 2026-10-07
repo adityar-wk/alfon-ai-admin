@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import {
   Bell, LayoutDashboard, CheckSquare, MessageSquare, Plus, Users, UserCog, UserPlus, ArrowUpRight, Send, Filter, ChevronRight, ChevronLeft, Search,
   UserRound, BarChart3, AlertTriangle, User, BedDouble, DoorOpen, DoorClosed, Building2, FileText, Download, UtensilsCrossed, Languages, Thermometer, AlarmClock, Wine, Phone, Mail, Sparkles, SlidersHorizontal, LogOut,
-  CheckCircle2, Clock, Loader, AlertCircle, CircleSlash, Wrench, ClipboardCheck, Timer,
+  CheckCircle2, Clock, Loader, AlertCircle, CircleSlash, CircleDashed, Wrench, ClipboardCheck, Timer,
 } from "lucide-react";
 import { CLEANING_CHECKLIST, INSPECTION_CHECKLIST, TAG_TONE } from "../data/housekeepingChecklists";
 import { DEPARTMENTS } from "../data/departments";
@@ -56,28 +56,34 @@ const GUEST_FILTERS = ["All", "Unread", "Complaints", "Open requests", "Pre-arri
 type GuestFilter = (typeof GUEST_FILTERS)[number];
 const ROSTER_STAGE_FILTERS = ["All", "In-house", "Pre-arrival", "Checked out"] as const;
 type RosterStage = (typeof ROSTER_STAGE_FILTERS)[number];
-const ROOM_STATUS_FILTERS = ["All", "In Progress", "Needs Inspection", "Out of Service", "Out of Order", "Inspected"] as const;
+const ROOM_STATUS_FILTERS = ["All", "Dirty", "In Progress", "Clean", "Needs Inspection", "Inspected", "Out of Service", "Out of Order"] as const;
 type RoomStatusFilter = (typeof ROOM_STATUS_FILTERS)[number];
-const ROOM_STATUSES = ["Inspected", "In Progress", "Needs Inspection", "Out of Service", "Out of Order"] as const;
+const ROOM_STATUSES = ["Inspected", "Dirty", "In Progress", "Clean", "Needs Inspection", "Out of Service", "Out of Order"] as const;
 /** matches the colour coding used on the web Housekeeping tab */
 const CARD_BADGE: Record<MTask["status"], string> = { unassigned: "Pending", assigned: "In Progress", progress: "In Progress", completed: "Completed", void: "Void" };
 const ROOM_STATUS_ICON: Record<RoomStatus, React.ComponentType<{ className?: string }>> = {
   Inspected: CheckCircle2,
+  Dirty: CircleDashed,
   "In Progress": Loader,
+  Clean: Sparkles,
   "Needs Inspection": AlertCircle,
   "Out of Service": CircleSlash,
   "Out of Order": Wrench,
 };
 const ROOM_STATUS_ICON_TONE: Record<RoomStatus, string> = {
   Inspected: "bg-green-50 text-success",
+  Dirty: "bg-amber-50 text-amber-700",
   "In Progress": "bg-brand-tint text-brand",
+  Clean: "bg-emerald-50 text-emerald-600",
   "Needs Inspection": "bg-amber-50 text-amber-600",
   "Out of Service": "bg-red-50 text-danger",
   "Out of Order": "bg-subtle text-ink-tertiary",
 };
 const ROOM_CARD_TEXT: Record<RoomStatus, string> = {
   Inspected: "text-green-600",
+  Dirty: "text-amber-700",
   "In Progress": "text-blue-600",
+  Clean: "text-emerald-600",
   "Needs Inspection": "text-amber-600",
   "Out of Service": "text-red-600",
   "Out of Order": "text-gray-500",
@@ -637,11 +643,6 @@ export function ManagerPrototype() {
             <div className="flex items-center justify-between gap-2">
               <div className={`min-w-0 truncate text-[13px] font-bold ${dulled ? "text-ink-tertiary" : "text-ink"}`}>{r.number}</div>
               <span className="flex shrink-0 items-center gap-1.5">
-                {(r.status === "Inspected" || r.status === "In Progress" || r.status === "Needs Inspection") && (
-                  <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${r.status === "Inspected" ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`}>
-                    {r.status === "Inspected" ? "Clean" : "Dirty"}
-                  </span>
-                )}
                 <span title={occupied ? "Occupied" : "Vacant"} aria-label={occupied ? "Occupied" : "Vacant"} className="flex h-6 w-6 items-center justify-center text-ink">
                   {occupied ? <User className="h-3.5 w-3.5" /> : <DoorClosed className="h-3.5 w-3.5" />}
                 </span>
@@ -649,7 +650,7 @@ export function ManagerPrototype() {
             </div>
             <div className="truncate text-[11px] text-ink-secondary">{r.roomType} · Floor {r.floor}</div>
             <div className={`mt-1.5 text-[12px] font-semibold ${ROOM_CARD_TEXT[r.status]}`}>{r.status}</div>
-            {(r.status === "In Progress" || r.status === "Needs Inspection") && (
+            {(r.status === "In Progress" || r.status === "Clean" || r.status === "Needs Inspection") && (
               <div className="mt-1 flex items-center justify-between gap-2">
                 <span className="min-w-0 truncate text-[10px] font-medium text-ink-secondary">{r.assignee ?? "Unassigned"}</span>
                 <span className="ml-auto text-[11px]"><RoomTimer room={r} /></span>
@@ -665,7 +666,7 @@ export function ManagerPrototype() {
 
   const RoomSheet = roomEntry && (
     <Sheet title={roomEntry.number} onClose={() => setRoomSheet(null)}>
-      {(roomEntry.status === "In Progress" || roomEntry.status === "Needs Inspection") && (
+      {(roomEntry.status === "In Progress" || roomEntry.status === "Clean" || roomEntry.status === "Needs Inspection") && (
         <div className="mb-4"><RoomSummary room={roomEntry} /></div>
       )}
       <Label>Status</Label>
@@ -673,27 +674,24 @@ export function ManagerPrototype() {
         {ROOM_STATUSES.map((v) => {
           const on = v === roomEntry.status;
           const Icon = ROOM_STATUS_ICON[v];
-          const gated = (roomEntry.status === "In Progress" && v === "Needs Inspection") || (roomEntry.status === "Needs Inspection" && v === "Inspected");
+          const gated = ((roomEntry.status === "Clean" || roomEntry.status === "In Progress") && v === "Needs Inspection") || (roomEntry.status === "Needs Inspection" && v === "Inspected");
           return (
             <button
               key={v}
               onClick={() => {
-                if (gated) return setRoomChecklist({ number: roomEntry.number, kind: roomEntry.status === "In Progress" ? "cleaning" : "inspection" });
-                setRooms((rs) => rs.map((r) => (r.number === roomEntry.number ? v === r.status ? r : { ...r, status: v, assignee: null, open: false, due: roomDue(v) } : r)));
+                if (gated) return setRoomChecklist({ number: roomEntry.number, kind: roomEntry.status === "Needs Inspection" ? "inspection" : "cleaning" });
+                setRooms((rs) => rs.map((r) => {
+                  if (r.number !== roomEntry.number || v === r.status) return r;
+                  const keepCleaner = r.status === "In Progress" && v === "Clean";
+                  return { ...r, status: v, assignee: keepCleaner ? r.assignee : null, open: false, due: roomDue(v) };
+                }));
                 flash(`${roomEntry.number} marked ${v}`);
               }}
               className={`flex w-full items-center gap-3 rounded-2xl border p-3 text-left ${on ? "border-brand bg-brand-tint/40" : "border-line bg-white"}`}
             >
               <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${ROOM_STATUS_ICON_TONE[v]}`}><Icon className="h-4 w-4" /></span>
               <span className="min-w-0 flex-1">
-                <span className="flex flex-wrap items-center gap-1.5 text-[14px] font-medium text-ink">
-                  {v}
-                  {v === "Inspected" && (
-                    <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${roomEntry.status === "Inspected" ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`}>
-                      {roomEntry.status === "Inspected" ? "Clean" : "Dirty"}
-                    </span>
-                  )}
-                </span>
+                <span className="flex flex-wrap items-center gap-1.5 text-[14px] font-medium text-ink">{v}</span>
                 {gated && <span className="flex items-center gap-1 text-[11px] text-ink-tertiary"><ClipboardCheck className="h-3 w-3" /> Requires checklist</span>}
               </span>
               <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${on ? "border-brand" : "border-line"}`}>
@@ -703,13 +701,16 @@ export function ManagerPrototype() {
           );
         })}
       </div>
-      {(roomEntry.status === "Needs Inspection" || roomEntry.status === "In Progress") && !roomEntry.assignee && (
+      {(roomEntry.status === "Needs Inspection" || roomEntry.status === "In Progress" || roomEntry.status === "Dirty") && !roomEntry.assignee && (
         <>
           <div className="mt-5" />
-          {roomEntry.status === "In Progress" && !roomEntry.open && (
+          {(roomEntry.status === "Dirty" || (roomEntry.status === "In Progress" && !roomEntry.open)) && (
             <>
               <button
-                onClick={() => { setRooms((rs) => rs.map((r) => (r.number === roomEntry.number ? { ...r, open: true } : r))); flash(`${roomEntry.number} is now open for line staff to pick up`); }}
+                onClick={() => {
+                  setRooms((rs) => rs.map((r) => (r.number === roomEntry.number ? { ...r, status: "In Progress", open: true, assignee: null, due: roomDue("In Progress") } : r)));
+                  flash(`${roomEntry.number} is now an open task`);
+                }}
                 className="w-full rounded-control border-[1.5px] border-brand/35 bg-brand-tint py-[15px] font-display text-[14px] font-bold text-brand active:bg-[#FDE9E1]"
               >
                 Make open task
@@ -719,12 +720,15 @@ export function ManagerPrototype() {
               </div>
             </>
           )}
-          <Label>{roomEntry.status === "In Progress" ? "Assign cleaner" : "Assign inspector"}</Label>
+          <Label>{roomEntry.status === "Needs Inspection" ? "Assign inspector" : "Assign cleaner"}</Label>
           <StaffPicker
             tasks={tasks}
             avatars={false}
             exclude={roomEntry.assignee ? [roomEntry.assignee] : []}
-            onPick={(s) => { setRooms((rs) => rs.map((r) => (r.number === roomEntry.number ? { ...r, assignee: s.name, open: false } : r))); flash(`${roomEntry.number} assigned to ${s.name}`); }}
+            onPick={(s) => {
+              setRooms((rs) => rs.map((r) => (r.number === roomEntry.number ? { ...r, assignee: s.name, open: false, status: r.status === "Dirty" ? "In Progress" : r.status, due: r.status === "Dirty" ? roomDue("In Progress") : r.due } : r)));
+              flash(roomEntry.status === "Dirty" ? `${roomEntry.number} is in progress with ${s.name}` : `${roomEntry.number} assigned to ${s.name}`);
+            }}
             cta="Assign"
           />
         </>
@@ -974,11 +978,13 @@ export function ManagerPrototype() {
       <div className="shrink-0 px-6 pb-6 pt-2">
         <Button
           className="w-full"
-          disabled={!taskTitle.trim()}
+          disabled={!taskTitle.trim() || !room.trim()}
           onClick={() => {
-            const id = "n" + Date.now();
-            const roomLabel = room.trim() ? `Room ${room.trim().replace(/^room\s*/i, "")}` : "—";
             const title = taskTitle.trim();
+            const roomNo = room.trim().replace(/^room\s*/i, "");
+            if (!title || !roomNo) return;
+            const id = "n" + Date.now();
+            const roomLabel = `Room ${roomNo}`;
             setTasks((ts) => [{
               id, room: roomLabel, guest: taskGuest.trim() || "—", title, dept: taskDept, note: details.trim() || title, priority: "Medium", status: "unassigned", owner: null, support: [],
               slaTotal: DEFAULT_SLA, slaLeft: DEFAULT_SLA, isNew: true, createdAt: "now", pickup: "Not yet picked up", summary: details.trim() || title, prefs: [], convo: "Created manually by the department head.",
@@ -1386,7 +1392,7 @@ export function ManagerPrototype() {
               setRoomChecklist(null);
             }}
             onFlag={() => {
-              setRooms((rs) => rs.map((r) => (r.number === checklistRoom.number ? { ...r, status: "In Progress", due: roomDue("In Progress") } : r)));
+              setRooms((rs) => rs.map((r) => (r.number === checklistRoom.number ? { ...r, status: "Dirty", assignee: null, open: false, due: undefined } : r)));
               flash(`${checklistRoom.number} flagged for re-cleaning`);
               setRoomChecklist(null);
             }}
