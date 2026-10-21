@@ -3,11 +3,11 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Building2, CheckCircle2, AlertTriangle, Activity, Search, Plus, MoreHorizontal, Check, X, Clock } from "lucide-react";
 import { Topbar } from "../../components/Topbar";
 import { Page, Card, Button, Select, StatCard } from "../../components/ui";
-import { HOTELS, REGIONS, type Hotel, type ConnStatus } from "../../data/hotels";
+import { REGIONS, activationPending, allHotels, hasConnectionIssue, type Hotel, type ConnStatus } from "../../data/hotels";
 
-const TABS = ["All", "Active", "Inactive", "Pending", "New"] as const;
+const TABS = ["All", "Active", "Inactive", "Onboarding", "Needs review", "Draft"] as const;
 
-const STATUS_TONE: Record<Hotel["status"], string> = { Active: "text-green-600", Inactive: "text-red-600", Pending: "text-amber-600", New: "text-blue-600" };
+const STATUS_TONE: Record<Hotel["status"], string> = { Active: "text-green-600", Inactive: "text-red-600", Onboarding: "text-amber-600", "Needs review": "text-blue-600", Draft: "text-ink-secondary" };
 
 function ConnIcon({ status }: { status: ConnStatus }) {
   if (status === "Connected") return <Check className="h-4 w-4 text-green-600" aria-label="Connected" />;
@@ -23,17 +23,16 @@ export default function HotelsList() {
   const [region, setRegion] = useState("all");
   const [toast, setToast] = useState<string | null>(null);
 
-  const total = HOTELS.length;
-  const active = HOTELS.filter((h) => h.status === "Active").length;
-  const inactive = HOTELS.filter((h) => h.status === "Inactive").length;
-  const connIssues = HOTELS.filter((h) => h.status !== "Inactive" && (h.whatsapp !== "Connected" || h.pms !== "Connected")).length;
-  const needsAttention = inactive + connIssues;
-  const scored = HOTELS.filter((h) => h.healthScore !== null);
+  const hotels = allHotels();
+  const total = hotels.length;
+  const active = hotels.filter((h) => h.status === "Active").length;
+  const connIssues = hotels.filter(hasConnectionIssue).length;
+  const scored = hotels.filter((h) => h.healthScore !== null);
   const avgHealth = scored.length ? Math.round(scored.reduce((n, h) => n + (h.healthScore ?? 0), 0) / scored.length) : 0;
 
   const KPIS = [
     { label: "Total Hotels", icon: Building2, value: total, foot: `Across ${REGIONS.length} regions` },
-    { label: "Needs Attention", icon: AlertTriangle, value: needsAttention, foot: `${inactive} inactive · ${connIssues} connection issue${connIssues === 1 ? "" : "s"}` },
+    { label: "System health", icon: AlertTriangle, value: connIssues, foot: connIssues ? `${connIssues} connection issue${connIssues === 1 ? "" : "s"}` : "All connections healthy" },
     { label: "Active Hotels", icon: CheckCircle2, value: active, foot: `${Math.round((active / total) * 100)}% of the network` },
     { label: "Avg Health Score", icon: Activity, value: `${avgHealth}%`, foot: `Across ${scored.length} scored hotels` },
   ];
@@ -49,7 +48,7 @@ export default function HotelsList() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const rows = HOTELS.filter((h) => {
+  const rows = hotels.filter((h) => {
     if (tab !== "All" && h.status !== tab) return false;
     if (region !== "all" && h.region !== region) return false;
     const q = query.trim().toLowerCase();
@@ -77,39 +76,39 @@ export default function HotelsList() {
           ))}
         </div>
 
-        <div className="mt-5 flex flex-wrap items-center gap-3">
-          <div className="flex h-10 shrink-0 items-center gap-1 rounded-control border border-line bg-white p-1">
-            {TABS.map((t) => {
-              const count = t === "All" ? HOTELS.length : HOTELS.filter((h) => h.status === t).length;
-              const on = tab === t;
-              return (
-                <button
-                  key={t}
-                  onClick={() => setTab(t)}
-                  className={`flex h-full items-center gap-1.5 rounded-md px-3 text-[13px] font-medium transition-colors ${on ? "bg-brand-tint text-brand" : "text-ink-secondary hover:bg-subtle hover:text-ink"}`}
-                >
-                  {t}
-                  <span className={`text-[11px] ${on ? "text-brand/70" : "text-ink-tertiary"}`}>{count}</span>
-                </button>
-              );
-            })}
-          </div>
-          <div className="relative w-full max-w-xs shrink-0">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-tertiary" />
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search hotels…"
-              className="h-10 w-full rounded-control border border-line bg-white pl-9 pr-3 text-[13px] outline-none placeholder:text-ink-tertiary focus:border-brand"
-            />
-          </div>
-          <div className="ml-auto flex items-center gap-2">
-            <div className="w-44 shrink-0">
+        <div className="mt-5 space-y-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="relative w-full max-w-sm">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-tertiary" />
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search hotels…"
+                className="h-10 w-full rounded-control border border-line bg-white pl-9 pr-3 text-[13px] outline-none placeholder:text-ink-tertiary focus:border-brand"
+              />
+            </div>
+            <div className="w-44 shrink-0 sm:ml-auto">
               <Select value={region} onChange={(e) => setRegion(e.target.value)} aria-label="Region">
                 <option value="all">All Regions</option>
                 {REGIONS.map((r) => <option key={r}>{r}</option>)}
               </Select>
             </div>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {TABS.map((t) => {
+              const count = t === "All" ? hotels.length : hotels.filter((h) => h.status === t).length;
+              const on = tab === t;
+              return (
+                <button
+                  key={t}
+                  onClick={() => setTab(t)}
+                  className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-1.5 text-[13px] font-medium transition-all duration-200 hover:-translate-y-px ${on ? "bg-brand text-white" : "border border-line bg-white text-ink-secondary hover:bg-subtle"}`}
+                >
+                  {t}
+                  <span className={on ? "text-white/80" : "text-ink-tertiary"}>{count}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -145,12 +144,16 @@ export default function HotelsList() {
                       <div className="flex items-center gap-3">
                         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-tint text-brand"><Building2 className="h-4 w-4" /></span>
                         <div className="min-w-0">
-                          <div className="truncate text-[13px] font-semibold text-ink">{h.name}</div>
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            <span className="text-[13px] font-semibold text-ink">{h.name}</span>
+                            {activationPending(h) && <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700">activation pending</span>}
+                            {hasConnectionIssue(h) && <span className="rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-semibold text-red-600">Connection issue</span>}
+                          </div>
                           <div className="truncate text-[12px] text-ink-tertiary">{h.location}</div>
                         </div>
                       </div>
                     </td>
-                    <td className="py-3.5 pl-6 pr-3"><span className={`text-[13px] font-medium ${h.disabled ? "text-ink-tertiary" : STATUS_TONE[h.status]}`}>{h.disabled ? "Disabled" : h.status}</span></td>
+                    <td className="py-3.5 pl-6 pr-3"><span className={`text-[13px] font-medium ${STATUS_TONE[h.status]}`}>{h.status}</span></td>
                     <td className="py-3.5 pl-6 pr-3"><ConnIcon status={h.whatsapp} /></td>
                     <td className="py-3.5 pl-6 pr-3"><ConnIcon status={h.pms} /></td>
                     <td className="py-3.5 pl-6 pr-3 text-[13px] text-ink-secondary">{h.lastSync}</td>
@@ -177,7 +180,7 @@ export default function HotelsList() {
             </table>
           </div>
           <div className="flex items-center justify-between border-t border-line px-6 py-3 text-[12px] text-ink-tertiary">
-            <span>Showing {rows.length} of {HOTELS.length} hotels</span>
+            <span>Showing {rows.length} of {hotels.length} hotels</span>
           </div>
         </Card>
       </Page>

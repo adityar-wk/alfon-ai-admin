@@ -5,8 +5,8 @@ import { SuperAdminPrototype } from "../../linestaff/superadmin";
 const FLOWS = [
   "Bottom nav: Hotels, Templates, and Settings — Super Admin only, never hotel work",
   "Hotels: the same stat cards, filter chips, and search as the other phone apps, then one card per hotel",
-  "Tap a hotel for status, health, and WhatsApp and PMS. A new hotel shows a clock, a pending connection shows a clock until it is connected, and a dropped connection shows a cross",
-  "Bell lists hotels that are inactive or have a broken connection",
+  "Tap a hotel for status, health, admin email, login, and WhatsApp and PMS. A hotel that needs review shows a clock, and a dropped connection shows a cross",
+  "Bell lists hotels that are not active or have a broken connection",
   "Templates: each service is its own card, with respond and resolve set apart underneath",
   "Settings: account, AI confidence (confirmed before it saves), personal alerts, and sign out of this session only",
 ];
@@ -38,7 +38,7 @@ export default function SuperAdminMobile() {
               <div className="rounded-card border border-line bg-white p-5">
                 <h3 className="text-[14px] font-semibold text-ink">Also included</h3>
                 <ul className="mt-3 space-y-2">
-                  {["Filters are All, Active, Inactive, Pending, and New. A disabled hotel is grey and reads Disabled", "Confirm and send link makes a finished setup active", "AI confidence asks for confirmation before it changes"].map((f) => (
+                  {["Filters are All, Active, Inactive, Onboarding, Needs review, and Draft. Only a disabled hotel is Inactive", "A hotel created without an admin invite shows activation pending. A dropped PMS or WhatsApp connection shows Connection issue", "Confirm and send link makes a finished setup active", "AI confidence asks for confirmation before it changes"].map((f) => (
                     <li key={f} className="flex items-start gap-2 text-[12px] text-ink-secondary"><Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-green-500" />{f}</li>
                   ))}
                 </ul>

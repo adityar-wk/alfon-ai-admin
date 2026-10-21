@@ -5,7 +5,7 @@ import {
 } from "lucide-react";
 import { Button } from "../components/ui";
 import { Logo } from "../components/Logo";
-import { HOTELS, REGIONS, type Hotel, type HotelStatus } from "../data/hotels";
+import { REGIONS, activationPending, allHotels, hasConnectionIssue, type Hotel, type HotelStatus } from "../data/hotels";
 import { STORE } from "../data/deptTemplates";
 import { deptIcon } from "../data/deptIcons";
 import { PERSONAS } from "../persona";
@@ -15,15 +15,16 @@ import {
 } from "./mobile";
 
 const ME = PERSONAS.superadmin;
-const FILTERS = ["All", "Active", "Inactive", "Pending", "New"] as const;
+const FILTERS = ["All", "Active", "Inactive", "Onboarding", "Needs review", "Draft"] as const;
 type Filter = (typeof FILTERS)[number];
 type ConnMark = "clock" | "tick" | "cross";
 
 const STATUS_TONE: Record<HotelStatus, string> = {
   Active: "text-green-600",
   Inactive: "text-red-600",
-  Pending: "text-amber-600",
-  New: "text-blue-600",
+  Onboarding: "text-amber-600",
+  "Needs review": "text-blue-600",
+  Draft: "text-ink-secondary",
 };
 const PMS_PROVIDERS = ["Opera (Oracle)", "Mews"];
 
@@ -38,10 +39,10 @@ type Screen =
   | { name: "hotel" | "edit"; id: number }
   | { name: "template"; slug: string };
 
-const needsAttention = (h: Hotel) => h.status !== "Active";
+const needsAttention = (h: Hotel) => h.status !== "Active" || hasConnectionIssue(h);
 
 function connMark(h: Hotel, which: "whatsapp" | "pms"): ConnMark {
-  if (h.status === "New") return "clock";
+  if (h.status === "Needs review") return "clock";
   const status = h[which];
   if (status === "Connected") return "tick";
   if (status === "Disconnected") return "cross";
@@ -61,26 +62,24 @@ function ConnGlyph({ mark }: { mark: ConnMark }) {
 }
 
 function statusLabel(h: Hotel) {
-  return h.disabled ? "Disabled" : h.status;
+  return h.status;
 }
 
 function statusTone(h: Hotel) {
-  return h.disabled ? "text-ink-tertiary" : STATUS_TONE[h.status];
+  return STATUS_TONE[h.status];
 }
 
-/** A dropped connection makes the hotel inactive. A disabled hotel stays inactive. */
+/** Only a disabled hotel is Inactive. A dropped connection stays on the hotel as a label. */
 function settle(h: Hotel): Hotel {
   if (h.disabled) return { ...h, status: "Inactive" };
-  const dropped = h.whatsapp === "Disconnected" || h.pms === "Disconnected";
-  if (dropped) return { ...h, status: "Inactive" };
-  if (h.status === "Inactive" && h.whatsapp === "Connected" && h.pms === "Connected") return { ...h, status: "Active" };
+  if (h.status === "Inactive") return { ...h, status: "Active" };
   return h;
 }
 
 export function SuperAdminPrototype({ onReset }: { onReset?: () => void }) {
   const nav = useNav<Screen>({ name: "hotels" });
   const { flash, node: toast } = useToast();
-  const [hotels, setHotels] = useState<Hotel[]>(() => HOTELS.map((h) => ({ ...h })));
+  const [hotels, setHotels] = useState<Hotel[]>(() => allHotels().map((h) => ({ ...h })));
   const [filter, setFilter] = useState<Filter>("All");
   const [query, setQuery] = useState("");
   const [signedOut, setSignedOut] = useState(false);
@@ -93,6 +92,7 @@ export function SuperAdminPrototype({ onReset }: { onReset?: () => void }) {
   const cur = nav.cur;
   const active = hotels.filter((h) => h.status === "Active").length;
   const inactive = hotels.filter((h) => h.status === "Inactive").length;
+  const connIssues = hotels.filter(hasConnectionIssue).length;
   const attention = hotels.filter(needsAttention).length;
   const scored = hotels.filter((h) => h.healthScore !== null);
   const avgHealth = scored.length ? Math.round(scored.reduce((n, h) => n + (h.healthScore ?? 0), 0) / scored.length) : 0;
@@ -100,8 +100,9 @@ export function SuperAdminPrototype({ onReset }: { onReset?: () => void }) {
     All: hotels.length,
     Active: active,
     Inactive: inactive,
-    Pending: hotels.filter((h) => h.status === "Pending").length,
-    New: hotels.filter((h) => h.status === "New").length,
+    Onboarding: hotels.filter((h) => h.status === "Onboarding").length,
+    "Needs review": hotels.filter((h) => h.status === "Needs review").length,
+    Draft: hotels.filter((h) => h.status === "Draft").length,
   };
   const shown = hotels.filter((h) => {
     if (filter !== "All" && h.status !== filter) return false;
@@ -112,7 +113,7 @@ export function SuperAdminPrototype({ onReset }: { onReset?: () => void }) {
   const template = cur.name === "template" ? STORE.depts.find((d) => d.slug === cur.slug) : undefined;
 
   const reset = () => {
-    setHotels(HOTELS.map((h) => ({ ...h })));
+    setHotels(allHotels().map((h) => ({ ...h })));
     setFilter("All");
     setQuery("");
     setSignedOut(false);
@@ -143,7 +144,7 @@ export function SuperAdminPrototype({ onReset }: { onReset?: () => void }) {
   const sendLink = (h: Hotel) => {
     patchHotel(
       h.id,
-      { ...h, status: "Active", disabled: false, healthNote: "Live. The setup link was sent to the hotel admin." },
+      { ...h, status: "Active", disabled: false, inviteSent: true, healthNote: "Live. The setup link was sent to the hotel admin." },
       `Setup link sent to ${h.adminEmail}. ${h.name} is now active`,
     );
   };
@@ -153,7 +154,7 @@ export function SuperAdminPrototype({ onReset }: { onReset?: () => void }) {
       ...h,
       [kind]: "Connected",
       ...(kind === "pms" && provider ? { pmsProvider: provider } : {}),
-      ...(h.status === "New" ? { status: "Pending" as HotelStatus } : {}),
+      ...(h.status === "Needs review" ? { status: "Onboarding" as HotelStatus } : {}),
     });
     const both = next.whatsapp === "Connected" && next.pms === "Connected";
     patchHotel(h.id, next, both && next.status === "Active" ? `${kind === "pms" ? "PMS" : "WhatsApp"} reconnected. ${h.name} is active again` : `${kind === "pms" ? "PMS" : "WhatsApp"} connected`);
@@ -196,7 +197,7 @@ export function SuperAdminPrototype({ onReset }: { onReset?: () => void }) {
       </div>
       <div className="mt-5 grid grid-cols-2 gap-3 px-6">
         <HomeStat icon={Building2} label="Total Hotels" value={hotels.length} sub={`${REGIONS.length} regions`} onClick={() => setFilter("All")} />
-        <HomeStat icon={AlertTriangle} label="Needs Attention" value={inactive} sub={inactive ? "Disabled or disconnected" : "All clear"} subTone={inactive ? "text-[#EF4444]" : "text-[#22C55E]"} onClick={() => setFilter("Inactive")} />
+        <HomeStat icon={AlertTriangle} label="System health" value={connIssues} sub={connIssues ? `${connIssues} connection issue${connIssues === 1 ? "" : "s"}` : "All connections healthy"} subTone={connIssues ? "text-[#EF4444]" : "text-[#22C55E]"} />
         <HomeStat icon={CheckCircle2} label="Active Hotels" value={active} sub={`${Math.round((active / Math.max(hotels.length, 1)) * 100)}% of the network`} subTone="text-[#22C55E]" onClick={() => setFilter("Active")} />
         <HomeStat icon={Activity} label="Avg Health" value={`${avgHealth}%`} sub={`${scored.length} scored hotels`} />
       </div>
@@ -213,30 +214,32 @@ export function SuperAdminPrototype({ onReset }: { onReset?: () => void }) {
             <span className={`flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-full ${h.disabled ? "bg-[#E6E6EA] text-ink-tertiary" : "bg-brand-tint text-brand"}`}><Building2 className="h-[18px] w-[18px]" /></span>
             <span className="min-w-0 flex-1">
               <span className="flex items-start justify-between gap-2">
-                <span className={`truncate text-[14px] font-semibold ${h.disabled ? "text-ink-tertiary" : "text-ink"}`}>{h.name}</span>
+                <span className="min-w-0">
+                  <span className={`block truncate text-[14px] font-semibold ${h.disabled ? "text-ink-tertiary" : "text-ink"}`}>{h.name}</span>
+                  {(activationPending(h) || hasConnectionIssue(h)) && (
+                    <span className="mt-1 flex flex-wrap gap-1">
+                      {activationPending(h) && <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700">activation pending</span>}
+                      {hasConnectionIssue(h) && <span className="rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-semibold text-red-600">Connection issue</span>}
+                    </span>
+                  )}
+                </span>
                 <span className={`shrink-0 text-[11px] font-bold ${statusTone(h)}`}>{statusLabel(h)}</span>
               </span>
               <span className="mt-0.5 block truncate text-[12px] text-ink-tertiary">{h.location}</span>
-              {h.disabled ? (
-                <span className="mt-1 block text-[12px] font-medium text-ink-tertiary">Disabled</span>
-              ) : (
-                <>
-                  <span className="mt-1 block text-[12px] text-ink-secondary">
-                    {h.healthScore === null ? "No score yet" : `${h.healthScore}% health`}
-                  </span>
-                  <span className="mt-1.5 flex items-center gap-3">
-                    {(["whatsapp", "pms"] as const).map((which) => {
-                      const mark = connMark(h, which);
-                      return (
-                        <span key={which} className="inline-flex items-center gap-1 text-[11px] font-semibold text-ink-secondary" aria-label={`${which === "whatsapp" ? "WhatsApp" : "PMS"} ${markWord(mark)}`}>
-                          <ConnGlyph mark={mark} />
-                          {which === "whatsapp" ? "WhatsApp" : "PMS"}
-                        </span>
-                      );
-                    })}
-                  </span>
-                </>
-              )}
+              <span className="mt-1 block text-[12px] text-ink-secondary">
+                {h.healthScore === null ? "No score yet" : `${h.healthScore}% health`}
+              </span>
+              <span className="mt-1.5 flex items-center gap-3">
+                {(["whatsapp", "pms"] as const).map((which) => {
+                  const mark = connMark(h, which);
+                  return (
+                    <span key={which} className="inline-flex items-center gap-1 text-[11px] font-semibold text-ink-secondary" aria-label={`${which === "whatsapp" ? "WhatsApp" : "PMS"} ${markWord(mark)}`}>
+                      <ConnGlyph mark={mark} />
+                      {which === "whatsapp" ? "WhatsApp" : "PMS"}
+                    </span>
+                  );
+                })}
+              </span>
             </span>
           </button>
         ))}
@@ -245,7 +248,7 @@ export function SuperAdminPrototype({ onReset }: { onReset?: () => void }) {
     </>
   ));
 
-  const readyToSend = !!hotel && hotel.status === "Pending" && hotel.whatsapp === "Connected" && hotel.pms === "Connected";
+  const readyToSend = !!hotel && (hotel.status === "Onboarding" || hotel.status === "Draft") && hotel.whatsapp === "Connected" && hotel.pms === "Connected" && !hotel.inviteSent;
 
   const HotelView = hotel && cur.name === "hotel" && (
     <div className="flex h-full flex-col">
@@ -255,10 +258,15 @@ export function SuperAdminPrototype({ onReset }: { onReset?: () => void }) {
           <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${hotel.disabled ? "bg-[#E6E6EA] text-ink-tertiary" : "bg-brand-tint text-brand"}`}><Building2 className="h-6 w-6" /></span>
           <div className="min-w-0">
             <h2 className="font-display text-[18px] font-bold leading-tight text-ink">{hotel.name}</h2>
-            <div className={`mt-1 text-[12px] font-bold ${statusTone(hotel)}`}>{statusLabel(hotel)}</div>
+            <div className="mt-1 flex flex-wrap items-center gap-1.5">
+              <span className={`text-[12px] font-bold ${statusTone(hotel)}`}>{statusLabel(hotel)}</span>
+              {activationPending(hotel) && <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700">activation pending</span>}
+              {hasConnectionIssue(hotel) && <span className="rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-semibold text-red-600">Connection issue</span>}
+            </div>
             <p className="mt-1 text-[12px] text-ink-secondary">{hotel.location} · {hotel.rooms || "—"} rooms · {hotel.propertyType}</p>
             <p className="mt-0.5 text-[12px] text-ink-tertiary">{hotel.currency} · {hotel.timeZone}</p>
-            {hotel.adminEmail && <p className="mt-0.5 text-[12px] text-ink-tertiary">{hotel.adminEmail}</p>}
+            <p className="mt-1 text-[12px] text-ink-secondary">Hotel admin <span className="font-medium text-ink">{hotel.adminEmail || "No email added"}</span></p>
+            <p className={`text-[12px] font-medium ${hotel.adminLoggedIn ? "text-green-600" : "text-ink-secondary"}`}>{hotel.adminLoggedIn ? "Logged in" : "Not logged in"}</p>
           </div>
         </div>
         {hotel.disabled && (
@@ -327,8 +335,8 @@ export function SuperAdminPrototype({ onReset }: { onReset?: () => void }) {
       hotel={hotel}
       onBack={nav.back}
       onSave={(next) => {
-        const started = hotel.status === "New";
-        patchHotel(hotel.id, next, started ? `${next.name} moved to pending` : "Hotel data saved");
+        const started = hotel.status === "Needs review";
+        patchHotel(hotel.id, next, started ? `${next.name} moved to onboarding` : "Hotel data saved");
         nav.back();
       }}
     />
@@ -400,7 +408,7 @@ export function SuperAdminPrototype({ onReset }: { onReset?: () => void }) {
         {notifs.map((h) => (
           <NotifRow
             key={h.id}
-            label={h.disabled ? "Disabled" : h.status === "Inactive" ? "Inactive" : h.status}
+            label={h.status}
             tone={h.disabled || h.status === "Inactive" ? "text-red-600" : "text-amber-600"}
             time={h.lastSync}
             task={h.name}
@@ -558,7 +566,7 @@ function draftFrom(h: Hotel): Draft {
 
 function detailsFrom(h: Hotel, d: Draft): Hotel {
   const short = COUNTRY_SHORT[d.country] ?? d.country;
-  const started = h.status === "New";
+  const started = h.status === "Needs review";
   return {
     ...h,
     name: d.name.trim() || h.name,
@@ -573,7 +581,7 @@ function detailsFrom(h: Hotel, d: Draft): Hotel {
     propertyType: d.propertyType,
     rooms: Number(d.rooms.replace(/\D/g, "")) || 0,
     address: d.address.trim(),
-    status: started ? "Pending" : h.status,
+    status: started ? "Onboarding" : h.status,
     healthNote: started ? "Setup started. Connect WhatsApp and PMS, then send the link." : h.healthNote,
   };
 }

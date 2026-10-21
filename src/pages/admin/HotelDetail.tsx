@@ -5,11 +5,19 @@ import {
 } from "lucide-react";
 import { Topbar } from "../../components/Topbar";
 import { Page, Card, Button, Badge, Textarea } from "../../components/ui";
-import { HOTELS } from "../../data/hotels";
+import { activationPending, allHotels, hasConnectionIssue, type HotelStatus } from "../../data/hotels";
 
 type Note = { text: string; at: string };
 /** Kept for the session so a note is still there after leaving the hotel and coming back. */
 const sessionNotes: Record<number, Note[]> = {};
+
+function statusTone(status: HotelStatus) {
+  if (status === "Active") return "success" as const;
+  if (status === "Needs review") return "info" as const;
+  if (status === "Onboarding") return "warning" as const;
+  if (status === "Inactive") return "danger" as const;
+  return "neutral" as const;
+}
 
 const SCORE_PILLARS = [
   { title: "Guest Pulse", weight: 30, icon: HeartPulse },
@@ -24,7 +32,7 @@ export default function HotelDetail() {
   const [active, setActive] = useState(true);
   const [notes, setNotes] = useState<Record<number, Note[]>>(() => ({ ...sessionNotes }));
   const [draft, setDraft] = useState("");
-  const hotel = HOTELS.find((h) => String(h.id) === id);
+  const hotel = allHotels().find((h) => String(h.id) === id);
   useEffect(() => { setDraft(""); }, [id]);
   if (!hotel) return <Navigate to="/admin/hotels" replace />;
   const hotelNotes = notes[hotel.id] ?? [];
@@ -46,11 +54,17 @@ export default function HotelDetail() {
             <div className="flex items-center gap-4">
               <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-brand-tint text-brand"><Building2 className="h-7 w-7" /></span>
               <div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <h2 className="font-display text-[22px] font-bold text-ink">{hotel.name}</h2>
-                  <Badge tone={hotel.status === "Active" ? "success" : hotel.status === "New" ? "info" : hotel.status === "Pending" ? "warning" : "neutral"}>{hotel.disabled ? "Disabled" : hotel.status}</Badge>
+                  <Badge tone={statusTone(hotel.status)}>{hotel.status}</Badge>
+                  {activationPending(hotel) && <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700">activation pending</span>}
+                  {hasConnectionIssue(hotel) && <span className="rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-semibold text-red-600">Connection issue</span>}
                 </div>
                 <div className="mt-1 text-[13px] text-ink-secondary">{hotel.location} · {hotel.rooms} Rooms · {hotel.propertyType}</div>
+                <div className="mt-2 flex flex-wrap gap-x-6 gap-y-1 text-[13px]">
+                  <div><span className="text-ink-tertiary">Hotel admin </span><span className="font-medium text-ink">{hotel.adminEmail || "No email added"}</span></div>
+                  <div><span className="text-ink-tertiary">Login </span><span className={`font-medium ${hotel.adminLoggedIn ? "text-green-600" : "text-ink"}`}>{hotel.adminLoggedIn ? "Logged in" : "Not logged in"}</span></div>
+                </div>
                 <div className="mt-1 text-[12px] text-ink-tertiary">{hotel.currency} · {hotel.timeZone} · Onboarded {hotel.onboarded}</div>
               </div>
             </div>

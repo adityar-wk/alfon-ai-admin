@@ -5,7 +5,7 @@ import { usePersona } from "../persona";
 import { TASKS } from "../data/tasks";
 import { GUESTS } from "../data/guests";
 import { INITIAL } from "../data/staff";
-import { HOTELS } from "../data/hotels";
+import { allHotels } from "../data/hotels";
 
 type Group = "Pages" | "Tasks" | "Guests" | "Team" | "Hotels";
 type Hit = { key: string; group: Group; title: string; sub?: string; to: string; icon: ComponentType<{ className?: string }> };
@@ -40,7 +40,7 @@ export function GlobalSearch() {
     const pages = persona === "superadmin" ? ADMIN_PAGES : manager ? MID_PAGES : GM_PAGES;
     pages.filter(([label]) => has(label)).forEach(([label, to]) => out.push({ key: `p-${to}`, group: "Pages", title: label, to, icon: LayoutGrid }));
     if (persona === "superadmin") {
-      HOTELS.filter((h) => has(h.name, h.location, h.region)).slice(0, 5).forEach((h) =>
+      allHotels().filter((h) => has(h.name, h.location, h.region)).slice(0, 5).forEach((h) =>
         out.push({ key: `h-${h.id}`, group: "Hotels", title: h.name, sub: h.location, to: `/admin/hotels/${h.id}`, icon: Building2 }),
       );
       return out;

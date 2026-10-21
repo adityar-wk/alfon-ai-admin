@@ -5,6 +5,7 @@ import {
 } from "lucide-react";
 import { Topbar } from "../../components/Topbar";
 import { Page, Card, Button, Field, Input, Select, Textarea, PhoneInput } from "../../components/ui";
+import { addSessionHotel, nextHotelId, type Hotel } from "../../data/hotels";
 
 const STEPS = ["Hotel Details", "System Connections", "Review & Add"] as const;
 type Step = 0 | 1 | 2;
@@ -47,6 +48,36 @@ export default function AddHotel() {
   const goBack = () => setStep((s) => (Math.max(0, s - 1) as Step));
 
   const create = (sendLink: boolean) => {
+    const bothConnected = waConnected && pmsConnected;
+    const hotel: Hotel = {
+      id: nextHotelId(),
+      name: details.name.trim(),
+      location: `${details.city.trim()}, ${details.country}`,
+      region: details.region,
+      propertyType: details.propertyType,
+      rooms: Number(details.rooms.replace(/\D/g, "")) || 0,
+      currency: details.currency.split(" ")[0],
+      timeZone: details.timeZone.split(" ")[0],
+      status: sendLink ? (bothConnected ? "Active" : "Onboarding") : "Draft",
+      whatsapp: waConnected ? "Connected" : "Pending",
+      pms: pmsConnected ? "Connected" : "Pending",
+      pmsProvider: pms.provider || undefined,
+      departments: 0,
+      staff: 0,
+      healthScore: null,
+      healthNote: sendLink ? "Setup link sent to the hotel admin." : "Saved without sending the hotel admin invite.",
+      lastSync: "Not yet synced",
+      onboarded: "Today",
+      languages: ["English"],
+      city: details.city.trim(),
+      country: details.country,
+      description: details.description.trim() || undefined,
+      address: details.address.trim() || undefined,
+      adminEmail: details.adminEmail.trim() || undefined,
+      inviteSent: sendLink,
+      adminLoggedIn: false,
+    };
+    addSessionHotel(hotel);
     const q = new URLSearchParams({ created: details.name });
     if (sendLink && details.adminEmail.trim()) q.set("email", details.adminEmail.trim());
     navigate(`/admin/hotels?${q.toString()}`);
