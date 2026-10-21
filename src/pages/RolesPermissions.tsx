@@ -314,7 +314,6 @@ export default function RolesPermissions({ embedded = false }: { embedded?: bool
                     ) : (
                       <RoleMembers
                         role={saved}
-                        roles={roles}
                         members={users.filter((u) => u.roleId === saved.id)}
                         allUsers={users}
                         onRemove={removeUser}
@@ -507,10 +506,9 @@ function RoleBasicFields({
 /* ---------- members of a role ---------- */
 
 function RoleMembers({
-  role, roles, members, allUsers, onRemove, onAdd, onInviteNew,
+  role, members, allUsers, onRemove, onAdd, onInviteNew,
 }: {
   role: Role;
-  roles: Role[];
   members: User[];
   allUsers: User[];
   onRemove: (id: number) => void;
@@ -549,8 +547,7 @@ function RoleMembers({
                 <div className="truncate text-[13px] font-medium text-ink">{u.name}</div>
                 <div className="truncate text-[11px] text-ink-tertiary">{u.email}</div>
               </div>
-              <span className="shrink-0 text-[12px] text-ink-tertiary">{roles.find((r) => r.id === u.roleId)?.name ?? "No role"}</span>
-              <Button className="h-8 shrink-0 px-3 text-[12px]" onClick={() => onAdd(u.id)}>Invite</Button>
+              <Button className="h-8 shrink-0 px-3 text-[12px]" onClick={() => onAdd(u.id)}>Add</Button>
             </div>
           ))}
           {!candidates.length && <p className="px-4 py-10 text-center text-[13px] text-ink-tertiary">No hotel member matches “{q.trim()}”.</p>}
