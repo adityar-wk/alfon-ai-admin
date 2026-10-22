@@ -4,8 +4,28 @@ import { useOnboardingProgress, type OnboardingStep } from "../data/onboarding";
 
 type StepStatus = "done" | "current" | "todo";
 
-function StepCard({ s, status }: { s: OnboardingStep; status: StepStatus }) {
+function StepCard({ s, status, plain = false }: { s: OnboardingStep; status: StepStatus; plain?: boolean }) {
   const Icon = s.icon;
+  if (plain) {
+    return (
+      <Link
+        to={s.to}
+        className="group flex flex-col rounded-card border border-line bg-white p-5 shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:border-brand/50 hover:shadow-lift"
+      >
+        <div className="flex items-start justify-between gap-3">
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-subtle text-ink-secondary">
+            <Icon className="h-5 w-5" />
+          </span>
+          <span className="text-[13px] font-medium text-ink-tertiary">{s.id}</span>
+        </div>
+        <h3 className="mt-4 text-[15px] font-semibold text-ink">{s.title}</h3>
+        <p className="mt-1 flex-1 text-[13px] leading-snug text-ink-secondary">{s.desc}</p>
+        <span className="mt-5 flex items-center gap-1 text-[13px] font-medium text-ink-secondary group-hover:text-brand">
+          View more <ArrowRight className="h-3.5 w-3.5" />
+        </span>
+      </Link>
+    );
+  }
   const current = status === "current";
   const progress = status === "done" ? 100 : status === "current" ? 50 : 0;
   return (
@@ -52,12 +72,12 @@ function StepCard({ s, status }: { s: OnboardingStep; status: StepStatus }) {
 }
 
 /** The setup-steps grid, reused on the Settings screen and the Hotel Admin home page. */
-export function OnboardingStepsGrid() {
+export function OnboardingStepsGrid({ plain = false }: { plain?: boolean }) {
   const { steps, isDone, currentStep } = useOnboardingProgress();
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
       {steps.map((s) => (
-        <StepCard key={s.id} s={s} status={isDone(s.id) ? "done" : s.id === currentStep.id ? "current" : "todo"} />
+        <StepCard key={s.id} s={s} plain={plain} status={isDone(s.id) ? "done" : s.id === currentStep.id ? "current" : "todo"} />
       ))}
     </div>
   );

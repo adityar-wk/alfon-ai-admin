@@ -9,7 +9,7 @@ export default function OnboardingOverview() {
       <main className="flex-1 overflow-y-auto bg-page">
         <div className="px-8 pb-8 pt-7">
           <h3 className="mb-3 text-[15px] font-semibold text-ink">Setup steps</h3>
-          <OnboardingStepsGrid />
+          <OnboardingStepsGrid plain />
         </div>
       </main>
     </>

@@ -4,11 +4,14 @@ import {
   MoreVertical,
   SlidersHorizontal,
   Search,
+  Upload,
+  Download,
+  X,
 } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { SetupTabs } from "../components/SetupTabs";
 import { Drawer } from "../components/Drawer";
-import { Page, Card, Badge, Button, Field, Input, Select, Modal } from "../components/ui";
+import { Page, Card, Badge, Button, Field, Input, Select } from "../components/ui";
 import { FakeQR } from "../components/FakeQR";
 import { useGoNextStep } from "../data/onboarding";
 
@@ -84,15 +87,15 @@ function downloadTemplate() {
 /** every guest scans the same code, regardless of room — it opens WhatsApp and the guest gives their room number there */
 function HotelQrCard({ flash }: { flash: (m: string) => void }) {
   return (
-    <div>
-      <h3 className="text-[15px] font-semibold text-ink">Hotel QR Code</h3>
+    <div className="w-44 shrink-0 rounded-card border border-line bg-white p-3">
+      <h3 className="mb-2 text-[13px] font-semibold text-ink">Hotel QR Code</h3>
       <button
         type="button"
         aria-label="Download QR code"
         onClick={() => flash("QR code downloaded")}
-        className="group relative mt-2 block overflow-hidden rounded-md"
+        className="group relative block overflow-hidden rounded-md"
       >
-        <FakeQR seed="hotel" size={104} className="rounded-md" />
+        <FakeQR seed="hotel" size={144} className="w-full rounded-md" />
         <span className="absolute inset-0 flex items-center justify-center bg-white/70 text-[13px] font-semibold text-ink opacity-0 backdrop-blur-sm transition group-hover:opacity-100">
           Download
         </span>
@@ -101,12 +104,19 @@ function HotelQrCard({ flash }: { flash: (m: string) => void }) {
   );
 }
 
+function floorList(count: number): number[] {
+  if (!Number.isInteger(count) || count < 1 || count > 150) return [];
+  return Array.from({ length: count }, (_, i) => i + 1);
+}
+
 export default function RoomsQrSetup({ onboarding = false }: { onboarding?: boolean }) {
   const goNext = useGoNextStep(7);
   const [rooms, setRooms] = useState<Room[]>(ROOMS);
   const [types, setTypes] = useState<string[]>(SEED_TYPES);
-  const [floorStart, setFloorStart] = useState("10");
-  const [floorCount, setFloorCount] = useState("4");
+  const [floorCount, setFloorCount] = useState(Math.max(1, ...ROOMS.map((r) => r.floor)));
+  const [editing, setEditing] = useState(false);
+  const [draftTypes, setDraftTypes] = useState<string[]>(SEED_TYPES);
+  const [draftFloors, setDraftFloors] = useState(String(Math.max(1, ...ROOMS.map((r) => r.floor))));
   const [typeDraft, setTypeDraft] = useState("");
   const [drawer, setDrawer] = useState<Room | "new" | null>(null);
   const [query, setQuery] = useState("");
@@ -116,7 +126,8 @@ export default function RoomsQrSetup({ onboarding = false }: { onboarding?: bool
   const [filterOpen, setFilterOpen] = useState(false);
   const [menuFor, setMenuFor] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
-  const [csvOpen, setCsvOpen] = useState(false);
+  const [dragging, setDragging] = useState(false);
+  const [fileName, setFileName] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const flash = (m: string) => {
@@ -127,21 +138,32 @@ export default function RoomsQrSetup({ onboarding = false }: { onboarding?: bool
   const createType = () => {
     const name = typeDraft.trim();
     if (!name) return;
-    if (types.some((t) => t.toLowerCase() === name.toLowerCase())) {
+    if (draftTypes.some((t) => t.toLowerCase() === name.toLowerCase())) {
       setTypeDraft("");
       flash("That room type already exists");
       return;
     }
-    setTypes((list) => [...list, name]);
+    setDraftTypes((list) => [...list, name]);
     setTypeDraft("");
   };
 
-  const floors = useMemo(() => {
-    const start = Number(floorStart);
-    const count = Number(floorCount);
-    if (!Number.isInteger(start) || start < 0 || !Number.isInteger(count) || count < 1 || count > 150) return [];
-    return Array.from({ length: count }, (_, i) => start + i);
-  }, [floorStart, floorCount]);
+  const startEdit = () => {
+    setDraftTypes(types);
+    setDraftFloors(String(floorCount));
+    setTypeDraft("");
+    setEditing(true);
+  };
+
+  const saveSetup = () => {
+    if (!draftTypes.length || !draftFloorOk) return;
+    setTypes(draftTypes);
+    setFloorCount(draftFloorCount);
+    setEditing(false);
+  };
+
+  const draftFloorCount = Number(draftFloors);
+  const draftFloorOk = Number.isInteger(draftFloorCount) && draftFloorCount >= 1 && draftFloorCount <= 150;
+  const floors = useMemo(() => floorList(floorCount), [floorCount]);
 
   const importFile = (f: File) => {
     const reader = new FileReader();
@@ -153,22 +175,18 @@ export default function RoomsQrSetup({ onboarding = false }: { onboarding?: bool
       }
       const have = new Set(rooms.map((r) => r.no));
       const fresh = parsed.filter((r) => r.no && !have.has(r.no));
-      const added = floors.length ? fresh.filter((r) => floors.includes(r.floor)) : fresh;
+      const allowed = floors.length ? floors : [];
+      const added = fresh.filter(
+        (r) => allowed.includes(r.floor) && types.some((t) => t.toLowerCase() === r.type.toLowerCase()),
+      );
       const skipped = fresh.length - added.length;
       if (!added.length) {
-        flash(skipped ? "Those floors are outside the range" : "Those rooms are already in the list");
+        flash(skipped ? "Those rooms do not match the room types or floors" : "Those rooms are already in the list");
         return;
       }
       setRooms((current) => [...current.map((r) => ({ ...r, fresh: false })), ...added.map((r) => ({ ...r, fresh: true }))]);
-      setTypes((list) => {
-        const next = [...list];
-        for (const r of added) {
-          if (r.type && !next.some((t) => t.toLowerCase() === r.type.toLowerCase())) next.push(r.type);
-        }
-        return next;
-      });
-      setCsvOpen(false);
-      flash(skipped ? `${added.length} rooms added. ${skipped} outside the floor range` : `${added.length} rooms added`);
+      setFileName(f.name);
+      flash(skipped ? `${added.length} rooms added. ${skipped} did not match the room types or floors` : `${added.length} rooms added`);
     };
     reader.readAsText(f);
   };
@@ -195,55 +213,119 @@ export default function RoomsQrSetup({ onboarding = false }: { onboarding?: bool
         <Page>
           {onboarding && <SetupTabs />}
 
-          <HotelQrCard flash={flash} />
-
-          <div className="mt-8 grid max-w-3xl items-start gap-x-16 gap-y-6 sm:grid-cols-2">
-            <div>
-              <h3 className="text-[15px] font-semibold text-ink">Room types</h3>
-              <div className="mt-2 flex gap-2">
-                <Input
-                  value={typeDraft}
-                  onChange={(e) => setTypeDraft(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === "Enter") createType(); }}
-                  placeholder="e.g. Ocean Suite"
+          <div className="flex items-start gap-6">
+            <div className="min-w-0 flex-1">
+              <div
+                onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+                onDragLeave={() => setDragging(false)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setDragging(false);
+                  const f = e.dataTransfer.files?.[0];
+                  if (f) importFile(f);
+                }}
+                className={`flex w-full max-w-2xl flex-col items-center justify-center rounded-2xl border-2 border-dashed px-6 py-10 text-center ${dragging ? "border-brand bg-brand-tint/40" : "border-[#E5E5E5]"}`}
+              >
+                <Upload className="h-6 w-6 text-ink-tertiary" />
+                <p className="mt-3 text-[14px] font-medium text-ink">Drop your file here</p>
+                <p className="mt-1 text-[12px] text-ink-tertiary">Room number, floor, and room type · up to 10MB</p>
+                <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => fileRef.current?.click()}
+                    className="inline-flex h-9 items-center rounded-control border border-line bg-white px-3 text-[13px] font-medium text-ink hover:bg-subtle"
+                  >
+                    Choose file
+                  </button>
+                  <button
+                    type="button"
+                    onClick={downloadTemplate}
+                    className="inline-flex h-9 items-center gap-1.5 rounded-control border border-line bg-white px-3 text-[13px] font-medium text-ink hover:bg-subtle"
+                  >
+                    <Download className="h-3.5 w-3.5" /> Download template
+                  </button>
+                </div>
+                {fileName && <p className="mt-3 text-[12px] text-ink-secondary">{fileName}</p>}
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept=".csv,text/csv"
+                  className="hidden"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) importFile(f);
+                    e.target.value = "";
+                  }}
                 />
-                <Button variant="outline" className="h-10 shrink-0 px-3" disabled={!typeDraft.trim()} onClick={createType}>Add</Button>
               </div>
-              <div className="mt-2 flex flex-wrap gap-1.5">
-                {types.map((t) => (
-                  <span key={t} className="rounded-full bg-subtle px-2.5 py-1 text-[12px] text-ink">{t}</span>
-                ))}
-              </div>
-            </div>
 
-            <div>
-              <h3 className="text-[15px] font-semibold text-ink">Floors</h3>
-              <div className="mt-2 grid grid-cols-2 gap-2">
-                <Field label="Start">
-                  <Input
-                    inputMode="numeric"
-                    aria-label="Starting floor"
-                    value={floorStart}
-                    onChange={(e) => setFloorStart(e.target.value.replace(/\D/g, ""))}
-                    placeholder="10"
-                  />
-                </Field>
-                <Field label="How many">
-                  <Input
-                    inputMode="numeric"
-                    aria-label="Number of floors"
-                    value={floorCount}
-                    onChange={(e) => setFloorCount(e.target.value.replace(/\D/g, ""))}
-                    placeholder="4"
-                  />
-                </Field>
+              <div className="mt-8 max-w-2xl">
+                {!editing && (
+                  <div>
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <h3 className="text-[15px] font-semibold text-ink">Room types and floors</h3>
+                        <p className="mt-1 text-[13px] text-ink-secondary">
+                          Room types are the kinds of rooms guests can book. Floors are numbered from 1 up to the total you set. A room can only be added when its type and floor match these.
+                        </p>
+                      </div>
+                      <Button variant="outline" className="h-9 shrink-0 px-3" onClick={startEdit}>Change</Button>
+                    </div>
+                    <div className="mt-3 flex flex-wrap gap-1.5">
+                      {types.map((t) => (
+                        <span key={t} className="rounded-full bg-subtle px-2.5 py-1 text-[12px] text-ink">{t}</span>
+                      ))}
+                    </div>
+                    <p className="mt-2 text-[13px] text-ink-secondary">
+                      {floorCount === 1 ? "1 floor, numbered 1" : `${floorCount} floors, numbered 1 to ${floorCount}`}
+                    </p>
+                  </div>
+                )}
+
+                {editing && (
+                  <div>
+                    <h3 className="text-[15px] font-semibold text-ink">Room types</h3>
+                    <p className="mt-1 text-[13px] text-ink-secondary">Type a name and add it. These are the only types a room can use.</p>
+                    <div className="mt-3 flex gap-2">
+                      <Input
+                        value={typeDraft}
+                        onChange={(e) => setTypeDraft(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === "Enter") createType(); }}
+                        placeholder="e.g. Ocean Suite"
+                      />
+                      <Button variant="outline" className="h-10 shrink-0 px-3" disabled={!typeDraft.trim()} onClick={createType}>Add</Button>
+                    </div>
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {draftTypes.map((t) => (
+                        <span key={t} className="inline-flex items-center gap-1 rounded-full bg-subtle px-2.5 py-1 text-[12px] text-ink">
+                          {t}
+                          <button type="button" aria-label={`Remove ${t}`} onClick={() => setDraftTypes((list) => list.filter((x) => x !== t))} className="text-ink-tertiary hover:text-ink">
+                            <X className="h-3 w-3" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+
+                    <h3 className="mt-5 text-[15px] font-semibold text-ink">Floors</h3>
+                    <p className="mt-1 text-[13px] text-ink-secondary">Enter how many floors the hotel has. Floor numbers run from 1 to this number.</p>
+                    <Input
+                      inputMode="numeric"
+                      aria-label="Number of floors"
+                      className="mt-3 max-w-[8rem]"
+                      value={draftFloors}
+                      onChange={(e) => setDraftFloors(e.target.value.replace(/\D/g, ""))}
+                      placeholder="13"
+                    />
+
+                    <div className="mt-5 flex gap-2">
+                      <Button variant="outline" onClick={() => setEditing(false)}>Cancel</Button>
+                      <Button disabled={!draftTypes.length || !draftFloorOk} className="disabled:opacity-40" onClick={saveSetup}>Save</Button>
+                    </div>
+                  </div>
+                )}
               </div>
-              {floors.length > 0 && (
-                <p className="mt-2 text-[13px] text-ink-secondary">
-                  {floors.length === 1 ? `Floor ${floors[0]}` : `Floors ${floors[0]}–${floors[floors.length - 1]}`}
-                </p>
-              )}
             </div>
+            <HotelQrCard flash={flash} />
           </div>
 
           <div className="relative mt-8 flex flex-wrap items-center gap-3">
@@ -296,7 +378,6 @@ export default function RoomsQrSetup({ onboarding = false }: { onboarding?: bool
             {activeFilters > 0 && <button onClick={clear} className="text-[13px] font-medium text-brand">Clear filters</button>}
             <span className="text-[12px] text-ink-tertiary">{rows.length} of {rooms.length} rooms</span>
             <div className="ml-auto flex flex-wrap items-center gap-2">
-              <Button variant="outline" onClick={() => setCsvOpen(true)}>Add room through CSV</Button>
               <Button onClick={() => setDrawer("new")}>
                 <Plus className="h-4 w-4" /> Add room
               </Button>
@@ -373,33 +454,10 @@ export default function RoomsQrSetup({ onboarding = false }: { onboarding?: bool
               return;
             }
             setRooms((list) => (originalNo ? list.map((r) => (r.no === originalNo ? next : r)) : [...list, next]));
-            if (!types.some((t) => t.toLowerCase() === next.type.toLowerCase())) setTypes((list) => [...list, next.type]);
             flash(originalNo ? `Room ${next.no} updated` : `Room ${next.no} added`);
             setDrawer(null);
           }}
         />
-      )}
-
-      <input
-        ref={fileRef}
-        type="file"
-        accept=".csv,text/csv"
-        className="hidden"
-        onChange={(e) => {
-          const f = e.target.files?.[0];
-          if (f) importFile(f);
-          e.target.value = "";
-        }}
-      />
-
-      {csvOpen && (
-        <Modal title="Add room through CSV" onClose={() => setCsvOpen(false)}>
-          <p className="text-[13px] text-ink-secondary">Room number, floor, and room type.</p>
-          <div className="mt-4 flex gap-2">
-            <Button className="flex-1" onClick={() => fileRef.current?.click()}>Choose file</Button>
-            <Button variant="outline" className="flex-1" onClick={downloadTemplate}>Template</Button>
-          </div>
-        </Modal>
       )}
 
       {toast && (
@@ -438,7 +496,7 @@ function RoomDrawer({
         </Field>
         <Field label="Floor" required>
           <Select value={floor} onChange={(e) => setFloor(e.target.value)}>
-            {!floors.length && <option value="">Set a floor range first</option>}
+            {!floors.length && <option value="">Set the number of floors first</option>}
             {floors.map((f) => <option key={f} value={f}>{f}</option>)}
           </Select>
         </Field>

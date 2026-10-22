@@ -14,7 +14,7 @@ export const MODULES: { key: ModuleKey; label: string; desc: string }[] = [
 ];
 
 export const DEPARTMENTS = ["Front Office", "Housekeeping", "F&B", "Engineering", "Guest Services", "Management", "System"] as const;
-export const PERSONA_TYPES = ["Line Staff", "Supervisor", "Mid Manager", "High Management", "System"] as const;
+export const PERSONA_TYPES = ["Line Staff", "Supervisor", "Mid Manager", "High Management"] as const;
 
 export const GUEST_DATA = ["No access", "Basic Information", "Full Profile"] as const;
 export const TASK_VIS = ["Assigned to Me", "My Department", "All Departments"] as const;
@@ -81,6 +81,7 @@ const R = (name: string, desc: string, persona: Role["persona"], dept: Role["dep
 const line = TEMPLATES[1], sup = TEMPLATES[2], mid = TEMPLATES[3], gm = TEMPLATES[4];
 
 export const SEED_ROLES: Role[] = [
+  { ...R("Hotel Admin", "Manage users, roles and system configuration", "High Management", "System", gm), desc: "Manage users, roles and system configuration" },
   R("Front Desk Agent", "Handle guest check-in, requests and basic service tasks", "Line Staff", "Front Office", line),
   R("Guest Services Supervisor", "Manage guest services team and escalations", "Supervisor", "Guest Services", sup),
   { ...R("Housekeeping Staff", "Execute assigned housekeeping tasks", "Line Staff", "Housekeeping", TEMPLATES[0]), modules: mods(["tasks", "housekeeping"]) },
@@ -89,7 +90,6 @@ export const SEED_ROLES: Role[] = [
   R("Engineering Supervisor", "Manage maintenance tasks and team", "Supervisor", "Engineering", sup),
   R("Engineering Manager", "Oversee engineering operations and escalations", "Mid Manager", "Engineering", mid),
   R("General Manager", "Hotel-wide oversight and analytics", "High Management", "Management", gm),
-  { ...R("Hotel Admin", "Manage users, roles and system configuration", "System", "System", gm), desc: "Manage users, roles and system configuration" },
   R("Housekeeping Supervisor", "Lead the housekeeping shift and unblock the team", "Supervisor", "Housekeeping", sup),
   R("Front Desk Supervisor", "Lead the front desk shift and handle escalations", "Supervisor", "Front Office", sup),
   { ...R("Engineering Technician", "Carry out maintenance and repair tasks", "Line Staff", "Engineering", TEMPLATES[0]), modules: mods(["tasks"]) },
@@ -112,7 +112,7 @@ export type User = {
   email: string;
   roleId: string;
   /** account state */
-  status: "Active" | "Invited" | "Deactivated";
+  status: "Active" | "Invited" | "Yet to be invited";
   last: string;
   /** working state, shown in the staff table */
   dept: string;
@@ -170,7 +170,7 @@ export function seedUsers(): User[] {
         name: `${f} ${l}`,
         email: `${f}.${l}@alfonhotels.com`.toLowerCase(),
         roleId,
-        status: invited ? "Invited" : id % 23 === 0 ? "Deactivated" : "Active",
+        status: invited ? "Invited" : id % 5 === 0 ? "Yet to be invited" : "Active",
         last: invited ? "—" : LAST_SEEN[id % LAST_SEEN.length],
         dept: ROLE_DEPT_TO_STAFF[roleDept] ?? "Front Desk",
         shift: SHIFTS[id % SHIFTS.length],

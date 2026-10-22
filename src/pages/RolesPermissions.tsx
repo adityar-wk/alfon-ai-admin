@@ -68,6 +68,14 @@ const MODULE_ICON: Record<ModuleKey, Icon> = {
 type Tab = "roles" | "users";
 type EditTab = "basic" | "members";
 
+const HOTEL_ADMIN = "r-hotel-admin";
+
+function prepareRoles(list: Role[]): Role[] {
+  const fixed = list.map((r) => (r.id === HOTEL_ADMIN ? { ...r, persona: "High Management" as const } : r));
+  const admin = fixed.find((r) => r.id === HOTEL_ADMIN);
+  return admin ? [admin, ...fixed.filter((r) => r.id !== HOTEL_ADMIN)] : fixed;
+}
+
 // week-over-week change in tasks handled, shown per user
 const TREND = [12, 8, 0, -5, 15, 3, 9, 6, 10, 2];
 
@@ -81,14 +89,14 @@ function EditorFrame({ card, children }: { card: boolean; children: React.ReactN
 }
 
 export default function RolesPermissions({ embedded = false }: { embedded?: boolean }) {
-  const [roles, setRoles] = useState<Role[]>(() => STORE.roles);
-  const [users, setUsers] = useState<User[]>(() => STORE.users);
+  const [roles, setRoles] = useState<Role[]>(() => prepareRoles(STORE.roles));
+  const [users, setUsers] = useState<User[]>(() => STORE.users.map((u) => ((u.status as string) === "Deactivated" ? { ...u, status: "Yet to be invited" as const } : u)));
   const [tab, setTab] = useState<Tab>("roles");
-  const [selectedId, setSelectedId] = useState(roles[0].id);
+  const [selectedId, setSelectedId] = useState(() => roles.find((r) => r.id === HOTEL_ADMIN)?.id ?? roles[0].id);
   const [editTab, setEditTab] = useState<EditTab>("basic");
   const [query, setQuery] = useState("");
   const [deptFilter, setDeptFilter] = useState<string>("All");
-  const [draft, setDraft] = useState<Role>(() => structuredClone(roles[0]));
+  const [draft, setDraft] = useState<Role>(() => structuredClone(roles.find((r) => r.id === HOTEL_ADMIN) ?? roles[0]));
   const [creating, setCreating] = useState(false);
   const [newDraft, setNewDraft] = useState<Role>(() => newRole({ name: "" }));
   const [inviteRole, setInviteRole] = useState<string | null>(null);
@@ -123,7 +131,9 @@ export default function RolesPermissions({ embedded = false }: { embedded?: bool
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return roles.filter((r) => (deptFilter === "All" || r.dept === deptFilter || r.crossDepts.includes(deptFilter)) && (!q || `${r.name} ${r.desc}`.toLowerCase().includes(q)));
+    return roles
+      .filter((r) => (deptFilter === "All" || r.dept === deptFilter || r.crossDepts.includes(deptFilter)) && (!q || `${r.name} ${r.desc}`.toLowerCase().includes(q)))
+      .sort((a, b) => (a.id === HOTEL_ADMIN ? -1 : b.id === HOTEL_ADMIN ? 1 : 0));
   }, [roles, query, deptFilter]);
 
   const save = () => {
@@ -151,6 +161,7 @@ export default function RolesPermissions({ embedded = false }: { embedded?: bool
   };
 
   const remove = () => {
+    if (saved.id === HOTEL_ADMIN) return;
     if (countOf(saved.id) > 0) {
       flash(`Reassign the ${countOf(saved.id)} users first`);
       return;
@@ -168,15 +179,17 @@ export default function RolesPermissions({ embedded = false }: { embedded?: bool
   };
 
   const removeUser = (id: number) => {
+    if (users.find((u) => u.id === id)?.roleId === HOTEL_ADMIN) return;
     setUsers((us) => us.filter((u) => u.id !== id));
     flash("Member removed");
   };
 
   const addToRole = (id: number, roleId: string) => {
-    setUsers((us) => us.map((u) => (u.id === id ? { ...u, roleId, status: u.status === "Deactivated" ? "Active" : u.status } : u)));
+    setUsers((us) => us.map((u) => (u.id === id ? { ...u, roleId } : u)));
     flash(`Added to ${roles.find((r) => r.id === roleId)?.name}`);
   };
 
+  const locked = saved.id === HOTEL_ADMIN;
   const set = <K extends keyof Role>(k: K, v: Role[K]) => setDraft((d) => ({ ...d, [k]: v }));
   const setNewField = <K extends keyof Role>(k: K, v: Role[K]) => setNewDraft((d) => ({ ...d, [k]: v }));
   const cfg = DEPT_ICON[draft.dept];
@@ -233,7 +246,11 @@ export default function RolesPermissions({ embedded = false }: { embedded?: bool
                       <button
                         key={r.id}
                         onClick={() => select(r.id)}
-                        className={`flex w-full items-center gap-3 rounded-xl text-left ${embedded ? "px-3 py-2.5" : "px-4 py-5"} ${on ? "bg-brand-tint/60" : "hover:bg-subtle"}`}
+                        className={`flex w-full items-center gap-3 rounded-xl text-left ${embedded ? "px-3 py-2.5" : "px-4 py-5"} ${
+                          r.id === HOTEL_ADMIN
+                            ? on ? "bg-[#E8E8EA]" : "bg-[#F3F3F4] hover:bg-[#E8E8EA]"
+                            : on ? "bg-brand-tint/60" : "hover:bg-subtle"
+                        }`}
                       >
                         <span className="min-w-0 flex-1 truncate text-[14px] font-semibold text-ink">{r.name}</span>
                         <span className="shrink-0 text-[12px] text-ink-secondary">{countOf(r.id)} users</span>
@@ -280,6 +297,8 @@ export default function RolesPermissions({ embedded = false }: { embedded?: bool
                         <p className="truncate text-[13px] text-ink-secondary">{draft.desc || "No description"}</p>
                       </div>
                       <div className="relative">
+                        {!locked && (
+                          <>
                         <button
                           aria-label="Role actions"
                           onClick={() => setActionsOpen((o) => !o)}
@@ -291,6 +310,8 @@ export default function RolesPermissions({ embedded = false }: { embedded?: bool
                           <div className="absolute right-0 top-9 z-20 w-40 rounded-xl border border-line bg-white p-1.5 shadow-lg">
                             <button onClick={() => { setActionsOpen(false); setDeleteOpen(true); }} className="block w-full rounded-control px-3 py-2 text-left text-[13px] text-red-600 hover:bg-red-50">Delete role</button>
                           </div>
+                        )}
+                          </>
                         )}
                       </div>
                     </div>
@@ -309,7 +330,7 @@ export default function RolesPermissions({ embedded = false }: { embedded?: bool
 
                     {editTab === "basic" ? (
                       <div className="pt-5">
-                        <RoleBasicFields draft={draft} set={set} onViewMembers={viewUsers} membersCount={countOf(saved.id)} />
+                        <RoleBasicFields draft={draft} set={set} onViewMembers={viewUsers} membersCount={countOf(saved.id)} locked={locked} />
                       </div>
                     ) : (
                       <RoleMembers
@@ -319,10 +340,11 @@ export default function RolesPermissions({ embedded = false }: { embedded?: bool
                         onRemove={removeUser}
                         onAdd={(id) => addToRole(id, saved.id)}
                         onInviteNew={() => setInviteRole(saved.id)}
+                        canRemove={!locked}
                       />
                     )}
 
-                    <div className={`mt-8 flex items-center justify-end gap-3 ${embedded || editTab === "members" ? "hidden" : ""}`}>
+                    <div className={`mt-8 flex items-center justify-end gap-3 ${embedded || editTab === "members" || locked ? "hidden" : ""}`}>
                       {dirty && <span className="mr-auto text-[12px] text-ink-tertiary">Unsaved changes</span>}
                       <Button variant="outline" onClick={() => { setDraft(structuredClone(saved)); }} disabled={!dirty}>Cancel</Button>
                       <Button onClick={save} disabled={!dirty || !draft.name.trim()} className="disabled:opacity-40">Save Changes</Button>
@@ -360,11 +382,13 @@ export default function RolesPermissions({ embedded = false }: { embedded?: bool
         <InviteUser
           roles={roles}
           defaultRoleId={inviteRole}
+          title="Add member"
+          submitLabel="Add"
           onClose={() => setInviteRole(null)}
           onInvite={(name, email, roleId) => {
-            setUsers((us) => [mkUser(name, email, roleId, roles, us), ...us]);
+            setUsers((us) => [mkUser(name, email, roleId, roles, us, "Yet to be invited"), ...us]);
             setInviteRole(null);
-            flash(`Invitation sent to ${email}`);
+            flash(`${name} added`);
           }}
         />
       )}
@@ -380,7 +404,7 @@ export default function RolesPermissions({ embedded = false }: { embedded?: bool
 
 /* ---------- department multi-select, used in place of a single Department dropdown ---------- */
 
-function DeptMultiSelect({ draft, set }: { draft: Role; set: <K extends keyof Role>(k: K, v: Role[K]) => void }) {
+function DeptMultiSelect({ draft, set, disabled }: { draft: Role; set: <K extends keyof Role>(k: K, v: Role[K]) => void; disabled?: boolean }) {
   const [open, setOpen] = useState(false);
   const selected = new Set<string>([draft.dept, ...draft.crossDepts]);
   const allSelected = DEPARTMENTS.every((d) => selected.has(d));
@@ -413,8 +437,9 @@ function DeptMultiSelect({ draft, set }: { draft: Role; set: <K extends keyof Ro
     <div className="relative">
       <button
         type="button"
-        onClick={() => setOpen((o) => !o)}
-        className="flex h-11 w-full items-center justify-between rounded-control border border-line bg-white px-3.5 text-[14px] text-ink outline-none focus:border-brand"
+        onClick={() => { if (!disabled) setOpen((o) => !o); }}
+        disabled={disabled}
+        className="flex h-11 w-full items-center justify-between rounded-control border border-line bg-white px-3.5 text-[14px] text-ink outline-none focus:border-brand disabled:bg-subtle"
       >
         <span className="truncate">{label}</span>
         <ChevronDown className={`h-4 w-4 shrink-0 text-ink-tertiary transition-transform ${open ? "rotate-180" : ""}`} />
@@ -445,27 +470,28 @@ function DeptMultiSelect({ draft, set }: { draft: Role; set: <K extends keyof Ro
 /* ---------- basic configuration fields, shared by the create and edit flows ---------- */
 
 function RoleBasicFields({
-  draft, set, onViewMembers, membersCount,
+  draft, set, onViewMembers, membersCount, locked = false,
 }: {
   draft: Role;
   set: <K extends keyof Role>(k: K, v: Role[K]) => void;
   onViewMembers?: () => void;
   membersCount?: number;
+  locked?: boolean;
 }) {
   return (
-    <>
+    <div className={locked ? "pointer-events-none opacity-60" : ""}>
       <h3 className="text-[15px] font-semibold text-ink">Role Details</h3>
       <div className="mt-3 grid grid-cols-1 gap-x-6 gap-y-5 md:grid-cols-2">
-        <Field label="Role Name"><Input value={draft.name} onChange={(e) => set("name", e.target.value)} /></Field>
+        <Field label="Role Name"><Input value={draft.name} disabled={locked} onChange={(e) => set("name", e.target.value)} /></Field>
         <Field label="Persona">
-          <Select value={draft.persona} onChange={(e) => set("persona", e.target.value as Role["persona"])}>
+          <Select value={draft.persona} disabled={locked} onChange={(e) => set("persona", e.target.value as Role["persona"])}>
             {PERSONA_TYPES.filter((p) => p !== "Supervisor").map((p) => <option key={p}>{p}</option>)}
           </Select>
         </Field>
-        <Field label="Description"><Textarea rows={3} value={draft.desc} onChange={(e) => set("desc", e.target.value)} /></Field>
+        <Field label="Description"><Textarea rows={3} value={draft.desc} disabled={locked} onChange={(e) => set("desc", e.target.value)} /></Field>
         <div>
           <Field label="Department" hint="Select more than one, or all of them.">
-            <DeptMultiSelect draft={draft} set={set} />
+            <DeptMultiSelect draft={draft} set={set} disabled={locked} />
           </Field>
           {onViewMembers && (
             <button onClick={onViewMembers} className="mt-2 flex w-full items-center justify-end gap-1 text-[12px] font-medium text-brand hover:underline">
@@ -493,20 +519,19 @@ function RoleBasicFields({
                 checked={on}
                 onChange={(e) => set("modules", { ...draft.modules, [m.key]: e.target.checked })}
                 className="h-4 w-4 shrink-0 accent-brand"
+                disabled={locked}
                 aria-label={`${m.label} access`}
               />
             </label>
           );
         })}
       </div>
-    </>
+    </div>
   );
 }
 
-/* ---------- members of a role ---------- */
-
 function RoleMembers({
-  role, members, allUsers, onRemove, onAdd, onInviteNew,
+  role, members, allUsers, onRemove, onAdd, onInviteNew, canRemove = true,
 }: {
   role: Role;
   members: User[];
@@ -514,6 +539,7 @@ function RoleMembers({
   onRemove: (id: number) => void;
   onAdd: (id: number) => void;
   onInviteNew: () => void;
+  canRemove?: boolean;
 }) {
   const [q, setQ] = useState("");
   const query = q.trim().toLowerCase();
@@ -564,14 +590,16 @@ function RoleMembers({
                 <div className="truncate text-[11px] text-ink-tertiary">{u.email}</div>
               </div>
               <span className={`shrink-0 text-[12px] ${u.status === "Active" ? "text-green-600" : u.status === "Invited" ? "text-amber-600" : "text-ink-tertiary"}`}>{u.status}</span>
-              <button
-                onClick={() => onRemove(u.id)}
-                aria-label={`Remove ${u.name}`}
-                title="Remove"
-                className="shrink-0 rounded-md p-1.5 text-ink-tertiary hover:bg-red-50 hover:text-red-600"
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
+              {canRemove && (
+                <button
+                  onClick={() => onRemove(u.id)}
+                  aria-label={`Remove ${u.name}`}
+                  title="Remove"
+                  className="shrink-0 rounded-md p-1.5 text-ink-tertiary hover:bg-red-50 hover:text-red-600"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              )}
             </div>
           ))}
           {!members.length && (
@@ -587,11 +615,11 @@ function RoleMembers({
 
 const PAGE = 10;
 
-function mkUser(name: string, email: string, roleId: string, roles: Role[], users: User[]): User {
+function mkUser(name: string, email: string, roleId: string, roles: Role[], users: User[], status: User["status"] = "Invited"): User {
   const id = Math.max(0, ...users.map((u) => u.id)) + 1;
   const dept = roles.find((r) => r.id === roleId)?.dept ?? "Front Office";
   return {
-    id, name, email, roleId, status: "Invited", last: "—",
+    id, name, email, roleId, status, last: "—",
     dept: ROLE_DEPT_TO_STAFF[dept] ?? "Front Desk", shift: "Morning", task: null, tint: TINTS[id % TINTS.length],
   };
 }
@@ -720,7 +748,7 @@ function UserManagement({
                   <tr
                     key={u.id}
                     onClick={() => setSelectedId(u.id)}
-                    className={`cursor-pointer border-b border-line/50 ${selectedId === u.id ? "bg-brand-tint/40" : "hover:bg-subtle/60"} ${u.status === "Deactivated" ? "opacity-60" : ""}`}
+                    className={`cursor-pointer border-b border-line/50 ${selectedId === u.id ? "bg-brand-tint/40" : "hover:bg-subtle/60"}`}
                   >
                     <td className="py-3.5 pl-6 pr-3">
                       <span className="flex items-center gap-3">
@@ -831,19 +859,19 @@ function Dialog({ title, onClose, children, footer }: { title: string; onClose: 
   );
 }
 
-function InviteUser({ roles, onClose, onInvite, defaultRoleId }: { roles: Role[]; onClose: () => void; onInvite: (name: string, email: string, roleId: string) => void; defaultRoleId?: string }) {
+function InviteUser({ roles, onClose, onInvite, defaultRoleId, title = "Invite user", submitLabel = "Send invite" }: { roles: Role[]; onClose: () => void; onInvite: (name: string, email: string, roleId: string) => void; defaultRoleId?: string; title?: string; submitLabel?: string }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [roleId, setRoleId] = useState(defaultRoleId ?? roles[0].id);
   const ok = name.trim() && /\S+@\S+\.\S+/.test(email);
   return (
     <Dialog
-      title="Invite user"
+      title={title}
       onClose={onClose}
       footer={
         <>
           <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button onClick={() => onInvite(name.trim(), email.trim(), roleId)} disabled={!ok} className="disabled:opacity-40">Send invite</Button>
+          <Button onClick={() => onInvite(name.trim(), email.trim(), roleId)} disabled={!ok} className="disabled:opacity-40">{submitLabel}</Button>
         </>
       }
     >

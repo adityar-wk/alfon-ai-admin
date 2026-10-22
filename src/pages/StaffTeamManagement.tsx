@@ -3,8 +3,9 @@ import { Upload, UserPlus, Download, MoreVertical, Search } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { SetupTabs } from "../components/SetupTabs";
 import { Drawer } from "../components/Drawer";
-import { Page, Button, Field, Input, Select, Modal } from "../components/ui";
+import { Page, Button, Field, Input, Select } from "../components/ui";
 import { useGoNextStep } from "../data/onboarding";
+import { STORE } from "../data/roles";
 import RolesPermissions from "./RolesPermissions";
 
 type Member = {
@@ -96,7 +97,6 @@ export default function StaffTeamManagement() {
   const [query, setQuery] = useState("");
   const [drawer, setDrawer] = useState<DrawerState>(null);
   const [section, setSection] = useState<"users" | "roles">("users");
-  const [leaveOpen, setLeaveOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
   const [fileName, setFileName] = useState<string | null>(null);
@@ -151,7 +151,6 @@ export default function StaffTeamManagement() {
                   <h3 className="text-[16px] font-semibold text-ink">Add your team</h3>
                   <p className="mt-1 text-[13px] text-ink-secondary">Upload a CSV or add people one by one. First name, last name and email is all we need.</p>
                 </div>
-                <Button onClick={() => setDrawer({ mode: "add" })}><UserPlus className="h-4 w-4" /> Add user</Button>
               </div>
 
               <div
@@ -201,9 +200,12 @@ export default function StaffTeamManagement() {
               <div className="mt-8">
                 <h3 className="text-[16px] font-semibold text-ink">Users</h3>
                 <p className="mt-1 text-[13px] text-ink-secondary">{members.length} people on this hotel.</p>
-                <div className="relative mt-4 max-w-sm">
-                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-tertiary" />
-                  <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search name or email" className="pl-9" />
+                <div className="mt-4 flex items-center gap-2">
+                  <div className="relative min-w-0 flex-1">
+                    <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-tertiary" />
+                    <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search name or email" className="pl-9" />
+                  </div>
+                  <Button className="shrink-0" onClick={() => setDrawer({ mode: "add" })}><UserPlus className="h-4 w-4" /> Add user</Button>
                 </div>
                 <div className="mt-4 overflow-x-auto rounded-xl border border-line">
                   <table className="w-full text-left">
@@ -249,7 +251,11 @@ export default function StaffTeamManagement() {
 
           {section === "roles" && (
             <div className="mt-8">
-              <Button onClick={() => setLeaveOpen(true)}>Continue</Button>
+              <Button onClick={() => {
+                STORE.users = STORE.users.map((u) => (u.status === "Yet to be invited" ? { ...u, status: "Invited" } : u));
+                flash("Invites sent");
+                goNext();
+              }}>Send invite</Button>
             </div>
           )}
         </Page>
@@ -271,16 +277,6 @@ export default function StaffTeamManagement() {
             setDrawer(null);
           }}
         />
-      )}
-
-      {leaveOpen && (
-        <Modal title="Continue" onClose={() => setLeaveOpen(false)}>
-          <p className="text-[13px] text-ink-secondary">Email everyone in each role?</p>
-          <div className="mt-4 flex gap-2">
-            <Button className="flex-1" onClick={() => { flash("Invites sent"); goNext(); }}>Send invites</Button>
-            <Button variant="outline" className="flex-1" onClick={goNext}>Skip invites</Button>
-          </div>
-        </Modal>
       )}
 
       {toast && (

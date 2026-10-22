@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { UploadCloud, CheckCircle2, Clock, Trash2 } from "lucide-react";
+import { Upload, Download, CheckCircle2, Clock, Trash2 } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { SetupTabs } from "../components/SetupTabs";
 import { Page, Button } from "../components/ui";
@@ -16,16 +16,32 @@ const SEED: Item[] = [
   { id: 4, name: "Local Attractions Guide.pdf", date: "May 24", status: "Pending" },
 ];
 
+const isDoc = (f: File) => /\.(pdf|csv)$/i.test(f.name) || f.type === "application/pdf" || f.type === "text/csv";
+
+function downloadTemplate() {
+  const blob = new Blob(["Title,Content\nFacilities,Pool hours and gym access\n"], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "knowledge-base-template.csv";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 export default function KnowledgeBaseSetup() {
   const goNext = useGoNextStep(3);
   const [items, setItems] = useState<Item[]>(SEED);
+  const [dragging, setDragging] = useState(false);
+  const [fileName, setFileName] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const onFiles = (files: FileList | null) => {
-    if (!files?.length) return;
+  const onFiles = (files: FileList | File[] | null) => {
+    const picked = Array.from(files ?? []).filter(isDoc);
+    if (!picked.length) return;
     const date = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    setFileName(picked.map((f) => f.name).join(", "));
     setItems((it) => [
-      ...Array.from(files).map((f) => ({
+      ...picked.map((f) => ({
         id: nextId++,
         name: f.name,
         date,
@@ -44,27 +60,48 @@ export default function KnowledgeBaseSetup() {
         <SetupTabs />
 
         <div className="max-w-2xl space-y-5">
-          <input
-            ref={fileRef}
-            type="file"
-            multiple
-            className="hidden"
-            onChange={(e) => onFiles(e.target.files)}
-          />
-          <button
-            type="button"
-            onClick={() => fileRef.current?.click()}
-            onDragOver={(e) => e.preventDefault()}
+          <div
+            onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+            onDragLeave={() => setDragging(false)}
             onDrop={(e) => {
               e.preventDefault();
+              setDragging(false);
               onFiles(e.dataTransfer.files);
             }}
-            className="flex w-full flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[#E5E5E5] px-6 py-10 text-center hover:border-brand/40"
+            className={`flex w-full flex-col items-center justify-center rounded-2xl border-2 border-dashed px-6 py-10 text-center ${dragging ? "border-brand bg-brand-tint/40" : "border-[#E5E5E5]"}`}
           >
-            <UploadCloud className="h-8 w-8 text-ink-tertiary" />
-            <div className="mt-2 font-display text-[16px] font-semibold text-ink">Upload hotel documents</div>
-            <div className="mt-1 text-[14px] text-ink-secondary">PDF, Word, or paste a website URL</div>
-          </button>
+            <Upload className="h-6 w-6 text-ink-tertiary" />
+            <p className="mt-3 text-[14px] font-medium text-ink">Drop your file here</p>
+            <p className="mt-1 text-[12px] text-ink-tertiary">PDF or CSV · up to 10MB</p>
+            <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+              <button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                className="inline-flex h-9 items-center rounded-control border border-line bg-white px-3 text-[13px] font-medium text-ink hover:bg-subtle"
+              >
+                Choose file
+              </button>
+              <button
+                type="button"
+                onClick={downloadTemplate}
+                className="inline-flex h-9 items-center gap-1.5 rounded-control border border-line bg-white px-3 text-[13px] font-medium text-ink hover:bg-subtle"
+              >
+                <Download className="h-3.5 w-3.5" /> Download template
+              </button>
+            </div>
+            {fileName && <p className="mt-3 text-[12px] text-ink-secondary">{fileName}</p>}
+            <input
+              ref={fileRef}
+              type="file"
+              multiple
+              accept=".pdf,.csv,application/pdf,text/csv"
+              className="hidden"
+              onChange={(e) => {
+                onFiles(e.target.files);
+                e.target.value = "";
+              }}
+            />
+          </div>
 
           <div>
             <div className="mb-2 text-[12px] font-semibold uppercase tracking-wide text-ink-secondary">Uploaded Documents</div>
@@ -100,7 +137,6 @@ export default function KnowledgeBaseSetup() {
 
           <div className="flex items-center gap-3">
             <Button onClick={goNext}>Continue →</Button>
-            <Button variant="outline">Save as Draft</Button>
           </div>
         </div>
       </Page>
