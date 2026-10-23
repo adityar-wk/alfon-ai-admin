@@ -12,12 +12,9 @@ function StepCard({ s, status, plain = false }: { s: OnboardingStep; status: Ste
         to={s.to}
         className="group flex flex-col rounded-card border border-line bg-white p-5 shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:border-brand/50 hover:shadow-lift"
       >
-        <div className="flex items-start justify-between gap-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-subtle text-ink-secondary">
-            <Icon className="h-5 w-5" />
-          </span>
-          <span className="text-[13px] font-medium text-ink-tertiary">{s.id}</span>
-        </div>
+        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-subtle text-ink-secondary">
+          <Icon className="h-5 w-5" />
+        </span>
         <h3 className="mt-4 text-[15px] font-semibold text-ink">{s.title}</h3>
         <p className="mt-1 flex-1 text-[13px] leading-snug text-ink-secondary">{s.desc}</p>
         <span className="mt-5 flex items-center gap-1 text-[13px] font-medium text-ink-secondary group-hover:text-brand">

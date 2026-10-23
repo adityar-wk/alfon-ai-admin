@@ -8,7 +8,6 @@ import {
   Smile,
   Heart,
   Users,
-  ArrowRight,
   Minus,
   TrendingDown,
   HeartPulse,
@@ -19,7 +18,6 @@ import {
   ChevronDown,
   Check,
   CheckCircle2,
-  Circle,
   AlertTriangle,
   MoreVertical,
   TrendingUp,
@@ -34,8 +32,7 @@ import Orb from "../components/Orb";
 import { scoreBand } from "../data/scoreBand";
 import { useClock } from "../data/attention";
 import { usePersona } from "../persona";
-import { useOnboardingProgress } from "../data/onboarding";
-import { OnboardingStepsGrid } from "../components/OnboardingSteps";
+import { ONBOARDING_STEPS } from "../data/onboarding";
 
 type Icon = React.ComponentType<{ className?: string }>;
 
@@ -101,50 +98,29 @@ function Spark({ data }: { data: readonly number[] }) {
   );
 }
 
-function OnboardingProgressCard() {
-  const { steps, isDone, currentStep, allDone, percent } = useOnboardingProgress();
-  const r = 44;
-  const c = 2 * Math.PI * r;
+function HotelSetupCard() {
   return (
-    <Card className="flex flex-col p-6">
-      <div className="flex items-center gap-6">
-        <div className="relative h-24 w-24 shrink-0">
-          <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90">
-            <circle cx="50" cy="50" r={r} fill="none" stroke="#F0F0F0" strokeWidth="10" />
-            <circle
-              cx="50" cy="50" r={r} fill="none" stroke="#E8623A" strokeWidth="10" strokeLinecap="round"
-              strokeDasharray={c} strokeDashoffset={c * (1 - percent / 100)}
-            />
-          </svg>
-          <div className="absolute inset-0 flex items-center justify-center text-[20px] font-bold text-ink">{percent}%</div>
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-ink-tertiary">Hotel Setup Progress</div>
-          <div className="mt-1 text-[17px] font-bold leading-snug text-ink">
-            {allDone ? "All set — ready to launch" : `Step ${currentStep.id} of ${steps.length}: ${currentStep.title}`}
-          </div>
-          <p className="mt-1 text-[13px] text-ink-secondary">{allDone ? "Every setup step is complete." : currentStep.desc}</p>
-          {!allDone && (
-            <Link
-              to={currentStep.to}
-              className="mt-3 inline-flex items-center gap-1.5 rounded-control bg-brand px-4 py-2 text-[13px] font-semibold text-white transition-colors duration-200 hover:bg-brand-hover"
-            >
-              Continue Setup <ArrowRight className="h-4 w-4" />
-            </Link>
-          )}
-        </div>
-      </div>
-      <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-1.5 border-t border-line pt-4">
-        {steps.map((s) => {
-          const done = isDone(s.id);
-          const current = s.id === currentStep.id && !allDone;
-          return (
-            <span key={s.id} className={`flex items-center gap-1.5 text-[12px] ${current ? "font-semibold text-brand" : done ? "text-ink-secondary" : "text-ink-tertiary"}`}>
-              {done ? <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-green-500" /> : <Circle className="h-3.5 w-3.5 shrink-0" />}
-              {s.title}
+    <Card className="p-6">
+      <h3 className="font-display text-[16px] font-semibold text-ink">Hotel setup</h3>
+      <p className="mt-1 text-[13px] leading-snug text-ink-secondary">
+        Open a step to set up the hotel.
+      </p>
+      <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        {ONBOARDING_STEPS.map((s) => (
+          <Link
+            key={s.id}
+            to={s.to}
+            className="group flex items-start gap-4 rounded-xl border border-line px-5 py-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-brand/50 hover:shadow-lift"
+          >
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-subtle text-ink-secondary transition-colors group-hover:bg-brand-tint group-hover:text-brand">
+              <s.icon className="h-5 w-5" />
             </span>
-          );
-        })}
+            <div className="min-w-0 pt-0.5">
+              <div className="text-[15px] font-semibold text-ink">{s.title}</div>
+              <p className="mt-1 text-[13px] leading-snug text-ink-secondary">{s.desc}</p>
+            </div>
+          </Link>
+        ))}
       </div>
     </Card>
   );
@@ -289,11 +265,7 @@ export default function Home() {
         <div className="flex flex-col gap-7 px-8 pb-8 pt-7">
         {persona === "hoteladmin" && (
           <>
-            <OnboardingProgressCard />
-            <div>
-              <h3 className="mb-3 font-display text-[16px] font-semibold text-ink">Setup steps</h3>
-              <OnboardingStepsGrid />
-            </div>
+            <HotelSetupCard />
           </>
         )}
         <div className="grid grid-cols-2 gap-5 sm:grid-cols-4">

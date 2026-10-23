@@ -2,12 +2,11 @@ import { Link } from "react-router-dom";
 import { Topbar } from "../components/Topbar";
 import { SetupTabs } from "../components/SetupTabs";
 import { Page, Card, Button } from "../components/ui";
-import { DEPARTMENTS, initials } from "../data/departments";
+import { DEPARTMENTS } from "../data/departments";
 import { deptIcon } from "../data/deptIcons";
 import { useGoNextStep } from "../data/onboarding";
 
 function DeptCard({ d, onboarding }: { d: (typeof DEPARTMENTS)[number]; onboarding: boolean }) {
-  const head = d.members.find((m) => m.role === "Department Head");
   return (
     <Link to={`/departments/${d.slug}${onboarding ? "?from=onboarding" : ""}`} className="block">
       <Card className="h-full p-5 transition-colors hover:border-brand/40">
@@ -20,23 +19,14 @@ function DeptCard({ d, onboarding }: { d: (typeof DEPARTMENTS)[number]; onboardi
           </div>
           <span className="text-[13px] font-medium text-brand">Edit</span>
         </div>
-        <div className="mt-4 space-y-2.5">
-          <div className="flex items-center justify-between text-[13px]">
+        <div className="mt-4 space-y-2.5 text-[13px]">
+          <div className="flex items-center justify-between">
             <span className="text-ink-secondary">Staff Count</span>
             <span className="font-semibold text-ink">{d.members.length}</span>
           </div>
-          <div className="flex items-center justify-between text-[13px]">
-            <span className="text-ink-secondary">Head of Department</span>
-            {head ? (
-              <span className="flex items-center gap-2">
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-subtle text-[10px] font-semibold text-ink-secondary">
-                  {initials(head.name)}
-                </span>
-                <span className="font-medium text-ink">{head.name}</span>
-              </span>
-            ) : (
-              <span className="text-ink-tertiary">—</span>
-            )}
+          <div className="flex items-center justify-between">
+            <span className="text-ink-secondary">Services Count</span>
+            <span className="font-semibold text-ink">{d.services.length}</span>
           </div>
         </div>
       </Card>
