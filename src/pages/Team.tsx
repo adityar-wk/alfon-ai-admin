@@ -10,7 +10,6 @@ import {
   Plus,
   UserRound,
   Lock,
-  Phone,
   CheckCircle2,
 } from "lucide-react";
 import { Topbar } from "../components/Topbar";
@@ -385,11 +384,6 @@ export function StaffDetails({ s, perms, manager }: { s: Staff; perms: Perms; ma
           <div className="mt-1 text-[13px] text-ink-secondary">
             {s.role} • {s.dept}
           </div>
-          {s.phone && (
-            <div className="mt-1 flex items-center gap-1.5 text-[13px] text-ink-secondary">
-              <Phone className="h-3.5 w-3.5 text-ink-tertiary" /> {s.phone}
-            </div>
-          )}
         </div>
       </div>
 

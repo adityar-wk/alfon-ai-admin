@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Lock, Instagram, Facebook, Search, X } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { SetupTabs } from "../components/SetupTabs";
-import { Page, Button, Field, Input, Select } from "../components/ui";
+import { Page, Button, Field, Input, Select, PhoneInput } from "../components/ui";
 import { useGoNextStep } from "../data/onboarding";
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -133,7 +133,7 @@ export default function HotelPropertySetup() {
             <Section title="Contact Information">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <Field label="Phone Number" required>
-                  <Input defaultValue="+1 (305) 555-0123" />
+                  <PhoneInput code="+1" number="305 555 0123" />
                 </Field>
                 <Field label="Email Address" required>
                   <Input defaultValue="info@seaviewhotel.com" />
@@ -159,14 +159,9 @@ export default function HotelPropertySetup() {
             </Section>
 
             <Section title="Preferences">
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <Field label="Time Zone" required hint="Set by Alfon when this hotel was added.">
-                  <Locked value="(GMT-05:00) Eastern Time (US & Canada)" />
-                </Field>
-                <Field label="Date Format" required hint="Set by Alfon when this hotel was added.">
-                  <Locked value="May 24, 2025 (MMM DD, YYYY)" />
-                </Field>
-              </div>
+              <Field label="Time Zone" required hint="Set by Alfon when this hotel was added.">
+                <Locked value="(GMT-05:00) Eastern Time (US & Canada)" />
+              </Field>
             </Section>
           </div>
 

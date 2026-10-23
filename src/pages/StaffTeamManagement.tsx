@@ -3,7 +3,7 @@ import { Upload, UserPlus, Download, MoreVertical, Search } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { SetupTabs } from "../components/SetupTabs";
 import { Drawer } from "../components/Drawer";
-import { Page, Button, Field, Input, Select } from "../components/ui";
+import { Page, Button, Field, Input, Select, Modal } from "../components/ui";
 import { useGoNextStep } from "../data/onboarding";
 import { STORE } from "../data/roles";
 import RolesPermissions from "./RolesPermissions";
@@ -97,6 +97,7 @@ export default function StaffTeamManagement() {
   const [query, setQuery] = useState("");
   const [drawer, setDrawer] = useState<DrawerState>(null);
   const [section, setSection] = useState<"users" | "roles">("users");
+  const [inviteOpen, setInviteOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
   const [fileName, setFileName] = useState<string | null>(null);
@@ -251,15 +252,31 @@ export default function StaffTeamManagement() {
 
           <div className="mt-6 flex justify-end">
             <Button onClick={() => {
-              if (section === "roles") {
-                STORE.users = STORE.users.map((u) => (u.status === "Yet to be invited" ? { ...u, status: "Invited" } : u));
-                flash("Invites sent");
-              }
-              goNext();
+              if (section === "users") setSection("roles");
+              else setInviteOpen(true);
             }}>Continue →</Button>
           </div>
         </Page>
       </div>
+
+      {inviteOpen && (
+        <Modal
+          title="Send email invites"
+          onClose={() => setInviteOpen(false)}
+          footer={
+            <>
+              <Button variant="outline" onClick={() => setInviteOpen(false)}>Back to edit</Button>
+              <Button onClick={() => {
+                STORE.users = STORE.users.map((u) => (u.status === "Yet to be invited" ? { ...u, status: "Invited" } : u));
+                setInviteOpen(false);
+                goNext();
+              }}>Confirm</Button>
+            </>
+          }
+        >
+          <p className="text-[13px] text-ink-secondary">An email invite will be sent to all users.</p>
+        </Modal>
+      )}
 
       {drawer && (
         <MemberDrawer

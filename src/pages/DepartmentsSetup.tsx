@@ -21,11 +21,11 @@ function DeptCard({ d, onboarding }: { d: (typeof DEPARTMENTS)[number]; onboardi
         </div>
         <div className="mt-4 space-y-2.5 text-[13px]">
           <div className="flex items-center justify-between">
-            <span className="text-ink-secondary">Staff Count</span>
+            <span className="text-ink-secondary">Staff Members</span>
             <span className="font-semibold text-ink">{d.members.length}</span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-ink-secondary">Services Count</span>
+            <span className="text-ink-secondary">Services Offered</span>
             <span className="font-semibold text-ink">{d.services.length}</span>
           </div>
         </div>

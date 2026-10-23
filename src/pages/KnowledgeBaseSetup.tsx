@@ -132,8 +132,6 @@ export default function KnowledgeBaseSetup() {
               {!items.length && <p className="py-6 text-center text-[13px] text-ink-tertiary">Nothing added yet.</p>}
             </div>
           </div>
-
-          <p className="text-[12px] text-ink-secondary">Admin reviews content before it goes live to the AI.</p>
         </div>
 
         <div className="mt-6 flex justify-end">
