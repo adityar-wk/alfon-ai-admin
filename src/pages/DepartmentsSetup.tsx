@@ -62,7 +62,7 @@ export default function DepartmentsSetup({ onboarding = false }: { onboarding?: 
         </div>
 
         {onboarding && (
-          <div className="mt-6">
+          <div className="mt-6 flex justify-end">
             <Button onClick={goNext}>Continue →</Button>
           </div>
         )}

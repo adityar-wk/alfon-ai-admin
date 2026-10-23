@@ -433,7 +433,7 @@ export default function RoomsQrSetup({ onboarding = false }: { onboarding?: bool
           </Card>
 
           {onboarding && (
-            <div className="mt-6">
+            <div className="mt-6 flex justify-end">
               <Button onClick={goNext}>Continue →</Button>
             </div>
           )}

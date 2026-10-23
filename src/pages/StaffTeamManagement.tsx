@@ -249,15 +249,15 @@ export default function StaffTeamManagement() {
             </div>
           )}
 
-          {section === "roles" && (
-            <div className="mt-8">
-              <Button onClick={() => {
+          <div className="mt-6 flex justify-end">
+            <Button onClick={() => {
+              if (section === "roles") {
                 STORE.users = STORE.users.map((u) => (u.status === "Yet to be invited" ? { ...u, status: "Invited" } : u));
                 flash("Invites sent");
-                goNext();
-              }}>Send invite</Button>
-            </div>
-          )}
+              }
+              goNext();
+            }}>Continue →</Button>
+          </div>
         </Page>
       </div>
 

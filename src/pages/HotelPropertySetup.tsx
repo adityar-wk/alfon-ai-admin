@@ -170,10 +170,11 @@ export default function HotelPropertySetup() {
             </Section>
           </div>
 
-          <div className="mt-6 flex items-center gap-3">
-            <Button onClick={goNext}>Continue →</Button>
-            <Button variant="outline">Save Draft</Button>
-          </div>
+        </div>
+
+        <div className="mt-6 flex items-center justify-end gap-3">
+          <Button variant="outline">Save Draft</Button>
+          <Button onClick={goNext}>Continue →</Button>
         </div>
       </Page>
     </>

@@ -293,11 +293,11 @@ export default function SlaSetup() {
           </div>
         </Card>
 
-        <div className="mt-6 flex items-center gap-3">
-          <Button onClick={save}>Continue →</Button>
+        <div className="mt-6 flex items-center justify-end gap-3">
           <Button variant="outline" onClick={save}>
             Save as Draft
           </Button>
+          <Button onClick={save}>Continue →</Button>
         </div>
       </Page>
 

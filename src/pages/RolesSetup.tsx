@@ -13,7 +13,7 @@ export default function RolesSetup() {
       <Page>
         <SetupTabs />
         <RolesPermissions embedded />
-        <div className="mt-6">
+        <div className="mt-6 flex justify-end">
           <Button onClick={goNext}>Continue →</Button>
         </div>
       </Page>

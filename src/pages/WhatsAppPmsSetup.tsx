@@ -90,7 +90,7 @@ export default function WhatsAppPmsSetup() {
           </ConnectionCard>
         </div>
 
-        <div className="mt-6 flex items-center gap-3">
+        <div className="mt-6 flex justify-end">
           <Button onClick={goNext}>Continue →</Button>
         </div>
       </Page>

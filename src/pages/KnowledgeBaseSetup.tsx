@@ -134,10 +134,10 @@ export default function KnowledgeBaseSetup() {
           </div>
 
           <p className="text-[12px] text-ink-secondary">Admin reviews content before it goes live to the AI.</p>
+        </div>
 
-          <div className="flex items-center gap-3">
-            <Button onClick={goNext}>Continue →</Button>
-          </div>
+        <div className="mt-6 flex justify-end">
+          <Button onClick={goNext}>Continue →</Button>
         </div>
       </Page>
     </>

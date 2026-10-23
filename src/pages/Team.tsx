@@ -530,25 +530,24 @@ function AccessEditor({ saved }: { saved: Perms }) {
         View only — access levels are managed by Alfon Super Admin.
       </div>
       <div className="overflow-hidden rounded-xl border border-line">
-        <div className="grid grid-cols-[1fr_52px_52px] items-center gap-2 border-b border-line bg-subtle/50 px-3 py-2 text-[11px] font-medium text-ink-secondary">
+        <div className="grid grid-cols-[1fr_72px] items-center gap-2 border-b border-line bg-subtle/50 px-3 py-2 text-[11px] font-medium text-ink-secondary">
           <span>Module</span>
-          <span className="text-center">View</span>
-          <span className="text-center">Edit</span>
+          <span className="text-center">Access</span>
         </div>
-        {MODULES.map((m) => (
-          <div key={m.key} className="grid grid-cols-[1fr_52px_52px] items-center gap-2 border-b border-line/70 px-3 py-2.5 last:border-0">
-            <div className="leading-tight">
-              <div className="text-[13px] font-medium text-ink">{m.label}</div>
-              <div className="text-[11px] text-ink-tertiary">{m.hint}</div>
+        {MODULES.map((m) => {
+          const allowed = saved[m.key].view;
+          return (
+            <div key={m.key} className="grid grid-cols-[1fr_72px] items-center gap-2 border-b border-line/70 px-3 py-2.5 last:border-0">
+              <div className="leading-tight">
+                <div className="text-[13px] font-medium text-ink">{m.label}</div>
+                <div className="text-[11px] text-ink-tertiary">{m.hint}</div>
+              </div>
+              <span className="flex justify-center">
+                <input type="checkbox" aria-label={`${m.label} access`} className="h-4 w-4 accent-ink-tertiary" checked={allowed} disabled readOnly />
+              </span>
             </div>
-            <span className="flex justify-center">
-              <input type="checkbox" aria-label={`${m.label} view`} className="h-4 w-4 accent-ink-tertiary" checked={saved[m.key].view} disabled readOnly />
-            </span>
-            <span className="flex justify-center">
-              <input type="checkbox" aria-label={`${m.label} edit`} className="h-4 w-4 accent-ink-tertiary" checked={saved[m.key].edit} disabled readOnly />
-            </span>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
