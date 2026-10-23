@@ -3,7 +3,7 @@ import { Upload, UserPlus, Download, MoreVertical, Search } from "lucide-react";
 import { Topbar } from "../components/Topbar";
 import { SetupTabs } from "../components/SetupTabs";
 import { Drawer } from "../components/Drawer";
-import { Page, Button, Field, Input, Select, Modal } from "../components/ui";
+import { Page, Button, Field, Input, Modal } from "../components/ui";
 import { useGoNextStep } from "../data/onboarding";
 import { STORE } from "../data/roles";
 import RolesPermissions from "./RolesPermissions";
@@ -16,8 +16,6 @@ type Member = {
   email: string;
   dept: string;
 };
-
-const DEPTS = ["Unassigned", "Housekeeping", "Front Desk", "Engineering", "Guest Services", "F&B", "Concierge", "Operator"];
 
 const SEED: Member[] = [
   { id: 1, first: "Sophia", last: "Carter", email: "sophia.carter@alfonhotel.com", dept: "Unassigned" },
@@ -61,7 +59,6 @@ function MemberDrawer({
   const [first, setFirst] = useState(member?.first ?? "");
   const [last, setLast] = useState(member?.last ?? "");
   const [email, setEmail] = useState(member?.email ?? "");
-  const [dept, setDept] = useState(member?.dept ?? "Unassigned");
   const ready = first.trim() && last.trim();
 
   return (
@@ -71,7 +68,7 @@ function MemberDrawer({
       footer={
         <div className="flex justify-end gap-2">
           <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button disabled={!ready} onClick={() => onSave({ first: first.trim(), last: last.trim(), email: email.trim(), dept })}>
+          <Button disabled={!ready} onClick={() => onSave({ first: first.trim(), last: last.trim(), email: email.trim(), dept: member?.dept ?? "Unassigned" })}>
             {member ? "Save" : "Add user"}
           </Button>
         </div>
@@ -81,11 +78,6 @@ function MemberDrawer({
         <Field label="First name" required><Input autoFocus value={first} onChange={(e) => setFirst(e.target.value)} /></Field>
         <Field label="Last name" required><Input value={last} onChange={(e) => setLast(e.target.value)} /></Field>
         <Field label="Email"><Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} /></Field>
-        <Field label="Department">
-          <Select value={dept} onChange={(e) => setDept(e.target.value)}>
-            {DEPTS.map((d) => <option key={d}>{d}</option>)}
-          </Select>
-        </Field>
       </div>
     </Drawer>
   );
