@@ -112,7 +112,7 @@ export type User = {
   email: string;
   roleId: string;
   /** account state */
-  status: "Active" | "Invited" | "Yet to be invited";
+  status: "Active" | "Invited" | "Invite pending";
   last: string;
   /** working state, shown in the staff table */
   dept: string;
@@ -170,7 +170,7 @@ export function seedUsers(): User[] {
         name: `${f} ${l}`,
         email: `${f}.${l}@alfonhotels.com`.toLowerCase(),
         roleId,
-        status: invited ? "Invited" : id % 5 === 0 ? "Yet to be invited" : "Active",
+        status: invited ? "Invited" : id % 5 === 0 ? "Invite pending" : "Active",
         last: invited ? "—" : LAST_SEEN[id % LAST_SEEN.length],
         dept: ROLE_DEPT_TO_STAFF[roleDept] ?? "Front Desk",
         shift: SHIFTS[id % SHIFTS.length],

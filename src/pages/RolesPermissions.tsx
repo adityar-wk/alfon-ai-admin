@@ -90,7 +90,7 @@ function EditorFrame({ card, children }: { card: boolean; children: React.ReactN
 
 export default function RolesPermissions({ embedded = false }: { embedded?: boolean }) {
   const [roles, setRoles] = useState<Role[]>(() => prepareRoles(STORE.roles));
-  const [users, setUsers] = useState<User[]>(() => STORE.users.map((u) => ((u.status as string) === "Deactivated" ? { ...u, status: "Yet to be invited" as const } : u)));
+  const [users, setUsers] = useState<User[]>(() => STORE.users.map((u) => ((u.status as string) === "Deactivated" || (u.status as string) === "Yet to be invited" ? { ...u, status: "Invite pending" as const } : u)));
   const [tab, setTab] = useState<Tab>("roles");
   const [selectedId, setSelectedId] = useState(() => roles.find((r) => r.id === HOTEL_ADMIN)?.id ?? roles[0].id);
   const [editTab, setEditTab] = useState<EditTab>("basic");
@@ -99,7 +99,6 @@ export default function RolesPermissions({ embedded = false }: { embedded?: bool
   const [draft, setDraft] = useState<Role>(() => structuredClone(roles.find((r) => r.id === HOTEL_ADMIN) ?? roles[0]));
   const [creating, setCreating] = useState(false);
   const [newDraft, setNewDraft] = useState<Role>(() => newRole({ name: "" }));
-  const [inviteRole, setInviteRole] = useState<string | null>(null);
   const [actionsOpen, setActionsOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [userRoleFilter, setUserRoleFilter] = useState("all");
@@ -339,7 +338,6 @@ export default function RolesPermissions({ embedded = false }: { embedded?: bool
                         allUsers={users}
                         onRemove={removeUser}
                         onAdd={(id) => addToRole(id, saved.id)}
-                        onInviteNew={() => setInviteRole(saved.id)}
                         canRemove={!locked}
                       />
                     )}
@@ -376,21 +374,6 @@ export default function RolesPermissions({ embedded = false }: { embedded?: bool
               : `Are you sure you want to delete “${saved.name}”? This can't be undone.`}
           </p>
         </Dialog>
-      )}
-
-      {inviteRole && (
-        <InviteUser
-          roles={roles}
-          defaultRoleId={inviteRole}
-          title="Add member"
-          submitLabel="Add"
-          onClose={() => setInviteRole(null)}
-          onInvite={(name, email, roleId) => {
-            setUsers((us) => [mkUser(name, email, roleId, roles, us, "Yet to be invited"), ...us]);
-            setInviteRole(null);
-            flash(`${name} added`);
-          }}
-        />
       )}
 
       {toast && (
@@ -531,14 +514,13 @@ function RoleBasicFields({
 }
 
 function RoleMembers({
-  role, members, allUsers, onRemove, onAdd, onInviteNew, canRemove = true,
+  role, members, allUsers, onRemove, onAdd, canRemove = true,
 }: {
   role: Role;
   members: User[];
   allUsers: User[];
   onRemove: (id: number) => void;
   onAdd: (id: number) => void;
-  onInviteNew: () => void;
   canRemove?: boolean;
 }) {
   const [q, setQ] = useState("");
@@ -559,7 +541,6 @@ function RoleMembers({
             className="h-10 w-full rounded-control border border-line bg-white pl-9 pr-3 text-[13px] outline-none placeholder:text-ink-tertiary focus:border-brand"
           />
         </div>
-        <Button variant="outline" onClick={onInviteNew}><Plus className="h-4 w-4" /> Add</Button>
       </div>
 
       {searching ? (

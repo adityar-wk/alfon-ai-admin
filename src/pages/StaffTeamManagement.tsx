@@ -259,7 +259,7 @@ export default function StaffTeamManagement() {
             <>
               <Button variant="outline" onClick={() => setInviteOpen(false)}>Back to edit</Button>
               <Button onClick={() => {
-                STORE.users = STORE.users.map((u) => (u.status === "Yet to be invited" ? { ...u, status: "Invited" } : u));
+                STORE.users = STORE.users.map((u) => (u.status === "Invite pending" ? { ...u, status: "Invited" } : u));
                 setInviteOpen(false);
                 goNext();
               }}>Confirm</Button>
