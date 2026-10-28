@@ -15,18 +15,170 @@ import { getDepartment, type DeptMember, type DeptService } from "../data/depart
 import { deptIcon } from "../data/deptIcons";
 
 type SlaRow = { hours247: boolean; hoursStart: string; hoursEnd: string; response: string; resolve: string };
-type Level = { id: number; trigger: string; to: string };
+type Level = { id: number; to: string; minutes: string };
 type ModalState = { mode: "add" } | { mode: "edit"; service: DeptService } | null;
 
 const blankSla = (): SlaRow => ({ hours247: true, hoursStart: "09:00", hoursEnd: "18:00", response: "20", resolve: "90" });
 const hoursLabel = (row: SlaRow) => (row.hours247 ? "Open all day" : `${row.hoursStart} – ${row.hoursEnd}`);
 
 const SEED_LEVELS: Level[] = [
-  { id: 1, trigger: "Escalation", to: "Supervisor" },
-  { id: 2, trigger: "+15 min after Level 1", to: "Department Head" },
-  { id: 3, trigger: "+30 min after Level 2", to: "General Manager" },
+  { id: 1, to: "Supervisor", minutes: "" },
+  { id: 2, to: "Department Head", minutes: "15" },
+  { id: 3, to: "General Manager", minutes: "30" },
 ];
 const freshLevels = (): Level[] => SEED_LEVELS.map((l) => ({ ...l }));
+
+type Area = { id: number; name: string; minutes: string };
+
+const SEED_AREAS: Area[] = [
+  { id: 1, name: "Spa", minutes: "30" },
+  { id: 2, name: "Lobby", minutes: "20" },
+];
+
+function HousekeepingAreas() {
+  const [areas, setAreas] = useState<Area[]>(SEED_AREAS);
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState<Area[]>(SEED_AREAS);
+  const [name, setName] = useState("");
+  const [minutes, setMinutes] = useState("");
+  const [confirming, setConfirming] = useState(false);
+
+  const start = () => {
+    setDraft(areas.map((a) => ({ ...a })));
+    setName("");
+    setMinutes("");
+    setConfirming(false);
+    setEditing(true);
+  };
+
+  const add = () => {
+    const nextName = name.trim();
+    const nextMinutes = minutes.replace(/\D/g, "");
+    if (!nextName || !nextMinutes || Number(nextMinutes) < 1) return;
+    if (draft.some((a) => a.name.toLowerCase() === nextName.toLowerCase())) return;
+    setDraft((list) => [...list, { id: Math.max(0, ...list.map((a) => a.id)) + 1, name: nextName, minutes: nextMinutes }]);
+    setName("");
+    setMinutes("");
+  };
+
+  const timersOk = draft.every((a) => Number(a.minutes) >= 1);
+
+  return (
+    <section className="mt-8 max-w-2xl">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h3 className="text-[16px] font-semibold text-ink">Housekeeping areas</h3>
+          <p className="mt-1 text-[13px] text-ink-secondary">
+            Spaces outside guest rooms, such as the spa or lobby. Each area has one SLA timer, in minutes.
+          </p>
+        </div>
+        {!editing && (
+          <Button variant="outline" className="h-9 shrink-0 px-3" onClick={start}>Change</Button>
+        )}
+      </div>
+
+      {!editing && (
+        <div className="mt-3 divide-y divide-line rounded-xl border border-line">
+          {areas.map((a) => (
+            <div key={a.id} className="flex items-center justify-between gap-3 px-4 py-2.5">
+              <span className="text-[13px] font-medium text-ink">{a.name}</span>
+              <span className="text-[13px] text-ink-secondary">{a.minutes} min</span>
+            </div>
+          ))}
+          {!areas.length && <p className="px-4 py-6 text-center text-[13px] text-ink-tertiary">No areas yet.</p>}
+        </div>
+      )}
+
+      {editing && (
+        <>
+          <div className="mt-3 flex gap-2">
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") add(); }}
+              placeholder="e.g. Spa"
+              aria-label="Area name"
+            />
+            <div className="w-24 shrink-0">
+              <Input
+                inputMode="numeric"
+                aria-label="SLA timer in minutes"
+                value={minutes}
+                onChange={(e) => setMinutes(e.target.value.replace(/\D/g, ""))}
+                onKeyDown={(e) => { if (e.key === "Enter") add(); }}
+                placeholder="min"
+              />
+            </div>
+            <Button
+              variant="outline"
+              className="h-10 shrink-0 px-3"
+              disabled={!name.trim() || !minutes || Number(minutes) < 1}
+              onClick={add}
+            >
+              Add
+            </Button>
+          </div>
+          <div className="mt-3 divide-y divide-line rounded-xl border border-line">
+            {draft.map((a) => (
+              <div key={a.id} className="flex items-center gap-3 px-3 py-2">
+                <span className="min-w-0 flex-1 truncate text-[13px] font-medium text-ink">{a.name}</span>
+                <div className="w-20 shrink-0">
+                  <Input
+                    inputMode="numeric"
+                    aria-label={`${a.name} SLA timer in minutes`}
+                    value={a.minutes}
+                    onChange={(e) => {
+                      const next = e.target.value.replace(/\D/g, "");
+                      setDraft((list) => list.map((x) => (x.id === a.id ? { ...x, minutes: next } : x)));
+                    }}
+                  />
+                </div>
+                <span className="shrink-0 text-[12px] text-ink-tertiary">min</span>
+                <button
+                  type="button"
+                  aria-label={`Remove ${a.name}`}
+                  onClick={() => setDraft((list) => list.filter((x) => x.id !== a.id))}
+                  className="shrink-0 rounded-md p-1 text-ink-tertiary hover:text-red-600"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            ))}
+            {!draft.length && <p className="px-3 py-6 text-center text-[13px] text-ink-tertiary">No areas yet.</p>}
+          </div>
+          <div className="mt-4 flex justify-end gap-2">
+            <Button variant="outline" onClick={() => { setEditing(false); setConfirming(false); }}>Cancel</Button>
+            <Button disabled={!timersOk} className="disabled:opacity-40" onClick={() => setConfirming(true)}>Save</Button>
+          </div>
+        </>
+      )}
+
+      {confirming && (
+        <Modal
+          title="Confirm housekeeping areas"
+          onClose={() => setConfirming(false)}
+          footer={
+            <>
+              <Button variant="outline" onClick={() => setConfirming(false)}>Back to edit</Button>
+              <Button onClick={() => { setAreas(draft.map((a) => ({ ...a }))); setConfirming(false); setEditing(false); }}>Confirm</Button>
+            </>
+          }
+        >
+          <p className="text-[13px] text-ink-secondary">These areas and their SLA timers will be saved.</p>
+          <ul className="mt-3 divide-y divide-line rounded-xl border border-line">
+            {draft.map((a) => (
+              <li key={a.id} className="flex items-center justify-between px-3 py-2 text-[13px]">
+                <span className="font-medium text-ink">{a.name}</span>
+                <span className="text-ink-secondary">{a.minutes} min</span>
+              </li>
+            ))}
+            {!draft.length && <li className="px-3 py-4 text-center text-[13px] text-ink-tertiary">No areas.</li>}
+          </ul>
+        </Modal>
+      )}
+    </section>
+  );
+}
 
 export default function DepartmentDetail() {
   const { slug = "" } = useParams();
@@ -123,6 +275,8 @@ export default function DepartmentDetail() {
             </button>
           </div>
 
+          {dept.slug === "housekeeping" && <HousekeepingAreas />}
+
           <div className="mt-8 grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_300px]">
             <div className="min-w-0">
               <div className="flex items-baseline justify-between">
@@ -185,21 +339,43 @@ export default function DepartmentDetail() {
 
             <div className="lg:border-l lg:border-line lg:pl-8">
               <h3 className="text-[16px] font-semibold text-ink">Escalation path</h3>
-              <p className="mt-1 text-[12px] text-ink-secondary">When a task in {dept.name} misses its time, it moves up this list. Every service uses this path.</p>
+              <p className="mt-1 text-[12px] text-ink-secondary">When a task in {dept.name} misses its time, it moves up this list. Set the role and the minutes between each step. Up to 3 steps.</p>
               <div className="mt-4">
                 {levels.map((l, i) => (
                   <div key={l.id}>
                     <div className="rounded-xl border border-line p-3.5">
                       <div className="flex items-center gap-2">
                         <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-tint text-[11px] font-semibold text-brand">{i + 1}</span>
-                        <span className="min-w-0 flex-1 text-[12px] text-ink-secondary">{l.trigger}</span>
-                        <button
-                          onClick={() => setLevels((ls) => ls.filter((x) => x.id !== l.id))}
-                          className="text-ink-tertiary hover:text-danger"
-                          aria-label={`Remove escalation step ${i + 1}`}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
+                        {i === 0 ? (
+                          <span className="min-w-0 flex-1 text-[12px] text-ink-secondary">When the task misses its time</span>
+                        ) : (
+                          <label className="flex min-w-0 flex-1 items-center gap-2 text-[12px] text-ink-secondary">
+                            After
+                            <span className="w-16 shrink-0">
+                              <Input
+                                inputMode="numeric"
+                                aria-label={`Minutes before step ${i + 1}`}
+                                className="h-8 px-2 text-center"
+                                value={l.minutes}
+                                onChange={(e) => {
+                                  const minutes = e.target.value.replace(/\D/g, "");
+                                  setLevels((ls) => ls.map((x) => (x.id === l.id ? { ...x, minutes } : x)));
+                                }}
+                              />
+                            </span>
+                            min
+                          </label>
+                        )}
+                        {i > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => setLevels((ls) => ls.filter((x) => x.id !== l.id))}
+                            className="shrink-0 rounded-md p-1 text-ink-tertiary hover:bg-red-50 hover:text-red-600"
+                            aria-label={`Remove escalation step ${i + 1}`}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        )}
                       </div>
                       <Select
                         className="mt-3 h-9"
@@ -218,6 +394,25 @@ export default function DepartmentDetail() {
                   </div>
                 ))}
                 {!levels.length && <p className="text-[13px] text-ink-tertiary">No steps on this path.</p>}
+                {levels.length < 3 ? (
+                  <button
+                    type="button"
+                    onClick={() => setLevels((ls) => {
+                      if (ls.length >= 3) return ls;
+                      const id = Math.max(0, ...ls.map((x) => x.id)) + 1;
+                      const to = targets.find((t) => !ls.some((x) => x.to === t)) ?? targets[0] ?? "Supervisor";
+                      return [...ls, { id, to, minutes: "15" }];
+                    })}
+                    className="mt-3 flex items-center gap-1.5 text-[13px] font-medium text-brand"
+                  >
+                    <Plus className="h-4 w-4" /> Add step
+                  </button>
+                ) : (
+                  <button type="button" disabled className="mt-3 flex items-center gap-1.5 text-[13px] font-medium text-ink-tertiary">
+                    <Plus className="h-4 w-4" /> Add step
+                  </button>
+                )}
+                <p className="mt-1 text-[12px] text-ink-tertiary">{levels.length} of 3 steps</p>
               </div>
               <div className="mt-4 flex gap-2.5 rounded-card border border-amber-100 bg-amber-50/60 p-3.5">
                 <Lightbulb className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
