@@ -6,8 +6,8 @@ import { useEffect, useState, type ReactNode } from "react";
 import { AlertCircle, Search, DoorOpen, Signal, Wifi, BatteryFull, ChevronLeft, ChevronDown, X, Clock } from "lucide-react";
 
 /* ============================================================
-   Shared mobile kit — used by the Line Staff, Supervisor and
-   Mid Manager prototypes.
+   Shared mobile kit — used by the Line Staff, Mid Manager,
+   Hotel Admin and Super Admin phone prototypes.
    ============================================================ */
 
 export type Priority = "Low" | "Medium" | "High" | "Critical";

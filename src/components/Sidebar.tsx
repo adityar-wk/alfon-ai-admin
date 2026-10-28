@@ -118,12 +118,13 @@ export function Sidebar() {
 
       <nav className="flex-1 space-y-1 overflow-y-auto px-4 no-scrollbar">
         {nav.map(({ label, to, icon: Icon, badge, match }) => {
+          const dest = persona === "hoteladmin" && to === "/line-staff" ? "/line-staff?tab=hotel" : to;
           const forced = !!match && (Array.isArray(match) ? match : [match]).some((m) => pathname.startsWith(m));
           const count = manager && label === "Tasks" ? escalated : badge;
           return (
             <NavLink
               key={label}
-              to={to}
+              to={dest}
               className={({ isActive }) =>
                 [
                   "flex items-center gap-3 rounded-[10px] px-3.5 py-2.5 text-left transition-all duration-200 hover:-translate-y-px",

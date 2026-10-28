@@ -6,12 +6,14 @@ import { ManagerPrototype } from "../linestaff/manager";
 import { GuestLandingPrototype } from "../linestaff/guestLanding";
 import { GuestLandingGlassPrototype } from "../linestaff/guestLandingGlass";
 import { StaffLoginPrototype } from "../linestaff/staffLogin";
+import { HotelOnboardingPrototype } from "../linestaff/hotelOnboarding";
 
-type Tab = "line" | "manager" | "landing" | "landing-glass" | "signin";
+type Tab = "line" | "manager" | "hotel" | "landing" | "landing-glass" | "signin";
 
 const TABS: { key: Tab; label: string }[] = [
   { key: "line", label: "Line Staff" },
   { key: "manager", label: "Mid Manager" },
+  { key: "hotel", label: "Hotel Admin" },
   { key: "landing", label: "Landing Page" },
   { key: "landing-glass", label: "Landing Page (Glass)" },
   { key: "signin", label: "Sign in" },
@@ -53,6 +55,21 @@ const INFO: Record<Tab, { title: string; blurb: string; flows: string[]; include
     ],
     included: ["Department-only scope", "Reasons required for void / override / GM escalation"],
     excluded: ["Department analytics and SLA trend charts", "Staff performance and Hotel Health Score drill-down", "Reports, SLA / department / role / knowledge-base configuration"],
+  },
+  hotel: {
+    title: "Hotel Admin · Setup",
+    blurb: "The same phone as Line Staff and Mid Manager, for the hotel setup steps. Each step opens full screen, and Continue sits on the bottom edge.",
+    flows: [
+      "Hotel setup lists the same open steps as the web: Hotel Property, Knowledge Base, Users and Roles, Departments & SLA, Rooms & QR, and WhatsApp & PMS",
+      "A step is a row — icon, name, short description, and a chevron — the same list row as More on the other phones",
+      "Hotel Property uses the phone text fields. The hotel name and time zone stay locked",
+      "Knowledge Base is the list of uploaded files. Tap a file to open it on its own screen",
+      "Users lists everyone on the hotel. A role opens its members and the Access checkboxes. Continue asks to confirm email invites",
+      "Departments lists each department and the services under it",
+      "Rooms & QR shows the hotel code and the room list. WhatsApp & PMS shows both connections",
+    ],
+    included: ["Continue is a full-width button at the bottom of every step", "Saving a step opens the next one", "Reset returns to the step list"],
+    excluded: ["Hotel operations — tasks, chats, and the health score stay on the web"],
   },
   landing: {
     title: "Guest Verification Landing",
@@ -118,6 +135,7 @@ export default function LineStaff() {
             {/* remount on tab change so each phone starts fresh */}
             {tab === "line" && <LineStaffPrototype />}
             {tab === "manager" && <ManagerPrototype />}
+            {tab === "hotel" && <HotelOnboardingPrototype />}
             {tab === "landing" && <GuestLandingPrototype />}
             {tab === "landing-glass" && <GuestLandingGlassPrototype />}
             {tab === "signin" && <StaffLoginPrototype />}
