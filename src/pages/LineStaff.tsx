@@ -7,8 +7,9 @@ import { GuestLandingPrototype } from "../linestaff/guestLanding";
 import { GuestLandingGlassPrototype } from "../linestaff/guestLandingGlass";
 import { StaffLoginPrototype } from "../linestaff/staffLogin";
 import { HotelOnboardingPrototype } from "../linestaff/hotelOnboarding";
+import { EmailTemplatesPrototype } from "../linestaff/emailTemplates";
 
-type Tab = "line" | "manager" | "hotel" | "landing" | "landing-glass" | "signin";
+type Tab = "line" | "manager" | "hotel" | "landing" | "landing-glass" | "signin" | "emails";
 
 const TABS: { key: Tab; label: string }[] = [
   { key: "line", label: "Line Staff" },
@@ -17,9 +18,10 @@ const TABS: { key: Tab; label: string }[] = [
   { key: "landing", label: "Landing Page" },
   { key: "landing-glass", label: "Landing Page (Glass)" },
   { key: "signin", label: "Sign in" },
+  { key: "emails", label: "Email Templates" },
 ];
 
-const INFO: Record<Tab, { title: string; blurb: string; flows: string[]; included: string[]; excluded: string[] }> = {
+const INFO: Record<Tab, { title: string; blurb: string; flows: string[]; included: string[]; excluded: string[]; excludedTitle?: string }> = {
   line: {
     title: "Line Staff",
     blurb: "On-the-floor app for housekeeping and other line staff — do the next task, ask for help, create a manual task.",
@@ -94,6 +96,21 @@ const INFO: Record<Tab, { title: string; blurb: string; flows: string[]; include
     included: ["Hotel photo behind the sign-in card"],
     excluded: ["One-time code and biometric sign-in"],
   },
+  emails: {
+    title: "Email Templates",
+    blurb: "The emails ALFON sends for invitations, password resets and one-time codes, shown as they arrive in a phone's inbox.",
+    flows: [
+      "Inbox: the four emails from Team ALFON with subject and preview text. Tap one to open it",
+      "Super Admin invites Hotel Admin: a Role and Property summary, then Accept Invitation",
+      "Hotel Admin invites staff: who sent the invite and the property, then Accept Invitation",
+      "Password reset: Reset Password, with when the link expires",
+      "OTP verification: the 6-digit code, how long it stays valid, and a reminder not to share it",
+      "Sample data / Placeholders switches between filled-in emails and their {{merge fields}}",
+    ],
+    included: ["A copy-this-link fallback under every button", "Phone layout below 620px wide", "Production HTML in emails/templates/ in this repo"],
+    excluded: ["Marketing and newsletter emails", "Guest WhatsApp messages"],
+    excludedTitle: "Not covered",
+  },
   "landing-glass": {
     title: "Guest Verification Landing — Glass",
     blurb: "A glassmorphic take on the same guest verification screen — a frosted, translucent card floating over the full photo background instead of a solid white sheet.",
@@ -139,6 +156,7 @@ export default function LineStaff() {
             {tab === "landing" && <GuestLandingPrototype />}
             {tab === "landing-glass" && <GuestLandingGlassPrototype />}
             {tab === "signin" && <StaffLoginPrototype />}
+            {tab === "emails" && <EmailTemplatesPrototype />}
 
             <div className="space-y-5">
               <div className="rounded-card border border-line bg-white p-5">
@@ -168,7 +186,7 @@ export default function LineStaff() {
                   </ul>
                 </div>
                 <div className="rounded-card border border-line bg-white p-5">
-                  <h3 className="text-[14px] font-semibold text-ink">Not on mobile</h3>
+                  <h3 className="text-[14px] font-semibold text-ink">{info.excludedTitle ?? "Not on mobile"}</h3>
                   <ul className="mt-3 space-y-2">
                     {info.excluded.map((f) => (
                       <li key={f} className="flex items-start gap-2 text-[12px] text-ink-secondary"><X className="mt-0.5 h-3.5 w-3.5 shrink-0 text-ink-tertiary" />{f}</li>
