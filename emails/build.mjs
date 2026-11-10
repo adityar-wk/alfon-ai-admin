@@ -54,21 +54,6 @@ const fallbackLink = (href) => `
   <a href="${href}" target="_blank" style="color:${C.brand};text-decoration:none;word-break:break-all;">${href}</a>
 </p>`;
 
-// Key/value summary card on the warm surface colour, like the setup cards in the app.
-const detailCard = (rows) => `
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
-       style="border-collapse:separate;margin:8px 0 20px;background:${C.surface};border:1px solid ${C.surfaceLine};border-radius:12px;">
-  ${rows
-    .map(
-      ([label, value], i) => `
-  <tr>
-    <td style="padding:14px 18px;${i ? `border-top:1px solid ${C.surfaceLine};` : ""}font-family:${SANS};font-size:12px;line-height:16px;color:${C.muted};text-transform:uppercase;letter-spacing:0.6px;font-weight:600;" width="38%">${label}</td>
-    <td style="padding:14px 18px;${i ? `border-top:1px solid ${C.surfaceLine};` : ""}font-family:${DISPLAY};font-size:14px;line-height:20px;color:${C.ink};font-weight:600;" align="right">${value}</td>
-  </tr>`
-    )
-    .join("")}
-</table>`;
-
 // Small rounded chip, used for expiry times.
 const pill = (html) => `
 <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="border-collapse:separate;margin:24px auto 0;">
@@ -207,16 +192,12 @@ const emails = [
     ...email({
       subject: "You're invited to join ALFON",
       preheader: "Accept your invitation and set up your ALFON account for {{Hotel Name}}.",
-      eyebrow: "Invitation",
-      title: "You're invited to join ALFON",
+      eyebrow: "Hotel Admin invitation",
+      title: "Welcome to ALFON",
       tagline: "Great stays start with you!",
       body: [
         greeting(),
         p(`You've been invited to join ALFON as the <strong style="color:${C.ink};">Hotel Admin</strong> for <strong style="color:${C.ink};">{{Hotel Name}}</strong>.`),
-        detailCard([
-          ["Role", "Hotel Admin"],
-          ["Property", "{{Hotel Name}}"],
-        ]),
         p("To get started, click the button below to accept your invitation and set up your account.", "margin-bottom:0;"),
         button("Accept Invitation", "{{Invitation Link}}"),
         fallbackLink("{{Invitation Link}}"),
@@ -231,16 +212,12 @@ const emails = [
     ...email({
       subject: "You've been invited to join ALFON | {{Hotel Name}}",
       preheader: "{{Hotel Admin Name}} has invited you to join ALFON at {{Hotel Name}}.",
-      eyebrow: "{{Hotel Name}}",
-      title: "You've been invited to join ALFON",
+      eyebrow: "Team invitation",
+      title: "Your team is on ALFON",
       tagline: "Great stays start with you!",
       body: [
         greeting(),
         p(`<strong style="color:${C.ink};">{{Hotel Admin Name}}</strong> has invited you to join ALFON at <strong style="color:${C.ink};">{{Hotel Name}}</strong>.`),
-        detailCard([
-          ["Invited by", "{{Hotel Admin Name}}"],
-          ["Property", "{{Hotel Name}}"],
-        ]),
         p("Accept your invitation using the link below to get started.", "margin-bottom:0;"),
         button("Accept Invitation", "{{Invitation Link}}"),
         fallbackLink("{{Invitation Link}}"),

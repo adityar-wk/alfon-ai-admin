@@ -101,8 +101,8 @@ const INFO: Record<Tab, { title: string; blurb: string; flows: string[]; include
     blurb: "The emails ALFON sends for invitations, password resets and one-time codes, shown as they arrive in a phone's inbox.",
     flows: [
       "Inbox: the four emails from Team ALFON with subject and preview text. Tap one to open it",
-      "Super Admin invites Hotel Admin: a Role and Property summary, then Accept Invitation",
-      "Hotel Admin invites staff: who sent the invite and the property, then Accept Invitation",
+      "Super Admin invites Hotel Admin: the role and property in one line, then Accept Invitation",
+      "Hotel Admin invites staff: who sent the invite and the property in one line, then Accept Invitation",
       "Password reset: Reset Password, with when the link expires",
       "OTP verification: the 6-digit code, how long it stays valid, and a reminder not to share it",
       "Sample data / Placeholders switches between filled-in emails and their {{merge fields}}",
